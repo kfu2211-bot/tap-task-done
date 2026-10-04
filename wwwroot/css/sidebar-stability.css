@@ -1,0 +1,495 @@
+/* Desktop sidebar geometry shared by all authenticated pages.
+   This file intentionally changes sizing only, not colors, typography, or content. */
+@media (min-width: 701px) {
+    :root {
+        --stable-sidebar-width: 190px;
+        --stable-sidebar-header-height: 68px;
+        --stable-sidebar-row-height: 43px;
+    }
+
+    body .sidebar,
+    body .mytasks-sidebar {
+        box-sizing: border-box;
+        width: var(--stable-sidebar-width) !important;
+        min-width: var(--stable-sidebar-width) !important;
+        height: 100vh !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background: #151515 !important;
+        border-right: 1px solid #292929 !important;
+        z-index: 1000 !important;
+    }
+
+    body .sidebar-logo,
+    body .mytasks-logo,
+    body .logo-area,
+    body .brand {
+        box-sizing: border-box;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: var(--stable-sidebar-header-height) !important;
+        min-height: var(--stable-sidebar-header-height) !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 20px !important;
+        gap: 10px !important;
+        color: #ffffff !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    body .sidebar-logo > span,
+    body .mytasks-logo > strong,
+    body .logo-area > span,
+    body .brand-name strong {
+        color: #ffffff !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+    }
+
+    body .mini-logo,
+    body .logo-check,
+    body .mytasks-logo-check,
+    body .logo-circle,
+    body .brand-icon {
+        box-sizing: border-box;
+        width: 34px !important;
+        min-width: 34px !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+        background: #111111 !important;
+        border: 1px solid #454545 !important;
+        color: #ffffff !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        flex-shrink: 0 !important;
+    }
+
+    body .navigation,
+    body .sidebar-navigation,
+    body .sidebar-nav,
+    body .sidebar-menu,
+    body .mytasks-navigation {
+        box-sizing: border-box;
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 12px 9px !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+    }
+
+    body .nav-item,
+    body .sidebar-item,
+    body .mytasks-nav-item,
+    body .sidebar-nav a,
+    body .sidebar-menu a {
+        box-sizing: border-box;
+        width: calc(100% - 18px) !important;
+        min-width: 0 !important;
+        height: var(--stable-sidebar-row-height) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding: 0 14px !important;
+        margin: 0 0 5px 0 !important;
+        border: 1px solid transparent !important;
+        border-radius: 9px !important;
+        color: #999999 !important;
+        text-decoration: none !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        line-height: 1 !important;
+        flex-shrink: 0 !important;
+        transform: none !important;
+    }
+
+    body .nav-item.active,
+    body .sidebar-item.active,
+    body .mytasks-nav-item.active,
+    body .sidebar-nav a.active,
+    body .sidebar-menu a.active {
+        background: #292929 !important;
+        color: #ffffff !important;
+    }
+
+    body .nav-icon,
+    body .sidebar-icon,
+    body .menu-icon,
+    body .mytasks-nav-item > span:first-child {
+        width: 18px !important;
+        min-width: 18px !important;
+        height: 18px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #8f8f8f !important;
+        font-size: 14px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Keep every sidebar label on one line, including Identity Verification. */
+    body .nav-item > span:last-child,
+    body .sidebar-item > span:last-child,
+    body .sidebar-nav a > span:last-child,
+    body .sidebar-menu a > span:last-child {
+        min-width: 0 !important;
+        white-space: nowrap !important;
+        font-size: 11px !important;
+        line-height: 1 !important;
+    }
+
+    body .nav-item.active .nav-icon,
+    body .sidebar-item.active .sidebar-icon,
+    body .mytasks-nav-item.active > span:first-child,
+    body .sidebar-menu a.active .menu-icon {
+        color: #ffffff !important;
+    }
+
+    body .sidebar-user,
+    body .mytasks-user,
+    body .sidebar-account {
+        box-sizing: border-box;
+        position: absolute !important;
+        left: 9px !important;
+        right: 9px !important;
+        bottom: 10px !important;
+        width: calc(100% - 18px) !important;
+        height: 55px !important;
+        min-height: 55px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 9px !important;
+        padding: 7px !important;
+        background: #151515 !important;
+        border: 1px solid #303030 !important;
+        border-radius: 10px !important;
+    }
+
+    body .user-avatar,
+    body .mytasks-avatar,
+    body .account-avatar {
+        width: 35px !important;
+        min-width: 35px !important;
+        height: 35px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+        background: #12382a !important;
+        border: 1px solid #1e7650 !important;
+        color: #25c77d !important;
+        font-size: 10px !important;
+        font-weight: 700 !important;
+    }
+
+    body .main-content,
+    body .mytasks-main {
+        box-sizing: border-box;
+        width: calc(100% - var(--stable-sidebar-width)) !important;
+        margin-left: var(--stable-sidebar-width) !important;
+    }
+}
+
+/* Mobile navigation: the desktop sidebar becomes an off-canvas drawer. */
+@media (max-width: 700px) {
+    html, body { max-width: 100%; overflow-x: hidden; }
+
+    body .sidebar,
+    body .mytasks-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: min(285px, calc(100vw - 52px)) !important;
+        min-width: min(285px, calc(100vw - 52px)) !important;
+        max-width: min(285px, calc(100vw - 52px)) !important;
+        height: 100dvh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        transform: translateX(-105%) !important;
+        transition: transform .22s ease !important;
+        z-index: 6000 !important;
+        box-shadow: 18px 0 45px rgba(0,0,0,.45) !important;
+    }
+
+    body.sidebar-open .sidebar,
+    body.sidebar-open .mytasks-sidebar { transform: translateX(0) !important; }
+
+    body .sidebar-menu,
+    body .sidebar-nav,
+    body .sidebar-navigation,
+    body .navigation,
+    body .mytasks-navigation {
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+        padding: 12px 9px 82px !important;
+    }
+
+    body .sidebar-menu a,
+    body .sidebar-nav a,
+    body .sidebar-navigation a,
+    body .navigation a,
+    body .mytasks-navigation a,
+    body .nav-item,
+    body .sidebar-item,
+    body .mytasks-nav-item {
+        min-height: 44px !important;
+        font-size: 14px !important;
+    }
+
+    body .sidebar-account,
+    body .sidebar-user,
+    body .mytasks-user {
+        position: absolute !important;
+        left: 10px !important;
+        right: 10px !important;
+        bottom: 10px !important;
+        width: calc(100% - 20px) !important;
+    }
+
+    body .main-content,
+    body .mytasks-main,
+    body .settings-layout main {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+
+    body .topbar,
+    body .top-header,
+    body .mytasks-topbar,
+    body .settings-layout header {
+        padding-left: 66px !important;
+        padding-right: 16px !important;
+    }
+
+    #mobileMenuToggle {
+        position: fixed;
+        top: 11px;
+        left: 12px;
+        z-index: 6100;
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border: 1px solid #3c3c3c;
+        border-radius: 9px;
+        background: #171717;
+        color: #f2f2f2;
+        font-size: 21px;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(0,0,0,.3);
+    }
+
+    #mobileMenuOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 5900;
+        display: none;
+        background: rgba(0,0,0,.58);
+        backdrop-filter: blur(2px);
+    }
+
+    body.sidebar-open #mobileMenuOverlay { display: block; }
+    body.sidebar-open { overflow: hidden; }
+}
+
+/* High-specificity fallback for page styles that previously used different sidebar sizes. */
+@media (min-width: 701px) {
+    html body .sidebar,
+    html body .mytasks-sidebar {
+        width: 190px !important;
+        min-width: 190px !important;
+        max-width: 190px !important;
+        height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background: #151515 !important;
+        border-right: 1px solid #292929 !important;
+        overflow: hidden !important;
+    }
+
+    html body .sidebar-logo,
+    html body .mytasks-logo,
+    html body .logo-area,
+    html body .brand {
+        width: 190px !important;
+        height: 68px !important;
+        min-height: 68px !important;
+        padding: 0 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        color: #ffffff !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+    }
+
+    html body .mini-logo,
+    html body .logo-check,
+    html body .mytasks-logo-check,
+    html body .logo-circle,
+    html body .brand-icon {
+        width: 34px !important;
+        min-width: 34px !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+        background: #111111 !important;
+        border: 1px solid #454545 !important;
+        color: #ffffff !important;
+    }
+
+    html body .navigation,
+    html body .sidebar-navigation,
+    html body .sidebar-nav,
+    html body .sidebar-menu,
+    html body .mytasks-navigation {
+        width: 190px !important;
+        padding: 12px 9px !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        padding-bottom: 75px !important;
+    }
+
+    html body .nav-item,
+    html body .sidebar-item,
+    html body .mytasks-nav-item,
+    html body .sidebar-nav a,
+    html body .sidebar-menu a {
+        width: 172px !important;
+        min-width: 172px !important;
+        max-width: 172px !important;
+        height: 43px !important;
+        min-height: 43px !important;
+        margin: 0 0 5px !important;
+        padding: 0 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        border-radius: 9px !important;
+        color: #999999 !important;
+        font-size: 12px !important;
+        line-height: 1 !important;
+    }
+
+    html body .nav-item.active,
+    html body .sidebar-item.active,
+    html body .mytasks-nav-item.active,
+    html body .sidebar-nav a.active,
+    html body .sidebar-menu a.active {
+        background: #292929 !important;
+        color: #ffffff !important;
+    }
+
+    /* Only the current page is highlighted; a hovered row stays visually neutral. */
+    html body .nav-item:not(.active):hover,
+    html body .sidebar-item:not(.active):hover,
+    html body .mytasks-nav-item:not(.active):hover,
+    html body .sidebar-nav a:not(.active):hover,
+    html body .sidebar-menu a:not(.active):hover {
+        background: transparent !important;
+        color: #999999 !important;
+    }
+
+    html body .sidebar-user,
+    html body .mytasks-user,
+    html body .sidebar-account {
+        left: 9px !important;
+        right: 9px !important;
+        bottom: 10px !important;
+        width: 172px !important;
+        height: 55px !important;
+        min-height: 55px !important;
+        padding: 7px !important;
+        gap: 9px !important;
+        background: #151515 !important;
+        border: 1px solid #303030 !important;
+        border-radius: 10px !important;
+    }
+
+    html body .main-content,
+    html body .mytasks-main {
+        width: calc(100% - 190px) !important;
+        margin-left: 190px !important;
+    }
+
+    /* One shared header position and one shared account-card layout. */
+    html body .topbar,
+    html body .top-header,
+    html body .mytasks-topbar {
+        box-sizing: border-box !important;
+        width: 100% !important;
+        height: 68px !important;
+        min-height: 68px !important;
+        max-height: 68px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 34px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid #242424 !important;
+    }
+
+    html body .topbar h1,
+    html body .top-header h1,
+    html body .mytasks-topbar h1 {
+        margin: 0 !important;
+        color: #ffffff !important;
+        font-size: 22px !important;
+        font-weight: 500 !important;
+        line-height: 1 !important;
+    }
+
+    html body .sidebar-user .user-info,
+    html body .sidebar-user .user-details,
+    html body .mytasks-user .mytasks-user-info,
+    html body .sidebar-account .account-details {
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    html body .sidebar-user .user-info strong,
+    html body .sidebar-user .user-details strong,
+    html body .mytasks-user .mytasks-user-info strong,
+    html body .sidebar-account .account-details strong {
+        display: block !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        color: #ffffff !important;
+        font-size: 11px !important;
+        line-height: 14px !important;
+    }
+
+    html body .sidebar-user .user-info span,
+    html body .sidebar-user .user-info small,
+    html body .sidebar-user .user-details span,
+    html body .mytasks-user .mytasks-user-info span,
+    html body .sidebar-account .account-details span {
+        display: block !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        color: #777777 !important;
+        font-size: 9px !important;
+        line-height: 12px !important;
+    }
+}

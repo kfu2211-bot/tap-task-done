@@ -1,0 +1,568 @@
+﻿@page
+@model MyTasksModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Task Details - Tap, Task, Done</title>
+
+    <link rel="stylesheet"
+          href="/css/mytasks.css" asp-append-version="true">
+    <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true">
+    <link rel="stylesheet" href="/css/readability.css" asp-append-version="true">
+    <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+
+</head>
+
+<body>
+
+    <div class="mytasks-app">
+
+
+        <!-- ==========================================
+             SIDEBAR
+        =========================================== -->
+
+        <aside class="mytasks-sidebar">
+
+            <!-- LOGO -->
+
+            <div class="mytasks-logo">
+
+                <div class="mytasks-logo-check">
+                    ✓
+                </div>
+
+                <strong>
+                    Tap, Task, Done
+                </strong>
+
+            </div>
+
+
+            <!-- ==========================================
+                 NAVIGATION
+            =========================================== -->
+
+            <nav class="mytasks-navigation">
+
+
+                <!-- HOME -->
+
+                <a href="/Dashboard"
+                   class="mytasks-nav-item">
+
+                    <span>
+                        ⌂
+                    </span>
+
+                    Home
+
+                </a>
+
+
+                <!-- FIND & POST -->
+
+                <a href="/FindPost"
+                   class="mytasks-nav-item">
+
+                    <span>
+                        ⌕
+                    </span>
+
+                    Find &amp; Post
+
+                </a>
+
+
+                <!-- MY TASKS -->
+
+                <a href="/MyTasks"
+                   class="mytasks-nav-item active">
+
+                    <span>
+                        ▤
+                    </span>
+
+                    My Tasks
+
+                </a>
+
+
+                <!-- MESSAGES -->
+
+                <a href="/Messages"
+                   class="mytasks-nav-item">
+
+                    <span>
+                        □
+                    </span>
+
+                    Messages
+
+                </a>
+
+
+                <!-- IDENTITY VERIFICATION -->
+
+                <a href="/IdentityVerification"
+                   class="mytasks-nav-item">
+
+                    <span>
+                        ✓
+                    </span>
+
+                    Identity Verification
+
+                </a>
+
+
+                <!-- TRACKING -->
+
+                <a href="/Tracking"
+                   class="mytasks-nav-item">
+
+                    <span>
+                        ➤
+                    </span>
+
+                    Tracking
+
+                </a>
+
+
+                <!-- REVIEWS -->
+
+                <a href="/Reviews"
+                   class="mytasks-nav-item">
+
+                    <span>
+                        ☆
+                    </span>
+
+                    Reviews
+
+                </a>
+
+
+            </nav>
+
+
+            <!-- ==========================================
+                 USER
+            =========================================== -->
+
+            <div class="mytasks-user">
+
+                <div class="mytasks-avatar"
+                     id="userAvatar">
+
+                    JD
+
+                </div>
+
+                <div class="mytasks-user-info">
+
+                    <strong id="sidebarName">
+                        User
+                    </strong>
+
+                    <span id="sidebarEmail">
+                        user@email.com
+                    </span>
+
+                </div>
+
+                <button type="button"
+                        id="userMenu"
+                        class="mytasks-user-menu">
+
+                    ⋮
+
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- ==========================================
+             MAIN
+        =========================================== -->
+
+        <main class="mytasks-main">
+
+
+            <!-- TOP BAR -->
+
+            <header class="mytasks-topbar">
+
+                <h1>
+                    Task Details
+                </h1>
+
+                <button type="button"
+                        id="notificationButton"
+                        class="mytasks-notification">
+
+                    ♧
+
+                </button>
+
+            </header>
+
+
+            <!-- CONTENT -->
+
+            <div class="mytasks-content">
+
+                <section class="my-task-list-section">
+                    <div class="my-task-list-heading">
+                        <div>
+                            <h2>My tasks</h2>
+                            <p>Select a task to view its details and status.</p>
+                        </div>
+                        <a href="/FindPost?mode=post">Post another task</a>
+                    </div>
+                    <div id="taskFilters" class="task-filters" aria-label="Filter tasks">
+                        <button type="button" class="selected" data-filter="all">All</button>
+                        <button type="button" data-filter="open">Open</button>
+                        <button type="button" data-filter="active">Active</button>
+                        <button type="button" data-filter="completed">Completed</button>
+                    </div>
+                    <div id="myTaskList" class="my-task-list"></div>
+                </section>
+
+
+                <!-- ======================================
+                     TASK DETAILS + ORDER SUMMARY
+                ======================================= -->
+
+                <div class="details-layout">
+
+
+                    <!-- TASK DETAILS -->
+
+                    <section class="task-details-card">
+
+                        <div class="card-label">
+                            Task details
+                        </div>
+
+
+                        <h2 id="taskTitle">
+                            Fix a Leaky Faucet
+                        </h2>
+
+
+                        <!-- DESCRIPTION -->
+
+                        <div class="task-detail-row">
+
+                            <div class="detail-icon">
+                                ▤
+                            </div>
+
+                            <div class="detail-content">
+
+                                <span>
+                                    Description
+                                </span>
+
+                                <strong id="taskDescription">
+                                    Fix the faucet in the kitchen sink.
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- LOCATION -->
+
+                        <div class="task-detail-row">
+
+                            <div class="detail-icon">
+                                ♧
+                            </div>
+
+                            <div class="detail-content">
+
+                                <span>
+                                    Location name
+                                </span>
+
+                                <strong id="taskLocation">
+                                    123 ABC St, Metro Manila
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- BUDGET -->
+
+                        <div class="task-detail-row">
+
+                            <div class="detail-icon">
+                                ▣
+                            </div>
+
+                            <div class="detail-content">
+
+                                <span>
+                                    Budget
+                                </span>
+
+                                <strong id="taskBudget">
+                                    Php 600.00
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- SCHEDULE -->
+
+                        <div class="task-detail-row last">
+
+                            <div class="detail-icon">
+                                ◷
+                            </div>
+
+                            <div class="detail-content">
+
+                                <span>
+                                    Preferred schedule
+                                </span>
+
+                                <strong id="taskSchedule">
+                                    Today · 2:00 PM - 4:00 PM
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- ==================================
+                         ORDER SUMMARY
+                    =================================== -->
+
+                    <section class="order-summary-card">
+
+                        <h2>
+                            Order summary
+                        </h2>
+
+
+                        <div class="summary-row">
+
+                            <span>
+                                Service fee
+                            </span>
+
+                            <strong id="serviceFee">
+                                ₱600.00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="summary-row">
+
+                            <span>
+                                Platform fee
+                            </span>
+
+                            <strong id="platformFee">
+                                ₱30.00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="summary-divider"></div>
+
+
+                        <div class="summary-total">
+
+                            <span>
+                                Total
+                            </span>
+
+                            <strong id="totalPrice">
+                                ₱630.00
+                            </strong>
+
+                        </div>
+
+
+                        <button type="button"
+                                id="confirmDetailsButton"
+                                class="confirm-details-button">
+
+                            Confirm details
+
+                        </button>
+
+
+                        <p class="summary-note">
+
+                            You won't be charged until the task is completed.
+
+                        </p>
+
+                    </section>
+
+                </div>
+
+
+                <!-- ======================================
+                     ASSIGNED PROVIDER
+                ======================================= -->
+
+                <section class="assigned-provider-card"
+                         id="assignedProviderCard">
+
+                    <h2 id="providerSectionTitle">
+                        Provider assignment
+                    </h2>
+
+                    <p id="providerAssignmentMessage"
+                       class="provider-assignment-message">
+                        Confirm the details first so freelancers can send an offer.
+                    </p>
+
+                    <div id="providerOffers"></div>
+
+
+                    <button type="button"
+                            id="providerButton"
+                            class="provider-row">
+
+
+                        <div class="provider-avatar">
+                            Of
+                        </div>
+
+
+                        <div class="provider-information">
+
+                            <strong id="providerName">
+                                Ofrac­io
+                            </strong>
+
+                            <span>
+
+                                <b>★ 4.8</b>
+
+                                <span id="providerReviews">
+                                    (600 reviews)
+                                </span>
+
+                                ·
+
+                                <span id="providerService">
+                                    Plumber
+                                </span>
+
+                            </span>
+
+                        </div>
+
+
+                        <span class="provider-arrow">
+                            ›
+                        </span>
+
+                    </button>
+
+                </section>
+
+
+                <!-- ======================================
+                     STATUS MESSAGE
+                ======================================= -->
+
+                <div id="taskMessage"
+                     class="task-message">
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- CONFIRM TASK MODAL -->
+    <div id="confirmTaskModal"
+         class="confirm-task-modal hidden"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="confirmTaskModalTitle">
+
+        <div class="confirm-task-dialog">
+            <div class="confirm-task-icon">✓</div>
+
+            <span class="confirm-task-eyebrow">REVIEW BEFORE PUBLISHING</span>
+
+            <h2 id="confirmTaskModalTitle">Ready to publish your task?</h2>
+
+            <p class="confirm-task-description">
+                Review the information below. You can still edit it before making your task visible.
+            </p>
+
+            <div class="confirm-task-summary">
+                <div class="confirm-summary-item">
+                    <span>Task</span>
+                    <strong id="confirmModalTitle">Your task</strong>
+                </div>
+                <div class="confirm-summary-item">
+                    <span>Category</span>
+                    <strong id="confirmModalCategory">Not set</strong>
+                </div>
+                <div class="confirm-summary-item">
+                    <span>Location</span>
+                    <strong id="confirmModalLocation">Not set</strong>
+                </div>
+                <div class="confirm-summary-item">
+                    <span>Budget</span>
+                    <strong id="confirmModalBudget">₱0</strong>
+                </div>
+            </div>
+
+            <p class="confirm-task-note">ⓘ Freelancers can send offers after you publish.</p>
+
+            <div class="confirm-task-actions">
+                <button type="button" id="cancelConfirmTaskButton" class="confirm-task-back">
+                    Back to edit
+                </button>
+                <button type="button" id="submitConfirmTaskButton" class="confirm-task-submit">
+                    Publish task
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="~/js/mytasks.js"></script>
+
+</body>
+
+</html>

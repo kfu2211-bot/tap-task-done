@@ -1,0 +1,980 @@
+﻿/* =========================================================
+   TAP, TASK, DONE
+   REVIEWS PAGE
+   SIZE MATCHED WITH DASHBOARD
+========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('/css/sidebar-stability.css');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+html {
+    background: #080808;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #080808;
+    color: #ffffff;
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   MAIN PAGE
+========================================================= */
+
+.reviews-page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    background: #080808;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   MATCHES DASHBOARD SIZE
+========================================================= */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 190px;
+    min-width: 190px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #151515;
+    border-right: 1px solid #292929;
+    z-index: 1000;
+}
+
+
+/* =========================================================
+   SIDEBAR LOGO
+========================================================= */
+
+.sidebar-logo {
+    height: 68px;
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 10px;
+    border-bottom: 1px solid #292929;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.logo-check {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    border: 1px solid #454545;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   SIDEBAR NAV
+   FIXED / STABLE POSITION
+========================================================= */
+
+.sidebar-nav {
+    padding: 12px 9px;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.nav-item {
+    width: 100%;
+    height: 43px;
+    min-height: 43px;
+    max-height: 43px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    margin: 0 0 5px 0;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: #999999;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: background 0.2s ease, color 0.2s ease;
+    position: relative;
+}
+
+
+    /* =========================================================
+   HOVER
+========================================================= */
+
+    .nav-item:hover {
+        background: #222222;
+        color: #ffffff;
+    }
+
+
+    /* =========================================================
+   ACTIVE
+   SAME SIZE / SAME POSITION
+========================================================= */
+
+    .nav-item.active {
+        background: #292929;
+        color: #ffffff;
+        border: 1px solid transparent;
+        transform: none;
+    }
+
+
+/* =========================================================
+   NAV ICON
+========================================================= */
+
+.nav-icon {
+    width: 18px;
+    min-width: 18px;
+    max-width: 18px;
+    height: 18px;
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8f8f8f;
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.nav-item.active .nav-icon {
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   SIDEBAR USER
+========================================================= */
+
+.sidebar-user {
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    bottom: 10px;
+    height: 55px;
+    min-height: 55px;
+    max-height: 55px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px;
+    background: #151515;
+    border: 1px solid #303030;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+    .sidebar-user:hover {
+        background: #202020;
+        border-color: #444444;
+    }
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    min-width: 35px;
+    min-height: 35px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #12382a;
+    border: 1px solid #1e7650;
+    color: #25c77d;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.user-info {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+    .user-info strong {
+        color: #eeeeee;
+        font-size: 10px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-info span {
+        color: #777777;
+        font-size: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+.user-menu {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: #777777;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.main-content {
+    width: calc(100% - 190px);
+    min-height: 100vh;
+    margin-left: 190px;
+    background: #080808;
+}
+
+
+/* =========================================================
+   TOP HEADER
+   MATCHES DASHBOARD SIZE
+========================================================= */
+
+.top-header {
+    width: 100%;
+    height: 68px;
+    border-bottom: 1px solid #242424;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 34px;
+}
+
+    .top-header h1 {
+        color: #ffffff;
+        font-size: 22px;
+        font-weight: 500;
+        line-height: 1;
+    }
+
+.notification-button {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #303030;
+    border-radius: 50%;
+    background: #101010;
+    color: #888888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+    .notification-button:hover {
+        background: #202020;
+        color: #ffffff;
+    }
+
+
+/* =========================================================
+   REVIEWS CONTENT
+   SAME GENERAL WIDTH AS DASHBOARD
+========================================================= */
+
+.reviews-content {
+    width: min(1200px, calc(100% - 40px));
+    margin: 36px auto 70px;
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+}
+
+
+/* =========================================================
+   RATING SUMMARY
+========================================================= */
+
+.rating-summary {
+    width: 100%;
+    min-height: 526px;
+    background: #171717;
+    border: 1px solid #303030;
+    border-radius: 12px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* =========================================================
+   RATING NUMBER
+========================================================= */
+
+.rating-number {
+    width: 100%;
+    text-align: center;
+    color: #ffffff;
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+
+/* =========================================================
+   STARS
+========================================================= */
+
+.rating-stars {
+    margin-top: 8px;
+    text-align: center;
+    color: #00d9a5;
+    font-size: 17px;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+
+/* =========================================================
+   REVIEW COUNT
+========================================================= */
+
+.reviews-count {
+    margin-top: 7px;
+    text-align: center;
+    color: #a0a0a0;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   DIVIDER
+========================================================= */
+
+.rating-divider {
+    width: 100%;
+    height: 1px;
+    background: #303030;
+    margin: 20px 0 14px 0;
+}
+
+
+/* =========================================================
+   RATING ROW
+========================================================= */
+
+.rating-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 25px 1fr 28px;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 10px;
+}
+
+    .rating-row > span:first-child {
+        color: #c4c4c4;
+        font-size: 11px;
+        line-height: 1;
+    }
+
+.rating-total {
+    color: #b8b8b8;
+    font-size: 10px;
+    text-align: right;
+}
+
+
+/* =========================================================
+   RATING BAR
+========================================================= */
+
+.rating-bar {
+    width: 100%;
+    height: 6px;
+    background: #2a2a2a;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.rating-fill {
+    height: 100%;
+    background: #00d9a5;
+    border-radius: 10px;
+    min-width: 2px;
+}
+
+
+/* =========================================================
+   REVIEWS LIST AREA
+========================================================= */
+
+.reviews-list-area {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+.review-filters {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.filter-button {
+    height: 28px;
+    padding: 0 14px;
+    border: 1px solid #303030;
+    border-radius: 16px;
+    background: #161616;
+    color: #9d9d9d;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+    .filter-button:hover {
+        background: #222222;
+        color: #ffffff;
+    }
+
+    .filter-button.active {
+        background: #eeeeee;
+        border-color: #eeeeee;
+        color: #222222;
+    }
+
+
+/* =========================================================
+   REVIEW CARD
+========================================================= */
+
+.review-card {
+    width: 100%;
+    min-height: 145px;
+    background: #171717;
+    border: 1px solid #303030;
+    border-radius: 12px;
+    padding: 16px 16px 15px 16px;
+    margin-bottom: 12px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+    .review-card:hover {
+        border-color: #3b3b3b;
+        background: #191919;
+    }
+
+
+/* =========================================================
+   REVIEW TOP
+========================================================= */
+
+.review-top {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+
+/* =========================================================
+   REVIEW PERSON
+========================================================= */
+
+.review-person {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.review-avatar {
+    width: 35px;
+    height: 35px;
+    min-width: 35px;
+    border-radius: 50%;
+    background: #292929;
+    border: 1px solid #343434;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.review-person > div:last-child {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.review-person strong {
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.review-person span {
+    color: #999999;
+    font-size: 9px;
+    line-height: 1.2;
+}
+
+
+/* =========================================================
+   DATE
+========================================================= */
+
+.review-top time {
+    color: #a2a2a2;
+    font-size: 8px;
+    white-space: nowrap;
+    padding-top: 3px;
+}
+
+
+/* =========================================================
+   REVIEW RATING
+========================================================= */
+
+.review-rating {
+    width: 100%;
+    margin-top: 11px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: #bdbdbd;
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+.stars {
+    color: #00d9a5;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    line-height: 1;
+}
+
+.review-separator {
+    color: #666666;
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   REVIEW DESCRIPTION
+========================================================= */
+
+.review-card p {
+    width: 100%;
+    margin-top: 10px;
+    color: #bcbcbc;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.empty-review-history {
+    margin: 24px 0;
+    padding: 28px;
+    border: 1px dashed #383838;
+    border-radius: 12px;
+    color: #888888;
+    font-size: 12px;
+    text-align: center;
+}
+
+
+/* =========================================================
+   RESPONSIVE TABLET
+   SAME SIDEBAR SCALE AS DASHBOARD
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .sidebar {
+        width: 190px;
+        min-width: 190px;
+    }
+
+    .main-content {
+        width: calc(100% - 190px);
+        margin-left: 190px;
+    }
+
+    .reviews-content {
+        width: calc(100% - 40px);
+        max-width: none;
+        margin-top: 30px;
+        grid-template-columns: minmax(250px, 0.8fr) minmax(0, 1.2fr);
+        gap: 15px;
+    }
+
+    .rating-summary {
+        width: 100%;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   SAME MOBILE SCALE AS DASHBOARD
+========================================================= */
+
+@media (max-width: 700px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+
+    /* =========================================
+       SIDEBAR
+    ========================================= */
+
+    .sidebar {
+        width: 70px;
+        min-width: 70px;
+    }
+
+    .sidebar-logo {
+        height: 68px;
+        min-height: 68px;
+        justify-content: center;
+        padding: 0;
+    }
+
+        .sidebar-logo > span {
+            display: none;
+        }
+
+    .sidebar-nav {
+        padding: 12px 8px;
+    }
+
+    .nav-item {
+        width: 100%;
+        height: 43px;
+        min-height: 43px;
+        max-height: 43px;
+        justify-content: center;
+        padding: 0;
+        margin-bottom: 5px;
+    }
+
+        .nav-item > span:not(.nav-icon) {
+            display: none;
+        }
+
+    .nav-icon {
+        width: 18px;
+        min-width: 18px;
+        max-width: 18px;
+        height: 18px;
+        min-height: 18px;
+    }
+
+    .sidebar-user {
+        left: 8px;
+        right: 8px;
+        justify-content: center;
+        padding: 7px;
+    }
+
+    .user-info,
+    .user-menu {
+        display: none;
+    }
+
+
+    /* =========================================
+       MAIN
+    ========================================= */
+
+    .main-content {
+        width: calc(100% - 70px);
+        margin-left: 70px;
+        min-height: 100vh;
+    }
+
+
+    /* =========================================
+       HEADER
+    ========================================= */
+
+    .top-header {
+        height: 60px;
+        padding: 0 15px;
+    }
+
+        .top-header h1 {
+            font-size: 19px;
+        }
+
+    .notification-button {
+        width: 34px;
+        height: 34px;
+    }
+
+
+    /* =========================================
+       REVIEWS GRID
+    ========================================= */
+
+    .reviews-content {
+        width: calc(100% - 24px);
+        max-width: none;
+        margin: 18px auto 45px;
+        padding: 0;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+
+    /* =========================================
+       RATING SUMMARY
+    ========================================= */
+
+    .rating-summary {
+        width: 100%;
+        min-height: auto;
+        border-radius: 12px;
+        padding: 22px 18px;
+    }
+
+    .rating-number {
+        font-size: 40px;
+    }
+
+    .rating-stars {
+        font-size: 16px;
+    }
+
+    .reviews-count {
+        font-size: 10px;
+    }
+
+
+    /* =========================================
+       FILTERS
+    ========================================= */
+
+    .review-filters {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+    }
+
+        .review-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+    .filter-button {
+        flex-shrink: 0;
+        height: 30px;
+        padding: 0 14px;
+        font-size: 10px;
+    }
+
+
+    /* =========================================
+       REVIEW CARDS
+    ========================================= */
+
+    .review-card {
+        min-height: 0;
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+
+    .review-avatar {
+        width: 35px;
+        height: 35px;
+        min-width: 35px;
+    }
+
+    .review-person strong {
+        font-size: 11px;
+    }
+
+    .review-person span {
+        font-size: 9px;
+    }
+
+    .review-top time {
+        font-size: 8px;
+    }
+
+    .review-rating {
+        font-size: 9px;
+        margin-top: 10px;
+    }
+
+    .stars {
+        font-size: 13px;
+    }
+
+    .review-card p {
+        font-size: 10px;
+        line-height: 1.6;
+    }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .content {
+        width: calc(100% - 18px);
+    }
+
+    .top-header {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .reviews-content {
+        width: calc(100% - 18px);
+        margin-top: 18px;
+        gap: 12px;
+    }
+
+    .rating-summary {
+        padding: 20px 15px;
+    }
+
+    .rating-number {
+        font-size: 37px;
+    }
+
+    .rating-stars {
+        font-size: 15px;
+    }
+
+    .review-card {
+        padding: 14px;
+    }
+
+    .review-top {
+        gap: 8px;
+    }
+
+    .review-card p {
+        font-size: 9px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+   SAME AS DASHBOARD
+========================================================= */
+
+@media (max-width: 360px) {
+
+    .sidebar {
+        width: 58px;
+        min-width: 58px;
+    }
+
+    .main-content {
+        width: calc(100% - 58px);
+        margin-left: 58px;
+    }
+
+    .top-header {
+        padding: 0 10px;
+    }
+
+        .top-header h1 {
+            font-size: 17px;
+        }
+
+    .reviews-content {
+        width: calc(100% - 14px);
+    }
+
+    .rating-summary {
+        padding: 18px 13px;
+    }
+
+    .rating-number {
+        font-size: 34px;
+    }
+
+    .review-card {
+        padding: 13px;
+    }
+
+    .review-person strong {
+        font-size: 10px;
+    }
+
+    .review-person span {
+        font-size: 8px;
+    }
+
+    .review-card p {
+        font-size: 8.5px;
+    }
+}

@@ -1,0 +1,486 @@
+﻿    @page
+    @model IndexModel
+
+    @{
+        Layout = null;
+    }
+
+    <!DOCTYPE html>
+
+    <html lang="en">
+
+    <head>
+
+        <meta charset="utf-8" />
+
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.0" />
+
+        <title>Create an Account - Tap, Task, Done</title>
+
+        <link rel="stylesheet"
+              href="/css/site.css" asp-append-version="true" />
+
+    </head>
+
+
+    <body>
+
+        <div class="page">
+
+            <!-- ================================= -->
+            <!-- LEFT SIDE -->
+            <!-- ================================= -->
+
+            <div class="left-side">
+
+                <div class="logo">
+
+                    <div class="logo-circle">
+                        ✓
+                    </div>
+
+                    <span>
+                        Tap, Task, Done
+                    </span>
+
+                </div>
+
+
+                <div class="left-content">
+
+                    <div class="badge">
+                        ✦ TRUSTED LOCAL PROS, ON DEMAND
+                    </div>
+
+                    <h2>
+                        Local help is just<br />
+                        a few <em>taps away.</em>
+                    </h2>
+
+                    <p>
+                        From home repairs to cleaning and moving, find trusted
+                        local pros, book with confidence, and get it done.
+                    </p>
+
+
+                    <div class="feature">
+
+                        <div class="feature-icon">
+                            ☆
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Trusted local pros
+                            </strong>
+
+                            <small>
+                                Verified profiles and real reviews
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="feature">
+
+                        <div class="feature-icon">
+                            ◉
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Simple task booking
+                            </strong>
+
+                            <small>
+                                Post once and receive offers quickly
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="copyright">
+                    © 2026 Tap, Task, Done. All rights reserved.
+                </div>
+
+            </div>
+
+
+
+            <!-- ================================= -->
+            <!-- RIGHT SIDE -->
+            <!-- ================================= -->
+
+            <div class="right-side">
+
+                <div class="register-box">
+
+
+                    <div class="signup-eyebrow">JOIN THE COMMUNITY</div>
+
+                    <h1>
+                        Create an Account
+                    </h1>
+
+                    <p class="signup-subtitle">Start finding trusted local help today.</p>
+
+
+                    <form id="registerForm">
+
+                        <!-- NAME -->
+
+                        <div class="form-group">
+
+                            <label>
+                                NAME
+                            </label>
+
+                            <input type="text"
+                                   id="name"
+                                   placeholder="Your full name"
+                                   autocomplete="name"
+                                   required />
+
+                        </div>
+
+
+                        <!-- EMAIL -->
+
+                        <div class="form-group">
+
+                            <label>
+                                EMAIL
+                            </label>
+
+                            <input type="email"
+                                   id="email"
+                                   placeholder="you@example.com"
+                                   autocomplete="email"
+                                   required />
+
+                        </div>
+
+
+                   
+                        <!-- PASSWORD -->
+
+                        <div class="form-group password-group">
+
+                            <label>PASSWORD</label>
+
+                            <div class="password-input-wrapper">
+
+                                <input type="password"
+                                       id="password"
+                                       placeholder="Create a strong password"
+                                       autocomplete="new-password"
+                                       required
+                                       minlength="8" />
+
+                                <div id="passwordPopup"
+                                     class="password-popup">
+
+                                    <div class="password-popup-title">
+                                        Password requirements
+                                    </div>
+
+                                    <div id="ruleLength" class="password-rule">
+                                        <span>○</span>
+                                        At least 8 characters
+                                    </div>
+
+                                    <div id="ruleUpper" class="password-rule">
+                                        <span>○</span>
+                                        One uppercase letter
+                                    </div>
+
+                                    <div id="ruleLower" class="password-rule">
+                                        <span>○</span>
+                                        One lowercase letter
+                                    </div>
+
+                                    <div id="ruleNumber" class="password-rule">
+                                        <span>○</span>
+                                        One number
+                                    </div>
+
+                                    <div id="ruleSpecial" class="password-rule">
+                                        <span>○</span>
+                                        One special character
+                                    </div>
+
+                                    <div id="strengthText"
+                                         class="password-strength-text">
+                                        Enter a strong password
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- DATE OF BIRTH -->
+
+                        <div class="form-group">
+
+                            <label>
+                                DATE OF BIRTH
+                            </label>
+
+
+                            <div class="date-row">
+
+                                <!-- MONTH -->
+
+                                <div class="custom-dropdown"
+                                     id="monthDropdown">
+
+                                    <button type="button"
+                                            class="dropdown-button">
+
+                                        <span>
+                                            Month
+                                        </span>
+
+                                        <span class="arrow">
+                                            ⌄
+                                        </span>
+
+                                    </button>
+
+
+                                    <div class="dropdown-menu">
+
+                                        <div class="dropdown-option"
+                                             data-value="1">
+                                            January
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="2">
+                                            February
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="3">
+                                            March
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="4">
+                                            April
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="5">
+                                            May
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="6">
+                                            June
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="7">
+                                            July
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="8">
+                                            August
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="9">
+                                            September
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="10">
+                                            October
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="11">
+                                            November
+                                        </div>
+
+                                        <div class="dropdown-option"
+                                             data-value="12">
+                                            December
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- DAY -->
+
+                                <div class="custom-dropdown"
+                                     id="dayDropdown">
+
+                                    <button type="button"
+                                            class="dropdown-button">
+
+                                        <span>
+                                            Day
+                                        </span>
+
+                                        <span class="arrow">
+                                            ⌄
+                                        </span>
+
+                                    </button>
+
+
+                                    <div class="dropdown-menu">
+
+                                        <div class="dropdown-option" data-value="1">1</div>
+                                        <div class="dropdown-option" data-value="2">2</div>
+                                        <div class="dropdown-option" data-value="3">3</div>
+                                        <div class="dropdown-option" data-value="4">4</div>
+                                        <div class="dropdown-option" data-value="5">5</div>
+                                        <div class="dropdown-option" data-value="6">6</div>
+                                        <div class="dropdown-option" data-value="7">7</div>
+                                        <div class="dropdown-option" data-value="8">8</div>
+                                        <div class="dropdown-option" data-value="9">9</div>
+                                        <div class="dropdown-option" data-value="10">10</div>
+                                        <div class="dropdown-option" data-value="11">11</div>
+                                        <div class="dropdown-option" data-value="12">12</div>
+                                        <div class="dropdown-option" data-value="13">13</div>
+                                        <div class="dropdown-option" data-value="14">14</div>
+                                        <div class="dropdown-option" data-value="15">15</div>
+                                        <div class="dropdown-option" data-value="16">16</div>
+                                        <div class="dropdown-option" data-value="17">17</div>
+                                        <div class="dropdown-option" data-value="18">18</div>
+                                        <div class="dropdown-option" data-value="19">19</div>
+                                        <div class="dropdown-option" data-value="20">20</div>
+                                        <div class="dropdown-option" data-value="21">21</div>
+                                        <div class="dropdown-option" data-value="22">22</div>
+                                        <div class="dropdown-option" data-value="23">23</div>
+                                        <div class="dropdown-option" data-value="24">24</div>
+                                        <div class="dropdown-option" data-value="25">25</div>
+                                        <div class="dropdown-option" data-value="26">26</div>
+                                        <div class="dropdown-option" data-value="27">27</div>
+                                        <div class="dropdown-option" data-value="28">28</div>
+                                        <div class="dropdown-option" data-value="29">29</div>
+                                        <div class="dropdown-option" data-value="30">30</div>
+                                        <div class="dropdown-option" data-value="31">31</div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- YEAR -->
+
+                                <div class="custom-dropdown"
+                                     id="yearDropdown">
+
+                                    <button type="button"
+                                            class="dropdown-button">
+
+                                        <span>
+                                            Year
+                                        </span>
+
+                                        <span class="arrow">
+                                            ⌄
+                                        </span>
+
+                                    </button>
+
+
+                                    <div class="dropdown-menu"
+                                         id="yearOptions">
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- SIGN UP -->
+
+                        <button type="submit"
+                                class="signup-button">
+
+                            Create account <span>→</span>
+
+                        </button>
+
+                    </form>
+
+                    <div class="already">
+                        Already have an account?
+                        <a href="/Login">Log in</a>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- SUCCESS POPUP -->
+
+        <div id="successOverlay" class="success-overlay">
+
+            <div class="success-card">
+
+                <div class="success-icon">
+                    ✓
+                </div>
+
+                <h2>
+                    You're all set
+                </h2>
+
+                <p>
+                    Congratulations, your account has been
+                    successfully created. Let's find your first task.
+                </p>
+
+                <button type="button"
+                        id="continueButton">
+
+                    Continue
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <script src="~/js/site.js"></script>
+        <script>
+            (function () {
+                const isAppleMobile =
+                    /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+                if (isAppleMobile) {
+                    document.documentElement.classList.add("apple-mobile");
+                }
+            })();
+        </script>
+
+    </body>
+
+    </html>

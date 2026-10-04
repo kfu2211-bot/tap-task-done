@@ -1,0 +1,1778 @@
+﻿/* =========================================================
+   TAP, TASK, DONE
+   FIND & POST — STABLE LAYOUT
+   DASHBOARD SHELL MATCH
+========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('/css/sidebar-stability.css');
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
+html {
+    overflow-y: scroll;
+}
+
+body {
+    background: #090909;
+    color: #eeeeee;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   APP SHELL
+========================================================= */
+
+.app-shell {
+    width: 100%;
+    min-height: 100vh;
+    background: #090909;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   EXACT DASHBOARD DIMENSIONS
+========================================================= */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 190px;
+    min-width: 190px;
+    max-width: 190px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #151515;
+    border-right: 1px solid #292929;
+    z-index: 1000;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.sidebar-logo {
+    width: 190px;
+    height: 68px;
+    min-height: 68px;
+    max-height: 68px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 10px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.logo-check {
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    max-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #111111;
+    border: 1px solid #454545;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   SIDEBAR NAVIGATION
+   EXACT DASHBOARD DIMENSIONS
+========================================================= */
+
+.sidebar-navigation {
+    width: 190px;
+    padding: 12px 9px;
+    flex-shrink: 0;
+}
+
+.sidebar-item {
+    width: 172px;
+    height: 43px;
+    min-height: 43px;
+    max-height: 43px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    margin: 0 0 5px 0;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: #999999;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    flex-shrink: 0;
+    position: relative;
+    transform: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+    .sidebar-item:hover {
+        background: #222222;
+        color: #ffffff;
+    }
+
+    .sidebar-item.active {
+        width: 172px;
+        height: 43px;
+        min-height: 43px;
+        max-height: 43px;
+        margin: 0 0 5px 0;
+        padding: 0 14px;
+        background: #292929;
+        color: #ffffff;
+        border: 1px solid transparent;
+        transform: none;
+    }
+
+
+/* =========================================================
+   SIDEBAR ICON
+========================================================= */
+
+.sidebar-icon {
+    width: 18px;
+    min-width: 18px;
+    max-width: 18px;
+    height: 18px;
+    min-height: 18px;
+    max-height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8f8f8f;
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.sidebar-item.active .sidebar-icon {
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   SIDEBAR USER
+   EXACT DASHBOARD POSITION / SIZE
+========================================================= */
+
+.sidebar-user {
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    bottom: 10px;
+    width: 172px;
+    height: 55px;
+    min-height: 55px;
+    max-height: 55px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px;
+    background: #151515;
+    border: 1px solid #303030;
+    border-radius: 10px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.user-avatar {
+    width: 35px;
+    min-width: 35px;
+    max-width: 35px;
+    height: 35px;
+    min-height: 35px;
+    max-height: 35px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #12382a;
+    border: 1px solid #1e7650;
+    color: #25c77d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.user-details {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+    .user-details strong {
+        color: #eeeeee;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: normal;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-details span {
+        color: #777777;
+        font-size: 8px;
+        line-height: normal;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+.user-more {
+    width: 18px;
+    min-width: 18px;
+    max-width: 18px;
+    height: 24px;
+    min-height: 24px;
+    max-height: 24px;
+    border: none;
+    padding: 0;
+    background: transparent;
+    color: #777777;
+    font-size: 15px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   MAIN AREA
+   EXACT DASHBOARD OFFSET
+========================================================= */
+
+.main-area {
+    width: calc(100% - 190px);
+    min-width: 0;
+    min-height: 100vh;
+    margin-left: 190px;
+    background: #090909;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   TOP BAR
+   EXACT DASHBOARD HEIGHT / POSITION
+========================================================= */
+
+.topbar {
+    width: 100%;
+    height: 68px;
+    min-height: 68px;
+    max-height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 34px;
+    background: #090909;
+    border-bottom: 1px solid #242424;
+    flex-shrink: 0;
+}
+
+    .topbar h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 500;
+        color: #ededed;
+    }
+
+.notification-button {
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    border-radius: 50%;
+    border: 1px solid #303030;
+    background: #101010;
+    color: #888888;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   PAGE CONTENT
+   SAME DASHBOARD CONTENT OFFSET
+========================================================= */
+
+.page-content {
+    width: min(915px, calc(100% - 50px));
+    min-width: 0;
+    margin: 36px auto 70px;
+}
+
+
+/* =========================================================
+   MODE SWITCHER
+========================================================= */
+
+.mode-switcher {
+    width: 390px;
+    height: 42px;
+    min-height: 42px;
+    max-height: 42px;
+    margin-bottom: 20px;
+    padding: 4px;
+    border: 1px solid #272727;
+    border-radius: 21px;
+    background: #121212;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mode-button {
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 16px;
+    background: transparent;
+    color: #777777;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+    .mode-button:hover {
+        color: #dddddd;
+    }
+
+    .mode-button.active {
+        height: 32px;
+        min-height: 32px;
+        max-height: 32px;
+        background: #eeeeee;
+        color: #151515;
+        box-shadow: 0 0 0 1px #d7d7d7;
+    }
+
+    .mode-button span {
+        font-size: 15px;
+    }
+
+
+/* =========================================================
+   FIND LAYOUT
+========================================================= */
+
+.find-layout {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+
+/* =========================================================
+   FILTER PANEL
+========================================================= */
+
+.filter-panel {
+    width: 260px;
+    min-height: 400px;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #292929;
+    background: #171717;
+}
+
+.filter-group {
+    margin-bottom: 20px;
+}
+
+    .filter-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #8a8a8a;
+        font-size: 12px;
+    }
+
+.input-wrapper {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #292929;
+    border-radius: 10px;
+    background: #080808;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .input-wrapper > span {
+        color: #777777;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        min-width: 0;
+        height: 100%;
+        padding: 0;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: #dddddd;
+        font-family: inherit;
+        font-size: 12px;
+    }
+
+        .input-wrapper input::placeholder {
+            color: #666666;
+        }
+
+
+/* =========================================================
+   SEARCH BUTTON
+========================================================= */
+
+.search-button {
+    width: 100%;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    margin-top: 3px;
+    border: none;
+    border-radius: 18px;
+    background: #eeeeee;
+    color: #171717;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    cursor: pointer;
+}
+
+    .search-button:hover {
+        background: #ffffff;
+    }
+
+    .search-button:active {
+        transform: translateY(1px);
+    }
+
+
+/* =========================================================
+   RESULTS AREA
+========================================================= */
+
+.results-area {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* =========================================================
+   CURRENT TASK
+========================================================= */
+
+.current-task-card {
+    width: 100%;
+    min-height: 125px;
+    padding: 15px;
+    border: 1px solid #292929;
+    border-radius: 12px;
+    background: #171717;
+    margin-bottom: 20px;
+}
+
+.current-task-header {
+    height: 25px;
+    min-height: 25px;
+    max-height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+    .current-task-header strong {
+        color: #eeeeee;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+.task-status {
+    height: 25px;
+    min-height: 25px;
+    max-height: 25px;
+    padding: 0 12px;
+    border-radius: 13px;
+    background: #202020;
+    color: #eeeeee;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+}
+
+    .task-status.accepted {
+        color: #19bd7a;
+        background: #102d23;
+    }
+
+    .task-status.declined {
+        color: #d06d6d;
+        background: #2e1515;
+    }
+
+.current-task-content {
+    min-height: 65px;
+    margin-top: 7px;
+    padding: 13px;
+    border-radius: 9px;
+    background: #252525;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.task-information {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+    .task-information strong {
+        color: #eeeeee;
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+
+    .task-information span {
+        color: #777777;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+.task-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+}
+
+.decline-button,
+.accept-button {
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.decline-button {
+    border: 1px solid #383838;
+    background: #151515;
+    color: #cccccc;
+}
+
+    .decline-button:hover {
+        background: #1f1f1f;
+    }
+
+.accept-button {
+    border: 1px solid #e7e7e7;
+    background: #eeeeee;
+    color: #151515;
+}
+
+    .accept-button:hover {
+        background: #ffffff;
+    }
+
+
+/* =========================================================
+   FREELANCERS SECTION
+========================================================= */
+
+.freelancers-section {
+    width: 100%;
+}
+
+.section-heading {
+    height: 30px;
+    min-height: 30px;
+    max-height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+    .section-heading h2 {
+        margin: 0;
+        color: #eeeeee;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+
+/* =========================================================
+   FREELANCER LIST
+========================================================= */
+
+.freelancer-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.freelancer-card {
+    width: 100%;
+    min-height: 64px;
+    padding: 0 15px;
+    border: 1px solid #292929;
+    border-radius: 10px;
+    background: #151515;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+    .freelancer-card:hover {
+        background: #1b1b1b;
+        border-color: #363636;
+    }
+
+
+/* =========================================================
+   FREELANCER LEFT
+========================================================= */
+
+.freelancer-left {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.freelancer-avatar {
+    width: 38px;
+    min-width: 38px;
+    max-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    max-height: 38px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #343434;
+    color: #eeeeee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.freelancer-info {
+    display: flex;
+    flex-direction: column;
+}
+
+    .freelancer-info strong {
+        color: #eeeeee;
+        font-size: 13px;
+        line-height: 18px;
+    }
+
+    .freelancer-info span {
+        color: #777777;
+        font-size: 10px;
+        line-height: 15px;
+    }
+
+
+/* =========================================================
+   FREELANCER RIGHT
+========================================================= */
+
+.freelancer-right {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    flex-shrink: 0;
+}
+
+.freelancer-rating {
+    min-width: 75px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+}
+
+    .freelancer-rating .star {
+        color: #19bd7a;
+        font-size: 14px;
+    }
+
+    .freelancer-rating strong {
+        color: #19bd7a;
+        font-size: 11px;
+    }
+
+    .freelancer-rating small {
+        color: #777777;
+        font-size: 9px;
+    }
+
+.freelancer-jobs {
+    width: 60px;
+    color: #777777;
+    font-size: 10px;
+}
+
+.freelancer-price {
+    width: 70px;
+    color: #dddddd;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.arrow-button {
+    min-width: 102px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid #45514b;
+    border-radius: 7px;
+    background: #161b19;
+    color: #e8f4ee;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+    .arrow-button:hover {
+        border-color: #31c98f;
+        background: #19352a;
+        color: #ffffff;
+    }
+
+.find-flow-steps{width:min(800px,100%);margin:0 auto 18px;display:flex;align-items:center;justify-content:center;gap:12px;color:#aaa;font-size:12px}.find-flow-steps span{display:flex;align-items:center;gap:7px}.find-flow-steps b{display:grid;place-items:center;width:23px;height:23px;border:1px solid #58605c;border-radius:50%;font-size:11px}.find-flow-steps .active{color:#effff7;font-weight:700}.find-flow-steps .active b{border-color:#2acd94;background:#16835f;color:#fff}.find-flow-steps i{width:58px;height:1px;background:#3b413f}.provider-detail-panel{margin-top:16px;padding:20px;border:1px solid #3a5046;border-radius:10px;background:#141817}.provider-detail-panel.hidden{display:none}.provider-detail-heading{display:flex;justify-content:space-between;gap:16px}.provider-detail-heading span{color:#75dcb1;font-size:11px;font-weight:700}.provider-detail-heading h2{margin:5px 0 4px;font-size:19px}.provider-detail-heading p{margin:0;color:#aaa;font-size:13px}.provider-detail-heading button{width:32px;height:32px;border:0;background:transparent;color:#bbb;font-size:24px;cursor:pointer}.provider-detail-stats{display:flex;flex-wrap:wrap;gap:10px;margin:17px 0 13px}.provider-detail-stats span{padding:7px 10px;border:1px solid #35413c;border-radius:99px;color:#dfece5;font-size:12px}.provider-detail-stats .available-now{color:#59dca3}.provider-detail-help{margin:0 0 17px;color:#b1bab5;font-size:13px;line-height:1.5}.send-booking-request{min-height:42px;padding:0 17px;border:1px solid #35ce95;border-radius:8px;background:#28c98d;color:#071711;font-size:13px;font-weight:700;cursor:pointer}.send-booking-request:hover{background:#3be2aa}
+.provider-search-intro{margin:0 0 17px;padding:18px 20px;border:1px solid #303b36;border-radius:10px;background:#131615}.provider-search-intro span{color:#67d9a4;font-size:11px;font-weight:700}.provider-search-intro h2{margin:7px 0 6px;color:#f2f5f3;font-size:18px}.provider-search-intro p{margin:0;color:#a8b2ad;font-size:13px;line-height:1.45}
+
+
+/* =========================================================
+   NO RESULTS
+========================================================= */
+
+.no-results {
+    display: none;
+    width: 100%;
+    height: 60px;
+    min-height: 60px;
+    max-height: 60px;
+    margin-top: 8px;
+    border: 1px solid #292929;
+    border-radius: 10px;
+    background: #151515;
+    color: #777777;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+    .no-results.show {
+        display: flex;
+    }
+
+
+/* =========================================================
+   OTHER MODES
+========================================================= */
+
+.hidden {
+    display: none !important;
+}
+
+.empty-mode-section {
+    width: 100%;
+}
+
+.mode-placeholder {
+    width: 100%;
+    min-height: 400px;
+    border: 1px solid #292929;
+    border-radius: 12px;
+    background: #151515;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.placeholder-icon {
+    width: 55px;
+    height: 55px;
+    min-width: 55px;
+    max-width: 55px;
+    min-height: 55px;
+    max-height: 55px;
+    margin-bottom: 15px;
+    border-radius: 50%;
+    background: #252525;
+    color: #999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.mode-placeholder h2 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: #eeeeee;
+}
+
+.mode-placeholder p {
+    margin: 0 0 18px 0;
+    color: #777777;
+    font-size: 11px;
+}
+
+.mode-placeholder button {
+    height: 38px;
+    min-height: 38px;
+    max-height: 38px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 19px;
+    background: #eeeeee;
+    color: #111111;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.job-offer-card {
+    width: min(720px, 100%);
+    margin: 0 auto;
+    padding: 30px;
+    border: 1px solid #303030;
+    border-radius: 14px;
+    background: #171717;
+}
+
+.job-offer-eyebrow,
+.job-offer-note {
+    color: #a1a1aa;
+    font-size: 12px;
+}
+
+.job-offer-card h2 {
+    margin: 12px 0 10px;
+    font-size: 23px;
+}
+
+.job-offer-details {
+    color: #c8c8c8;
+    line-height: 1.6;
+}
+
+.job-offer-card button {
+    margin-top: 18px;
+    padding: 11px 18px;
+    border: 0;
+    border-radius: 9px;
+    background: #f4f4f5;
+    color: #111;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.job-offer-card button:disabled {
+    cursor: default;
+    opacity: .55;
+}
+
+.job-offer-fields {
+    display: grid;
+    grid-template-columns: minmax(120px, .7fr) minmax(0, 1.3fr);
+    gap: 8px;
+    margin: 12px 0 2px;
+}
+
+.job-offer-fields input {
+    width: 100%;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #393939;
+    border-radius: 7px;
+    outline: none;
+    background: #101010;
+    color: #eeeeee;
+    font-size: 11px;
+}
+
+.job-offer-fields input:focus { border-color: #777; }
+.demo-inbox{margin:0 auto 20px;max-width:880px;padding:20px;border:1px solid #36433e;border-radius:10px;background:#141817}.demo-inbox h2{margin:0 0 7px;font-size:17px}.demo-inbox>p{margin:0 0 13px;color:#a9b5b0;font-size:13px}.demo-provider-select{min-height:40px;padding:0 11px;border:1px solid #3a4a43;border-radius:7px;background:#101312;color:#eee;font-size:13px}.demo-inbox-empty{padding:15px 0 2px!important;color:#a5aba8!important}.booking-request-card{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px;padding:14px;border:1px solid #36403b;border-radius:8px;background:#111312}.booking-request-card strong,.booking-request-card span{display:block}.booking-request-card span{margin-top:5px;color:#adb6b1;font-size:12px}.booking-request-actions{display:flex;gap:8px}.booking-request-actions button{min-height:36px;padding:0 12px;border:1px solid #35cd95;border-radius:7px;background:#27c88c;color:#071711;font-size:12px;font-weight:700;cursor:pointer}.booking-request-actions .decline-offer-button{border-color:#674044;background:#231718;color:#f4b2b2}@media(max-width:650px){.booking-request-card{align-items:flex-start;flex-direction:column}.booking-request-actions{width:100%}.booking-request-actions button{flex:1}}
+
+/* Post a Task form and confirmation — matches the existing dark card system. */
+.post-task-panel,
+.post-task-success {
+    width: 100%;
+    min-height: 400px;
+    padding: 30px;
+    border: 1px solid #292929;
+    border-radius: 12px;
+    background: #151515;
+}
+
+.post-task-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.post-task-heading h2,
+.post-task-success h2 {
+    margin: 0 0 7px;
+    color: #eeeeee;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.post-task-heading p,
+.post-task-success > p {
+    margin: 0;
+    color: #858585;
+    font-size: 12px;
+}
+
+.post-step {
+    padding: 7px 10px;
+    border: 1px solid #303030;
+    border-radius: 14px;
+    color: #b8b8b8;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.post-field,
+.post-category-field {
+    display: block;
+    margin: 0 0 18px;
+    padding: 0;
+    border: 0;
+}
+
+.post-field > span,
+.post-category-field legend {
+    display: block;
+    margin-bottom: 8px;
+    color: #e8e8e8;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.post-field em {
+    margin-left: 5px;
+    color: #777777;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.post-field input,
+.post-field textarea {
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid #383838;
+    border-radius: 8px;
+    outline: none;
+    background: #101010;
+    color: #eeeeee;
+    font: inherit;
+    font-size: 12px;
+}
+
+.post-field input {
+    height: 42px;
+    padding: 0 13px;
+}
+
+.post-field textarea {
+    min-height: 92px;
+    padding: 12px 13px;
+    resize: vertical;
+}
+
+.post-field input:focus,
+.post-field textarea:focus {
+    border-color: #747474;
+}
+
+/* Month / day / year and time dropdowns, matching the signup flow. */
+.schedule-picker {
+    display: grid;
+    gap: 9px;
+}
+
+.schedule-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.schedule-dropdown {
+    position: relative;
+}
+
+.schedule-month { width: 42%; }
+.schedule-day { width: 22%; }
+.schedule-year { width: 29%; }
+.schedule-hour { width: 28%; }
+.schedule-minute { width: 28%; }
+.schedule-period { width: 35%; }
+
+.schedule-dropdown-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #383838;
+    border-radius: 8px;
+    background: #101010;
+    color: #cfcfcf;
+    font: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.schedule-dropdown-button:hover,
+.schedule-dropdown.active .schedule-dropdown-button {
+    border-color: #8a8a8a;
+    color: #ffffff;
+}
+
+.schedule-dropdown-button b {
+    color: #9f9f9f;
+    font-size: 15px;
+    font-weight: 400;
+    transition: transform .18s ease;
+}
+
+.schedule-dropdown.active .schedule-dropdown-button b { transform: rotate(180deg); }
+
+.schedule-time-separator {
+    color: #999999;
+    font-size: 19px;
+    line-height: 1;
+}
+
+.schedule-dropdown-menu {
+    position: absolute;
+    z-index: 100;
+    top: calc(100% + 5px);
+    left: 0;
+    display: none;
+    width: max(100%, 116px);
+    max-height: 190px;
+    overflow-y: auto;
+    padding: 5px;
+    border: 1px solid #474747;
+    border-radius: 9px;
+    background: #1a1a1a;
+    box-shadow: 0 15px 34px rgba(0,0,0,.42);
+}
+
+.schedule-dropdown.active .schedule-dropdown-menu { display: block; }
+
+.schedule-dropdown-option {
+    display: block;
+    width: 100%;
+    min-height: 31px;
+    padding: 0 9px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #d7d7d7;
+    text-align: left;
+    font: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.schedule-dropdown-option:hover { background: #2a2a2a; color: #ffffff; }
+
+.schedule-help {
+    display: block;
+    margin-top: 8px;
+    color: #858585;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.post-categories {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.post-categories label {
+    cursor: pointer;
+}
+
+.post-categories input {
+    position: absolute;
+    opacity: 0;
+}
+
+.post-categories span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 58px;
+    border: 1px solid #383838;
+    border-radius: 8px;
+    background: #101010;
+    color: #a0a0a0;
+    font-size: 11px;
+}
+
+.post-categories input:checked + span {
+    border-color: #eeeeee;
+    color: #ffffff;
+}
+
+.post-field-grid {
+    display: grid;
+    grid-template-columns: 1fr 180px;
+    gap: 14px;
+}
+
+.post-form-actions,
+.success-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #292929;
+}
+
+.post-cancel-button,
+.view-tasks-button,
+.post-submit-button,
+.post-another-button {
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 19px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.post-cancel-button,
+.view-tasks-button {
+    border: 1px solid #555555;
+    background: transparent;
+    color: #eeeeee;
+}
+
+.post-submit-button,
+.post-another-button {
+    border: 0;
+    background: #eeeeee;
+    color: #111111;
+    font-weight: 600;
+}
+
+.post-task-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 465px;
+    padding: 44px 34px 38px;
+    text-align: center;
+}
+
+.success-heading {
+    width: min(100%, 540px);
+    text-align: center;
+}
+
+.success-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    background: #12382a;
+    color: #43d48a;
+    font-size: 23px;
+}
+
+.success-eyebrow {
+    display: block;
+    margin-bottom: 7px;
+    color: #61e7a3;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .8px;
+}
+
+.success-heading h2 {
+    margin: 0 0 7px;
+    font-size: 22px;
+}
+
+.success-heading p {
+    margin: 0;
+    color: #9a9a9a;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.posted-task-summary {
+    display: block;
+    width: min(100%, 540px);
+    margin-top: 26px;
+    padding: 3px 20px;
+    border: 1px solid #303030;
+    border-radius: 10px;
+    background: #101010;
+    text-align: left;
+}
+
+.posted-schedule {
+    border-bottom: 0;
+}
+
+.posted-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    gap: 20px;
+    padding: 13px 0;
+    border-bottom: 1px solid #292929;
+}
+
+.posted-task-summary span,
+.posted-task-summary strong {
+    display: inline-block;
+}
+
+.posted-task-summary span {
+    margin: 0;
+    color: #777777;
+    font-size: 10px;
+}
+
+.posted-task-summary strong {
+    overflow: hidden;
+    color: #eeeeee;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.success-actions {
+    margin-top: 24px;
+    padding-top: 0;
+    border: 0;
+}
+
+.success-next-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(100%, 540px);
+    margin-top: 25px;
+    color: #777777;
+    font-size: 10px;
+}
+
+.next-step {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.next-step b {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid #4a4a4a;
+    border-radius: 50%;
+    color: #aaa;
+    font-size: 10px;
+}
+
+.next-step i {
+    color: inherit;
+    font-style: normal;
+}
+
+.next-step.active { color: #d8f9e8; }
+.next-step.active b { border-color: #45d88d; background: #12382a; color: #59e89f; }
+
+.next-line {
+    flex: 1;
+    max-width: 95px;
+    min-width: 25px;
+    height: 1px;
+    margin: -20px 13px 0;
+    background: #343434;
+}
+
+@media (max-width: 760px) {
+    .post-task-panel,
+    .post-task-success {
+        padding: 20px;
+    }
+
+    .post-categories,
+    .post-field-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .posted-task-summary {
+        width: 100%;
+    }
+
+    .success-next-steps { justify-content: flex-start; overflow-x: auto; padding-bottom: 3px; }
+}
+
+@media (max-width: 480px) {
+    .post-task-success {
+        min-height: 0;
+        padding: 30px 18px;
+    }
+
+    .success-heading h2 { font-size: 20px; }
+
+    .posted-task-summary { padding: 3px 14px; }
+
+    .posted-summary-row { gap: 12px; }
+}
+
+
+/* =========================================================
+   POPUP
+========================================================= */
+
+.message-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.message-popup {
+    position: relative;
+    width: 360px;
+    min-height: 235px;
+    padding: 35px 30px 28px;
+    border: 1px solid #303030;
+    border-radius: 14px;
+    background: #171717;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+.popup-close {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    border: none;
+    background: transparent;
+    color: #777777;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.popup-icon {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    max-width: 45px;
+    min-height: 45px;
+    max-height: 45px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: #123b2c;
+    color: #20bf7c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.message-popup h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #eeeeee;
+}
+
+.message-popup p {
+    margin: 0 auto 18px;
+    width: 270px;
+    color: #777777;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.popup-button {
+    width: 110px;
+    height: 34px;
+    min-height: 34px;
+    max-height: 34px;
+    border: none;
+    border-radius: 17px;
+    background: #eeeeee;
+    color: #111111;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .sidebar {
+        width: 190px;
+        min-width: 190px;
+        max-width: 190px;
+    }
+
+    .sidebar-logo {
+        width: 190px;
+    }
+
+    .sidebar-navigation {
+        width: 190px;
+    }
+
+    .sidebar-item {
+        width: 172px;
+        min-width: 172px;
+        max-width: 172px;
+    }
+
+        .sidebar-item.active {
+            width: 172px;
+            min-width: 172px;
+            max-width: 172px;
+        }
+
+    .main-area {
+        width: calc(100% - 190px);
+        margin-left: 190px;
+    }
+
+    .page-content {
+        width: calc(100% - 40px);
+    }
+
+    .find-layout {
+        grid-template-columns: 260px minmax(0, 1fr);
+    }
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 750px) {
+
+    .page-content {
+        width: calc(100% - 30px);
+    }
+
+    .find-layout {
+        grid-template-columns: 220px minmax(0, 1fr);
+    }
+
+    .filter-panel {
+        width: 220px;
+    }
+
+    .freelancer-right {
+        gap: 10px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   SAME DASHBOARD RESPONSIVE SHELL
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .sidebar {
+        width: 70px;
+        min-width: 70px;
+        max-width: 70px;
+    }
+
+    .sidebar-logo {
+        width: 70px;
+        justify-content: center;
+        padding: 0;
+    }
+
+        .sidebar-logo > span {
+            display: none;
+        }
+
+    .logo-check {
+        width: 34px;
+        min-width: 34px;
+        max-width: 34px;
+        height: 34px;
+        min-height: 34px;
+        max-height: 34px;
+    }
+
+    .sidebar-navigation {
+        width: 70px;
+        padding: 12px 8px;
+    }
+
+    .sidebar-item,
+    .sidebar-item.active {
+        width: 54px;
+        min-width: 54px;
+        max-width: 54px;
+        height: 43px;
+        min-height: 43px;
+        max-height: 43px;
+        justify-content: center;
+        padding: 0;
+    }
+
+        .sidebar-item > span:not(.sidebar-icon) {
+            display: none;
+        }
+
+    .sidebar-user {
+        left: 8px;
+        right: 8px;
+        width: 54px;
+        min-width: 54px;
+        max-width: 54px;
+        justify-content: center;
+        padding: 7px;
+    }
+
+    .user-details,
+    .user-more {
+        display: none;
+    }
+
+    .main-area {
+        width: calc(100% - 70px);
+        margin-left: 70px;
+    }
+
+    .topbar {
+        height: 60px;
+        min-height: 60px;
+        max-height: 60px;
+        padding: 0 15px;
+    }
+
+        .topbar h1 {
+            font-size: 19px;
+        }
+
+    .notification-button {
+        width: 34px;
+        min-width: 34px;
+        max-width: 34px;
+        height: 34px;
+        min-height: 34px;
+        max-height: 34px;
+    }
+
+    .page-content {
+        width: calc(100% - 24px);
+        margin-top: 18px;
+        margin-bottom: 45px;
+    }
+
+    .mode-switcher {
+        max-width: 100%;
+    }
+
+    .find-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-panel {
+        width: 100%;
+        min-height: auto;
+    }
+
+    .freelancer-right {
+        gap: 8px;
+    }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .page-content {
+        width: calc(100% - 18px);
+    }
+
+    .mode-switcher {
+        width: 100%;
+    }
+
+    .mode-button {
+        flex: 1;
+        padding: 0 5px;
+        font-size: 10px;
+    }
+
+    .freelancer-card {
+        padding: 10px;
+    }
+
+    .freelancer-right {
+        gap: 5px;
+    }
+
+    .freelancer-jobs,
+    .freelancer-price {
+        display: none;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+========================================================= */
+
+@media (max-width: 360px) {
+
+    .sidebar {
+        width: 58px;
+        min-width: 58px;
+        max-width: 58px;
+    }
+
+    .sidebar-logo {
+        width: 58px;
+        min-width: 58px;
+        max-width: 58px;
+    }
+
+    .sidebar-navigation {
+        width: 58px;
+    }
+
+    .sidebar-item,
+    .sidebar-item.active {
+        width: 42px;
+        min-width: 42px;
+        max-width: 42px;
+        height: 43px;
+        min-height: 43px;
+        max-height: 43px;
+    }
+
+    .sidebar-user {
+        width: 42px;
+        min-width: 42px;
+        max-width: 42px;
+    }
+
+    .main-area {
+        width: calc(100% - 58px);
+        margin-left: 58px;
+    }
+
+    .page-content {
+        width: calc(100% - 14px);
+    }
+
+    .topbar {
+        padding: 0 10px;
+    }
+
+        .topbar h1 {
+            font-size: 17px;
+        }
+}

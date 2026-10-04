@@ -1,0 +1,943 @@
+@page
+@model FindPostModel
+
+@{
+    Layout = null;
+
+    var mode = Request.Query["mode"].ToString();
+
+    if (string.IsNullOrEmpty(mode))
+    {
+        mode = "freelancer";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Find & Post - Tap, Task, Done</title>
+
+    <link rel="stylesheet"
+          href="/css/findpost.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
+    <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+
+        <!-- ================================================= -->
+        <!-- SIDEBAR -->
+        <!-- ================================================= -->
+
+        <aside class="sidebar">
+
+
+            <!-- LOGO -->
+
+            <div class="sidebar-logo">
+
+                <div class="logo-check">
+                    ✓
+                </div>
+
+                <span>
+                    Tap, Task, Done
+                </span>
+
+            </div>
+
+
+            <!-- NAVIGATION -->
+
+            <nav class="sidebar-navigation">
+
+                <a href="/Dashboard"
+                   class="sidebar-item">
+
+                    <span class="sidebar-icon">
+                        ⌂
+                    </span>
+
+                    <span>
+                        Home
+                    </span>
+
+                </a>
+
+
+                <a href="/FindPost"
+                   class="sidebar-item active">
+
+                    <span class="sidebar-icon">
+                        ⌕
+                    </span>
+
+                    <span>
+                        Find &amp; Post
+                    </span>
+
+                </a>
+
+
+                <a href="/MyTasks"
+                   class="sidebar-item">
+
+                    <span class="sidebar-icon">
+                          ▤
+                    </span>
+
+                    <span>
+                        My Tasks
+                    </span>
+
+                </a>
+
+
+                <!-- MESSAGES - CONNECTED -->
+
+                <a href="/Messages"
+                   class="sidebar-item">
+
+                    <span class="sidebar-icon">
+                        □
+                    </span>
+
+                    <span>
+                        Messages
+                    </span>
+
+                </a>
+
+
+                <a href="/IdentityVerification"
+                   class="sidebar-item">
+
+                    <span class="sidebar-icon">
+                        ✓
+                    </span>
+
+                    <span>
+                        Identity Verification
+                    </span>
+
+                </a>
+
+
+                <!-- TRACKING - CONNECTED -->
+
+                <a href="/Tracking"
+                   class="sidebar-item">
+
+                    <span class="sidebar-icon">
+                          ➤
+                    </span>
+
+                    <span>
+                        Tracking
+                    </span>
+
+                </a>
+
+
+                <!-- REVIEWS - CONNECTED -->
+
+                <a href="/Reviews"
+                   class="sidebar-item">
+
+                    <span class="sidebar-icon">
+                        ☆
+                    </span>
+
+                    <span>
+                        Reviews
+                    </span>
+
+                </a>
+
+            </nav>
+
+
+            <!-- USER -->
+
+            <div class="sidebar-user">
+
+
+                <div class="user-avatar"
+                     id="userAvatar">
+
+                    JD
+
+                </div>
+
+
+                <div class="user-details">
+
+                    <strong id="sidebarName">
+                        Jordan Dela Cruz
+                    </strong>
+
+                    <span id="sidebarEmail">
+                        jordan@gmail.com
+                    </span>
+
+                </div>
+
+
+                <button class="user-more"
+                        id="userMoreButton"
+                        type="button">
+
+                    ⋮
+
+                </button>
+
+
+            </div>
+
+
+        </aside>
+
+
+
+        <!-- ================================================= -->
+        <!-- MAIN AREA -->
+        <!-- ================================================= -->
+
+        <main class="main-area">
+
+
+            <!-- TOP BAR -->
+
+            <header class="topbar">
+
+
+                <h1>
+                    Find &amp; Post
+                </h1>
+
+
+                <button class="notification-button"
+                        id="notificationButton"
+                        type="button">
+
+                    ♧
+
+                </button>
+
+
+            </header>
+
+
+
+            <!-- ================================================= -->
+            <!-- PAGE CONTENT -->
+            <!-- ================================================= -->
+
+            <div class="page-content">
+
+
+                <!-- ================================================= -->
+                <!-- MODE SWITCHER -->
+                <!-- ================================================= -->
+
+                <div class="mode-switcher">
+
+
+                    <button class="mode-button @(mode == "freelancer" ? "active" : "")"
+                            id="findFreelancerButton"
+                            type="button">
+
+                        <span>
+                            ⌕
+                        </span>
+
+                        Find a Freelancer
+
+                    </button>
+
+
+                    <button class="mode-button @(mode == "post" ? "active" : "")"
+                            id="postTaskButton"
+                            type="button">
+
+                        <span>
+                            ○
+                        </span>
+
+                        Post a Task
+
+                    </button>
+
+
+                    <button class="mode-button @(mode == "jobs" ? "active" : "")"
+                            id="findJobsButton"
+                            type="button">
+
+                        <span>
+                            □
+                        </span>
+
+                        Find Jobs
+
+                    </button>
+
+
+                </div>
+
+                <div class="find-flow-steps" aria-label="Find a freelancer steps">
+                    <span class="active"><b>1</b> Search</span><i></i><span><b>2</b> Choose a provider</span><i></i><span><b>3</b> Send request</span>
+                </div>
+
+
+
+                <!-- ================================================= -->
+                <!-- FIND FREELANCER AREA -->
+                <!-- ================================================= -->
+
+                <section id="findFreelancerSection"
+                         class="find-layout @(mode != "freelancer" ? "hidden" : "")">
+
+
+                    <!-- FILTER PANEL -->
+
+                    <aside class="filter-panel">
+
+
+                        <div class="filter-group">
+
+                            <label for="serviceSearch">
+                                Service
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <span>
+                                    ⌕
+                                </span>
+
+                                <input type="text"
+                                       id="serviceSearch"
+                                       placeholder="Search service..." />
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="filter-group">
+
+                            <label for="locationInput">
+                                Location
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <span>
+                                    ♧
+                                </span>
+
+                                <input type="text"
+                                       id="locationInput"
+                                       value="Metro Manila"
+                                       placeholder="Enter location..." />
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="filter-group">
+
+                            <label for="budgetInput">
+                                Budget
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <span>
+                                    ₱
+                                </span>
+
+                                <input type="text"
+                                       id="budgetInput"
+                                       value="₱300 - ₱1,500"
+                                       placeholder="Budget range..." />
+
+                            </div>
+
+                        </div>
+
+
+
+                        <button class="search-button"
+                                id="searchButton"
+                                type="button">
+
+                            <span>
+                                ⌕
+                            </span>
+
+                            Search
+
+                        </button>
+
+
+                    </aside>
+
+
+
+                    <!-- RESULTS AREA -->
+
+                    <div class="results-area">
+
+
+                        <section class="provider-search-intro">
+                            <span>Find a trusted provider</span>
+                            <h2>Compare freelancers before you send a request.</h2>
+                            <p>Use the filters, open a profile, then choose the provider who best fits your task.</p>
+                        </section>
+
+
+
+                        <!-- AVAILABLE FREELANCERS -->
+
+                        <section class="freelancers-section">
+
+
+                            <div class="section-heading">
+
+                                <h2>
+                                    Available freelancers
+                                </h2>
+
+                            </div>
+
+
+
+                            <div class="freelancer-list"
+                                 id="freelancerList">
+
+
+                                <!-- OFRACIO -->
+
+                                <article class="freelancer-card"
+                                         data-service="plumber plumbing repair">
+
+                                    <div class="freelancer-left">
+
+
+                                        <div class="freelancer-avatar">
+                                            Of
+                                        </div>
+
+
+                                        <div class="freelancer-info">
+
+                                            <strong>
+                                                Ofrac­io
+                                            </strong>
+
+                                            <span>
+                                                Plumber
+                                            </span>
+
+                                        </div>
+
+
+                                    </div>
+
+
+
+                                    <div class="freelancer-right">
+
+
+                                        <div class="freelancer-rating">
+
+                                            <span class="star">
+                                                ★
+                                            </span>
+
+                                            <strong>
+                                                4.8
+                                            </strong>
+
+                                            <small>
+                                                (600)
+                                            </small>
+
+                                        </div>
+
+
+                                        <div class="freelancer-jobs">
+                                            100 jobs
+                                        </div>
+
+
+                                        <div class="freelancer-price">
+                                            ₱600
+                                        </div>
+
+
+                                        <button class="arrow-button"
+                                                type="button"
+                                                data-name="Ofrac­io">
+                                            View profile
+
+                                        </button>
+
+
+                                    </div>
+
+                                </article>
+
+
+
+                                <!-- MARISOL -->
+
+                                <article class="freelancer-card"
+                                         data-service="house cleaner cleaning deep clean">
+
+                                    <div class="freelancer-left">
+
+
+                                        <div class="freelancer-avatar">
+                                            Ma
+                                        </div>
+
+
+                                        <div class="freelancer-info">
+
+                                            <strong>
+                                                Marisol
+                                            </strong>
+
+                                            <span>
+                                                House Cleaner
+                                            </span>
+
+                                        </div>
+
+
+                                    </div>
+
+
+
+                                    <div class="freelancer-right">
+
+
+                                        <div class="freelancer-rating">
+
+                                            <span class="star">
+                                                ★
+                                            </span>
+
+                                            <strong>
+                                                4.9
+                                            </strong>
+
+                                            <small>
+                                                (421)
+                                            </small>
+
+                                        </div>
+
+
+                                        <div class="freelancer-jobs">
+                                            210 jobs
+                                        </div>
+
+
+                                        <div class="freelancer-price">
+                                            ₱450
+                                        </div>
+
+
+                                        <button class="arrow-button"
+                                                type="button"
+                                                data-name="Marisol">
+                                            View profile
+
+                                        </button>
+
+
+                                    </div>
+
+                                </article>
+
+
+
+                                <!-- DANTE -->
+
+                                <article class="freelancer-card"
+                                         data-service="electrician electrical repair">
+
+                                    <div class="freelancer-left">
+
+
+                                        <div class="freelancer-avatar">
+                                            Da
+                                        </div>
+
+
+                                        <div class="freelancer-info">
+
+                                            <strong>
+                                                Dante
+                                            </strong>
+
+                                            <span>
+                                                Electrician
+                                            </span>
+
+                                        </div>
+
+
+                                    </div>
+
+
+
+                                    <div class="freelancer-right">
+
+
+                                        <div class="freelancer-rating">
+
+                                            <span class="star">
+                                                ★
+                                            </span>
+
+                                            <strong>
+                                                4.7
+                                            </strong>
+
+                                            <small>
+                                                (288)
+                                            </small>
+
+                                        </div>
+
+
+                                        <div class="freelancer-jobs">
+                                            132 jobs
+                                        </div>
+
+
+                                        <div class="freelancer-price">
+                                            ₱750
+                                        </div>
+
+
+                                        <button class="arrow-button"
+                                                type="button"
+                                                data-name="Dante">
+                                            View profile
+
+                                        </button>
+
+
+                                    </div>
+
+                                </article>
+
+
+
+                                <!-- LEA -->
+
+                                <article class="freelancer-card"
+                                         data-service="errand runner errands delivery">
+
+                                    <div class="freelancer-left">
+
+
+                                        <div class="freelancer-avatar">
+                                            Le
+                                        </div>
+
+
+                                        <div class="freelancer-info">
+
+                                            <strong>
+                                                Lea
+                                            </strong>
+
+                                            <span>
+                                                Errand Runner
+                                            </span>
+
+                                        </div>
+
+
+                                    </div>
+
+
+
+                                    <div class="freelancer-right">
+
+
+                                        <div class="freelancer-rating">
+
+                                            <span class="star">
+                                                ★
+                                            </span>
+
+                                            <strong>
+                                                4.9
+                                            </strong>
+
+                                            <small>
+                                                (512)
+                                            </small>
+
+                                        </div>
+
+
+                                        <div class="freelancer-jobs">
+                                            340 jobs
+                                        </div>
+
+
+                                        <div class="freelancer-price">
+                                            ₱300
+                                        </div>
+
+
+                                        <button class="arrow-button"
+                                                type="button"
+                                                data-name="Lea">
+                                            View profile
+
+                                        </button>
+
+
+                                    </div>
+
+                                </article>
+
+
+                            </div>
+
+
+                            <!-- NO RESULTS -->
+
+                            <div class="no-results"
+                                 id="noResults">
+
+                                No freelancers found.
+
+                            </div>
+
+                            <section id="providerDetailPanel" class="provider-detail-panel hidden" aria-live="polite">
+                                <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
+                                <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span class="available-now">● Available today</span></div>
+                                <p class="provider-detail-help">Review the provider, then send a booking request for your selected task. The provider can accept or decline it.</p>
+                                <button id="sendBookingRequestButton" type="button" class="send-booking-request">Send booking request</button>
+                            </section>
+
+
+                        </section>
+
+
+                    </div>
+
+
+                </section>
+
+
+
+                <!-- ================================================= -->
+                <!-- POST TASK -->
+                <!-- ================================================= -->
+
+                <section id="postTaskSection"
+                         class="empty-mode-section @(mode != "post" ? "hidden" : "")">
+
+                    <div class="mode-placeholder" id="postTaskStart">
+                        <div class="placeholder-icon">+</div>
+                        <h2>Post a Task</h2>
+                        <p>Create a task and let trusted freelancers find you.</p>
+                        <button type="button" id="startPostTaskButton">Create a task</button>
+                    </div>
+
+                    <form class="post-task-panel hidden" id="postTaskForm">
+                        <div class="post-task-heading">
+                            <div>
+                                <h2>Post a Task</h2>
+                                <p>Tell trusted local freelancers exactly what you need.</p>
+                            </div>
+                            <span class="post-step">Task details</span>
+                        </div>
+
+                        <label class="post-field">
+                            <span>Task title</span>
+                            <input id="taskTitleInput" type="text" maxlength="100" required placeholder="e.g. Fix a leaking kitchen faucet" />
+                        </label>
+
+                        <fieldset class="post-category-field">
+                            <legend>Category</legend>
+                            <div class="post-categories">
+                                <label><input type="radio" name="taskCategory" value="Cleaning" required /><span>Cleaning</span></label>
+                                <label><input type="radio" name="taskCategory" value="Repairs" /><span>Repairs</span></label>
+                                <label><input type="radio" name="taskCategory" value="Errands" /><span>Errands</span></label>
+                                <label><input type="radio" name="taskCategory" value="Moving" /><span>Moving</span></label>
+                                <label><input type="radio" name="taskCategory" value="Other / General" /><span>Other / General</span></label>
+                            </div>
+                        </fieldset>
+
+                        <label class="post-field">
+                            <span>Description</span>
+                            <textarea id="taskDescriptionInput" maxlength="500" required placeholder="Describe the task, including important details or materials needed."></textarea>
+                        </label>
+
+                        <div class="post-field-grid">
+                            <label class="post-field">
+                                <span>Location</span>
+                                <input id="taskLocationInput" type="text" required placeholder="e.g. Metro Manila" />
+                            </label>
+                            <label class="post-field">
+                                <span>Budget</span>
+                                <input id="taskBudgetInput" type="number" min="1" required placeholder="e.g. 600" />
+                            </label>
+                        </div>
+
+                        <label class="post-field">
+                            <span>Preferred date and time <em>Optional</em></span>
+                            <div class="schedule-picker" aria-label="Preferred date and time">
+                                <div class="schedule-picker-row">
+                                    <div class="schedule-dropdown schedule-month" id="scheduleMonthDropdown"><button type="button" class="schedule-dropdown-button"><span>Month</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
+                                    <div class="schedule-dropdown schedule-day" id="scheduleDayDropdown"><button type="button" class="schedule-dropdown-button"><span>Day</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
+                                    <div class="schedule-dropdown schedule-year" id="scheduleYearDropdown"><button type="button" class="schedule-dropdown-button"><span>Year</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
+                                </div>
+                                <div class="schedule-picker-row schedule-time-row">
+                                    <div class="schedule-dropdown schedule-hour" id="scheduleHourDropdown"><button type="button" class="schedule-dropdown-button"><span>Hour</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
+                                    <span class="schedule-time-separator">:</span>
+                                    <div class="schedule-dropdown schedule-minute" id="scheduleMinuteDropdown"><button type="button" class="schedule-dropdown-button"><span>Minute</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
+                                    <div class="schedule-dropdown schedule-period" id="schedulePeriodDropdown"><button type="button" class="schedule-dropdown-button"><span>AM / PM</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
+                                </div>
+                            </div>
+                            <small class="schedule-help">Choose any date and time you prefer, or leave this empty to schedule later.</small>
+                        </label>
+
+                        <div class="post-form-actions">
+                            <button class="post-cancel-button" type="button" id="cancelPostTaskButton">Cancel</button>
+                            <button class="post-submit-button" type="submit">Post task</button>
+                        </div>
+                    </form>
+
+                    <section class="post-task-success hidden" id="postTaskSuccess" aria-live="polite">
+                        <div class="success-heading">
+                            <div class="success-check">✓</div>
+                            <div>
+                                <span class="success-eyebrow">YOUR TASK IS LIVE</span>
+                                <h2>Task posted successfully</h2>
+                                <p>Trusted freelancers can now view and send an offer for your task.</p>
+                            </div>
+                        </div>
+                        <div class="posted-task-summary">
+                            <div class="posted-summary-row"><span>Task</span><strong id="postedTaskTitle">—</strong></div>
+                            <div class="posted-summary-row"><span>Budget</span><strong id="postedTaskBudget">—</strong></div>
+                            <div class="posted-summary-row"><span>Category</span><strong id="postedTaskCategory">—</strong></div>
+                            <div class="posted-summary-row"><span>Location</span><strong id="postedTaskLocation">—</strong></div>
+                            <div class="posted-summary-row posted-schedule"><span>Preferred schedule</span><strong id="postedTaskSchedule">To be scheduled</strong></div>
+                        </div>
+                        <div class="success-next-steps" aria-label="What happens next">
+                            <span class="next-step active"><b>1</b><i>Task is open</i></span>
+                            <span class="next-line"></span>
+                            <span class="next-step"><b>2</b><i>Receive offers</i></span>
+                            <span class="next-line"></span>
+                            <span class="next-step"><b>3</b><i>Choose a provider</i></span>
+                        </div>
+                        <div class="success-actions">
+                            <button class="view-tasks-button" type="button" id="viewPostedTaskButton">View my tasks</button>
+                            <button class="post-another-button" type="button" id="postAnotherTaskButton">Post another task</button>
+                        </div>
+                    </section>
+
+
+                </section>
+
+
+
+                <!-- ================================================= -->
+                <!-- FIND JOBS -->
+                <!-- ================================================= -->
+
+                <section id="findJobsSection"
+                         class="empty-mode-section @(mode != "jobs" ? "hidden" : "")">
+
+                    <div id="findJobsContent"></div>
+
+
+                </section>
+
+
+            </div>
+
+
+        </main>
+
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- SIMPLE MESSAGE POPUP -->
+    <!-- ================================================= -->
+
+    <div class="message-overlay hidden"
+         id="messageOverlay">
+
+        <div class="message-popup">
+
+            <button class="popup-close"
+                    id="popupClose"
+                    type="button">
+
+                ×
+
+            </button>
+
+            <div class="popup-icon">
+                ✓
+            </div>
+
+            <h3 id="popupTitle">
+                Done
+            </h3>
+
+            <p id="popupMessage">
+                Action completed.
+            </p>
+
+            <button class="popup-button"
+                    id="popupOkay"
+                    type="button">
+
+                Okay
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <script src="~/js/findpost.js"></script>
+
+</body>
+
+</html>

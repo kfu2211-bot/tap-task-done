@@ -1,0 +1,1116 @@
+﻿/* =========================================================
+   TAP, TASK, DONE
+   MY TASKS — STABLE LAYOUT
+   MATCHES DASHBOARD SHELL
+========================================================= */
+
+
+@import url('/css/sidebar-stability.css');
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
+html {
+    overflow-y: scroll;
+}
+
+body {
+    background: #090909;
+    color: #eeeeee;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   FONT
+========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+
+/* =========================================================
+   APP
+========================================================= */
+
+.mytasks-app {
+    width: 100%;
+    min-height: 100vh;
+    background: #090909;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   SAME AS DASHBOARD
+========================================================= */
+
+.mytasks-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 190px;
+    min-width: 190px;
+    max-width: 190px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #151515;
+    border-right: 1px solid #292929;
+    z-index: 1000;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   LOGO
+   SAME AS DASHBOARD
+========================================================= */
+
+.mytasks-logo {
+    width: 190px;
+    height: 68px;
+    min-height: 68px;
+    max-height: 68px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 10px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.mytasks-logo-check {
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    max-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #111111;
+    border: 1px solid #454545;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   NAVIGATION
+   SAME AS DASHBOARD
+========================================================= */
+
+.mytasks-navigation {
+    width: 190px;
+    padding: 12px 9px;
+    flex-shrink: 0;
+}
+
+.mytasks-nav-item {
+    width: 172px;
+    height: 43px;
+    min-height: 43px;
+    max-height: 43px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    margin: 0 0 5px 0;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: #999999;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    position: relative;
+    flex-shrink: 0;
+    transform: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+    .mytasks-nav-item:hover {
+        background: #222222;
+        color: #ffffff;
+    }
+
+    .mytasks-nav-item.active {
+        width: 172px;
+        height: 43px;
+        min-height: 43px;
+        max-height: 43px;
+        margin: 0 0 5px 0;
+        padding: 0 14px;
+        background: #292929;
+        color: #ffffff;
+        border: 1px solid transparent;
+        transform: none;
+    }
+
+    .mytasks-nav-item span {
+        width: 18px;
+        min-width: 18px;
+        max-width: 18px;
+        height: 18px;
+        min-height: 18px;
+        max-height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8f8f8f;
+        font-size: 14px;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    .mytasks-nav-item.active span {
+        color: #ffffff;
+    }
+
+
+/* =========================================================
+   USER
+   SAME SIZE / POSITION AS DASHBOARD
+========================================================= */
+
+.mytasks-user {
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    bottom: 10px;
+    width: 172px;
+    height: 55px;
+    min-height: 55px;
+    max-height: 55px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px;
+    background: #151515;
+    border: 1px solid #303030;
+    border-radius: 10px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.mytasks-avatar {
+    width: 35px;
+    min-width: 35px;
+    max-width: 35px;
+    height: 35px;
+    min-height: 35px;
+    max-height: 35px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #12382a;
+    border: 1px solid #1e7650;
+    color: #25c77d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.mytasks-user-info {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+    .mytasks-user-info strong {
+        color: #eeeeee;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: normal;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mytasks-user-info span {
+        color: #777777;
+        font-size: 8px;
+        line-height: normal;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+.mytasks-user-menu {
+    width: 18px;
+    min-width: 18px;
+    max-width: 18px;
+    height: 24px;
+    min-height: 24px;
+    max-height: 24px;
+    border: none;
+    padding: 0;
+    background: transparent;
+    color: #777777;
+    font-size: 15px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   MAIN
+   SAME OFFSET AS DASHBOARD
+========================================================= */
+
+.mytasks-main {
+    width: calc(100% - 190px);
+    min-width: 0;
+    min-height: 100vh;
+    margin-left: 190px;
+    background: #090909;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   TOPBAR
+   SAME AS DASHBOARD
+========================================================= */
+
+.mytasks-topbar {
+    width: 100%;
+    height: 68px;
+    min-height: 68px;
+    max-height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 34px;
+    background: #090909;
+    border-bottom: 1px solid #242424;
+    flex-shrink: 0;
+}
+
+    .mytasks-topbar h1 {
+        margin: 0;
+        color: #ededed;
+        font-size: 22px;
+        font-weight: 500;
+    }
+
+.mytasks-notification {
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    border-radius: 50%;
+    border: 1px solid #303030;
+    background: #101010;
+    color: #888888;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.mytasks-content {
+    width: min(1000px, calc(100% - 50px));
+    min-width: 0;
+    margin: 36px auto 70px;
+}
+
+
+/* =========================================================
+   DETAILS LAYOUT
+========================================================= */
+
+.details-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 20px;
+    align-items: start;
+}
+
+
+/* =========================================================
+   TASK DETAILS CARD
+========================================================= */
+
+.task-details-card {
+    background: #171717;
+    border: 1px solid #292929;
+    border-radius: 12px;
+    padding: 22px;
+}
+
+.card-label {
+    display: inline-flex;
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: #252525;
+    color: #aaa;
+    font-size: 11px;
+    margin-bottom: 10px;
+}
+
+.task-details-card h2 {
+    margin: 0 0 15px;
+    font-size: 21px;
+    font-weight: 600;
+    color: #eee;
+}
+
+
+/* =========================================================
+   DETAIL ROW
+========================================================= */
+
+.task-detail-row {
+    min-height: 65px;
+    border-bottom: 1px solid #292929;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+    .task-detail-row.last {
+        border-bottom: none;
+    }
+
+.detail-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #202020;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+}
+
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+    .detail-content span {
+        color: #777;
+        font-size: 11px;
+    }
+
+    .detail-content strong {
+        color: #ddd;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+
+/* =========================================================
+   ORDER SUMMARY
+========================================================= */
+
+.order-summary-card {
+    background: #171717;
+    border: 1px solid #292929;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+    .order-summary-card h2 {
+        margin: 0 0 20px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    color: #777;
+    font-size: 11px;
+}
+
+    .summary-row strong {
+        color: #ddd;
+        font-size: 11px;
+    }
+
+.summary-divider {
+    height: 1px;
+    background: #292929;
+    margin: 5px 0 15px;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    color: #eee;
+    font-size: 12px;
+}
+
+    .summary-total strong {
+        font-size: 14px;
+    }
+
+.confirm-details-button {
+    width: 100%;
+    height: 40px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 9px;
+    background: #eee;
+    color: #151515;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+    .confirm-details-button:hover {
+        background: #fff;
+    }
+
+.summary-note {
+    margin: 12px 5px 0;
+    text-align: center;
+    color: #666;
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   ASSIGNED PROVIDER
+========================================================= */
+
+.assigned-provider-card {
+    margin-top: 20px;
+    background: #171717;
+    border: 1px solid #292929;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+    .assigned-provider-card h2 {
+        margin: 0 0 15px;
+        color: #eee;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+
+/* =========================================================
+   PROVIDER ROW
+========================================================= */
+
+.provider-row {
+    width: 100%;
+    min-height: 68px;
+    padding: 10px 13px;
+    border: 1px solid #292929;
+    border-radius: 9px;
+    background: #151515;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    text-align: left;
+    color: #eee;
+    cursor: pointer;
+}
+
+.provider-assignment-message {
+    margin: 0 0 14px;
+    color: #9a9a9a;
+    font-size: 13px;
+}
+
+.provider-offer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px;
+    border: 1px solid #333;
+    border-radius: 10px;
+    background: #191919;
+}
+
+.provider-offer-row strong,
+.provider-offer-row span {
+    display: block;
+}
+
+.provider-offer-row span {
+    margin-top: 4px;
+    color: #9a9a9a;
+    font-size: 12px;
+}
+
+.provider-offer-row button {
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 14px;
+    background: #f4f4f5;
+    color: #111;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.task-filters { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 13px; }
+.task-filters button { padding: 7px 11px; border: 1px solid #3b3b3b; border-radius: 999px; background: transparent; color: #aaa; font-size: 10px; cursor: pointer; }
+.task-filters button.selected { border-color: #ddd; background: #f0f0f0; color: #111; }
+.offer-actions { display: flex; gap: 7px; }
+.provider-offer-row .decline-offer-button { border: 1px solid #5b3434; background: transparent; color: #eaa4a4; }
+.cancel-task-button { margin-top: 13px; padding: 9px 12px; border: 1px solid #673838; border-radius: 7px; background: transparent; color: #f0aaaa; font-size: 11px; cursor: pointer; }
+
+    .provider-row:hover {
+        background: #1d1d1d;
+        border-color: #3a3a3a;
+    }
+
+.provider-avatar {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.provider-information {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+    .provider-information strong {
+        font-size: 13px;
+    }
+
+    .provider-information span {
+        color: #777;
+        font-size: 10px;
+    }
+
+    .provider-information b {
+        color: #19bd7a;
+        font-weight: 500;
+    }
+
+.provider-arrow {
+    color: #777;
+    font-size: 25px;
+}
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+.task-message {
+    display: none;
+    margin-top: 18px;
+    padding: 15px 18px;
+    border-radius: 9px;
+    background: #102d23;
+    border: 1px solid #194d3b;
+    color: #22bd7b;
+    font-size: 12px;
+}
+
+/* =========================================================
+   TASK LIST
+========================================================= */
+
+.my-task-list-section {
+    margin-bottom: 20px;
+    padding: 18px;
+    border: 1px solid #292929;
+    border-radius: 12px;
+    background: #171717;
+}
+
+.my-task-list-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.my-task-list-heading h2 {
+    margin: 0;
+    color: #f1f1f1;
+    font-size: 16px;
+}
+
+.my-task-list-heading p {
+    margin: 5px 0 0;
+    color: #888;
+    font-size: 12px;
+}
+
+.my-task-list-heading a {
+    padding: 8px 11px;
+    border: 1px solid #444;
+    border-radius: 7px;
+    color: #f1f1f1;
+    font-size: 11px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.my-task-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+    gap: 10px;
+}
+
+.my-task-card {
+    padding: 14px;
+    border: 1px solid #323232;
+    border-radius: 9px;
+    background: #121212;
+    color: #eee;
+    text-align: left;
+    cursor: pointer;
+}
+
+.my-task-card.selected {
+    border-color: #777;
+    background: #202020;
+}
+
+.my-task-card strong,
+.my-task-card span {
+    display: block;
+}
+
+.my-task-card strong { font-size: 13px; }
+.my-task-card .task-card-meta { margin-top: 5px; color: #929292; font-size: 11px; }
+.my-task-card .task-card-status { margin-top: 11px; color: #46d995; font-size: 10px; font-weight: 700; }
+
+/* =========================================================
+   CONFIRM TASK MODAL
+========================================================= */
+
+.confirm-task-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, .80);
+    backdrop-filter: blur(4px);
+}
+
+.confirm-task-modal.hidden {
+    display: none;
+}
+
+.confirm-task-dialog {
+    width: min(590px, 100%);
+    padding: 34px;
+    border: 1px solid #3b4140;
+    border-radius: 15px;
+    background: #171a1a;
+    box-shadow: 0 26px 70px rgba(0, 0, 0, .55);
+}
+
+.confirm-task-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: #103d2c;
+    color: #3de39c;
+    font-size: 23px;
+    font-weight: 700;
+}
+
+.confirm-task-eyebrow {
+    display: block;
+    margin-top: 22px;
+    color: #aeb5b4;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-align: center;
+}
+
+.confirm-task-dialog h2 {
+    margin: 14px 0 10px;
+    color: #f5f5f5;
+    font-size: 25px;
+    text-align: center;
+}
+
+.confirm-task-description {
+    margin: 0;
+    color: #a0a0a0;
+    max-width: 460px;
+    margin: 0 auto;
+    font-size: 13px;
+    line-height: 1.55;
+    text-align: center;
+}
+
+.confirm-task-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 25px;
+    padding: 4px 20px;
+    border: 1px solid #353b3a;
+    border-radius: 12px;
+    background: #141717;
+}
+
+.confirm-summary-item {
+    min-width: 0;
+    padding: 16px 9px;
+}
+
+.confirm-summary-item:nth-child(odd) {
+    border-right: 1px solid #303534;
+}
+
+.confirm-summary-item:nth-child(-n+2) {
+    border-bottom: 1px solid #303534;
+}
+
+.confirm-task-summary span,
+.confirm-task-summary strong {
+    display: block;
+}
+
+.confirm-task-summary span {
+    margin-bottom: 7px;
+    color: #888;
+    font-size: 11px;
+}
+
+.confirm-task-summary strong {
+    color: #f1f1f1;
+    overflow: hidden;
+    font-size: 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.confirm-task-note {
+    margin: 20px 0 0;
+    color: #a0a7a5;
+    font-size: 12px;
+    text-align: center;
+}
+
+.confirm-task-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 27px;
+}
+
+.confirm-task-actions button {
+    min-height: 48px;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.confirm-task-back {
+    border: 1px solid #4a4a4a;
+    background: transparent;
+    color: #f1f1f1;
+}
+
+.confirm-task-submit {
+    border: 0;
+    background: #1fd482;
+    color: #07140d;
+}
+
+.confirm-task-submit:hover {
+    background: #35e795;
+}
+
+    .task-message.show {
+        display: block;
+    }
+
+
+/* =========================================================
+   RESPONSIVE
+   SAME SIDEBAR BREAKPOINTS AS DASHBOARD
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .mytasks-sidebar {
+        width: 190px;
+        min-width: 190px;
+        max-width: 190px;
+    }
+
+    .mytasks-logo {
+        width: 190px;
+    }
+
+    .mytasks-navigation {
+        width: 190px;
+    }
+
+    .mytasks-nav-item,
+    .mytasks-nav-item.active {
+        width: 172px;
+        min-width: 172px;
+        max-width: 172px;
+    }
+
+    .mytasks-main {
+        width: calc(100% - 190px);
+        margin-left: 190px;
+    }
+
+    .mytasks-content {
+        width: calc(100% - 40px);
+    }
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .mytasks-content {
+        width: calc(100% - 30px);
+    }
+
+    .details-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .order-summary-card {
+        width: 100%;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   SAME AS DASHBOARD
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .mytasks-sidebar {
+        width: 70px;
+        min-width: 70px;
+        max-width: 70px;
+    }
+
+    .mytasks-logo {
+        width: 70px;
+        justify-content: center;
+        padding: 0;
+    }
+
+        .mytasks-logo > strong {
+            display: none;
+        }
+
+    .mytasks-navigation {
+        width: 70px;
+        padding: 12px 8px;
+    }
+
+    .mytasks-nav-item,
+    .mytasks-nav-item.active {
+        width: 54px;
+        min-width: 54px;
+        max-width: 54px;
+        height: 43px;
+        min-height: 43px;
+        max-height: 43px;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .mytasks-nav-item {
+        gap: 0;
+    }
+
+        .mytasks-nav-item span {
+            width: 18px;
+            min-width: 18px;
+            max-width: 18px;
+        }
+
+    .mytasks-nav-item {
+        font-size: 0;
+    }
+
+    .mytasks-user {
+        left: 8px;
+        right: 8px;
+        width: 54px;
+        min-width: 54px;
+        max-width: 54px;
+        justify-content: center;
+        padding: 7px;
+    }
+
+    .mytasks-user-info,
+    .mytasks-user-menu {
+        display: none;
+    }
+
+    .mytasks-main {
+        width: calc(100% - 70px);
+        margin-left: 70px;
+    }
+
+    .mytasks-topbar {
+        height: 60px;
+        min-height: 60px;
+        max-height: 60px;
+        padding: 0 15px;
+    }
+
+        .mytasks-topbar h1 {
+            font-size: 19px;
+        }
+
+    .mytasks-notification {
+        width: 34px;
+        min-width: 34px;
+        max-width: 34px;
+        height: 34px;
+        min-height: 34px;
+        max-height: 34px;
+    }
+
+    .mytasks-content {
+        width: calc(100% - 24px);
+        margin-top: 18px;
+        margin-bottom: 45px;
+    }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .mytasks-content {
+        width: calc(100% - 18px);
+    }
+
+    .task-details-card,
+    .order-summary-card,
+    .assigned-provider-card {
+        padding: 16px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+========================================================= */
+
+@media (max-width: 360px) {
+
+    .mytasks-sidebar {
+        width: 58px;
+        min-width: 58px;
+        max-width: 58px;
+    }
+
+    .mytasks-logo {
+        width: 58px;
+        min-width: 58px;
+        max-width: 58px;
+    }
+
+    .mytasks-navigation {
+        width: 58px;
+    }
+
+    .mytasks-nav-item,
+    .mytasks-nav-item.active {
+        width: 42px;
+        min-width: 42px;
+        max-width: 42px;
+    }
+
+    .mytasks-user {
+        width: 42px;
+        min-width: 42px;
+        max-width: 42px;
+    }
+
+    .mytasks-main {
+        width: calc(100% - 58px);
+        margin-left: 58px;
+    }
+
+    .mytasks-content {
+        width: calc(100% - 14px);
+    }
+
+    .mytasks-topbar {
+        padding: 0 10px;
+    }
+
+        .mytasks-topbar h1 {
+            font-size: 17px;
+        }
+}

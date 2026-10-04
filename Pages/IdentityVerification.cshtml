@@ -1,0 +1,772 @@
+﻿@page
+@model IdentityVerificationModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Identity Verification - Tap, Task, Done</title>
+
+    <link rel="stylesheet"
+          href="/css/identity-verification.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
+    <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+
+</head>
+
+<body>
+
+    <div class="verification-page">
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-logo">
+
+                <div class="mini-logo">
+                    ✓
+                </div>
+
+                <span>
+                    Tap, Task, Done
+                </span>
+
+            </div>
+
+
+            <nav class="navigation">
+
+                <a href="/Dashboard"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ⌂
+                    </span>
+
+                    <span>
+                        Home
+                    </span>
+
+                </a>
+
+
+                <a href="/FindPost"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ⌕
+                    </span>
+
+                    <span>
+                        Find &amp; Post
+                    </span>
+
+                </a>
+
+
+                <a href="/MyTasks"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                          ▤
+                    </span>
+
+                    <span>
+                        My Tasks
+                    </span>
+
+                </a>
+
+
+                <a href="/Messages"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        □
+                    </span>
+
+                    <span>
+                        Messages
+                    </span>
+
+                </a>
+
+
+                <a href="/IdentityVerification"
+                   class="nav-item active">
+
+                    <span class="nav-icon">
+                        ✓
+                    </span>
+
+                    <span>
+                        Identity Verification
+                    </span>
+
+                </a>
+
+
+                <a href="/Tracking"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                          ➤
+                    </span>
+
+                    <span>
+                        Tracking
+                    </span>
+
+                </a>
+
+
+                <a href="/Reviews"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ☆
+                    </span>
+
+                    <span>
+                        Reviews
+                    </span>
+
+                </a>
+
+            </nav>
+
+
+            <!-- USER -->
+
+            <div class="sidebar-user">
+
+                <div class="user-avatar"
+                     id="sidebarAvatar">
+                    U
+                </div>
+
+                <div class="user-info">
+
+                    <strong id="sidebarName">
+                        User
+                    </strong>
+
+                    <small id="sidebarEmail">
+                        user@email.com
+                    </small>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN -->
+
+        <main class="main-content">
+
+            <!-- TOPBAR -->
+
+            <header class="topbar">
+
+                <h1>
+                    Identity Verification
+                </h1>
+
+                <button class="notification"
+                        type="button">
+                    ♧
+                </button>
+
+            </header>
+
+
+            <!-- CONTENT -->
+
+            <div class="content">
+
+                <div class="page-heading">
+
+                    <h2>
+                        Verify your identity
+                    </h2>
+
+                    <p>
+                        Submit your documents to help keep Tap, Task, Done safe and trusted.
+                    </p>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <section class="status-card"
+                         id="verificationStatus">
+
+                    <div class="status-icon"
+                         id="statusIcon">
+                        !
+                    </div>
+
+                    <div class="status-text">
+
+                        <strong id="statusTitle">
+                            Not Verified
+                        </strong>
+
+                        <p id="statusDescription">
+                            Your identity has not been verified yet.
+                        </p>
+
+                    </div>
+
+                </section>
+
+
+                <!-- DOCUMENT CARD -->
+
+                <section class="verification-card">
+
+                    <div class="card-heading">
+
+                        <h3>
+                            Identity Documents
+                        </h3>
+
+                        <p>
+                            Upload clear and readable copies of your documents.
+                        </p>
+
+                    </div>
+
+
+                    <!-- GOVERNMENT ID -->
+
+                    <div class="document-row">
+
+                        <div class="document-info">
+
+                            <div class="document-title">
+
+                                <strong>
+                                    Valid Government ID
+                                </strong>
+
+                                <span class="required">
+                                    Required
+                                </span>
+
+                            </div>
+
+                            <p>
+                                Upload a valid government-issued identification card.
+                            </p>
+
+                        </div>
+
+
+                        <div class="upload-area">
+
+                            <input type="file"
+                                   id="governmentId"
+                                   accept=".jpg,.jpeg,.png,.pdf"
+                                   hidden />
+
+                            <label for="governmentId"
+                                   class="upload-button">
+
+                                <span>
+                                    ↑
+                                </span>
+
+                                Choose File
+
+                            </label>
+
+                            <small id="governmentIdName">
+                                JPG, PNG or PDF · Max. 5MB
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ID NUMBER -->
+
+                    <div class="id-number-section">
+
+                        <label for="idNumber">
+
+                            ID Number
+
+                            <span>
+                                Required
+                            </span>
+
+                        </label>
+
+                        <input type="text"
+                               id="idNumber"
+                               placeholder="Enter your government ID number"
+                               maxlength="50" />
+
+                    </div>
+
+
+                    <!-- CERTIFICATION -->
+
+                    <div class="document-row">
+
+                        <div class="document-info">
+
+                            <div class="document-title">
+
+                                <strong>
+                                    Certification
+                                </strong>
+
+                                <span class="optional">
+                                    Optional
+                                </span>
+
+                            </div>
+
+                            <p>
+                                Upload a professional or relevant certification.
+                            </p>
+
+                        </div>
+
+
+                        <div class="upload-area">
+
+                            <input type="file"
+                                   id="certification"
+                                   accept=".jpg,.jpeg,.png,.pdf"
+                                   hidden />
+
+                            <label for="certification"
+                                   class="upload-button">
+
+                                <span>
+                                    ↑
+                                </span>
+
+                                Choose File
+
+                            </label>
+
+                            <small id="certificationName">
+                                JPG, PNG or PDF · Max. 5MB
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- OTHER DOCUMENT -->
+
+                    <div class="document-row">
+
+                        <div class="document-info">
+
+                            <div class="document-title">
+
+                                <strong>
+                                    Other Supporting Document
+                                </strong>
+
+                                <span class="optional">
+                                    Optional
+                                </span>
+
+                            </div>
+
+                            <p>
+                                Upload any other document that may support your verification.
+                            </p>
+
+                        </div>
+
+
+                        <div class="upload-area">
+
+                            <input type="file"
+                                   id="supportingDocument"
+                                   accept=".jpg,.jpeg,.png,.pdf"
+                                   hidden />
+
+                            <label for="supportingDocument"
+                                   class="upload-button">
+
+                                <span>
+                                    ↑
+                                </span>
+
+                                Choose File
+
+                            </label>
+
+                            <small id="supportingDocumentName">
+                                JPG, PNG or PDF · Max. 5MB
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SUBMIT -->
+
+                    <div class="submit-area">
+
+                        <button type="button"
+                                id="submitVerification">
+
+                            Submit for Verification
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+                <p class="page-note">
+                    Your documents should be clear, readable, and belong to you.
+                </p>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <script>
+
+        // Keep the sidebar account identical to the signed-in account on other pages.
+        (function loadSidebarAccount() {
+
+            const account = localStorage.getItem("tapTaskDoneAccount");
+
+            if (!account) {
+                return;
+            }
+
+            try {
+
+                const user = JSON.parse(account);
+                const name = user.nickname || user.name || "User";
+                const email = user.email || "user@email.com";
+                const words = name.trim().split(/\s+/);
+                const initials = words.length > 1
+                    ? (words[0][0] + words[words.length - 1][0])
+                    : words[0].substring(0, 2);
+
+                document.getElementById("sidebarName").textContent = name;
+                document.getElementById("sidebarEmail").textContent = email;
+                document.getElementById("sidebarAvatar").textContent = initials.toUpperCase();
+
+            }
+            catch (error) {
+
+                console.error("Unable to load sidebar account.", error);
+
+            }
+
+        })();
+
+        // =====================================================
+        // FILE NAME DISPLAY
+        // =====================================================
+
+        function showFileName(inputId, labelId) {
+
+            const input =
+                document.getElementById(inputId);
+
+            const label =
+                document.getElementById(labelId);
+
+            if (!input || !label) {
+                return;
+            }
+
+            input.addEventListener("change", function () {
+
+                if (input.files.length > 0) {
+
+                    const file =
+                        input.files[0];
+
+                    label.textContent =
+                        file.name;
+
+                }
+
+            });
+
+        }
+
+
+        showFileName(
+            "governmentId",
+            "governmentIdName"
+        );
+
+
+        showFileName(
+            "certification",
+            "certificationName"
+        );
+
+
+        showFileName(
+            "supportingDocument",
+            "supportingDocumentName"
+        );
+
+
+        // =====================================================
+        // ELEMENTS
+        // =====================================================
+
+        const submitButton =
+            document.getElementById(
+                "submitVerification"
+            );
+
+
+        const governmentId =
+            document.getElementById(
+                "governmentId"
+            );
+
+
+        const idNumber =
+            document.getElementById(
+                "idNumber"
+            );
+
+
+        const statusTitle =
+            document.getElementById(
+                "statusTitle"
+            );
+
+
+        const statusDescription =
+            document.getElementById(
+                "statusDescription"
+            );
+
+
+        const statusIcon =
+            document.getElementById(
+                "statusIcon"
+            );
+
+
+        // =====================================================
+        // LOAD SAVED VERIFICATION STATUS
+        // =====================================================
+
+        function loadVerificationStatus() {
+
+            const status =
+                localStorage.getItem(
+                    "tapTaskDoneVerificationStatus"
+                );
+
+
+            if (status !== "pending") {
+                return;
+            }
+
+
+            if (statusTitle) {
+
+                statusTitle.textContent =
+                    "Pending Verification";
+
+            }
+
+
+            if (statusDescription) {
+
+                statusDescription.textContent =
+                    "Your documents are currently being reviewed.";
+
+            }
+
+
+            if (statusIcon) {
+
+                statusIcon.textContent =
+                    "✓";
+
+            }
+
+
+            if (submitButton) {
+
+                submitButton.textContent =
+                    "Verification Submitted";
+
+                submitButton.disabled =
+                    true;
+
+                submitButton.style.opacity =
+                    "0.55";
+
+                submitButton.style.cursor =
+                    "default";
+
+            }
+
+        }
+
+
+        // =====================================================
+        // SUBMIT VERIFICATION
+        // =====================================================
+
+        if (submitButton) {
+
+            submitButton.addEventListener(
+                "click",
+                function () {
+
+
+                    // -----------------------------------------
+                    // GOVERNMENT ID CHECK
+                    // -----------------------------------------
+
+                    if (
+                        !governmentId ||
+                        governmentId.files.length === 0
+                    ) {
+
+                        alert(
+                            "Please upload your Government ID."
+                        );
+
+                        return;
+
+                    }
+
+
+                    // -----------------------------------------
+                    // ID NUMBER CHECK
+                    // -----------------------------------------
+
+                    if (
+                        !idNumber ||
+                        idNumber.value.trim() === ""
+                    ) {
+
+                        alert(
+                            "Please enter your ID Number."
+                        );
+
+                        return;
+
+                    }
+
+
+                    // -----------------------------------------
+                    // SAVE STATUS
+                    // -----------------------------------------
+
+                    localStorage.setItem(
+                        "tapTaskDoneVerificationStatus",
+                        "pending"
+                    );
+
+
+                    // -----------------------------------------
+                    // UPDATE STATUS CARD
+                    // -----------------------------------------
+
+                    if (statusTitle) {
+
+                        statusTitle.textContent =
+                            "Pending Verification";
+
+                    }
+
+
+                    if (statusDescription) {
+
+                        statusDescription.textContent =
+                            "Your documents are currently being reviewed.";
+
+                    }
+
+
+                    if (statusIcon) {
+
+                        statusIcon.textContent =
+                            "✓";
+
+                    }
+
+
+                    // -----------------------------------------
+                    // UPDATE BUTTON
+                    // -----------------------------------------
+
+                    submitButton.textContent =
+                        "Verification Submitted";
+
+                    submitButton.disabled =
+                        true;
+
+                    submitButton.style.opacity =
+                        "0.55";
+
+                    submitButton.style.cursor =
+                        "default";
+
+
+                    // -----------------------------------------
+                    // SUCCESS MESSAGE
+                    // -----------------------------------------
+
+                    alert(
+                        "Your verification documents have been submitted."
+                    );
+
+                }
+            );
+
+        }
+
+
+        // =====================================================
+        // LOAD STATUS WHEN PAGE OPENS
+        // =====================================================
+
+        loadVerificationStatus();
+
+    </script>
+
+</body>
+
+</html>

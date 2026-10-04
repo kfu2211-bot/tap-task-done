@@ -1,0 +1,101 @@
+﻿@page
+@model SuccessModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>You're all set</title>
+
+    <link rel="stylesheet"
+          href="/css/site.css" asp-append-version="true" />
+
+</head>
+
+
+<body>
+
+    <div class="success-page">
+
+
+        <!-- LOGO -->
+
+        <div class="success-logo">
+
+            <div class="success-logo-circle">
+                ✓
+            </div>
+
+            <span>
+                Tap, Task, Done
+            </span>
+
+        </div>
+
+
+
+        <!-- CARD -->
+
+        <div class="success-card">
+
+
+            <div class="success-icon">
+
+                ✓
+
+            </div>
+
+
+            <h1>
+                You're all set
+            </h1>
+
+
+            <p>
+                Congratulations, your account has been
+                successfully created. Let's find your first task.
+            </p>
+
+
+            <button type="button"
+                    id="continueButton">
+
+                Continue
+
+            </button>
+
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        document
+            .getElementById("continueButton")
+            .addEventListener(
+                "click",
+                function () {
+
+                    window.location.href = "/Login";
+
+                }
+            );
+
+    </script>
+
+</body>
+
+</html>

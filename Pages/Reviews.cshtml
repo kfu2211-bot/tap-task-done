@@ -1,0 +1,553 @@
+﻿@page
+@model tts.Pages.ReviewsModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Reviews</title>
+
+    <link rel="stylesheet"
+          href="/css/reviews.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
+    <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+
+</head>
+
+<body>
+
+    <div class="reviews-page">
+
+        <!-- =========================================
+             SIDEBAR
+        ========================================== -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-logo">
+
+                <div class="logo-check">
+                    ✓
+                </div>
+
+                <span>
+                    Tap, Task, Done
+                </span>
+
+            </div>
+
+
+            <nav class="sidebar-nav">
+
+                <a href="/Dashboard" class="nav-item">
+                    <span class="nav-icon">⌂</span>
+                    <span>Home</span>
+                </a>
+
+                <a href="/FindPost" class="nav-item">
+                    <span class="nav-icon">⌕</span>
+                    <span>Find &amp; Post</span>
+                </a>
+
+                <a href="/MyTasks" class="nav-item">
+                    <span class="nav-icon">▤</span>
+                    <span>My Tasks</span>
+                </a>
+
+                <a href="/Messages" class="nav-item">
+                    <span class="nav-icon">□</span>
+                    <span>Messages</span>
+                </a>
+
+                <a href="/IdentityVerification" class="nav-item">
+                    <span class="nav-icon">✓</span>
+                    <span>Identity Verification</span>
+                </a>
+
+                <a href="/Tracking" class="nav-item">
+                    <span class="nav-icon">➤</span>
+                    <span>Tracking</span>
+                </a>
+
+                <a href="/Reviews" class="nav-item active">
+                    <span class="nav-icon">☆</span>
+                    <span>Reviews</span>
+                </a>
+
+            </nav>
+
+
+            <!-- USER -->
+
+            <div class="sidebar-user">
+
+                <div class="user-avatar" id="sidebarAvatar">
+                    JD
+                </div>
+
+                <div class="user-info">
+
+                    <strong id="sidebarName">
+                        Jhon
+                    </strong>
+
+                    <span id="sidebarEmail">
+                        jhon@gmail.com
+                    </span>
+
+                </div>
+
+                <button class="user-menu">
+                    ⋮
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =========================================
+             MAIN CONTENT
+        ========================================== -->
+
+        <main class="main-content">
+
+            <!-- HEADER -->
+
+            <header class="top-header">
+
+                <h1>
+                    Reviews
+                </h1>
+
+                <button class="notification-button">
+                    ♧
+                </button>
+
+            </header>
+
+
+            <!-- =====================================
+                 REVIEWS CONTENT
+            ====================================== -->
+
+            <section class="reviews-content">
+
+
+                <!-- =================================
+                     RATING SUMMARY
+                ================================== -->
+
+                <div class="rating-summary">
+
+                    <div class="rating-number">
+                        4.6
+                    </div>
+
+                    <div class="rating-stars">
+                        ★ ★ ★ ★ ★
+                    </div>
+
+                    <div class="reviews-count">
+                        241 reviews given
+                    </div>
+
+
+                    <div class="rating-divider"></div>
+
+
+                    <!-- 5 STARS -->
+
+                    <div class="rating-row">
+
+                        <span>5★</span>
+
+                        <div class="rating-bar">
+                            <div class="rating-fill"
+                                 style="width: 91%;">
+                            </div>
+                        </div>
+
+                        <span class="rating-total">
+                            182
+                        </span>
+
+                    </div>
+
+
+                    <!-- 4 STARS -->
+
+                    <div class="rating-row">
+
+                        <span>4★</span>
+
+                        <div class="rating-bar">
+                            <div class="rating-fill"
+                                 style="width: 21%;">
+                            </div>
+                        </div>
+
+                        <span class="rating-total">
+                            41
+                        </span>
+
+                    </div>
+
+
+                    <!-- 3 STARS -->
+
+                    <div class="rating-row">
+
+                        <span>3★</span>
+
+                        <div class="rating-bar">
+                            <div class="rating-fill"
+                                 style="width: 6%;">
+                            </div>
+                        </div>
+
+                        <span class="rating-total">
+                            12
+                        </span>
+
+                    </div>
+
+
+                    <!-- 2 STARS -->
+
+                    <div class="rating-row">
+
+                        <span>2★</span>
+
+                        <div class="rating-bar">
+                            <div class="rating-fill"
+                                 style="width: 2%;">
+                            </div>
+                        </div>
+
+                        <span class="rating-total">
+                            4
+                        </span>
+
+                    </div>
+
+
+                    <!-- 1 STAR -->
+
+                    <div class="rating-row">
+
+                        <span>1★</span>
+
+                        <div class="rating-bar">
+                            <div class="rating-fill"
+                                 style="width: 1%;">
+                            </div>
+                        </div>
+
+                        <span class="rating-total">
+                            2
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================
+                     RIGHT SIDE
+                ================================== -->
+
+                <div class="reviews-list-area">
+
+
+                    <!-- FILTERS -->
+
+                    <div class="review-filters">
+
+                        <button class="filter-button active">
+                            All
+                        </button>
+
+                        <button class="filter-button">
+                            5 stars
+                        </button>
+
+                        <button class="filter-button">
+                            4 stars
+                        </button>
+
+                        <button class="filter-button">
+                            3 stars
+                        </button>
+
+                    </div>
+
+
+                    <!-- =================================
+                         REVIEW 1
+                    ================================== -->
+
+                    <article class="review-card">
+
+                        <div class="review-top">
+
+                            <div class="review-person">
+
+                                <div class="review-avatar">
+                                    Of
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Ofrac
+                                    </strong>
+
+                                    <span>
+                                        Plumber
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <time>
+                                Aug 18, 2026
+                            </time>
+
+                        </div>
+
+
+                        <div class="review-rating">
+
+                            <span class="stars">
+                                ★★★★★
+                            </span>
+
+                            <span class="review-separator">
+                                ·
+                            </span>
+
+                            <span>
+                                Fix leaking kitchen faucet
+                            </span>
+
+                        </div>
+
+
+                        <p>
+                            Fast and professional. Fixed the leak
+                            in under an hour and cleaned up after.
+                            Highly recommend.
+                        </p>
+
+                    </article>
+
+
+                    <!-- =================================
+                         REVIEW 2
+                    ================================== -->
+
+                    <article class="review-card">
+
+                        <div class="review-top">
+
+                            <div class="review-person">
+
+                                <div class="review-avatar">
+                                    Ma
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Marisol
+                                    </strong>
+
+                                    <span>
+                                        House Cleaner
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <time>
+                                Aug 12, 2026
+                            </time>
+
+                        </div>
+
+
+                        <div class="review-rating">
+
+                            <span class="stars">
+                                ★★★★★
+                            </span>
+
+                            <span class="review-separator">
+                                ·
+                            </span>
+
+                            <span>
+                                Deep clean 2-bedroom condo
+                            </span>
+
+                        </div>
+
+
+                        <p>
+                            The place has never looked this good.
+                            Very thorough and friendly. Will book
+                            again.
+                        </p>
+
+                    </article>
+
+
+                    <!-- =================================
+                         REVIEW 3
+                    ================================== -->
+
+                    <article class="review-card">
+
+                        <div class="review-top">
+
+                            <div class="review-person">
+
+                                <div class="review-avatar">
+                                    Le
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Lea
+                                    </strong>
+
+                                    <span>
+                                        Errand Runner
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <time>
+                                Aug 4, 2026
+                            </time>
+
+                        </div>
+
+
+                        <div class="review-rating">
+
+                            <span class="stars">
+                                ★★★★★
+                            </span>
+
+                            <span class="review-separator">
+                                ·
+                            </span>
+
+                            <span>
+                                Grocery run &amp; pharmacy pickup
+                            </span>
+
+                        </div>
+
+
+                        <p>
+                            Great communication throughout.
+                            Got everything on the list, just a
+                            little later than expected.
+                        </p>
+
+                    </article>
+
+
+                    <!-- =================================
+                         REVIEW 4
+                    ================================== -->
+
+                    <article class="review-card">
+
+                        <div class="review-top">
+
+                            <div class="review-person">
+
+                                <div class="review-avatar">
+                                    Da
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Dante
+                                    </strong>
+
+                                    <span>
+                                        Electrician
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <time>
+                                Jul 28, 2026
+                            </time>
+
+                        </div>
+
+
+                        <div class="review-rating">
+
+                            <span class="stars">
+                                ★★★★★
+                            </span>
+
+                            <span class="review-separator">
+                                ·
+                            </span>
+
+                            <span>
+                                Install ceiling light fixture
+                            </span>
+
+                        </div>
+
+
+                        <p>
+                            Knew exactly what to do and explained
+                            the work clearly. Neat wiring and no
+                            mess left behind.
+                        </p>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <script src="~/js/reviews.js?v=1"></script>
+
+</body>
+
+</html>

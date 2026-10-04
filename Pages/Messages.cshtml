@@ -1,0 +1,198 @@
+﻿@page
+@model MessagesModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Messages - Tap, Task, Done</title>
+
+    <link rel="stylesheet" href="/css/messages.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
+    <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+</head>
+
+<body>
+
+    <!-- ==============================
+         SIDEBAR
+    =============================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo-area">
+            <div class="logo-circle">✓</div>
+            <span>Tap, Task, Done</span>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="/Dashboard">
+                <span class="nav-icon">⌂</span>
+                <span>Home</span>
+            </a>
+
+            <a href="/FindPost">
+                <span class="nav-icon">⌕</span>
+                <span>Find &amp; Post</span>
+            </a>
+
+            <a href="/MyTasks">
+                <span class="nav-icon">▤</span>
+                <span>My Tasks</span>
+            </a>
+
+            <a href="/Messages" class="active">
+                <span class="nav-icon">□</span>
+                <span>Messages</span>
+            </a>
+
+            <a href="/IdentityVerification">
+                <span class="nav-icon">✓</span>
+                <span>Identity Verification</span>
+            </a>
+
+            <a href="/Tracking">
+                <span class="nav-icon">➤</span>
+                <span>Tracking</span>
+            </a>
+
+            <a href="/Reviews">
+                <span class="nav-icon">☆</span>
+                <span>Reviews</span>
+            </a>
+
+        </nav>
+
+        <!-- USER -->
+
+        <div class="sidebar-user">
+
+            <div class="user-avatar" id="userAvatar">
+                JD
+            </div>
+
+            <div class="user-info">
+                <strong id="sidebarName">Jhon</strong>
+                <span id="sidebarEmail">jhon@gmail.com</span>
+            </div>
+
+            <button class="user-menu">⋮</button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ==============================
+         MAIN CONTENT
+    =============================== -->
+
+    <main class="main-content">
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <h1>Messages</h1>
+
+            <button class="notification-button">
+                ♧
+            </button>
+
+        </header>
+
+
+        <!-- ==============================
+             MESSAGE AREA
+        =============================== -->
+
+        <section class="messages-wrapper">
+
+            <!-- CONVERSATION LIST -->
+
+            <div class="conversation-panel">
+
+                <div class="search-box">
+
+                    <span>⌕</span>
+
+                    <input type="text"
+                           id="messageSearch"
+                           placeholder="Search messages" />
+
+                </div>
+
+
+                <div class="conversation active" onclick="openConversation('Ofrac')">
+                    <div class="conversation-avatar">Of</div>
+                    <div class="conversation-details"><div class="conversation-top"><strong>Ofrac</strong><span>10:24 AM</span></div><p>I can be there by 2 PM today.</p></div>
+                    <div class="unread">2</div>
+                </div>
+                <div class="conversation" onclick="openConversation('Marisol')">
+                    <div class="conversation-avatar">Ma</div>
+                    <div class="conversation-details"><div class="conversation-top"><strong>Marisol</strong><span>Yesterday</span></div><p>See you on Saturday morning!</p></div>
+                </div>
+                <div class="conversation" onclick="openConversation('Dante')">
+                    <div class="conversation-avatar">Da</div>
+                    <div class="conversation-details"><div class="conversation-top"><strong>Dante</strong><span>Mon</span></div><p>Could you send a photo of the future...</p></div>
+                </div>
+                <div class="conversation" onclick="openConversation('Lea')">
+                    <div class="conversation-avatar">Le</div>
+                    <div class="conversation-details"><div class="conversation-top"><strong>Lea</strong><span>Aug 18</span></div><p>Delivered! Thanks for booking.</p></div>
+                </div>
+
+            </div>
+
+
+            <!-- ==============================
+                 CHAT PANEL
+            =============================== -->
+
+            <div class="chat-panel">
+
+                <!-- CHAT HEADER -->
+
+                <div class="chat-header">
+                    <div class="chat-avatar">Of</div>
+                    <div><strong id="chatName">Ofrac</strong><span>Plumber</span></div>
+                </div>
+
+
+                <!-- CHAT MESSAGES -->
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message received"><div class="message-bubble">Hi Jhon, I saw your faucet task.<small>10:10 AM</small></div></div>
+                    <div class="message received"><div class="message-bubble">No problem, I have the parts.<small>10:20 AM</small></div></div>
+                    <div class="message received"><div class="message-bubble">I can be there by 2 PM today.<small>10:24 AM</small></div></div>
+                    <div class="message sent"><div class="message-bubble">Great! It's leaking pretty badly.<small>10:25 AM</small></div></div>
+                </div>
+
+
+                <!-- MESSAGE INPUT -->
+
+                <div class="message-input-area">
+                    <textarea id="messageInput"
+                              rows="2"
+                              placeholder="Write a message…"></textarea>
+                    <button type="button" id="sendMessage" aria-label="Send message">➤</button>
+                    <small>Press Enter to send · Shift + Enter for a new line</small>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="~/js/messages.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,525 @@
+﻿@page
+@model TrackingModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Tracking - Tap, Task, Done</title>
+
+    <link rel="stylesheet" href="/css/tracking.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
+    <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+</head>
+
+<body>
+
+    <div class="tracking-layout">
+
+        <!-- ================= SIDEBAR ================= -->
+
+        <aside class="sidebar">
+
+            <div class="brand">
+                <div class="brand-icon">✓</div>
+
+                <div class="brand-name">
+                    <strong>Tap, Task, Done</strong>
+                </div>
+            </div>
+
+
+            <nav class="sidebar-menu">
+
+                <a href="/Dashboard">
+                    <span class="menu-icon">⌂</span>
+                    <span>Home</span>
+                </a>
+
+
+                <a href="/FindPost">
+                    <span class="menu-icon">⌕</span>
+                    <span>Find &amp; Post</span>
+                </a>
+
+
+                <a href="/MyTasks">
+                    <span class="menu-icon">▤</span>
+                    <span>My Tasks</span>
+                </a>
+
+
+                <a href="/Messages">
+                    <span class="menu-icon">□</span>
+                    <span>Messages</span>
+                </a>
+
+
+                <a href="/IdentityVerification">
+                    <span class="menu-icon">✓</span>
+                    <span>Identity Verification</span>
+                </a>
+
+
+                <a href="/Tracking"
+                   class="active">
+                    <span class="menu-icon">➤</span>
+                    <span>Tracking</span>
+                </a>
+
+
+                <a href="/Reviews">
+                    <span class="menu-icon">☆</span>
+                    <span>Reviews</span>
+                </a>
+
+            </nav>
+
+
+            <div class="sidebar-account">
+
+                <div class="account-avatar">
+                    JD
+                </div>
+
+                <div class="account-details">
+                    <strong id="sidebarName">Jhon</strong>
+                    <span id="sidebarEmail">jhon@gmail.com</span>
+                </div>
+
+                <div class="account-more">
+                    ⋮
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- ================= MAIN ================= -->
+
+        <main class="main-content">
+
+
+            <!-- TOP HEADER -->
+
+            <header class="top-header">
+
+                <h1>Tracking</h1>
+
+                <div class="notification">
+                    ♧
+                </div>
+
+            </header>
+
+
+            <!-- ================= TRACKING CONTENT ================= -->
+
+            <section class="tracking-content">
+
+
+                <!-- TASK SELECTOR -->
+
+                <div class="task-selector">
+
+                    <button class="task-tab selected" type="button">
+                        Fix leaking kitchen faucet
+                    </button>
+
+                </div>
+
+                <section class="tracking-overview" aria-label="Task overview">
+                    <div class="tracking-overview-heading">
+                        <div class="tracking-task-icon">⌁</div>
+                        <div>
+                            <span class="overview-eyebrow">Active task</span>
+                            <h2 id="taskOverviewTitle">Fix leaking kitchen faucet</h2>
+                            <p id="taskOverviewMeta">Repairs · Metro Manila</p>
+                        </div>
+                        <div class="status-badge" id="statusBadge">
+                            <span>●</span>
+                            <span id="statusText">On the way</span>
+                        </div>
+                    </div>
+
+                    <div class="tracking-summary-grid">
+                        <div class="tracking-summary-card">
+                            <span class="summary-icon">▣</span>
+                            <div><span>Budget</span><strong id="trackingBudget">₱600</strong></div>
+                        </div>
+                        <div class="tracking-summary-card">
+                            <span class="summary-icon">◷</span>
+                            <div><span>Schedule</span><strong id="trackingSchedule">To be scheduled</strong></div>
+                        </div>
+                        <div class="tracking-summary-card">
+                            <span class="summary-icon">◉</span>
+                            <div><span>Status</span><strong id="trackingStatusSummary">On the way</strong></div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <div class="tracking-grid">
+
+
+                    <!-- ================= LEFT TRACKING CARD ================= -->
+
+                    <div class="tracking-card">
+
+                        <div class="tracking-card-header">
+
+                            <div>
+
+                                <h2 id="taskTitle">
+                                    Fix leaking kitchen faucet
+                                </h2>
+
+                                <span class="live-status">
+                                    Live status
+                                </span>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <!-- TIMELINE -->
+
+                        <div class="timeline">
+
+
+                            <!-- TASK CONFIRMED -->
+
+                            <div class="timeline-row completed">
+
+                                <div class="timeline-marker">
+                                    ✓
+                                </div>
+
+                                <div class="timeline-info">
+
+                                    <div class="timeline-title">
+                                        <strong>Task confirmed</strong>
+                                        <span>9:40 AM</span>
+                                    </div>
+
+                                    <p>
+                                        Booking accepted by Ofrac
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- PREPARING -->
+
+                            <div class="timeline-row completed">
+
+                                <div class="timeline-marker">
+                                    ✓
+                                </div>
+
+                                <div class="timeline-info">
+
+                                    <div class="timeline-title">
+                                        <strong>Preparing</strong>
+                                        <span>10:15 AM</span>
+                                    </div>
+
+                                    <p>
+                                        Gathering tools &amp; parts
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- ON THE WAY -->
+
+                            <div class="timeline-row active" id="onTheWayStep">
+
+                                <div class="timeline-marker">
+                                    ➤
+                                </div>
+
+                                <div class="timeline-info">
+
+                                    <div class="timeline-title">
+                                        <strong>On the way</strong>
+                                        <span>1:45 PM</span>
+                                    </div>
+
+                                    <p>
+                                        Arriving in ~15 min
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- IN PROGRESS -->
+
+                            <div class="timeline-row" id="inProgressStep">
+
+                                <div class="timeline-marker">
+                                    ◷
+                                </div>
+
+                                <div class="timeline-info">
+
+                                    <div class="timeline-title">
+                                        <strong>In progress</strong>
+                                    </div>
+
+                                    <p>
+                                        Working on your task
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- COMPLETED -->
+
+                            <div class="timeline-row" id="completedStep">
+
+                                <div class="timeline-marker">
+                                    ◷
+                                </div>
+
+                                <div class="timeline-info">
+
+                                    <div class="timeline-title">
+                                        <strong>Completed</strong>
+                                    </div>
+
+                                    <p id="completedDescription">
+                                        Task finished &amp; confirmed
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <!-- COMPLETE BUTTON -->
+
+                        <div class="completion-area">
+
+                            <button id="completeButton"
+                                    class="complete-button"
+                                    type="button"
+                                    disabled>
+
+                                Mark as complete
+
+                            </button>
+
+                            <p id="completionMessage">
+                                Waiting for the freelancer to finish the task.
+                            </p>
+
+                            <button id="demoFinishTaskButton"
+                                    class="demo-finish-button"
+                                    type="button">
+                                Start work
+                            </button>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <!-- ================= RIGHT SIDE ================= -->
+
+                    <div class="right-column">
+
+
+                        <!-- PROVIDER CARD -->
+
+                        <div class="provider-card">
+
+                            <div class="provider-top">
+
+                                <div class="provider-avatar">
+                                    Of
+                                </div>
+
+                                <div class="provider-info">
+
+                                    <strong>Ofrac</strong>
+
+                                    <span>Plumber</span>
+
+                                    <small id="providerRating">★ New freelancer</small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="provider-actions">
+                                <a id="messageProviderButton" class="message-button" href="/Messages">
+                                    □&nbsp;&nbsp; Message
+                                </a>
+
+                                <button type="button" id="reportProviderButton" class="report-provider-button">
+                                    ⚑&nbsp;&nbsp; Report
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================= MAP ================= -->
+
+                        <div class="map-card">
+
+                            <div class="map-grid">
+
+                                <div class="map-road road-one"></div>
+                                <div class="map-road road-two"></div>
+                                <div class="map-road road-three"></div>
+
+                                <div class="map-location">
+                                    <span>⌖</span>
+                                </div>
+
+                            </div>
+
+
+                            <div class="arrival-info">
+
+                                <span class="arrival-icon">
+                                    ◷
+                                </span>
+
+                                <span>
+                                    Estimated arrival:
+                                </span>
+
+                                <strong>
+                                    2:00 PM
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+                <!-- REVIEW NOTICE -->
+
+                <div id="completeTaskModal"
+                     class="complete-task-modal hidden"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-labelledby="completeTaskModalTitle">
+
+                    <div class="complete-task-dialog">
+                        <div class="complete-task-dialog-header">
+                            <div class="complete-task-icon">✓</div>
+                            <button type="button" id="closeCompletionModal" class="close-completion-modal" aria-label="Close">×</button>
+                        </div>
+                        <span class="complete-task-eyebrow">WORK COMPLETE</span>
+                        <h2 id="completeTaskModalTitle">Review the finished work</h2>
+                        <p class="complete-task-copy">
+                            Check that everything is complete before you confirm and leave a rating.
+                        </p>
+
+                        <div class="complete-task-summary">
+                            <div class="complete-summary-item">
+                                <span>Task</span>
+                                <strong id="completeModalTaskTitle">Your task</strong>
+                            </div>
+                            <div class="complete-summary-item">
+                                <span>Provider</span>
+                                <strong id="completeModalProvider">Provider</strong>
+                            </div>
+                            <span class="work-finished-chip">✓ Work marked finished</span>
+                        </div>
+
+                        <p class="completion-help">ⓘ Need something fixed? Message the provider before confirming.</p>
+
+                        <div class="complete-task-actions">
+                            <button type="button" id="notYetButton" class="not-yet-button">
+                                Not yet
+                            </button>
+                            <button type="button" id="confirmCompletionButton" class="confirm-completion-button">
+                                Confirm &amp; rate provider
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="reviewNotice"
+                     class="review-notice">
+
+                    <form class="review-form" id="reviewForm">
+                        <div class="review-provider">
+                            <div class="review-avatar">Of</div>
+                            <div>
+                                <h2>Rate your task</h2>
+                                <p>★ Ofrac · 4.8 (600 reviews)</p>
+                            </div>
+                        </div>
+
+                        <p class="rating-prompt">How was your experience?</p>
+                        <div class="star-picker" role="radiogroup" aria-label="Task rating">
+                            <button type="button" data-rating="1" aria-label="1 star">☆</button>
+                            <button type="button" data-rating="2" aria-label="2 stars">☆</button>
+                            <button type="button" data-rating="3" aria-label="3 stars">☆</button>
+                            <button type="button" data-rating="4" aria-label="4 stars">☆</button>
+                            <button type="button" data-rating="5" aria-label="5 stars">☆</button>
+                        </div>
+
+                        <p class="review-label">What stood out?</p>
+                        <div class="review-tags">
+                            <button type="button">Punctual</button>
+                            <button type="button">Professional</button>
+                            <button type="button">Great value</button>
+                            <button type="button">Clean work</button>
+                            <button type="button">Friendly</button>
+                        </div>
+
+                        <label class="review-label" for="reviewFeedback">Leave feedback</label>
+                        <textarea id="reviewFeedback" placeholder="Share details about your experience..."></textarea>
+                        <button id="submitReviewButton" class="submit-review-button" type="submit" disabled>Submit review</button>
+                    </form>
+
+                </div>
+
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <script src="~/js/tracking.js"></script>
+
+</body>
+</html>

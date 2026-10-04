@@ -1,0 +1,96 @@
+/* Shared readability layer for the signed-in application screens. */
+
+body {
+    font-size: 15px;
+}
+
+body .sidebar a,
+body .sidebar-item,
+body .sidebar-navigation a,
+body .sidebar-navigation span:not(.sidebar-icon),
+body .menu a,
+body .menu span:not(.menu-icon) {
+    font-size: 13px !important;
+    line-height: 1.35;
+}
+
+body .topbar h1,
+body .topbar h1,
+body .main-header h1 {
+    font-size: 22px !important;
+}
+
+body h2 {
+    line-height: 1.25;
+}
+
+body label,
+body input,
+body select,
+body textarea,
+body button,
+body .mode-button,
+body .sidebar-user strong,
+body .user-details strong {
+    font-size: 13px !important;
+}
+
+body input,
+body select,
+body textarea {
+    line-height: 1.45;
+}
+
+body p,
+body small,
+body .summary-note,
+body .schedule-help,
+body .task-card-meta,
+body .provider-info span,
+body .conversation-details p,
+body .review-card p,
+body .form-help,
+body .helper-text,
+body .empty-state p,
+body .messages-empty-state p {
+    font-size: 12px !important;
+    line-height: 1.5;
+}
+
+body [class*="label"],
+body [class*="meta"],
+body [class*="status"],
+body [class*="subtitle"],
+body [class*="eyebrow"],
+body [class*="note"],
+body [class*="help"] {
+    font-size: 12px !important;
+    line-height: 1.4;
+}
+
+body .category-card strong,
+body .freelancer-card strong,
+body .my-task-card strong,
+body .provider-info strong,
+body .conversation-details strong,
+body .review-card strong,
+body .task-detail-value,
+body .detail-value,
+body .summary-value {
+    font-size: 14px !important;
+}
+
+body .notification-button,
+body .sidebar-icon,
+body .menu-icon,
+body .nav-icon {
+    font-size: 15px !important;
+}
+
+@media (max-width: 700px) {
+    body .sidebar a,
+    body .sidebar-item,
+    body .sidebar-navigation a {
+        font-size: 12px !important;
+    }
+}

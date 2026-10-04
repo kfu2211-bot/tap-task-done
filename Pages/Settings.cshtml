@@ -1,0 +1,81 @@
+@page
+@model tts.Pages.SettingsModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - Tap, Task, Done</title>
+    <link rel="stylesheet" href="/css/settings.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
+    <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+</head>
+<body>
+    <div class="settings-layout">
+        <aside class="sidebar">
+            <div class="brand"><span class="brand-icon">✓</span><strong>Tap, Task, Done</strong></div>
+            <nav class="sidebar-menu">
+                <a href="/Dashboard"><span class="menu-icon">⌂</span><span>Home</span></a>
+                <a href="/FindPost"><span class="menu-icon">⌕</span><span>Find &amp; Post</span></a>
+                <a href="/MyTasks"><span class="menu-icon">▤</span><span>My Tasks</span></a>
+                <a href="/Messages"><span class="menu-icon">□</span><span>Messages</span></a>
+                <a href="/Tracking"><span class="menu-icon">➤</span><span>Tracking</span></a>
+                <a href="/Reviews"><span class="menu-icon">☆</span><span>Reviews</span></a>
+            </nav>
+            <div class="sidebar-account"><span class="account-avatar">U</span><div><strong id="sidebarName">User</strong><span id="sidebarEmail">user@email.com</span></div></div>
+        </aside>
+        <main>
+            <header><h1>Settings</h1></header>
+            <section class="settings-content">
+                <div class="page-intro">
+                    <h2>Profile &amp; work preferences</h2>
+                    <p>Keep your profile information up to date and set your work preferences.</p>
+                </div>
+                <form id="profileForm" class="settings-card account-card">
+                    <h2>Account profile</h2>
+                    <div class="profile-summary" aria-label="Current profile">
+                        <span id="profileAvatar" class="profile-avatar">U</span>
+                        <div><strong id="profileSummaryName">User</strong><span id="profileSummaryEmail">user@email.com</span></div>
+                        <span class="local-profile-badge">Local profile</span>
+                    </div>
+                    <section class="photo-settings" aria-labelledby="photoHeading">
+                        <div class="photo-settings-copy"><h3 id="photoHeading">Profile photo</h3><p>Use a clear photo so people can recognize you.</p></div>
+                        <div class="photo-actions">
+                            <label class="photo-upload-button" for="profilePhotoInput">Change photo</label>
+                            <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" />
+                            <button id="removePhotoButton" class="remove-photo-button" type="button">Remove photo</button>
+                            <span class="photo-file-note">JPG, PNG or WEBP · Max 5 MB</span>
+                            <span class="photo-storage-note">Your photo is stored only on this device.</span>
+                            <p id="photoMessage" class="photo-message" aria-live="polite"></p>
+                        </div>
+                    </section>
+                    <fieldset class="settings-group">
+                        <legend>Personal details</legend>
+                        <div class="field-grid">
+                            <label>Display name<input id="profileNameInput" required maxlength="60" /></label>
+                            <label>Email<input id="profileEmailInput" type="email" required /></label>
+                        </div>
+                    </fieldset>
+                    <fieldset class="settings-group work-group">
+                        <legend>Work preferences</legend>
+                        <div class="field-grid work-field-grid">
+                            <label>Service / profession<input id="profileServiceInput" maxlength="60" placeholder="e.g. Plumber" /></label>
+                            <label>Account role<select id="profileRoleInput"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select></label>
+                            <label>Availability<select id="profileAvailabilityInput"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label>
+                        </div>
+                    </fieldset>
+                    <div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite"></p><button class="primary-button" type="submit">Save changes</button></div>
+                </form>
+                <section class="settings-card demo-card" aria-labelledby="demoDataHeading">
+                    <div class="demo-title"><h2 id="demoDataHeading">Demo data</h2><span>Testing only</span></div>
+                    <p>Reset local tasks, offers, messages, reviews, reports, and notifications. Your profile stays saved.</p>
+                    <div class="demo-actions"><button id="resetDemoButton" class="danger-button" type="button">⌫&nbsp; Reset local demo data</button><span class="demo-hint">Use only when you want to test the flow again from the beginning.</span></div>
+                </section>
+            </section>
+        </main>
+    </div>
+    <script src="/js/settings.js"></script>
+</body>
+</html>

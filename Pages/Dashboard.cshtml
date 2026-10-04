@@ -1,0 +1,1543 @@
+﻿@page
+@model DashboardModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Home - Tap, Task, Done</title>
+
+    <link rel="stylesheet"
+          href="/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
+    <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <aside class="sidebar">
+
+            <!-- LOGO -->
+
+            <div class="sidebar-logo">
+
+                <div class="mini-logo">
+                    ✓
+                </div>
+
+                <span>
+                    Tap, Task, Done
+                </span>
+
+            </div>
+
+
+            <!-- NAVIGATION -->
+
+            <nav class="navigation">
+
+                <a asp-page="/Dashboard"
+                   class="nav-item active">
+
+                    <span class="nav-icon">
+                        ⌂
+                    </span>
+
+                    <span>
+                        Home
+                    </span>
+
+                </a>
+
+
+                <a asp-page="/FindPost"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ⌕
+                    </span>
+
+                    <span>
+                        Find &amp; Post
+                    </span>
+
+                </a>
+
+
+                <a asp-page="/MyTasks"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ▤
+                    </span>
+
+                    <span>
+                        My Tasks
+                    </span>
+
+                </a>
+
+
+                <!-- MESSAGES - CONNECTED -->
+
+                <a asp-page="/Messages"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        □
+                    </span>
+
+                    <span>
+                        Messages
+                    </span>
+
+                </a>
+
+
+                <a href="/IdentityVerification"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ✓
+                    </span>
+
+                    <span>
+                        Identity Verification
+                    </span>
+
+                </a>
+
+
+                <!-- TRACKING - CONNECTED -->
+
+                <a asp-page="/Tracking"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ➤
+                    </span>
+
+                    <span>
+                        Tracking
+                    </span>
+
+                </a>
+
+
+                <!-- REVIEWS - CONNECTED -->
+
+                <a asp-page="/Reviews"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ☆
+                    </span>
+
+                    <span>
+                        Reviews
+                    </span>
+
+                </a>
+
+                <a href="/Reports"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ⚑
+                    </span>
+
+                    <span>
+                        Safety &amp; Reports
+                    </span>
+
+                </a>
+
+                <a href="/Settings"
+                   class="nav-item">
+
+                    <span class="nav-icon">
+                        ⚙
+                    </span>
+
+                    <span>
+                        Settings
+                    </span>
+
+                </a>
+
+            </nav>
+
+
+            <!-- =================================================
+                 USER PROFILE BUTTON
+            ================================================== -->
+
+            <div class="sidebar-user"
+                 id="openProfile"
+                 role="button"
+                 tabindex="0">
+
+                <div class="user-avatar"
+                     id="sidebarAvatar">
+
+                    JD
+
+                </div>
+
+
+                <div class="user-info">
+
+                    <strong id="sidebarName">
+                        Jordan Dela Cruz
+                    </strong>
+
+                    <small id="sidebarEmail">
+                        jordan@gmail.com
+                    </small>
+
+                </div>
+
+
+                <div class="user-menu">
+                    ⋮
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =====================================================
+             MAIN CONTENT
+        ====================================================== -->
+
+        <main class="main-content">
+
+
+            <!-- TOPBAR -->
+
+            <header class="topbar">
+
+                <h1>
+                    Home
+                </h1>
+
+
+                <button class="notification"
+                        type="button"
+                        aria-label="Notifications">
+
+                    ♧
+
+                </button>
+
+            </header>
+
+
+            <!-- CONTENT -->
+
+            <div class="content">
+
+
+                <!-- =================================================
+                     SEARCH
+                ================================================== -->
+
+                <div class="search-box">
+
+                    <span class="search-icon">
+                        ⌕
+                    </span>
+
+                    <input type="text"
+                           placeholder="Search for a service, e.g. leaky faucet, deep clean..."
+                           aria-label="Search services" />
+
+                </div>
+
+
+                <!-- =================================================
+                     HERO
+                ================================================== -->
+
+                <section class="hero-card">
+
+                    <div class="hero-text">
+
+                        <span class="hero-label">
+                            SIMPLE. FAST. TRUSTED.
+                        </span>
+
+                        <h2>
+                            Find and manage<br />
+                            your one-time tasks.
+                        </h2>
+
+                        <p>
+                            Browse trusted service providers or post a task
+                            and let the right pro come to you.
+                        </p>
+
+
+                        <div class="hero-buttons">
+
+                            <button class="post-button"
+                                    type="button"
+                                    onclick="window.location.href='/FindPost?mode=post';">
+                                Post a task
+
+                            </button>
+
+
+                            <button class="find-button"
+                                    type="button"
+                                    onclick="window.location.href='/FindPost?mode=freelancer';">
+
+                                Find a freelancer
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     CATEGORIES
+                ================================================== -->
+
+                <section class="section">
+
+                    <div class="section-title">
+
+                        <div>
+
+                            <h3>
+                                Browse categories
+                            </h3>
+
+                            <p>
+                                Pick a category to get matched fast
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="category-grid">
+
+
+                        <!-- CLEANING -->
+
+                        <div class="category-card">
+
+                            <div class="category-icon">
+                                ♨
+                            </div>
+
+                            <h4>
+                                Cleaning
+                            </h4>
+
+                            <p>
+                                Homes, offices &amp; deep cleans
+                            </p>
+
+                            <strong>
+                                128 pros available
+                            </strong>
+
+                        </div>
+
+
+                        <!-- REPAIRS -->
+
+                        <div class="category-card">
+
+                            <div class="category-icon">
+                                🛠
+                            </div>
+
+                            <h4>
+                                Repairs
+                            </h4>
+
+                            <p>
+                                Plumbing, electrical &amp; fixes
+                            </p>
+
+                            <strong>
+                                94 pros available
+                            </strong>
+
+                        </div>
+
+
+                        <!-- ERRANDS -->
+
+                        <div class="category-card">
+
+                            <div class="category-icon">
+                                ▣
+                            </div>
+
+                            <h4>
+                                Errands
+                            </h4>
+
+                            <p>
+                                Deliveries, groceries &amp; queues
+                            </p>
+
+                            <strong>
+                                76 pros available
+                            </strong>
+
+                        </div>
+
+
+                        <!-- MOVING -->
+
+                        <div class="category-card">
+
+                            <div class="category-icon">
+                                ◈
+                            </div>
+
+                            <h4>
+                                Moving
+                            </h4>
+
+                            <p>
+                                Packing, hauling &amp; assembly
+                            </p>
+
+                            <strong>
+                                41 pros available
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     TOP SERVICE PROVIDERS
+                ================================================== -->
+
+                <section class="section providers-section">
+
+
+                    <div class="providers-heading">
+
+                        <div>
+
+                            <h3>
+                                Top service providers
+                            </h3>
+
+                            <p>
+                                Highest rated near you
+                            </p>
+
+                        </div>
+
+
+                        <a href="#">
+                            View all
+                        </a>
+
+                    </div>
+
+
+                    <div class="provider-grid">
+
+
+                        <!-- PROVIDER 1 -->
+
+                        <div class="provider-card">
+
+                            <div class="provider-top">
+
+                                <div class="provider-avatar">
+                                    Of
+                                </div>
+
+                                <div class="provider-name">
+
+                                    <strong>
+                                        Ofrac­io
+                                    </strong>
+
+                                    <span>
+                                        Plumber
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="provider-stats">
+
+                                <span class="rating">
+                                    ★ 4.8
+                                    <small>
+                                        (600)
+                                    </small>
+                                </span>
+
+                                <span>
+                                    100 jobs
+                                </span>
+
+                            </div>
+
+
+                            <div class="provider-bottom">
+
+                                <span>
+                                    ₱600 / task
+                                </span>
+
+                                <button type="button">
+                                    Book
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PROVIDER 2 -->
+
+                        <div class="provider-card">
+
+                            <div class="provider-top">
+
+                                <div class="provider-avatar">
+                                    Ma
+                                </div>
+
+                                <div class="provider-name">
+
+                                    <strong>
+                                        Marisol
+                                    </strong>
+
+                                    <span>
+                                        House Cleaner
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="provider-stats">
+
+                                <span class="rating">
+                                    ★ 4.9
+                                    <small>
+                                        (421)
+                                    </small>
+                                </span>
+
+                                <span>
+                                    210 jobs
+                                </span>
+
+                            </div>
+
+
+                            <div class="provider-bottom">
+
+                                <span>
+                                    ₱450 / task
+                                </span>
+
+                                <button type="button">
+                                    Book
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PROVIDER 3 -->
+
+                        <div class="provider-card">
+
+                            <div class="provider-top">
+
+                                <div class="provider-avatar">
+                                    Da
+                                </div>
+
+                                <div class="provider-name">
+
+                                    <strong>
+                                        Dante
+                                    </strong>
+
+                                    <span>
+                                        Electrician
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="provider-stats">
+
+                                <span class="rating">
+                                    ★ 4.7
+                                    <small>
+                                        (288)
+                                    </small>
+                                </span>
+
+                                <span>
+                                    132 jobs
+                                </span>
+
+                            </div>
+
+
+                            <div class="provider-bottom">
+
+                                <span>
+                                    ₱750 / task
+                                </span>
+
+                                <button type="button">
+                                    Book
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PROVIDER 4 -->
+
+                        <div class="provider-card">
+
+                            <div class="provider-top">
+
+                                <div class="provider-avatar">
+                                    Le
+                                </div>
+
+                                <div class="provider-name">
+
+                                    <strong>
+                                        Lea
+                                    </strong>
+
+                                    <span>
+                                        Errand Runner
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="provider-stats">
+
+                                <span class="rating">
+                                    ★ 4.9
+                                    <small>
+                                        (512)
+                                    </small>
+                                </span>
+
+                                <span>
+                                    340 jobs
+                                </span>
+
+                            </div>
+
+
+                            <div class="provider-bottom">
+
+                                <span>
+                                    ₱300 / task
+                                </span>
+
+                                <button type="button">
+                                    Book
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <!-- =========================================================
+         DASHBOARD JAVASCRIPT
+    ========================================================== -->
+
+    <script src="~/js/dashboard.js"></script>
+
+
+    <!-- =========================================================
+         MY PROFILE POPUP
+    ========================================================== -->
+
+    <div id="profileOverlay"
+         class="profile-overlay"
+         aria-hidden="true">
+
+        <div class="profile-panel"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="profileTitle">
+
+
+            <!-- PROFILE HEADER -->
+
+            <div class="profile-header">
+
+                <div>
+
+                    <span class="profile-eyebrow">
+                        ACCOUNT
+                    </span>
+
+                    <h2 id="profileTitle">
+                        My Profile
+                    </h2>
+
+                    <p>
+                        Manage your account information
+                    </p>
+
+                </div>
+
+
+                <button id="closeProfile"
+                        class="close-profile"
+                        type="button"
+                        aria-label="Close profile">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <!-- PROFILE IDENTITY -->
+
+            <div class="profile-identity">
+
+                <div id="profileAvatar"
+                     class="large-avatar">
+
+                    U
+
+                </div>
+
+
+                <div class="profile-identity-text">
+
+                    <h3 id="profileName">
+                        User
+                    </h3>
+
+                    <p id="profileEmail">
+                        user@email.com
+                    </p>
+
+                    <span class="profile-status">
+                        ● Active account
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACCOUNT INFORMATION -->
+
+            <div class="profile-section">
+
+                <h3>
+                    Account Information
+                </h3>
+
+
+                <div class="profile-field">
+
+                    <label for="profileFullName">
+                        Full Name
+                    </label>
+
+                    <input type="text"
+                           id="profileFullName"
+                           placeholder="Enter your full name"
+                           maxlength="60"
+                           autocomplete="name" />
+
+                </div>
+
+
+                <div class="profile-field">
+
+                    <label for="profileEmailInput">
+                        Email Address
+                    </label>
+
+                    <input type="email"
+                           id="profileEmailInput"
+                           placeholder="Enter your email"
+                           maxlength="100"
+                           autocomplete="email" />
+
+                </div>
+
+
+                <div class="profile-field">
+
+                    <label for="nicknameInput">
+                        Nickname
+                    </label>
+
+                    <input type="text"
+                           id="nicknameInput"
+                           placeholder="Enter your nickname"
+                           maxlength="30"
+                           autocomplete="nickname" />
+
+                </div>
+
+
+                <button id="saveProfile"
+                        type="button"
+                        class="save-profile-button">
+
+                    Save Changes
+
+                </button>
+
+            </div>
+
+
+            <!-- IDENTITY VERIFICATION -->
+
+            <div class="profile-section">
+
+                <h3>
+                    Identity Verification
+                </h3>
+
+
+                <div class="profile-verification-row">
+
+                    <div class="verification-small-icon">
+                        ✓
+                    </div>
+
+
+                    <div class="verification-small-text">
+
+                        <strong id="profileVerificationStatus">
+                            Not Verified
+                        </strong>
+
+                        <span id="profileVerificationDescription">
+                            Your identity has not been verified yet.
+                        </span>
+
+                    </div>
+
+
+                    <button type="button"
+                            id="openVerification">
+
+                        Verify
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- SECURITY -->
+
+            <div class="profile-section security-section">
+
+                <h3>
+                    Security
+                </h3>
+
+
+                <button type="button"
+                        id="changePasswordButton"
+                        class="profile-action-button">
+
+                    <span>
+                        Change Password
+                    </span>
+
+                    <span>
+                        ›
+                    </span>
+
+                </button>
+
+            </div>
+
+
+            <!-- FOOTER -->
+
+            <div class="profile-footer">
+
+                <button type="button"
+                        id="closeProfileBottom"
+                        class="profile-close-button">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         PROFILE JAVASCRIPT
+    ========================================================== -->
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            /* =====================================================
+               ELEMENTS
+            ===================================================== */
+
+            const profileOverlay =
+                document.getElementById("profileOverlay");
+
+            const openProfile =
+                document.getElementById("openProfile");
+
+            const closeProfile =
+                document.getElementById("closeProfile");
+
+            const closeProfileBottom =
+                document.getElementById("closeProfileBottom");
+
+            const saveProfile =
+                document.getElementById("saveProfile");
+
+            const profileFullName =
+                document.getElementById("profileFullName");
+
+            const profileEmailInput =
+                document.getElementById("profileEmailInput");
+
+            const nicknameInput =
+                document.getElementById("nicknameInput");
+
+            const profileName =
+                document.getElementById("profileName");
+
+            const profileEmail =
+                document.getElementById("profileEmail");
+
+            const profileAvatar =
+                document.getElementById("profileAvatar");
+
+            const sidebarName =
+                document.getElementById("sidebarName");
+
+            const sidebarEmail =
+                document.getElementById("sidebarEmail");
+
+            const sidebarAvatar =
+                document.getElementById("sidebarAvatar");
+
+            const openVerification =
+                document.getElementById("openVerification");
+
+            const changePasswordButton =
+                document.getElementById("changePasswordButton");
+
+            const profileVerificationStatus =
+                document.getElementById("profileVerificationStatus");
+
+            const profileVerificationDescription =
+                document.getElementById("profileVerificationDescription");
+
+
+            /* =====================================================
+               GET INITIALS
+            ===================================================== */
+
+            function getProfileInitials(name) {
+
+                if (!name) {
+                    return "U";
+                }
+
+                const words =
+                    name.trim().split(/\s+/);
+
+
+                if (words.length === 1) {
+
+                    return words[0]
+                        .substring(0, 2)
+                        .toUpperCase();
+
+                }
+
+
+                return (
+                    words[0][0] +
+                    words[words.length - 1][0]
+                ).toUpperCase();
+
+            }
+
+
+            /* =====================================================
+               GET ACCOUNT FROM LOCAL STORAGE
+            ===================================================== */
+
+            function getAccount() {
+
+                const account =
+                    localStorage.getItem(
+                        "tapTaskDoneAccount"
+                    );
+
+
+                if (!account) {
+                    return null;
+                }
+
+
+                try {
+
+                    return JSON.parse(account);
+
+                }
+                catch (error) {
+
+                    console.error(
+                        "Could not load account.",
+                        error
+                    );
+
+                    return null;
+
+                }
+
+            }
+
+
+            /* =====================================================
+               VERIFICATION STATUS
+            ===================================================== */
+
+            function loadVerificationStatus() {
+
+                const status =
+                    localStorage.getItem(
+                        "tapTaskDoneVerificationStatus"
+                    );
+
+
+                if (status === "pending") {
+
+                    if (profileVerificationStatus) {
+
+                        profileVerificationStatus.textContent =
+                            "Pending Verification";
+
+                    }
+
+
+                    if (profileVerificationDescription) {
+
+                        profileVerificationDescription.textContent =
+                            "Your documents are currently being reviewed.";
+
+                    }
+
+
+                    if (openVerification) {
+
+                        openVerification.textContent =
+                            "View";
+
+                    }
+
+                }
+                else {
+
+                    if (profileVerificationStatus) {
+
+                        profileVerificationStatus.textContent =
+                            "Not Verified";
+
+                    }
+
+
+                    if (profileVerificationDescription) {
+
+                        profileVerificationDescription.textContent =
+                            "Your identity has not been verified yet.";
+
+                    }
+
+
+                    if (openVerification) {
+
+                        openVerification.textContent =
+                            "Verify";
+
+                    }
+
+                }
+
+            }
+
+
+            /* =====================================================
+               LOAD PROFILE
+            ===================================================== */
+
+            function loadProfileInformation() {
+
+                const user =
+                    getAccount();
+
+
+                if (!user) {
+
+                    profileFullName.value = "";
+                    profileEmailInput.value = "";
+                    nicknameInput.value = "";
+
+                    profileName.textContent = "User";
+                    profileEmail.textContent = "user@email.com";
+                    profileAvatar.textContent = "U";
+
+                    loadVerificationStatus();
+
+                    return;
+
+                }
+
+
+                const fullName =
+                    user.name || "";
+
+                const email =
+                    user.email || "";
+
+                const nickname =
+                    user.nickname || "";
+
+
+                const displayName =
+                    nickname ||
+                    fullName ||
+                    "User";
+
+
+                profileFullName.value =
+                    fullName;
+
+                profileEmailInput.value =
+                    email;
+
+                nicknameInput.value =
+                    nickname;
+
+
+                profileName.textContent =
+                    displayName;
+
+                profileEmail.textContent =
+                    email || "user@email.com";
+
+                profileAvatar.textContent =
+                    getProfileInitials(displayName);
+
+
+                sidebarName.textContent =
+                    displayName;
+
+                sidebarEmail.textContent =
+                    email;
+
+                sidebarAvatar.textContent =
+                    getProfileInitials(displayName);
+
+
+                loadVerificationStatus();
+
+            }
+
+
+            /* =====================================================
+               OPEN PROFILE
+            ===================================================== */
+
+            function openProfilePanel() {
+
+                loadProfileInformation();
+
+                profileOverlay.classList.add("show");
+
+                profileOverlay.setAttribute(
+                    "aria-hidden",
+                    "false"
+                );
+
+                document.body.classList.add(
+                    "profile-open"
+                );
+
+                setTimeout(function () {
+
+                    profileFullName.focus();
+
+                }, 100);
+
+            }
+
+
+            if (openProfile) {
+
+                openProfile.addEventListener(
+                    "click",
+                    function (event) {
+
+                        event.preventDefault();
+
+                        openProfilePanel();
+
+                    }
+                );
+
+
+                openProfile.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key === "Enter" ||
+                            event.key === " "
+                        ) {
+
+                            event.preventDefault();
+
+                            openProfilePanel();
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            /* =====================================================
+               SAVE PROFILE
+            ===================================================== */
+
+            if (saveProfile) {
+
+                saveProfile.addEventListener(
+                    "click",
+                    function () {
+
+                        const user =
+                            getAccount();
+
+
+                        if (!user) {
+
+                            alert(
+                                "No account information found."
+                            );
+
+                            return;
+
+                        }
+
+
+                        const newName =
+                            profileFullName.value.trim();
+
+                        const newEmail =
+                            profileEmailInput.value.trim();
+
+                        const newNickname =
+                            nicknameInput.value.trim();
+
+
+                        if (!newName) {
+
+                            alert(
+                                "Please enter your full name."
+                            );
+
+                            profileFullName.focus();
+
+                            return;
+
+                        }
+
+
+                        if (!newEmail) {
+
+                            alert(
+                                "Please enter your email address."
+                            );
+
+                            profileEmailInput.focus();
+
+                            return;
+
+                        }
+
+
+                        user.name =
+                            newName;
+
+                        user.email =
+                            newEmail;
+
+                        user.nickname =
+                            newNickname;
+
+
+                        localStorage.setItem(
+                            "tapTaskDoneAccount",
+                            JSON.stringify(user)
+                        );
+
+
+                        const displayName =
+                            newNickname ||
+                            newName ||
+                            "User";
+
+
+                        profileName.textContent =
+                            displayName;
+
+                        profileEmail.textContent =
+                            newEmail;
+
+                        profileAvatar.textContent =
+                            getProfileInitials(displayName);
+
+
+                        sidebarName.textContent =
+                            displayName;
+
+                        sidebarEmail.textContent =
+                            newEmail;
+
+                        sidebarAvatar.textContent =
+                            getProfileInitials(displayName);
+
+
+                        alert(
+                            "Profile information saved successfully."
+                        );
+
+                    }
+                );
+
+            }
+
+
+            /* =====================================================
+               IDENTITY VERIFICATION
+            ===================================================== */
+
+            if (openVerification) {
+
+                openVerification.addEventListener(
+                    "click",
+                    function () {
+
+                        window.location.href =
+                            "/IdentityVerification";
+
+                    }
+                );
+
+            }
+
+
+            /* =====================================================
+               CHANGE PASSWORD
+            ===================================================== */
+
+            if (changePasswordButton) {
+
+                changePasswordButton.addEventListener(
+                    "click",
+                    function () {
+
+                        window.location.href =
+                            "/ChangePassword";
+
+                    }
+                );
+
+            }
+
+
+            /* =====================================================
+               CLOSE PROFILE
+            ===================================================== */
+
+            function closeProfilePanel() {
+
+                profileOverlay.classList.remove(
+                    "show"
+                );
+
+                profileOverlay.setAttribute(
+                    "aria-hidden",
+                    "true"
+                );
+
+                document.body.classList.remove(
+                    "profile-open"
+                );
+
+            }
+
+
+            if (closeProfile) {
+
+                closeProfile.addEventListener(
+                    "click",
+                    closeProfilePanel
+                );
+
+            }
+
+
+            if (closeProfileBottom) {
+
+                closeProfileBottom.addEventListener(
+                    "click",
+                    closeProfilePanel
+                );
+
+            }
+
+
+            /* =====================================================
+               CLICK OUTSIDE
+            ===================================================== */
+
+            if (profileOverlay) {
+
+                profileOverlay.addEventListener(
+                    "click",
+                    function (event) {
+
+                        if (
+                            event.target ===
+                            profileOverlay
+                        ) {
+
+                            closeProfilePanel();
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            /* =====================================================
+               ESC KEY
+            ===================================================== */
+
+            document.addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (
+                        event.key === "Escape" &&
+                        profileOverlay.classList.contains("show")
+                    ) {
+
+                        closeProfilePanel();
+
+                    }
+
+                }
+            );
+
+
+            /* =====================================================
+               INITIAL LOAD
+            ===================================================== */
+
+            loadProfileInformation();
+
+        });
+
+    </script>
+
+</body>
+
+</html>
