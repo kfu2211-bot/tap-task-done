@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model LoginModel
 
 @{
@@ -6,194 +6,78 @@
 }
 
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="utf-8" />
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Log in - Tap, Task, Done</title>
-
-    <link rel="stylesheet"
-          href="/css/site.css" asp-append-version="true" />
-
+    <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
 </head>
-
-
 <body>
-
     <div class="login-page">
-
-
-        <!-- LOGO -->
-
         <div class="login-logo">
-
-            <div class="login-logo-circle">
-                ✓
-            </div>
-
-            <span>
-                Tap, Task, Done
-            </span>
-
+            <div class="login-logo-circle">✓</div>
+            <span>Tap, Task, Done</span>
         </div>
-
-
-
-        <!-- LOGIN BOX -->
 
         <div class="login-box">
-
-
             <div class="login-eyebrow">WELCOME BACK</div>
-
-            <h1>
-                Log in to your account
-            </h1>
-
-
-            <p class="login-subtitle">
-                Pick up where you left off and manage your tasks.
-            </p>
-
-
+            <h1>Log in to your account</h1>
+            <p class="login-subtitle">Pick up where you left off and manage your tasks.</p>
 
             <form id="loginForm">
-
-
-                <!-- EMAIL -->
-
                 <div class="login-group">
-
-                    <label>
-                        EMAIL
-                    </label>
-
-                    <input type="email"
-                           id="loginEmail"
-                           placeholder="you@example.com"
-                           autocomplete="email"
-                           required />
-
+                    <label>EMAIL</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" required />
                 </div>
 
-
-
-                <!-- PASSWORD -->
-
                 <div class="login-group">
-
-                    <label>
-                        PASSWORD
-                    </label>
-
-                    <input type="password"
-                           id="loginPassword"
-                           placeholder="••••••••"
-                           autocomplete="current-password"
-                           required />
-
+                    <label>PASSWORD</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required />
                 </div>
 
-
-
-                <button type="submit"
-                        class="login-button">
-
-                    Log in <span>→</span>
-
-                </button>
-
-
+                <button type="submit" class="login-button">Log in <span>→</span></button>
             </form>
 
-
-
             <p class="create-account-text">
-
                 Don't have an account?
-
-                <a href="/">
-                    Create an account
-                </a>
-
+                <a href="/">Create an account</a>
             </p>
-
-
         </div>
-
     </div>
 
-
     <script>
+        document.getElementById("loginForm").addEventListener("submit", function (event) {
+            event.preventDefault();
 
-        document
-            .getElementById("loginForm")
-            .addEventListener(
-                "submit",
-                function (event) {
+            const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+            const password = document.getElementById("loginPassword").value.trim();
+            const savedAccount = localStorage.getItem("tapTaskDoneAccount");
 
-                    event.preventDefault();
+            if (!savedAccount) {
+                alert("No account found. Please create an account first.");
+                return;
+            }
 
+            let account;
+            try {
+                account = JSON.parse(savedAccount);
+            } catch {
+                localStorage.removeItem("tapTaskDoneAccount");
+                alert("Your saved demo account needs to be created again.");
+                window.location.href = "/";
+                return;
+            }
 
-                    const email =
-                        document
-                        .getElementById("loginEmail")
-                        .value
-                        .trim();
-
-
-                    const password =
-                        document
-                        .getElementById("loginPassword")
-                        .value;
-
-
-                    const savedAccount =
-                        localStorage.getItem(
-                            "tapTaskDoneAccount"
-                        );
-
-
-                    if (!savedAccount) {
-
-                        alert(
-                            "No account found. Please create an account first."
-                        );
-
-                        return;
-                    }
-
-
-                    const account =
-                        JSON.parse(savedAccount);
-
-
-                            if (
-            email === account.email &&
-            password === account.password
-        ) {
-
-            window.location.href = "/Dashboard";
-
-        } else {
-
-            alert(
-                "Incorrect email or password."
-            );
-
-        }
-
-                }
-            );
-
+            if (
+                email === String(account.email || "").trim().toLowerCase() &&
+                password === String(account.password || "").trim()
+            ) {
+                window.location.href = "/Dashboard";
+            } else {
+                alert("Incorrect email or password. If you just created an account, make sure you use the exact email and password from that same browser.");
+            }
+        });
     </script>
-
 </body>
-
 </html>
