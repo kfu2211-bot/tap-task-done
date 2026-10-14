@@ -1776,3 +1776,357 @@ body {
             font-size: 17px;
         }
 }
+
+/* =========================================================
+   FIND & POST — REFINED SEARCH EXPERIENCE
+   The original layout remains intact on desktop. These rules
+   make the primary search journey feel like one clear mobile
+   flow: choose a mode, set filters, then compare providers.
+========================================================= */
+
+.mode-switcher {
+    width: min(100%, 560px);
+    height: 52px;
+    margin: 0 auto 18px;
+    padding: 5px;
+    border-color: #303b38;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #121817, #101211);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+}
+
+.mode-button,
+.mode-button.active {
+    flex: 1;
+    height: 42px;
+    min-height: 42px;
+    max-height: 42px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.mode-button {
+    color: #a8b3ae;
+}
+
+.mode-button.active {
+    background: linear-gradient(135deg, #22d6ae, #16b995);
+    color: #071611;
+    box-shadow: 0 6px 16px rgba(25, 190, 145, 0.22);
+}
+
+.find-flow-steps {
+    width: min(560px, 100%);
+    margin-bottom: 22px;
+    color: #9ca9a3;
+}
+
+.find-flow-steps .active b {
+    border-color: #35dbad;
+    background: #19bd91;
+    box-shadow: 0 0 0 4px rgba(25, 189, 145, 0.12);
+}
+
+.find-layout {
+    gap: 24px;
+}
+
+.filter-panel {
+    border-color: #2d3b36;
+    background: linear-gradient(145deg, #171d1b, #121615);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
+}
+
+.filter-group label {
+    color: #c8d1cd;
+    font-weight: 600;
+}
+
+.input-wrapper {
+    height: 44px;
+    border-color: #3b4944;
+    border-radius: 11px;
+    background: #0b0f0e;
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: #28d1a4;
+    box-shadow: 0 0 0 3px rgba(40, 209, 164, 0.12);
+}
+
+.input-wrapper input {
+    color: #f1f7f4;
+    font-size: 13px;
+}
+
+.search-button {
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #26d9b1, #17bb98);
+    color: #061611;
+    font-size: 13px;
+    font-weight: 800;
+    box-shadow: 0 10px 18px rgba(20, 183, 145, 0.18);
+}
+
+.search-button:hover {
+    background: linear-gradient(135deg, #48e5c1, #22cfa7);
+}
+
+.provider-search-intro {
+    padding: 20px;
+    border-color: #1f5a4a;
+    border-radius: 14px;
+    background: radial-gradient(circle at top left, rgba(28, 152, 118, 0.18), transparent 52%), #111918;
+}
+
+.provider-search-intro span {
+    color: #43dcae;
+    letter-spacing: .03em;
+}
+
+.provider-search-intro h2 {
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.freelancer-list {
+    gap: 12px;
+}
+
+.freelancer-card {
+    min-height: 78px;
+    border-color: #2d3934;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #151b19, #111514);
+}
+
+.freelancer-card:hover {
+    border-color: #2cc99b;
+    background: #17211e;
+}
+
+.freelancer-avatar {
+    border: 2px solid rgba(38, 217, 177, .45);
+    background: linear-gradient(135deg, #284a40, #1a2b26);
+}
+
+.freelancer-info strong {
+    font-size: 14px;
+}
+
+.freelancer-info span {
+    color: #a8b6b0;
+    font-size: 11px;
+}
+
+.freelancer-rating .star,
+.freelancer-rating strong {
+    color: #f5bc3e;
+}
+
+.arrow-button {
+    border-color: #31cfa2;
+    border-radius: 9px;
+    background: transparent;
+    color: #45dfb4;
+}
+
+@media (max-width: 700px) {
+    .page-content {
+        width: min(100% - 28px, 620px);
+        margin-top: 26px;
+        padding-bottom: 30px;
+    }
+
+    .topbar {
+        padding: 0 18px 0 82px;
+        border-bottom-color: #252d2a;
+    }
+
+    .topbar h1 {
+        font-size: 27px;
+        letter-spacing: -.03em;
+    }
+
+    .mode-switcher {
+        height: 50px;
+        margin-bottom: 20px;
+        gap: 2px;
+    }
+
+    .mode-button,
+    .mode-button.active {
+        height: 40px;
+        min-height: 40px;
+        max-height: 40px;
+        padding: 0 7px;
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    .mode-button span {
+        font-size: 14px;
+    }
+
+    .find-flow-steps {
+        justify-content: flex-start;
+        gap: 8px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        padding: 4px 3px 7px;
+        scrollbar-width: none;
+    }
+
+    .find-flow-steps::-webkit-scrollbar { display: none; }
+    .find-flow-steps span { white-space: nowrap; }
+    .find-flow-steps i { min-width: 26px; width: 26px; }
+
+    .find-layout {
+        gap: 18px;
+    }
+
+    .filter-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px 12px;
+        padding: 18px;
+        min-height: 0;
+        border-radius: 16px;
+    }
+
+    .filter-group {
+        margin: 0;
+    }
+
+    .filter-group:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .filter-group label {
+        margin-bottom: 7px;
+        font-size: 11px;
+    }
+
+    .input-wrapper {
+        height: 48px;
+        padding: 0 11px;
+    }
+
+    .input-wrapper input {
+        font-size: 13px;
+    }
+
+    .search-button {
+        grid-column: 1 / -1;
+        height: 50px;
+        min-height: 50px;
+        max-height: 50px;
+        margin-top: 0;
+        font-size: 14px;
+    }
+
+    .provider-search-intro {
+        margin-bottom: 20px;
+        padding: 18px;
+        border-radius: 15px;
+    }
+
+    .provider-search-intro h2 {
+        margin-top: 6px;
+        font-size: 21px;
+    }
+
+    .section-heading {
+        height: auto;
+        min-height: 30px;
+        margin-bottom: 8px;
+    }
+
+    .section-heading h2 {
+        font-size: 18px;
+    }
+
+    .freelancer-card {
+        min-height: 0;
+        padding: 14px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .freelancer-left {
+        flex: 1;
+    }
+
+    .freelancer-avatar {
+        width: 44px;
+        min-width: 44px;
+        max-width: 44px;
+        height: 44px;
+        min-height: 44px;
+        max-height: 44px;
+    }
+
+    .freelancer-right {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 9px 12px;
+        align-items: center;
+    }
+
+    .freelancer-rating,
+    .freelancer-jobs,
+    .freelancer-price {
+        width: auto;
+        min-width: 0;
+        font-size: 12px;
+    }
+
+    .freelancer-jobs {
+        display: block;
+        justify-self: end;
+    }
+
+    .freelancer-price {
+        grid-column: 2;
+        grid-row: 1;
+        color: #f3faf6;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .arrow-button {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 40px;
+    }
+}
+
+@media (max-width: 390px) {
+    .mode-button,
+    .mode-button.active {
+        font-size: 10px;
+        padding: 0 4px;
+    }
+
+    .mode-button span {
+        display: none;
+    }
+
+    .filter-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-group:first-child,
+    .search-button {
+        grid-column: auto;
+    }
+
+    .freelancer-jobs {
+        display: none;
+    }
+}
