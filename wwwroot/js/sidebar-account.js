@@ -142,7 +142,11 @@
             }
             menuButton.addEventListener("click", toggleMenu);
             overlay.addEventListener("click", closeMenu);
-            sidebar.querySelectorAll("a").forEach(function (link) { link.addEventListener("click", closeMenu); });
+            // Use delegation so links added while normalizing an older page's
+            // sidebar also close the drawer after a tap.
+            sidebar.addEventListener("click", function (event) {
+                if (event.target.closest("a")) closeMenu();
+            });
             document.addEventListener("keydown", function (event) { if (event.key === "Escape") closeMenu(); });
             window.addEventListener("resize", function () { if (window.innerWidth > 700) closeMenu(); });
             document.body.append(menuButton, overlay);
