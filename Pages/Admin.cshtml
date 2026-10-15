@@ -1,0 +1,84 @@
+@page
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Center - Tap, Task, Done</title>
+    <link rel="stylesheet" href="/css/admin.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="admin-shell">
+        <aside class="admin-sidebar" aria-label="Admin navigation">
+            <a class="admin-brand" href="/Admin"><span>✓</span><strong>Tap, Task, Done</strong></a>
+            <nav>
+                <a class="active" href="#overview"><i>⌂</i>Overview</a>
+                <a href="#verifications"><i>♢</i>Verifications</a>
+                <a href="#reports"><i>⚑</i>Safety Reports</a>
+                <a href="#users"><i>♧</i>Users</a>
+                <a href="#activity"><i>◷</i>Activity Log</a>
+                <a href="#admin-settings"><i>⚙</i>Settings</a>
+            </nav>
+            <p class="demo-badge">Demo admin view</p>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <button class="mobile-menu" type="button" aria-label="Open menu">☰</button>
+                <h1>Admin Center</h1>
+                <div class="admin-user"><span>AD</span><strong>Admin</strong><b>⌄</b></div>
+            </header>
+
+            <div class="admin-content" id="overview">
+                <section class="admin-intro">
+                    <div>
+                        <p class="eyebrow">COMMUNITY OPERATIONS</p>
+                        <h2>Good morning, Admin</h2>
+                        <p>Review requests and keep the community safe.</p>
+                    </div>
+                    <span class="local-note">Local demo data</span>
+                </section>
+
+                <section class="stat-grid" aria-label="Admin statistics">
+                    <button class="stat-card teal" data-target="verifications"><span>♢</span><div><strong id="pendingVerificationCount">12</strong><small>Pending verification</small></div><b>›</b></button>
+                    <button class="stat-card amber" data-target="reports"><span>⚑</span><div><strong id="newReportCount">4</strong><small>New reports</small></div><b>›</b></button>
+                    <button class="stat-card teal" data-target="users"><span>♧</span><div><strong>128</strong><small>Verified users</small></div><b>›</b></button>
+                    <button class="stat-card red" data-target="reports"><span>!</span><div><strong id="urgentCount">3</strong><small>Urgent reviews</small></div><b>›</b></button>
+                </section>
+
+                <section class="queue-grid">
+                    <article class="admin-card" id="verifications">
+                        <div class="card-heading"><div><h2>Identity verification queue</h2><p>Review submitted documents and update the status.</p></div><a href="#verifications">View all ›</a></div>
+                        <div class="table-labels verification-labels"><span>User</span><span>ID type</span><span>Submitted</span><span>Status</span><span>Action</span></div>
+                        <div id="verificationQueue" class="queue-list"></div>
+                    </article>
+
+                    <article class="admin-card" id="reports">
+                        <div class="card-heading"><div><h2>Safety reports</h2><p>Prioritize urgent reports and document each decision.</p></div><a href="#reports">View all ›</a></div>
+                        <div class="table-labels report-labels"><span>Reported user</span><span>Reason</span><span>Submitted</span><span>Status</span><span>Action</span></div>
+                        <div id="reportQueue" class="queue-list"></div>
+                    </article>
+                </section>
+
+                <section class="admin-card activity-card" id="activity">
+                    <div class="card-heading"><div><h2>Recent activity</h2><p>Every admin decision should be recorded here.</p></div><a href="#activity">View all ›</a></div>
+                    <div class="table-labels activity-labels"><span>Time</span><span>Admin</span><span>Action</span><span>Details</span></div>
+                    <div id="activityList" class="activity-list"></div>
+                </section>
+
+                <section class="admin-card implementation-note" id="users">
+                    <h2>Before using this with real users</h2>
+                    <p>This is the admin UI and local demo workflow only. A production version needs role-based admin sign-in, a database, private encrypted document storage, and an audit log that cannot be edited by normal users.</p>
+                </section>
+            </div>
+        </main>
+    </div>
+    <div class="admin-modal hidden" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-panel"><button id="modalClose" class="modal-close" type="button" aria-label="Close">×</button><p class="eyebrow" id="modalType">REVIEW</p><h2 id="modalTitle">Review request</h2><p id="modalDescription"></p><div class="modal-actions"><button class="secondary-action" id="rejectAction" type="button">Reject / dismiss</button><button class="primary-action" id="approveAction" type="button">Approve / resolve</button></div></div>
+    </div>
+    <script src="/js/admin.js" asp-append-version="true"></script>
+</body>
+</html>
