@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (filter === "active") return mine(task) && (task.status === "assigned" || task.status === "completed" || task.status === "client-confirmed");
             return mine(task) && task.status === "reviewed";
         });
-        if (!visible.length) { jobsList.innerHTML = '<div class="jobs-empty">No jobs here yet. Switch to Open jobs to look for available tasks.</div>'; return; }
+        if (!visible.length) { jobsList.innerHTML = '<div class="jobs-empty">No jobs here yet. A Client account needs to create a task first, then it will appear here.<br /><a href="/FindPost">Find available tasks</a></div>'; return; }
         visible.slice().reverse().forEach(function (task) { jobsList.append(createCard(task)); });
     }
     function createCard(task) {

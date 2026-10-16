@@ -63,6 +63,10 @@ button, a, input, select, textarea { -webkit-tap-highlight-color:transparent; }
     .hero-buttons > *, .task-actions > *, .provider-bottom > *, .job-actions > *, .offer-actions > * { flex:1 1 100%; }
     .category-grid, .provider-grid { gap:12px !important; }
     .section { margin-top:30px !important; }
+    /* Find & Post previously kept the desktop sidebar's 70px offset on phones. */
+    .app-shell .main-area { width:100% !important; margin-left:0 !important; }
+    .app-shell .page-content { width:calc(100% - 28px) !important; margin-left:auto !important; margin-right:auto !important; }
+    .jobs-empty a { display:inline-flex; margin-top:12px; color:#8ce9cc; font-weight:800; text-decoration:none; }
     .admin-content { padding-bottom:48px !important; }
     .admin-card { border-radius:var(--presentation-radius) !important; }
 }
