@@ -2254,6 +2254,22 @@ html.apple-mobile body {
 .create-account-text a { color: #36e3d3; }
 .create-account-text a:hover { color: #82fff2; }
 
+/* Keeps the administrator route easy to find without putting it in a client menu. */
+.admin-login-text {
+    margin: 14px 0 0;
+    color: #9aabc4;
+    font-size: 12px;
+    text-align: center;
+}
+
+.admin-login-text a {
+    color: #36e3d3;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.admin-login-text a:hover { color: #82fff2; text-decoration: underline; }
+
 @media (max-width: 600px) {
     .login-page { min-height: 100vh; padding: 112px 18px 32px; align-items: flex-start; }
     .login-logo { left: 24px; top: 24px; }
