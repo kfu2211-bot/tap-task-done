@@ -1,0 +1,14 @@
+/* Extra spacing and tap targets for the Admin Center on phones. */
+@media (max-width:760px) {
+    html, body { max-width:100%; overflow-x:hidden; }
+    .admin-sidebar { padding:14px 12px calc(18px + env(safe-area-inset-bottom)); }
+    .admin-sidebar nav { gap:7px; margin-top:22px; }
+    .admin-sidebar nav a { min-height:46px; height:auto; font-size:14px; }
+    .demo-badge { margin-top:auto; }
+    .admin-user { padding:0; border:0; background:transparent; }
+    .admin-user em { display:none; }
+    .admin-content { padding-bottom:34px; }
+    .card-tools { display:grid; grid-template-columns:1fr; gap:10px; }
+    .card-tools input, .card-tools select, .card-tools button { width:100%; min-height:44px; }
+    .modal-panel { max-height:calc(100dvh - 28px); overflow-y:auto; padding:24px 17px; }
+}

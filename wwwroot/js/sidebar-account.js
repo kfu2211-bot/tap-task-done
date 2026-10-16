@@ -1,6 +1,13 @@
 /* Keeps the signed-in account display identical on every authenticated page. */
 (function () {
     function loadSidebarAccount() {
+        if (!document.getElementById("mobilePolish")) {
+            var mobilePolish = document.createElement("link");
+            mobilePolish.id = "mobilePolish";
+            mobilePolish.rel = "stylesheet";
+            mobilePolish.href = "/css/mobile-polish.css";
+            document.head.appendChild(mobilePolish);
+        }
         var account;
 
         try {
