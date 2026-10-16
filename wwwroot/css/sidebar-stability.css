@@ -222,7 +222,9 @@
     }
 
     html body.sidebar-open .sidebar,
-    html body.sidebar-open .mytasks-sidebar { transform: translateX(0) !important; }
+    html body.sidebar-open .mytasks-sidebar {
+        transform: translateX(0) !important;
+    }
 
     html body .sidebar-logo,
     html body .mytasks-logo,
@@ -384,7 +386,10 @@
 
     html body .main-content,
     html body .mytasks-main,
-    html body .settings-layout main { width: 100% !important; margin-left: 0 !important; }
+    html body .settings-layout main {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
 
     #mobileMenuToggle {
         top: 14px !important;

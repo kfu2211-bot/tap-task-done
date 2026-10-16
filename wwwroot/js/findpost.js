@@ -512,128 +512,43 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const tasksKey = "tapTaskDoneTasks";
 
-    // A familiar Month / Day / Year picker, followed by a separate time picker.
-    // It gives clients full control without relying on a small browser calendar.
-    const scheduleValues = { month: "", day: "", year: "", hour: "", minute: "", period: "" };
-    const scheduleDropdowns = {
-        month: document.getElementById("scheduleMonthDropdown"),
-        day: document.getElementById("scheduleDayDropdown"),
-        year: document.getElementById("scheduleYearDropdown"),
-        hour: document.getElementById("scheduleHourDropdown"),
-        minute: document.getElementById("scheduleMinuteDropdown"),
-        period: document.getElementById("schedulePeriodDropdown")
-    };
-    const schedulePlaceholders = { month: "Month", day: "Day", year: "Year", hour: "Hour", minute: "Minute", period: "AM / PM" };
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const preferredDateInput = document.getElementById("preferredDateInput");
+    const preferredTimeInput = document.getElementById("preferredTimeInput");
 
-    function setScheduleOptions(dropdown, options) {
-        if (!dropdown) return;
-        const menu = dropdown.querySelector(".schedule-dropdown-menu");
-        menu.textContent = "";
-        options.forEach(function (option) {
-            const item = document.createElement("button");
-            item.type = "button";
-            item.className = "schedule-dropdown-option";
-            item.dataset.value = option.value;
-            item.textContent = option.label;
-            menu.append(item);
-        });
-    }
-
-    function setScheduleLabel(name, label) {
-        const dropdown = scheduleDropdowns[name];
-        if (!dropdown) return;
-        dropdown.querySelector(".schedule-dropdown-button span").textContent = label;
-    }
-
-    function setupScheduleDropdown(name, onSelect) {
-        const dropdown = scheduleDropdowns[name];
-        if (!dropdown) return;
-        const button = dropdown.querySelector(".schedule-dropdown-button");
-        const menu = dropdown.querySelector(".schedule-dropdown-menu");
-
-        button.addEventListener("click", function (event) {
-            event.stopPropagation();
-            Object.keys(scheduleDropdowns).forEach(function (key) {
-                if (key !== name && scheduleDropdowns[key]) scheduleDropdowns[key].classList.remove("active");
-            });
-            dropdown.classList.toggle("active");
-        });
-
-        menu.addEventListener("click", function (event) {
-            const option = event.target.closest(".schedule-dropdown-option");
-            if (!option) return;
-            scheduleValues[name] = option.dataset.value;
-            setScheduleLabel(name, option.textContent);
-            dropdown.classList.remove("active");
-            if (onSelect) onSelect(option.dataset.value);
-        });
-    }
-
-    function updateScheduleDays() {
-        const month = Number(scheduleValues.month);
-        const year = Number(scheduleValues.year) || new Date().getFullYear();
-        const days = month ? new Date(year, month, 0).getDate() : 31;
-        const options = [];
-        for (let day = 1; day <= days; day++) options.push({ value: String(day), label: String(day) });
-        setScheduleOptions(scheduleDropdowns.day, options);
-        if (Number(scheduleValues.day) > days) {
-            scheduleValues.day = "";
-            setScheduleLabel("day", schedulePlaceholders.day);
-        }
+    function localDateValue(date) {
+        const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return offsetDate.toISOString().slice(0, 10);
     }
 
     function resetSchedulePicker() {
-        Object.keys(scheduleValues).forEach(function (key) {
-            scheduleValues[key] = "";
-            setScheduleLabel(key, schedulePlaceholders[key]);
-            if (scheduleDropdowns[key]) scheduleDropdowns[key].classList.remove("active");
-        });
-        updateScheduleDays();
+        if (preferredDateInput) preferredDateInput.value = "";
+        if (preferredTimeInput) preferredTimeInput.value = "";
     }
 
     function selectedSchedule() {
-        const selected = Object.keys(scheduleValues).filter(function (key) { return scheduleValues[key] !== ""; });
-        if (!selected.length) return { value: "To be scheduled" };
-        if (selected.length !== Object.keys(scheduleValues).length) {
-            return { error: "Please choose the complete date and time, or leave every schedule field empty." };
-        }
+        const dateValue = preferredDateInput ? preferredDateInput.value : "";
+        const timeValue = preferredTimeInput ? preferredTimeInput.value : "";
+        if (!dateValue && !timeValue) return { value: "To be scheduled" };
+        if (!dateValue) return { error: "Please choose a preferred date, or clear the time." };
 
-        let hour = Number(scheduleValues.hour);
-        if (scheduleValues.period === "PM" && hour !== 12) hour += 12;
-        if (scheduleValues.period === "AM" && hour === 12) hour = 0;
-        const date = new Date(Number(scheduleValues.year), Number(scheduleValues.month) - 1, Number(scheduleValues.day), hour, Number(scheduleValues.minute));
-        // This is a local prototype, so preserve the exact date and time chosen
-        // by the user. Future-only scheduling can be enforced later with the
-        // database and real availability rules.
-        return {
-            value: date.toLocaleString("en-PH", {
-                month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit"
-            })
-        };
+        const date = new Date(dateValue + "T" + (timeValue || "00:00"));
+        const dateText = date.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
+        if (!timeValue) return { value: dateText + " · Time to be confirmed" };
+        return { value: dateText + ", " + date.toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit" }) };
     }
 
-    if (scheduleDropdowns.month) {
-        setScheduleOptions(scheduleDropdowns.month, monthNames.map(function (name, index) { return { value: String(index + 1), label: name }; }));
-        setScheduleOptions(scheduleDropdowns.year, Array.from({ length: 4 }, function (_, index) {
-            const year = new Date().getFullYear() + index;
-            return { value: String(year), label: String(year) };
-        }));
-        setScheduleOptions(scheduleDropdowns.hour, Array.from({ length: 12 }, function (_, index) { const hour = index + 1; return { value: String(hour), label: String(hour) }; }));
-        setScheduleOptions(scheduleDropdowns.minute, Array.from({ length: 12 }, function (_, index) { const minute = String(index * 5).padStart(2, "0"); return { value: minute, label: minute }; }));
-        setScheduleOptions(scheduleDropdowns.period, [{ value: "AM", label: "AM" }, { value: "PM", label: "PM" }]);
-        updateScheduleDays();
-
-        setupScheduleDropdown("month", updateScheduleDays);
-        setupScheduleDropdown("day");
-        setupScheduleDropdown("year", updateScheduleDays);
-        setupScheduleDropdown("hour");
-        setupScheduleDropdown("minute");
-        setupScheduleDropdown("period");
-        document.addEventListener("click", function () {
-            Object.keys(scheduleDropdowns).forEach(function (key) { if (scheduleDropdowns[key]) scheduleDropdowns[key].classList.remove("active"); });
-        });
-    }
+    document.getElementById("scheduleTodayButton")?.addEventListener("click", function () {
+        preferredDateInput.value = localDateValue(new Date());
+    });
+    document.getElementById("scheduleTomorrowButton")?.addEventListener("click", function () {
+        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+        preferredDateInput.value = localDateValue(tomorrow);
+    });
+    document.getElementById("scheduleChooseDateButton")?.addEventListener("click", function () {
+        preferredDateInput?.showPicker?.();
+        preferredDateInput?.focus();
+    });
+    document.getElementById("scheduleClearButton")?.addEventListener("click", resetSchedulePicker);
 
     function currentFreelancer() {
         try {
@@ -686,10 +601,10 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem(tasksKey, JSON.stringify(removeDuplicatePostedTasks(tasks)));
     }
 
-    function addNotification(message) {
+    function addNotification(message, href) {
         let notifications = [];
         try { notifications = JSON.parse(localStorage.getItem("tapTaskDoneNotifications") || "[]"); } catch (error) { notifications = []; }
-        notifications.push({ id: "notice-" + Date.now(), message: message, read: false, createdAt: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) });
+        notifications.push({ id: "notice-" + Date.now(), message: message, href: href || "/MyTasks", read: false, createdAt: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) });
         localStorage.setItem("tapTaskDoneNotifications", JSON.stringify(notifications.slice(-30)));
     }
 
@@ -729,6 +644,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             const schedule = scheduleResult.value;
             const category = document.querySelector("input[name='taskCategory']:checked").value;
+            let clientAccount = {};
+            try { clientAccount = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}"); } catch (error) { }
 
             document.getElementById("postedTaskTitle").textContent = title;
             document.getElementById("postedTaskCategory").textContent = category;
@@ -743,6 +660,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 location: location,
                 budget: "₱" + budget,
                 schedule: schedule,
+                clientName: clientAccount.nickname || clientAccount.name || "Local client",
+                clientEmail: clientAccount.email || "",
                 providerName: "Waiting for a provider",
                 providerService: category,
                 providerReviews: "New task",
@@ -803,7 +722,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const decline = document.createElement("button"); decline.type = "button"; decline.className = "decline-offer-button"; decline.textContent = "Decline";
             decline.addEventListener("click", function () { item.request.status = "declined"; savePostedTasks(tasks); addNotification(demoFreelancer + " declined the booking request for " + item.task.title); renderFindJobs(); });
             const accept = document.createElement("button"); accept.type = "button"; accept.textContent = "Accept request";
-            accept.addEventListener("click", function () { item.request.status = "accepted"; item.task.status = "assigned"; item.task.providerName = item.request.providerName; item.task.providerService = item.request.providerService; item.task.providerReviews = item.request.providerReviews; savePostedTasks(tasks); localStorage.setItem("tapTaskDoneCurrentTask", JSON.stringify(item.task)); localStorage.setItem("tapTaskDoneTrackingStatus", "on-the-way"); addNotification(demoFreelancer + " accepted your booking request for " + item.task.title); renderFindJobs(); });
+            accept.addEventListener("click", function () { item.request.status = "accepted"; item.task.status = "assigned"; item.task.providerName = item.request.providerName; item.task.providerEmail = item.request.providerEmail || ""; item.task.providerService = item.request.providerService; item.task.providerReviews = item.request.providerReviews; savePostedTasks(tasks); localStorage.setItem("tapTaskDoneCurrentTask", JSON.stringify(item.task)); localStorage.setItem("tapTaskDoneTrackingStatus", "on-the-way"); addNotification(demoFreelancer + " accepted your booking request for " + item.task.title); renderFindJobs(); });
             actions.append(decline, accept); requestCard.append(requestInfo, actions); inbox.append(requestCard);
         });
         findJobsContent.append(inbox);
@@ -877,7 +796,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     message: messageInput.value.trim() || "I can help with this task. I am available today."
                 });
                 savePostedTasks(latestTasks);
-                addNotification("Offer sent for: " + latestTask.title);
+                addNotification("Offer sent for: " + latestTask.title, "/MyTasks");
             }
             renderFindJobs();
         });

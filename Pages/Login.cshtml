@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model LoginModel
 
 @{
@@ -6,82 +6,237 @@
 }
 
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
     <title>Log in - Tap, Task, Done</title>
-    <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="/css/site.css" asp-append-version="true" />
+
 </head>
+
+
 <body>
+
     <div class="login-page">
+
+
+        <!-- LOGO -->
+
         <div class="login-logo">
-            <div class="login-logo-circle">✓</div>
-            <span>Tap, Task, Done</span>
+
+            <div class="login-logo-circle">
+                ✓
+            </div>
+
+            <span>
+                Tap, Task, Done
+            </span>
+
         </div>
 
+
+
+        <!-- LOGIN BOX -->
+
         <div class="login-box">
+
+
             <div class="login-eyebrow">WELCOME BACK</div>
-            <h1>Log in to your account</h1>
-            <p class="login-subtitle">Pick up where you left off and manage your tasks.</p>
+
+            <h1>
+                Log in to your account
+            </h1>
+
+
+            <p class="login-subtitle">
+                Pick up where you left off and manage your tasks.
+            </p>
+
+
 
             <form id="loginForm">
-                <div class="login-group">
-                    <label>EMAIL</label>
-                    <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" required />
-                </div>
+
+
+                <!-- EMAIL -->
 
                 <div class="login-group">
-                    <label>PASSWORD</label>
-                    <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required />
+
+                    <label>
+                        EMAIL
+                    </label>
+
+                    <input type="email"
+                           id="loginEmail"
+                           placeholder="you@example.com"
+                           autocomplete="email"
+                           required />
+
                 </div>
 
-                <button type="submit" class="login-button">Log in <span>→</span></button>
+
+
+                <!-- PASSWORD -->
+
+                <div class="login-group">
+
+                    <label>
+                        PASSWORD
+                    </label>
+
+                    <input type="password"
+                           id="loginPassword"
+                           placeholder="••••••••"
+                           autocomplete="current-password"
+                           required />
+
+                </div>
+
+
+
+                <button type="submit"
+                        class="login-button">
+
+                    Log in <span>→</span>
+
+                </button>
+
+
             </form>
 
+
+
             <p class="create-account-text">
+
                 Don't have an account?
-                <a href="/">Create an account</a>
+
+                <a href="/">
+                    Create an account
+                </a>
+
             </p>
-            <p class="admin-login-text">
+            <p class="create-account-text"><button id="forgotPasswordButton" type="button" style="border:0;background:none;color:#28d9c9;cursor:pointer;font:inherit;padding:0">Forgot password? Reset local demo password</button></p>
+
+            <p class="create-account-text">
                 Are you an administrator?
                 <a href="/AdminLogin">Admin sign in</a>
             </p>
+
+
         </div>
+
     </div>
 
+
     <script>
-        document.getElementById("loginForm").addEventListener("submit", function (event) {
-            event.preventDefault();
 
-            const email = document.getElementById("loginEmail").value.trim().toLowerCase();
-            const password = document.getElementById("loginPassword").value.trim();
-            const savedAccount = localStorage.getItem("tapTaskDoneAccount");
+        document
+            .getElementById("loginForm")
+            .addEventListener(
+                "submit",
+                function (event) {
 
-            if (!savedAccount) {
-                alert("No account found. Please create an account first.");
-                return;
-            }
+                    event.preventDefault();
 
-            let account;
-            try {
-                account = JSON.parse(savedAccount);
-            } catch {
-                localStorage.removeItem("tapTaskDoneAccount");
-                alert("Your saved demo account needs to be created again.");
-                window.location.href = "/";
-                return;
-            }
 
-            if (
-                email === String(account.email || "").trim().toLowerCase() &&
-                password === String(account.password || "").trim()
-            ) {
-                window.location.href = "/Dashboard";
-            } else {
-                alert("Incorrect email or password. If you just created an account, make sure you use the exact email and password from that same browser.");
-            }
+                    const email =
+                        document
+                        .getElementById("loginEmail")
+                        .value
+                        .trim();
+
+
+                    // The public demo keeps one account in this browser. Trim
+                    // accidental spaces from entries so copy/paste or mobile
+                    // keyboards do not cause an unexpected failed sign-in.
+                    const password =
+                        document
+                        .getElementById("loginPassword")
+                        .value
+                        .trim();
+
+
+                    const savedAccount = localStorage.getItem("tapTaskDoneAccount");
+
+                    const adminAccount =
+                        window.tapTaskDoneGetAdminAccount();
+
+                    if (
+                        email.toLowerCase() === String(adminAccount.email || "").toLowerCase() &&
+                        password === String(adminAccount.password || "")
+                    ) {
+                        window.tapTaskDoneStartAdminSession(adminAccount, true);
+                        window.location.href = "/Admin";
+                        return;
+                    }
+
+
+                    let registeredAccounts = [];
+                    try { registeredAccounts = JSON.parse(localStorage.getItem("tapTaskDoneDemoAccounts") || "[]"); } catch (error) { }
+                    if (!savedAccount && (!Array.isArray(registeredAccounts) || !registeredAccounts.length)) {
+
+                        alert(
+                            "No account found. Please create an account first."
+                        );
+
+                        return;
+                    }
+
+
+                    let account;
+
+                    try {
+                        account = registeredAccounts.find(function (item) { return String(item.email || "").trim().toLowerCase() === email.toLowerCase(); }) || (savedAccount ? JSON.parse(savedAccount) : null);
+                    } catch {
+                        localStorage.removeItem("tapTaskDoneAccount");
+                        alert("Your saved demo account needs to be created again.");
+                        window.location.href = "/";
+                        return;
+                    }
+
+
+                            if (
+            account && email.toLowerCase() === String(account.email || "").trim().toLowerCase() &&
+            password === String(account.password || "").trim()
+        ) {
+            localStorage.setItem("tapTaskDoneAccount", JSON.stringify(account));
+            window.location.href = "/Dashboard";
+
+        } else {
+
+            alert(
+                "Incorrect email or password."
+            );
+
+        }
+
+                }
+            );
+
+        document.getElementById("forgotPasswordButton").addEventListener("click", function () {
+            const email = window.prompt("Enter your demo account email:");
+            if (!email) return;
+            const newPassword = window.prompt("Enter a new local demo password (at least 8 characters):");
+            if (!newPassword || newPassword.length < 8) { window.alert("Use a password with at least 8 characters."); return; }
+            let accounts = []; try { accounts = JSON.parse(localStorage.getItem("tapTaskDoneDemoAccounts") || "[]"); } catch (error) { }
+            const account = Array.isArray(accounts) && accounts.find(function (item) { return String(item.email).toLowerCase() === email.trim().toLowerCase(); });
+            if (!account) { window.alert("No local demo account was found for that email."); return; }
+            account.password = newPassword; localStorage.setItem("tapTaskDoneDemoAccounts", JSON.stringify(accounts));
+            const current = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}"); if (String(current.email).toLowerCase() === String(account.email).toLowerCase()) { current.password = newPassword; localStorage.setItem("tapTaskDoneAccount", JSON.stringify(current)); }
+            window.alert("Local demo password updated. You can now log in.");
         });
+
     </script>
+    <script src="/js/admin-auth.js" asp-append-version="true"></script>
+
 </body>
+
 </html>

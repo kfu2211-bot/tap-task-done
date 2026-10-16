@@ -296,6 +296,9 @@
 
                 </div>
 
+
+
+
                 <!-- ================================================= -->
                 <!-- FIND FREELANCER AREA -->
                 <!-- ================================================= -->
@@ -312,7 +315,7 @@
                         <div class="filter-group">
 
                             <label for="serviceSearch">
-                                What service do you need?
+                                Service
                             </label>
 
                             <div class="input-wrapper">
@@ -323,7 +326,7 @@
 
                                 <input type="text"
                                        id="serviceSearch"
-                                       placeholder="e.g. plumber, cleaner, electrician" />
+                                       placeholder="Search service..." />
 
                             </div>
 
@@ -385,7 +388,7 @@
                                 ⌕
                             </span>
 
-                            Search providers
+                            Search
 
                         </button>
 
@@ -808,20 +811,17 @@
 
                         <label class="post-field">
                             <span>Preferred date and time <em>Optional</em></span>
-                            <div class="schedule-picker" aria-label="Preferred date and time">
-                                <div class="schedule-picker-row">
-                                    <div class="schedule-dropdown schedule-month" id="scheduleMonthDropdown"><button type="button" class="schedule-dropdown-button"><span>Month</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                    <div class="schedule-dropdown schedule-day" id="scheduleDayDropdown"><button type="button" class="schedule-dropdown-button"><span>Day</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                    <div class="schedule-dropdown schedule-year" id="scheduleYearDropdown"><button type="button" class="schedule-dropdown-button"><span>Year</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                </div>
-                                <div class="schedule-picker-row schedule-time-row">
-                                    <div class="schedule-dropdown schedule-hour" id="scheduleHourDropdown"><button type="button" class="schedule-dropdown-button"><span>Hour</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                    <span class="schedule-time-separator">:</span>
-                                    <div class="schedule-dropdown schedule-minute" id="scheduleMinuteDropdown"><button type="button" class="schedule-dropdown-button"><span>Minute</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                    <div class="schedule-dropdown schedule-period" id="schedulePeriodDropdown"><button type="button" class="schedule-dropdown-button"><span>AM / PM</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
+                            <div class="quick-schedule-picker" aria-label="Preferred date and time">
+                                <label class="quick-schedule-field"><span>Preferred date</span><input id="preferredDateInput" type="date" /></label>
+                                <label class="quick-schedule-field"><span>Preferred time</span><input id="preferredTimeInput" type="time" /></label>
+                                <div class="quick-schedule-actions" aria-label="Quick date options">
+                                    <button type="button" id="scheduleTodayButton">Today</button>
+                                    <button type="button" id="scheduleTomorrowButton">Tomorrow</button>
+                                    <button type="button" id="scheduleChooseDateButton">Choose date</button>
+                                    <button type="button" id="scheduleClearButton" class="schedule-clear-button">Clear schedule</button>
                                 </div>
                             </div>
-                            <small class="schedule-help">Choose any date and time you prefer, or leave this empty to schedule later.</small>
+                            <small class="schedule-help">You can change this anytime before a freelancer accepts, or leave it empty to schedule later.</small>
                         </label>
 
                         <div class="post-form-actions">

@@ -66,16 +66,20 @@
                             <label>Availability<select id="profileAvailabilityInput"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label>
                         </div>
                     </fieldset>
+                    <fieldset class="settings-group"><legend>Weekly availability</legend><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability"></div></fieldset>
                     <div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite"></p><button class="primary-button" type="submit">Save changes</button></div>
                 </form>
                 <section class="settings-card demo-card" aria-labelledby="demoDataHeading">
-                    <div class="demo-title"><h2 id="demoDataHeading">Demo data</h2><span>Testing only</span></div>
-                    <p>Reset local tasks, offers, messages, reviews, reports, and notifications. Your profile stays saved.</p>
-                    <div class="demo-actions"><button id="resetDemoButton" class="danger-button" type="button">⌫&nbsp; Reset local demo data</button><span class="demo-hint">Use only when you want to test the flow again from the beginning.</span></div>
+                    <div class="demo-title"><h2 id="demoDataHeading">Saved data</h2><span>On this device</span></div>
+                    <p>Clear tasks, offers, messages, reviews, reports, and notifications. Your profile stays saved.</p>
+                    <div class="demo-actions"><button id="resetDemoButton" class="danger-button" type="button">⌫&nbsp; Clear saved data</button><span class="demo-hint">Use this only when you want to start over.</span></div>
                 </section>
-                <section class="settings-card signout-card" aria-labelledby="signoutHeading">
-                    <div><h2 id="signoutHeading">Sign out</h2><p>End this session on this device. Your local demo data will stay saved.</p></div>
-                    <button id="signOutButton" class="danger-button signout-button" type="button">Sign out</button>
+                <section class="settings-card signout-card" aria-labelledby="signOutHeading">
+                    <div>
+                        <h2 id="signOutHeading">Sign out</h2>
+                        <p>End this local session on this device. Your local demo tasks and submissions will stay saved for testing.</p>
+                    </div>
+                    <button id="signOutButton" class="signout-button" type="button">Sign out</button>
                 </section>
             </section>
         </main>

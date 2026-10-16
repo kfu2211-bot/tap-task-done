@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function statusWeight(status) {
-        return { "assigned": 5, "completed": 4, "client-confirmed": 4, "open": 3, "pending-confirmation": 2 }[status] || 1;
+        return { "reviewed": 6, "assigned": 5, "completed": 4, "client-confirmed": 4, "open": 3, "pending-confirmation": 2 }[status] || 1;
     }
 
     function removeDuplicateTasks(tasks) {
@@ -66,7 +66,8 @@ document.addEventListener("DOMContentLoaded", function () {
             "open": "Open for freelancer offers",
             "assigned": "Provider assigned",
             "completed": "Waiting for completion review",
-            "client-confirmed": "Ready for rating"
+            "client-confirmed": "Ready for rating",
+            "reviewed": "Completed and reviewed"
             ,"cancelled": "Cancelled"
         };
         return labels[status] || "Draft";
@@ -81,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const filteredTasks = tasks.filter(function (task) {
             if (activeFilter === "open") return task.status === "open" || task.status === "pending-confirmation";
             if (activeFilter === "active") return task.status === "assigned";
-            if (activeFilter === "completed") return task.status === "completed" || task.status === "client-confirmed";
+            if (activeFilter === "completed") return task.status === "completed" || task.status === "client-confirmed" || task.status === "reviewed";
             return task.status !== "cancelled";
         });
         if (!filteredTasks.length) {
@@ -159,6 +160,7 @@ document.addEventListener("DOMContentLoaded", function () {
             accept.addEventListener("click", function () {
                 task.status = "assigned";
                 task.providerName = offer.name;
+                task.providerEmail = offer.email || "";
                 task.providerService = offer.service;
                 task.providerReviews = offer.rating;
                 const tasks = readTasks().map(function (item) { return item.id === task.id ? task : item; });
@@ -167,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem("tapTaskDoneTrackingStatus", "on-the-way");
                 let notifications = [];
                 try { notifications = JSON.parse(localStorage.getItem("tapTaskDoneNotifications") || "[]"); } catch (error) { notifications = []; }
-                notifications.push({ id: "notice-" + Date.now(), message: "Offer accepted: " + offer.name + " for " + task.title, read: false });
+                notifications.push({ id: "notice-" + Date.now(), message: "Offer accepted: " + offer.name + " for " + task.title, href: "/Tracking", read: false });
                 localStorage.setItem("tapTaskDoneNotifications", JSON.stringify(notifications.slice(-30)));
                 window.location.href = "/Tracking";
             });
@@ -216,6 +218,21 @@ document.addEventListener("DOMContentLoaded", function () {
         confirmButton.style.opacity = confirmButton.disabled ? "0.6" : "1";
         confirmButton.textContent = task.status === "open" ? "Waiting for offers" : task.status === "assigned" ? "Provider assigned" : "Confirm details";
         renderProviderAssignment(task);
+        renderClientRequests(task);
+    }
+
+    function renderClientRequests(task) {
+        const container = document.getElementById("providerOffers");
+        if (!container || task.status === "open" || task.status === "pending-confirmation") return;
+        function actionPanel(title, message, acceptText, onAccept) {
+            const panel = document.createElement("div"); panel.className = "provider-offer-row";
+            const info = document.createElement("div"); const strong = document.createElement("strong"); strong.textContent = title; const text = document.createElement("span"); text.textContent = message; info.append(strong, text);
+            const actions = document.createElement("div"); actions.className = "offer-actions";
+            const accept = document.createElement("button"); accept.type = "button"; accept.textContent = acceptText; accept.addEventListener("click", onAccept);
+            const decline = document.createElement("button"); decline.type="button"; decline.className="decline-offer-button"; decline.textContent="Decline"; decline.addEventListener("click",function(){ onAccept(false); }); actions.append(accept, decline); panel.append(info,actions); container.append(panel);
+        }
+        if (task.changeRequest && task.changeRequest.status === "pending") actionPanel("Change request from " + task.changeRequest.from, (task.changeRequest.note || "Requested a task change.") + (task.changeRequest.date ? " · New date: " + task.changeRequest.date : "") + (task.changeRequest.budget ? " · New budget: " + task.changeRequest.budget : ""), "Accept change", function (approved) { task.changeRequest.status = approved === false ? "declined" : "approved"; if (approved !== false) { if (task.changeRequest.date) task.schedule = task.changeRequest.date; if (task.changeRequest.budget) task.budget = task.changeRequest.budget; } saveTasks(readTasks().map(function(item){return item.id===task.id?task:item;})); renderAll(); });
+        if (task.cancellationRequest && task.cancellationRequest.status === "pending") actionPanel("Cancellation request", task.cancellationRequest.from + " requested cancellation.", "Cancel task", function (approved) { task.cancellationRequest.status = approved === false ? "declined" : "approved"; if (approved !== false) { task.status="cancelled"; localStorage.removeItem("tapTaskDoneCurrentTask"); localStorage.removeItem("tapTaskDoneTrackingStatus"); } saveTasks(readTasks().map(function(item){return item.id===task.id?task:item;})); renderAll(); });
     }
 
     function renderAll() {

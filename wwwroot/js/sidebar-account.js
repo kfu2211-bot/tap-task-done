@@ -1,6 +1,15 @@
 /* Keeps the signed-in account display identical on every authenticated page. */
 (function () {
     function loadSidebarAccount() {
+        if (!document.getElementById("productPolish")) {
+            var polish = document.createElement("link");
+            polish.id = "productPolish";
+            polish.rel = "stylesheet";
+            polish.href = "/css/product-polish.css";
+            document.head.appendChild(polish);
+        }
+        // A small second layer keeps every authenticated page comfortable on phones,
+        // even when an older page has its own desktop-first stylesheet.
         if (!document.getElementById("mobilePolish")) {
             var mobilePolish = document.createElement("link");
             mobilePolish.id = "mobilePolish";
@@ -14,6 +23,13 @@
             account = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "null") || {};
         } catch (error) {
             account = {};
+        }
+
+        // This protects the local prototype pages from being opened after sign out.
+        // Production access control must still be enforced by the server.
+        if (!account || !account.email) {
+            window.location.replace("/Login");
+            return;
         }
 
         var name = (account.nickname || account.name || "User").trim();
@@ -40,10 +56,14 @@
 
         // Keep every page on the same predictable sidebar journey. Existing links are
         // moved into this sequence; only links missing from an older page are created.
+        var role = String(account.role || "client").toLowerCase();
+        var isFreelancer = role === "freelancer" || role === "both";
+        var isClient = role === "client" || role === "both";
         var sidebarFlow = [
             { href: "/Dashboard", icon: "⌂", label: "Home" },
             { href: "/FindPost", icon: "⌕", label: "Find & Post" },
-            { href: "/MyTasks", icon: "▤", label: "My Tasks" },
+            ...(isClient ? [{ href: "/MyTasks", icon: "▤", label: "My Tasks" }] : []),
+            ...(isFreelancer ? [{ href: "/MyJobs", icon: "▤", label: "My Jobs" }] : []),
             { href: "/Messages", icon: "□", label: "Messages" },
             { href: "/Tracking", icon: "➤", label: "Tracking" },
             { href: "/Reviews", icon: "☆", label: "Reviews" },
@@ -51,6 +71,11 @@
             { href: "/Reports", icon: "⚑", label: "Safety & Reports" },
             { href: "/Settings", icon: "⚙", label: "Settings" }
         ];
+
+        // Keep the main action clear for the active role.
+        sidebarFlow.forEach(function (item) {
+            if (item.href === "/FindPost") item.label = isFreelancer && !isClient ? "Find Jobs" : isClient && !isFreelancer ? "Post a Task" : "Find & Post";
+        });
 
         document.querySelectorAll(".sidebar-menu, .sidebar-nav, .sidebar-navigation, .navigation, .mytasks-navigation").forEach(function (nav) {
             if (nav.dataset.sidebarFlowNormalized === "true") return;
@@ -81,6 +106,10 @@
                 // appendChild moves an existing link instead of copying it, preventing duplicates.
                 nav.appendChild(link);
             });
+
+            // Remove role-only entries left over from a page's original static sidebar.
+            nav.querySelectorAll('a[href="/MyTasks"]').forEach(function (link) { if (!isClient) link.remove(); });
+            nav.querySelectorAll('a[href="/MyJobs"]').forEach(function (link) { if (!isFreelancer) link.remove(); });
         });
 
         document.querySelectorAll(".notification, .notification-button, #notificationButton, .mytasks-notification").forEach(function (button) {
@@ -98,7 +127,13 @@
                 panel.style.cssText = "position:fixed;right:22px;top:58px;z-index:5000;width:min(330px,calc(100vw - 32px));padding:14px;border:1px solid #373737;border-radius:10px;background:#171717;color:#eee;box-shadow:0 20px 50px rgba(0,0,0,.55);font:12px Arial,Helvetica,sans-serif;";
                 const title = document.createElement("strong"); title.textContent = "Notifications"; title.style.display = "block"; title.style.marginBottom = "10px"; panel.append(title);
                 if (!notices.length) { const empty = document.createElement("p"); empty.textContent = "You have no notifications yet."; empty.style.cssText = "margin:0;color:#999;"; panel.append(empty); }
-                else { notices.slice(-5).reverse().forEach(function (notice) { const item = document.createElement("p"); item.textContent = notice.message; item.style.cssText = "margin:0;padding:9px 0;border-top:1px solid #2b2b2b;color:#d8d8d8;line-height:1.4;"; panel.append(item); }); }
+                else { notices.slice(-5).reverse().forEach(function (notice) {
+                    const item = document.createElement(notice.href ? "button" : "p");
+                    item.textContent = notice.message;
+                    item.style.cssText = "display:block;width:100%;margin:0;padding:9px 0;border:0;border-top:1px solid #2b2b2b;background:transparent;color:#d8d8d8;line-height:1.4;text-align:left;font:inherit;" + (notice.href ? "cursor:pointer;" : "");
+                    if (notice.href) item.addEventListener("click", function () { window.location.href = notice.href; });
+                    panel.append(item);
+                }); }
                 document.body.append(panel);
                 setTimeout(function () { document.addEventListener("click", function close(event) { if (!panel.contains(event.target) && event.target !== button) { panel.remove(); document.removeEventListener("click", close); } }); }, 0);
             }, true);
@@ -152,15 +187,7 @@
             // Use delegation so links added while normalizing an older page's
             // sidebar also close the drawer after a tap.
             sidebar.addEventListener("click", function (event) {
-                var link = event.target.closest("a[href]");
-                if (!link) return;
-                // Messenger's in-app browser can lose a tap while the drawer is
-                // closing. Navigate explicitly after closing it so every menu item,
-                // including Settings, consistently opens on mobile.
-                event.preventDefault();
-                var destination = link.href;
-                closeMenu();
-                window.setTimeout(function () { window.location.assign(destination); }, 0);
+                if (event.target.closest("a")) closeMenu();
             });
             document.addEventListener("keydown", function (event) { if (event.key === "Escape") closeMenu(); });
             window.addEventListener("resize", function () { if (window.innerWidth > 700) closeMenu(); });
@@ -173,4 +200,16 @@
     } else {
         loadSidebarAccount();
     }
+    function enforceLocalAccountStatus() {
+        let account, users;
+        try { account = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "null"); users = JSON.parse(localStorage.getItem("tapTaskDoneLocalUsers") || "[]"); } catch (error) { return; }
+        const record = account && users.find(function (user) { return String(user.email).toLowerCase() === String(account.email).toLowerCase(); });
+        if (!record || !["Suspended", "Restricted"].includes(record.status) || document.getElementById("accountStatusBlock")) return;
+        const block = document.createElement("div"); block.id = "accountStatusBlock";
+        block.style.cssText = "position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:24px;background:rgba(3,7,6,.86);color:#fff;text-align:center;font-family:system-ui";
+        block.innerHTML = '<div style="max-width:420px;padding:30px;border:1px solid #7e4a45;border-radius:16px;background:#161b19"><h2 style="margin-top:0">Account ' + record.status.toLowerCase() + '</h2><p>Your account cannot create tasks, send requests, or message users while this safety review is active.</p><a href="/Reports" style="display:inline-block;margin-top:10px;padding:10px 14px;border-radius:8px;background:#2bd5a8;color:#06201a;text-decoration:none;font-weight:800">Contact support / submit a report</a></div>';
+        document.body.append(block);
+    }
+
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", enforceLocalAccountStatus); else enforceLocalAccountStatus();
 }());

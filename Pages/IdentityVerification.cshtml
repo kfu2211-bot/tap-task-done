@@ -21,6 +21,7 @@
           href="/css/identity-verification.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/verification-success-flow.css" asp-append-version="true" />
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
 
 </head>
@@ -595,7 +596,37 @@
                 );
 
 
-            if (status !== "pending") {
+            if (!status) {
+                return;
+            }
+
+            const states = {
+                pending: {
+                    title: "Pending Verification",
+                    description: "Your documents are currently being reviewed.",
+                    icon: "✓",
+                    button: "Verification Submitted",
+                    locked: true
+                },
+                approved: {
+                    title: "Identity Verified",
+                    description: "Your identity verification was approved by the local demo admin.",
+                    icon: "✓",
+                    button: "Verification Approved",
+                    locked: true
+                },
+                rejected: {
+                    title: "Verification needs attention",
+                    description: "Your submission was rejected in the local demo. You may submit a new document.",
+                    icon: "!",
+                    button: "Submit for Verification",
+                    locked: false
+                }
+            };
+
+            const state = states[status];
+
+            if (!state) {
                 return;
             }
 
@@ -603,7 +634,7 @@
             if (statusTitle) {
 
                 statusTitle.textContent =
-                    "Pending Verification";
+                    state.title;
 
             }
 
@@ -611,7 +642,7 @@
             if (statusDescription) {
 
                 statusDescription.textContent =
-                    "Your documents are currently being reviewed.";
+                    state.description;
 
             }
 
@@ -619,24 +650,17 @@
             if (statusIcon) {
 
                 statusIcon.textContent =
-                    "✓";
+                    state.icon;
 
             }
 
 
             if (submitButton) {
 
-                submitButton.textContent =
-                    "Verification Submitted";
-
-                submitButton.disabled =
-                    true;
-
-                submitButton.style.opacity =
-                    "0.55";
-
-                submitButton.style.cursor =
-                    "default";
+                submitButton.textContent = state.button;
+                submitButton.disabled = state.locked;
+                submitButton.style.opacity = state.locked ? "0.55" : "1";
+                submitButton.style.cursor = state.locked ? "default" : "pointer";
 
             }
 
@@ -699,6 +723,60 @@
                         "pending"
                     );
 
+                    // Local demo only: keep safe metadata for the Admin Center.
+                    // Never save the ID image or full ID number in local storage.
+                    let account = {};
+                    let requests = [];
+
+                    try {
+                        account = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}");
+                        requests = JSON.parse(localStorage.getItem("tapTaskDoneVerificationRequests") || "[]");
+                        if (!Array.isArray(requests)) requests = [];
+                    }
+                    catch (error) {
+                        requests = [];
+                    }
+
+                    const name = account.nickname || account.name || "Current demo user";
+                    const idValue = idNumber.value.trim();
+                    const request = {
+                        id: "verification-" + Date.now(),
+                        name: name,
+                        email: account.email || "No email saved",
+                        idType: "Government ID",
+                        idLastFour: idValue.slice(-4),
+                        idLast4: idValue.slice(-4),
+                        accountRole: account.role || "client",
+                        fileNames: [governmentId.files[0].name, document.getElementById("certification").files[0]?.name || "", document.getElementById("supportingDocument").files[0]?.name || ""].filter(Boolean),
+                        governmentIdName: governmentId.files[0].name,
+                        certificationName: document.getElementById("certification").files[0]?.name || "",
+                        supportingDocumentName: document.getElementById("supportingDocument").files[0]?.name || "",
+                        status: "Pending",
+                        createdAt: new Date().toLocaleString("en-PH", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+                    };
+
+                    requests = requests.filter(function (item) {
+                        return item.status !== "Pending";
+                    });
+                    requests.unshift(request);
+                    localStorage.setItem("tapTaskDoneVerificationRequests", JSON.stringify(requests));
+
+                    let notifications = [];
+                    try {
+                        notifications = JSON.parse(localStorage.getItem("tapTaskDoneNotifications") || "[]");
+                        if (!Array.isArray(notifications)) notifications = [];
+                    }
+                    catch (error) {
+                        notifications = [];
+                    }
+                    notifications.unshift({
+                        id: "notice-" + Date.now(),
+                        message: "Your identity verification was submitted and is pending review.",
+                        read: false,
+                        createdAt: "Just now"
+                    });
+                    localStorage.setItem("tapTaskDoneNotifications", JSON.stringify(notifications.slice(0, 30)));
+
 
                     // -----------------------------------------
                     // UPDATE STATUS CARD
@@ -745,12 +823,8 @@
                         "default";
 
 
-                    // -----------------------------------------
-                    // SUCCESS MESSAGE
-                    // -----------------------------------------
-
-                    alert(
-                        "Your verification documents have been submitted."
+                    document.dispatchEvent(
+                        new CustomEvent("tapTaskDone:verification-submitted")
                     );
 
                 }
@@ -766,6 +840,8 @@
         loadVerificationStatus();
 
     </script>
+    <script src="/js/verification-appeal.js" asp-append-version="true"></script>
+    <script src="/js/verification-success-flow.js" asp-append-version="true"></script>
 
 </body>
 

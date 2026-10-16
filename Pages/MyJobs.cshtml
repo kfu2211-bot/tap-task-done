@@ -1,0 +1,10 @@
+@page
+@model tts.Pages.MyJobsModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Jobs - Tap, Task, Done</title><link rel="stylesheet" href="/css/settings.css" asp-append-version="true" /><link rel="stylesheet" href="/css/my-jobs.css" asp-append-version="true" /><link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" /><script defer src="/js/sidebar-account.js" asp-append-version="true"></script></head>
+<body><div class="settings-layout"><aside class="sidebar"><div class="brand"><span class="brand-icon">✓</span><strong>Tap, Task, Done</strong></div><nav class="sidebar-menu"></nav><div class="sidebar-account"><span class="account-avatar">U</span><div><strong id="sidebarName">User</strong><span id="sidebarEmail">user@email.com</span></div></div></aside>
+<main><header><h1>My Jobs</h1></header><section class="settings-content jobs-page"><div class="page-intro"><h2>Freelancer workspace</h2><p>Browse open tasks, send offers, and update jobs you accepted.</p></div><div class="job-tabs"><button class="selected" data-filter="open">Open jobs</button><button data-filter="active">My active jobs</button><button data-filter="completed">Completed</button></div><div id="jobsList" class="jobs-list"></div></section></main></div><script src="/js/my-jobs.js" asp-append-version="true"></script></body></html>
+
+

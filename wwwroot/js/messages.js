@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatName = document.getElementById("chatName");
     let activeTask = null;
     let messages = [];
+    let account = {};
+    try { account = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}"); } catch (error) { }
+    const activeRole = String(account.role || "client").toLowerCase() === "freelancer" ? "freelancer" : "client";
 
     try { activeTask = JSON.parse(localStorage.getItem("tapTaskDoneCurrentTask") || "null"); } catch (error) { activeTask = null; }
     try { messages = JSON.parse(localStorage.getItem("tapTaskDoneMessages") || "[]"); } catch (error) { messages = []; }
@@ -38,7 +41,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         else if (chatPanel) chatPanel.classList.remove("has-no-messages");
         taskMessages.forEach(function (item) {
-            const row = document.createElement("div"); row.className = "message " + item.direction;
+            const direction = item.senderRole ? (item.senderRole === activeRole ? "sent" : "received") : (item.direction || "received");
+            const row = document.createElement("div"); row.className = "message " + direction;
             const bubble = document.createElement("div"); bubble.className = "message-bubble"; bubble.append(document.createTextNode(item.text));
             const time = document.createElement("small"); time.textContent = item.time; bubble.append(time); row.append(bubble); chatMessages.append(row);
         });
@@ -68,8 +72,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendMessage() {
         const text = messageInput.value.trim();
         if (!text || !activeTask || activeTask.status !== "assigned") return;
-        messages.push({ id: "message-" + Date.now(), taskId: activeTask.id, direction: "sent", text: text, time: timeNow() });
-        saveMessages(); messageInput.value = ""; renderMessages();
+        messages.push({ id: "message-" + Date.now(), taskId: activeTask.id, senderRole: activeRole, direction: "sent", text: text, time: timeNow() });
+        saveMessages();
+        let notifications = [];
+        try { notifications = JSON.parse(localStorage.getItem("tapTaskDoneNotifications") || "[]"); } catch (error) { notifications = []; }
+        if (!Array.isArray(notifications)) notifications = [];
+        notifications.unshift({ id: "notice-" + Date.now(), message: "Message sent to " + (activeTask.providerName || "your provider") + " about " + (activeTask.title || "your task") + ".", href: "/Messages", read: false, createdAt: "Just now" });
+        localStorage.setItem("tapTaskDoneNotifications", JSON.stringify(notifications.slice(0, 30)));
+        messageInput.value = ""; renderMessages();
     }
 
     sendButton.addEventListener("click", sendMessage);

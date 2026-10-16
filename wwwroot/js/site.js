@@ -722,6 +722,17 @@
                     })
                 );
 
+                // Local-only account registry so multiple demo accounts can sign in
+                // on the same browser before a real database is connected.
+                try {
+                    const accounts = JSON.parse(localStorage.getItem("tapTaskDoneDemoAccounts") || "[]");
+                    const list = Array.isArray(accounts) ? accounts : [];
+                    const record = { name: name, email: email, password: password, month: selectedMonth, day: selectedDay, year: selectedYear, role: "client", availability: "Available" };
+                    const index = list.findIndex(function (item) { return String(item.email).toLowerCase() === email.toLowerCase(); });
+                    if (index >= 0) list[index] = Object.assign({}, list[index], record); else list.push(record);
+                    localStorage.setItem("tapTaskDoneDemoAccounts", JSON.stringify(list));
+                } catch (error) { }
+
 
                 /* SHOW SUCCESS POPUP */
 

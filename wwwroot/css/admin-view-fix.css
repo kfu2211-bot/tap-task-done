@@ -1,0 +1,4 @@
+/* This must win over the older #settings display rule in admin-extras.css. */
+.admin-view[hidden],#settings.admin-view[hidden]{display:none!important}
+
+

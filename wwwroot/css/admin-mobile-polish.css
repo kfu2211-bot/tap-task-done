@@ -1,14 +1,29 @@
-/* Extra spacing and tap targets for the Admin Center on phones. */
+/* Extra spacing and tap targets for the local Admin Center on phones. */
 @media (max-width:760px) {
     html, body { max-width:100%; overflow-x:hidden; }
+
     .admin-sidebar { padding:14px 12px calc(18px + env(safe-area-inset-bottom)); }
     .admin-sidebar nav { gap:7px; margin-top:22px; }
     .admin-sidebar nav a { min-height:46px; height:auto; font-size:14px; }
     .demo-badge { margin-top:auto; }
+
+    .admin-top-actions { gap:7px; }
     .admin-user { padding:0; border:0; background:transparent; }
     .admin-user em { display:none; }
+    .admin-alerts { min-height:38px; padding:0 10px; }
     .admin-content { padding-bottom:34px; }
+
+    .section-title h2, .admin-intro h2 { line-height:1.15; }
+    .local-note { align-self:flex-start; }
+
     .card-tools { display:grid; grid-template-columns:1fr; gap:10px; }
     .card-tools input, .card-tools select, .card-tools button { width:100%; min-height:44px; }
+
+    .settings-card label { display:flex; align-items:flex-start; gap:10px; line-height:1.45; }
+    .settings-card input[type="checkbox"] { width:18px; height:18px; margin-top:2px; flex:0 0 auto; }
+    .admin-account-form { grid-template-columns:1fr !important; }
+    .admin-account-form button { min-height:44px; }
+
     .modal-panel { max-height:calc(100dvh - 28px); overflow-y:auto; padding:24px 17px; }
+    .modal-details { gap:10px; }
 }

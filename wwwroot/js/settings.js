@@ -52,6 +52,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("profileServiceInput").value = account.service || account.profession || "";
     document.getElementById("profileRoleInput").value = account.role || "client";
     document.getElementById("profileAvailabilityInput").value = account.availability || "Available";
+    const weeklyAvailability = document.getElementById("weeklyAvailability");
+    const availabilityDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const selectedDays = Array.isArray(account.availableDays) ? account.availableDays : availabilityDays.slice(0, 6);
+    if (weeklyAvailability) availabilityDays.forEach(function (day) { const button=document.createElement("button"); button.type="button"; button.textContent=day; button.style.cssText="min-width:43px;min-height:36px;margin:0 7px 7px 0;border:1px solid #434b48;border-radius:8px;background:#101010;color:#b8c2be;font:11px Arial;font-weight:700;cursor:pointer;"; if(selectedDays.includes(day)){button.dataset.selected="true";button.style.cssText+="border-color:#2ed39d;background:#173b30;color:#7ce8c4;";} button.addEventListener("click",function(){const selected=button.dataset.selected!=="true";button.dataset.selected=String(selected);button.style.borderColor=selected?"#2ed39d":"#434b48";button.style.background=selected?"#173b30":"#101010";button.style.color=selected?"#7ce8c4":"#b8c2be";}); weeklyAvailability.append(button); });
     updateProfileSummary();
     photoInput.addEventListener("change", function () {
         const file = photoInput.files && photoInput.files[0];
@@ -75,11 +79,15 @@ document.addEventListener("DOMContentLoaded", function () {
         updateProfileSummary();
         photoMessage.textContent = "Profile photo removed.";
     });
-    form.addEventListener("submit", function (event) { event.preventDefault(); account.name = document.getElementById("profileNameInput").value.trim(); account.nickname = account.name; account.email = document.getElementById("profileEmailInput").value.trim(); account.service = document.getElementById("profileServiceInput").value.trim() || "Freelancer"; account.role = document.getElementById("profileRoleInput").value; account.availability = document.getElementById("profileAvailabilityInput").value; localStorage.setItem("tapTaskDoneAccount", JSON.stringify(account)); updateProfileSummary(); message.textContent = "Changes saved locally."; });
+    form.addEventListener("submit", function (event) { event.preventDefault(); account.name = document.getElementById("profileNameInput").value.trim(); account.nickname = account.name; account.email = document.getElementById("profileEmailInput").value.trim(); account.service = document.getElementById("profileServiceInput").value.trim() || "Freelancer"; account.role = document.getElementById("profileRoleInput").value; account.availability = document.getElementById("profileAvailabilityInput").value; account.availableDays=weeklyAvailability?Array.from(weeklyAvailability.querySelectorAll("button")).filter(function(button){return button.dataset.selected==="true";}).map(function(button){return button.textContent;}):selectedDays; localStorage.setItem("tapTaskDoneAccount", JSON.stringify(account)); try { const accounts=JSON.parse(localStorage.getItem("tapTaskDoneDemoAccounts")||"[]"); if(Array.isArray(accounts)){const index=accounts.findIndex(function(item){return String(item.email).toLowerCase()===String(account.email).toLowerCase();});if(index>=0)accounts[index]=Object.assign({},accounts[index],account);else accounts.push(account);localStorage.setItem("tapTaskDoneDemoAccounts",JSON.stringify(accounts));} } catch(error){} updateProfileSummary(); message.textContent = "Changes saved locally. Refresh to apply your workspace role everywhere."; });
     document.getElementById("resetDemoButton").addEventListener("click", function () { if (!window.confirm("Reset all local demo tasks, reviews, reports, messages, and notifications?")) return; keysToReset.forEach(function (key) { localStorage.removeItem(key); }); sessionStorage.removeItem("tapTaskDoneShowRating"); window.location.href = "/Dashboard"; });
-    document.getElementById("signOutButton").addEventListener("click", function () {
-        if (!window.confirm("Sign out from this device? Your local demo data will remain saved.")) return;
+    const signOutButton = document.getElementById("signOutButton");
+    if (signOutButton) signOutButton.addEventListener("click", function () {
+        if (!window.confirm("Sign out of this local account? Your saved demo data will remain on this device.")) return;
         localStorage.removeItem("tapTaskDoneAccount");
+        localStorage.removeItem("tapTaskDoneSelectedTaskId");
+        localStorage.removeItem("tapTaskDoneCurrentTask");
+        sessionStorage.removeItem("tapTaskDoneShowRating");
         window.location.replace("/Login");
     });
 });
