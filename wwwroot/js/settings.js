@@ -77,4 +77,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     form.addEventListener("submit", function (event) { event.preventDefault(); account.name = document.getElementById("profileNameInput").value.trim(); account.nickname = account.name; account.email = document.getElementById("profileEmailInput").value.trim(); account.service = document.getElementById("profileServiceInput").value.trim() || "Freelancer"; account.role = document.getElementById("profileRoleInput").value; account.availability = document.getElementById("profileAvailabilityInput").value; localStorage.setItem("tapTaskDoneAccount", JSON.stringify(account)); updateProfileSummary(); message.textContent = "Changes saved locally."; });
     document.getElementById("resetDemoButton").addEventListener("click", function () { if (!window.confirm("Reset all local demo tasks, reviews, reports, messages, and notifications?")) return; keysToReset.forEach(function (key) { localStorage.removeItem(key); }); sessionStorage.removeItem("tapTaskDoneShowRating"); window.location.href = "/Dashboard"; });
+    document.getElementById("signOutButton").addEventListener("click", function () {
+        if (!window.confirm("Sign out from this device? Your local demo data will remain saved.")) return;
+        localStorage.removeItem("tapTaskDoneAccount");
+        window.location.replace("/Login");
+    });
 });

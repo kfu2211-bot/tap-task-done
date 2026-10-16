@@ -152,7 +152,15 @@
             // Use delegation so links added while normalizing an older page's
             // sidebar also close the drawer after a tap.
             sidebar.addEventListener("click", function (event) {
-                if (event.target.closest("a")) closeMenu();
+                var link = event.target.closest("a[href]");
+                if (!link) return;
+                // Messenger's in-app browser can lose a tap while the drawer is
+                // closing. Navigate explicitly after closing it so every menu item,
+                // including Settings, consistently opens on mobile.
+                event.preventDefault();
+                var destination = link.href;
+                closeMenu();
+                window.setTimeout(function () { window.location.assign(destination); }, 0);
             });
             document.addEventListener("keydown", function (event) { if (event.key === "Escape") closeMenu(); });
             window.addEventListener("resize", function () { if (window.innerWidth > 700) closeMenu(); });
