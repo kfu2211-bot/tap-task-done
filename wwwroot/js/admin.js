@@ -47,6 +47,18 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("approveAction").addEventListener("click", function () { if (!selected) return; const outcome = selected.type === "verification" ? "Approved verification" : "Resolved report"; const who = selected.type === "verification" ? selected.item.name : selected.item.target; if (selected.item.local && selected.type === "verification") localStorage.setItem("tapTaskDoneVerificationStatus", "approved"); if (selected.item.local && selected.type === "report") { const reports = read("tapTaskDoneReports"); const report = reports.find(function (item) { return item.id === selected.item.id; }); if (report) report.status = "Resolved"; write("tapTaskDoneReports", reports); } addActivity(outcome, outcome + " for " + who + "."); closeReview(); renderQueues(); renderActivity(); });
     document.getElementById("rejectAction").addEventListener("click", function () { if (!selected) return; const outcome = selected.type === "verification" ? "Rejected verification" : "Dismissed report"; const who = selected.type === "verification" ? selected.item.name : selected.item.target; if (selected.item.local && selected.type === "verification") localStorage.setItem("tapTaskDoneVerificationStatus", "rejected"); if (selected.item.local && selected.type === "report") { const reports = read("tapTaskDoneReports"); const report = reports.find(function (item) { return item.id === selected.item.id; }); if (report) report.status = "Dismissed"; write("tapTaskDoneReports", reports); } addActivity(outcome, outcome + " for " + who + "."); closeReview(); renderQueues(); renderActivity(); });
     document.querySelectorAll(".stat-card").forEach(function (button) { button.addEventListener("click", function () { const target = document.getElementById(button.dataset.target); if (target) target.scrollIntoView({ behavior:"smooth", block:"start" }); }); });
+    document.querySelectorAll(".admin-sidebar nav a").forEach(function (link) {
+        link.addEventListener("click", function () {
+            document.querySelectorAll(".admin-sidebar nav a").forEach(function (item) { item.classList.remove("active"); });
+            link.classList.add("active");
+            document.querySelector(".admin-sidebar").classList.remove("open");
+        });
+    });
+    document.getElementById("adminSignOut").addEventListener("click", function () {
+        if (!window.confirm("Sign out from Admin Center?")) return;
+        window.tapTaskDoneEndAdminSession();
+        window.location.replace("/Login");
+    });
     document.querySelector(".mobile-menu").addEventListener("click", function () { document.querySelector(".admin-sidebar").classList.toggle("open"); });
     renderQueues(); renderActivity();
 });
