@@ -1,0 +1,30 @@
+/* Final presentation layer: removes prototype-looking noise and keeps mobile views calm. */
+:root { --presentation-radius:14px; }
+
+.demo-badge, .local-note, .local-profile-badge { display:none !important; }
+
+.empty-state, .jobs-empty, .demo-inbox-empty {
+    border:1px dashed #3b564c;
+    border-radius:var(--presentation-radius);
+    background:linear-gradient(145deg,#111a17,#0d1210);
+    color:#b9c8c1;
+    line-height:1.55;
+}
+
+button, a, input, select, textarea { -webkit-tap-highlight-color:transparent; }
+
+@media (max-width:700px) {
+    body { padding-bottom:env(safe-area-inset-bottom); }
+    .page-intro, .page-heading { margin-bottom:18px !important; }
+    .page-intro h1, .page-intro h2, .page-heading h1, .page-heading h2 { line-height:1.13; }
+    .settings-card, .verification-card, .tracking-card, .provider-card, .map-card,
+    .review-card, .freelancer-card, .my-task-card, .job-card, .post-field {
+        border-radius:var(--presentation-radius) !important;
+    }
+    .settings-card, .verification-card, .tracking-card, .provider-card, .map-card,
+    .review-card, .freelancer-card, .my-task-card, .job-card { padding:18px !important; }
+    input, select, textarea { font-size:16px !important; }
+    .empty-state, .jobs-empty, .demo-inbox-empty { padding:18px !important; text-align:center; }
+    .admin-content { padding-bottom:48px !important; }
+    .admin-card { border-radius:var(--presentation-radius) !important; }
+}

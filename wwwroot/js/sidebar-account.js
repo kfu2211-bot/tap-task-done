@@ -17,6 +17,13 @@
             mobilePolish.href = "/css/mobile-polish.css";
             document.head.appendChild(mobilePolish);
         }
+        if (!document.getElementById("presentationPolish")) {
+            var presentationPolish = document.createElement("link");
+            presentationPolish.id = "presentationPolish";
+            presentationPolish.rel = "stylesheet";
+            presentationPolish.href = "/css/presentation-polish.css";
+            document.head.appendChild(presentationPolish);
+        }
         var account;
 
         try {
