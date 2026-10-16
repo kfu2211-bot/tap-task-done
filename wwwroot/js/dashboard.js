@@ -194,60 +194,6 @@
 
     updateSidebar();
 
-    // =====================================================
-    // PREMIUM HOME OVERVIEW (visual layer, powered by local demo data)
-    // =====================================================
-
-    function readLocalList(key) {
-        try {
-            const value = JSON.parse(localStorage.getItem(key) || "[]");
-            return Array.isArray(value) ? value : [];
-        } catch (error) {
-            return [];
-        }
-    }
-
-    function escapeHtml(value) {
-        return String(value || "").replace(/[&<>'"]/g, function (character) {
-            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character];
-        });
-    }
-
-    function renderPremiumOverview() {
-        const content = document.querySelector(".content");
-        const searchBox = document.querySelector(".search-box");
-        if (!content || !searchBox || document.querySelector(".dashboard-welcome")) return;
-
-        const tasks = readLocalList("tapTaskDoneTasks");
-        const messages = readLocalList("tapTaskDoneMessages");
-        const displayName = getDisplayName(user).split(/\s+/)[0] || "there";
-        const activeTasks = tasks.filter(function (task) {
-            return ["assigned", "in-progress", "completed", "client-confirmed"].includes(String(task.status || "").toLowerCase());
-        }).length;
-        const offers = tasks.reduce(function (total, task) {
-            return total + (Array.isArray(task.offers) ? task.offers.length : 0);
-        }, 0);
-
-        const overview = document.createElement("section");
-        overview.className = "dashboard-premium-overview";
-        overview.innerHTML =
-            '<div class="dashboard-welcome"><span class="dashboard-eyebrow">YOUR LOCAL SERVICE HUB</span><h2>Good to see you, ' + escapeHtml(displayName) + '.</h2><p>Find trusted local help, keep every task moving, and stay in control from one calm workspace.</p></div>' +
-            '<div class="dashboard-quick-panel"><div class="quick-panel-copy"><span class="quick-panel-mark">✦</span><div><h3>What do you need help with?</h3><p>Search a service or create a task in seconds.</p></div></div><label class="quick-search"><span>⌕</span><input id="premiumServiceSearch" type="search" placeholder="Try cleaning, repair, design, tutoring…" aria-label="Search for a service" /></label><button class="quick-post-button" type="button">Post a task&nbsp; →</button></div>' +
-            '<div class="dashboard-metrics" aria-label="Your workspace summary"><a class="dashboard-metric" href="/MyTasks"><span class="metric-icon">▤</span><span><small>Active tasks</small><strong>' + activeTasks + '</strong></span></a><a class="dashboard-metric" href="/MyTasks"><span class="metric-icon">◇</span><span><small>New offers</small><strong>' + offers + '</strong></span></a><a class="dashboard-metric" href="/Messages"><span class="metric-icon">□</span><span><small>Messages</small><strong>' + messages.length + '</strong></span></a></div>';
-
-        content.insertBefore(overview, searchBox);
-        overview.querySelector(".quick-post-button").addEventListener("click", function () {
-            window.location.href = "/FindPost?mode=post";
-        });
-        overview.querySelector("#premiumServiceSearch").addEventListener("keydown", function (event) {
-            if (event.key === "Enter" && event.currentTarget.value.trim()) {
-                window.location.href = "/FindPost?search=" + encodeURIComponent(event.currentTarget.value.trim());
-            }
-        });
-    }
-
-    renderPremiumOverview();
-
 
     // =====================================================
     // POST A TASK
