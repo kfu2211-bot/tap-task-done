@@ -21,7 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function renderMessages() {
         chatMessages.textContent = "";
         if (!activeTask || activeTask.status !== "assigned") {
-            chatMessages.innerHTML = "<div class='messages-empty-state'><h2>No active provider chat</h2><p>Chat becomes available after you accept a freelancer offer.</p></div>";
+            chatMessages.innerHTML = "<div class='messages-empty-state'><span class='messages-mobile-icon' aria-hidden='true'>▢</span><h2>No active provider chat</h2><p>Chat becomes available after you accept a freelancer offer.</p><a class='messages-mobile-action' href='/MyTasks'>View my tasks</a></div>";
+            if (activeRole === "freelancer") { const action = chatMessages.querySelector(".messages-mobile-action"); action.href = "/MyJobs"; action.textContent = "View my jobs"; }
             return;
         }
         const taskMessages = messages.filter(function (item) { return item.taskId === activeTask.id; });
@@ -50,6 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderConversation() {
+        document.querySelector(".messages-wrapper").classList.toggle("no-active-chat", !activeTask || activeTask.status !== "assigned");
         conversationPanel.querySelectorAll(".conversation").forEach(function (item) { item.remove(); });
         if (!activeTask || activeTask.status !== "assigned") {
             if (chatName) chatName.textContent = "Messages";
@@ -64,6 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
         conversation.querySelector("p").textContent = activeTask.title || "Active task";
         conversationPanel.append(conversation);
         if (chatName) chatName.textContent = activeTask.providerName || "Provider";
+        const headerAvatar = document.querySelector(".chat-header .chat-avatar"); if (headerAvatar) headerAvatar.textContent = initials;
         const headerService = document.querySelector(".chat-header span"); if (headerService) headerService.textContent = (activeTask.providerService || "Provider") + " · " + (activeTask.title || "Active task");
         messageInput.disabled = false; sendButton.disabled = false; messageInput.placeholder = "Write a message…";
         renderMessages();
