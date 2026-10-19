@@ -534,7 +534,7 @@
         if (selectedMonth == 2) {
 
             if (
-                selectedYear &&
+                !selectedYear ||
                 (
                     selectedYear % 400 === 0 ||
                     (
@@ -576,6 +576,10 @@
             option.textContent =
                 day;
 
+            if (String(day) === selectedDay) {
+                option.classList.add("selected");
+            }
+
 
             dayMenu.appendChild(
                 option
@@ -584,14 +588,11 @@
         }
 
 
-        // Reset selected day
-
-        selectedDay = "";
-
-
-        dayDropdown
-            .querySelector(".dropdown-button span")
-            .textContent = "Day";
+        // Keep the chosen day unless the new month/year makes it invalid.
+        if (selectedDay && Number(selectedDay) > days) {
+            selectedDay = "";
+        }
+        dayDropdown.querySelector(".dropdown-button span").textContent = selectedDay || "Day";
 
     }
 
