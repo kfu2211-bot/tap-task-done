@@ -2263,6 +2263,37 @@ html.apple-mobile body {
 .google-signup-icon { width: 24px; height: 24px; flex: none; }
 .google-signup-status { margin: 8px 0 0; color: #a8bad0; text-align: center; font-size: 12px; }
 
+/* Allow the signup card to grow beyond short desktop viewports and browser zoom. */
+@media (min-width: 1001px) {
+    html:has(body.signup-page), body.signup-page {
+        height: auto;
+        min-height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+    body.signup-page .page {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        align-items: stretch;
+    }
+    body.signup-page .left-side {
+        position: sticky;
+        top: 0;
+        flex-shrink: 0;
+    }
+    body.signup-page .right-side {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+        padding: clamp(20px, 3vw, 40px);
+    }
+    body.signup-page .register-box {
+        margin: auto;
+        padding: clamp(26px, 3vw, 42px) clamp(28px, 4vw, 58px);
+    }
+}
+
 @media (max-width: 600px) {
     .login-page { min-height: 100vh; padding: 112px 18px 32px; align-items: flex-start; }
     .login-logo { left: 24px; top: 24px; }
