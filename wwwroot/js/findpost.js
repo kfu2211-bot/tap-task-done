@@ -270,12 +270,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const locationInput = document.getElementById("locationInput");
     const budgetInput = document.getElementById("budgetInput");
+    const cityInput = document.getElementById("cityInput");
+    const availabilityFilter = document.getElementById("availabilityFilter");
+    const clearFilters = document.getElementById("clearFilters");
     const searchStatus = document.getElementById("searchStatus");
     const categories = { repairs: ["repair", "plumb", "electric"], cleaning: ["clean"], errands: ["errand", "delivery"], moving: ["moving", "mover", "hauling"] };
+
+    freelancerCards.forEach(function (card) {
+        const details = document.createElement("small");
+        details.className = "sample-match-details";
+        details.textContent = card.dataset.city + ", " + card.dataset.location + " · " + (card.dataset.availability === "today" ? "Available today" : "Available this week") + " · Sample";
+        card.querySelector(".freelancer-info").appendChild(details);
+        const reasons = document.createElement("small");
+        reasons.className = "sample-match-reasons";
+        card.querySelector(".freelancer-info").appendChild(reasons);
+    });
 
     function performSearch() {
         const query = serviceSearch.value.trim().toLowerCase();
         const location = locationInput.value.trim().toLowerCase();
+        const city = cityInput.value.trim().toLowerCase();
+        const availability = availabilityFilter.value;
         const budgetText = budgetInput.value.trim().replace(/[₱,\s]/g, "");
         const budget = budgetText ? Number(budgetText) : null;
         if (budgetText && (!Number.isFinite(budget) || budget <= 0)) {
@@ -292,12 +307,20 @@ document.addEventListener("DOMContentLoaded", function () {
             const serviceMatches = !query || service.includes(query) || name.includes(query) ||
                 (categories[query] || []).some(function (term) { return service.includes(term); });
             const locationMatches = !location || card.dataset.location.toLowerCase().includes(location);
+            const cityMatches = !city || card.dataset.city.toLowerCase().includes(city);
+            const availabilityMatches = !availability || card.dataset.availability === availability || (availability === "week" && card.dataset.availability === "today");
             const budgetMatches = budget === null || Number(card.dataset.rate) <= budget;
-            const matches = serviceMatches && locationMatches && budgetMatches;
+            const matches = serviceMatches && locationMatches && cityMatches && availabilityMatches && budgetMatches;
             card.style.display = matches ? "flex" : "none";
+            const reasons = [];
+            if (query) reasons.push("Service match");
+            if (location || city) reasons.push("Location match");
+            if (availability) reasons.push("Schedule match");
+            if (budget !== null) reasons.push("Within budget");
+            card.querySelector(".sample-match-reasons").textContent = matches ? reasons.join(" · ") : "";
             if (matches) count++;
         });
-        noResults.textContent = "No sample freelancers match all your filters. Try another service, location, or budget.";
+        noResults.textContent = "No sample freelancers match all your filters. Try another service, location, schedule, or budget.";
         noResults.classList.toggle("show", count === 0);
         searchStatus.textContent = count + (count === 1 ? " sample freelancer found" : " sample freelancers found") + ".";
     }
@@ -309,14 +332,20 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
 
-    [serviceSearch, locationInput, budgetInput].forEach(function (input) {
+    [serviceSearch, locationInput, cityInput, budgetInput].forEach(function (input) {
         input.addEventListener("keydown", function (event) {
             if (event.key === "Enter") { event.preventDefault(); performSearch(); }
         });
     });
+    clearFilters.addEventListener("click", function () {
+        serviceSearch.value = ""; locationInput.value = ""; cityInput.value = ""; budgetInput.value = ""; availabilityFilter.value = "";
+        performSearch();
+        serviceSearch.focus();
+    });
     const searchParams = new URLSearchParams(window.location.search);
     const initialSearch = searchParams.get("search") || searchParams.get("category");
-    if (initialSearch) { serviceSearch.value = initialSearch; performSearch(); }
+    if (initialSearch) serviceSearch.value = initialSearch;
+    performSearch();
 
 
 

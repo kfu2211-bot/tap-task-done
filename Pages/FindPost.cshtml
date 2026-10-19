@@ -311,6 +311,8 @@
 
                     <aside class="filter-panel">
 
+                        <div class="search-filter-heading"><h2>Search for a freelancer</h2><p>Set your preferences to find the right match.</p></div>
+
 
                         <div class="filter-group">
 
@@ -333,6 +335,17 @@
                         </div>
 
 
+
+                        <div class="filter-group">
+                            <label for="cityInput">City or area <span class="filter-optional">(optional)</span></label>
+                            <div class="input-wrapper"><span>⌖</span><input id="cityInput" type="text" placeholder="e.g. Makati" /></div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="availabilityFilter">Availability</label>
+                            <div class="input-wrapper"><span>◷</span><select id="availabilityFilter"><option value="">Any availability</option><option value="today">Available today</option><option value="week">Available this week</option></select></div>
+                            <small class="filter-hint">Choose a preferred schedule (optional).</small>
+                        </div>
 
                         <div class="filter-group">
 
@@ -391,6 +404,8 @@
 
                         </button>
 
+                        <button class="clear-filters" id="clearFilters" type="button">Clear filters</button>
+
 
                     </aside>
 
@@ -401,6 +416,7 @@
                     <div class="results-area">
 
                         <p class="search-demo-note">Demo results only: these sample profiles are not connected to the database yet.</p>
+                        <ol class="search-steps" aria-label="How to find a freelancer"><li>Search</li><li>Compare</li><li>View profile</li><li>Request</li></ol>
                         <p id="searchStatus" role="status" aria-live="polite"></p>
 
 
@@ -434,7 +450,7 @@
                                 <!-- OFRACIO -->
 
                                 <article class="freelancer-card"
-                                         data-service="plumber plumbing repair" data-location="Metro Manila" data-rate="600">
+                                         data-service="plumber plumbing repair" data-location="Metro Manila" data-city="Quezon City" data-availability="today" data-rate="600">
 
                                     <div class="freelancer-left">
 
@@ -508,7 +524,7 @@
                                 <!-- MARISOL -->
 
                                 <article class="freelancer-card"
-                                         data-service="house cleaner cleaning deep clean" data-location="Metro Manila" data-rate="450">
+                                         data-service="house cleaner cleaning deep clean" data-location="Metro Manila" data-city="Makati" data-availability="today" data-rate="450">
 
                                     <div class="freelancer-left">
 
@@ -582,7 +598,7 @@
                                 <!-- DANTE -->
 
                                 <article class="freelancer-card"
-                                         data-service="electrician electrical repair" data-location="Metro Manila" data-rate="750">
+                                         data-service="electrician electrical repair" data-location="Metro Manila" data-city="Pasig" data-availability="week" data-rate="750">
 
                                     <div class="freelancer-left">
 
@@ -656,7 +672,7 @@
                                 <!-- LEA -->
 
                                 <article class="freelancer-card"
-                                         data-service="errand runner errands delivery" data-location="Metro Manila" data-rate="300">
+                                         data-service="errand runner errands delivery" data-location="Metro Manila" data-city="Manila" data-availability="week" data-rate="300">
 
                                     <div class="freelancer-left">
 

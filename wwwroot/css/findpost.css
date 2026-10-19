@@ -807,6 +807,27 @@ body {
 .find-flow-steps{width:min(800px,100%);margin:0 auto 18px;display:flex;align-items:center;justify-content:center;gap:12px;color:#aaa;font-size:12px}.find-flow-steps span{display:flex;align-items:center;gap:7px}.find-flow-steps b{display:grid;place-items:center;width:23px;height:23px;border:1px solid #58605c;border-radius:50%;font-size:11px}.find-flow-steps .active{color:#effff7;font-weight:700}.find-flow-steps .active b{border-color:#2acd94;background:#16835f;color:#fff}.find-flow-steps i{width:58px;height:1px;background:#3b413f}.provider-detail-panel{margin-top:16px;padding:20px;border:1px solid #3a5046;border-radius:10px;background:#141817}.provider-detail-panel.hidden{display:none}.provider-detail-heading{display:flex;justify-content:space-between;gap:16px}.provider-detail-heading span{color:#75dcb1;font-size:11px;font-weight:700}.provider-detail-heading h2{margin:5px 0 4px;font-size:19px}.provider-detail-heading p{margin:0;color:#aaa;font-size:13px}.provider-detail-heading button{width:32px;height:32px;border:0;background:transparent;color:#bbb;font-size:24px;cursor:pointer}.provider-detail-stats{display:flex;flex-wrap:wrap;gap:10px;margin:17px 0 13px}.provider-detail-stats span{padding:7px 10px;border:1px solid #35413c;border-radius:99px;color:#dfece5;font-size:12px}.provider-detail-stats .available-now{color:#59dca3}.provider-detail-help{margin:0 0 17px;color:#b1bab5;font-size:13px;line-height:1.5}.send-booking-request{min-height:42px;padding:0 17px;border:1px solid #35ce95;border-radius:8px;background:#28c98d;color:#071711;font-size:13px;font-weight:700;cursor:pointer}.send-booking-request:hover{background:#3be2aa}
 .provider-search-intro{margin:0 0 17px;padding:18px 20px;border:1px solid #303b36;border-radius:10px;background:#131615}.provider-search-intro span{color:#67d9a4;font-size:11px;font-weight:700}.provider-search-intro h2{margin:7px 0 6px;color:#f2f5f3;font-size:18px}.provider-search-intro p{margin:0;color:#a8b2ad;font-size:13px;line-height:1.45}
 
+/* Search flow: keep the sample directory and its filters easy to understand. */
+.search-filter-heading { margin-bottom: 22px; }
+.search-filter-heading h2 { margin: 0 0 6px; color: #f3f8ff; font-size: 17px; }
+.search-filter-heading p, .filter-hint { color: #a9bacb; font-size: 12px; line-height: 1.45; }
+.search-filter-heading p { margin: 0; }
+.filter-optional { color: #98a9bb; font-weight: normal; }
+.filter-hint { display: block; margin-top: 7px; }
+.input-wrapper select { width: 100%; min-width: 0; height: 100%; border: 0; outline: 0; color: #e5f0fb; background: transparent; font: inherit; font-size: 12px; }
+.input-wrapper select option { color: #e5f0fb; background: #101c2a; }
+.input-wrapper:focus-within { border-color: #21d8c5; }
+.clear-filters { display: block; margin: 16px auto 0; border: 0; background: transparent; color: #55e0d0; cursor: pointer; text-decoration: underline; }
+.search-demo-note { margin: 0 0 16px; padding: 14px 16px; border: 1px solid #28566a; border-radius: 10px; background: #0b1e29; color: #c4dce7; font-size: 12px; line-height: 1.5; }
+.search-steps { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; padding: 0; list-style: none; counter-reset: search-step; }
+.search-steps li { display: flex; align-items: center; gap: 6px; color: #aabccd; font-size: 12px; }
+.search-steps li::before { counter-increment: search-step; content: counter(search-step); display: grid; place-items: center; width: 23px; height: 23px; border: 1px solid #385569; border-radius: 50%; color: #59e6d3; }
+.search-steps li:not(:last-child)::after { content: '→'; margin: 0 4px; color: #678093; }
+#searchStatus { margin: 0 0 12px; color: #bfd0df; font-size: 13px; }
+.freelancer-info .sample-match-details, .freelancer-info .sample-match-reasons { display: block; margin-top: 5px; color: #a8bdc9; font-size: 11px; line-height: 1.4; white-space: normal; }
+.freelancer-info .sample-match-reasons { color: #65dec8; }
+.freelancer-card { padding-top: 12px; padding-bottom: 12px; }
+
 
 /* =========================================================
    NO RESULTS
