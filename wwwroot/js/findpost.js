@@ -268,71 +268,38 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
+    const locationInput = document.getElementById("locationInput");
+    const budgetInput = document.getElementById("budgetInput");
+    const searchStatus = document.getElementById("searchStatus");
+    const categories = { repairs: ["repair", "plumb", "electric"], cleaning: ["clean"], errands: ["errand", "delivery"], moving: ["moving", "mover", "hauling"] };
+
     function performSearch() {
-
-        const searchValue =
-            serviceSearch
-                .value
-                .trim()
-                .toLowerCase();
-
-
-        let foundCount = 0;
-
-
-        freelancerCards.forEach(
-            function (card) {
-
-                const service =
-                    card.dataset.service
-                        .toLowerCase();
-
-
-                const freelancerName =
-                    card
-                        .querySelector(
-                            ".freelancer-info strong"
-                        )
-                        .textContent
-                        .toLowerCase();
-
-
-                const matches =
-                    searchValue === "" ||
-                    service.includes(searchValue) ||
-                    freelancerName.includes(searchValue);
-
-
-                if (matches) {
-
-                    card.style.display =
-                        "flex";
-
-                    foundCount++;
-
-                }
-                else {
-
-                    card.style.display =
-                        "none";
-
-                }
-
-            }
-        );
-
-
-        if (foundCount === 0) {
-
-            noResults.classList.add("show");
-
+        const query = serviceSearch.value.trim().toLowerCase();
+        const location = locationInput.value.trim().toLowerCase();
+        const budgetText = budgetInput.value.trim().replace(/[₱,\s]/g, "");
+        const budget = budgetText ? Number(budgetText) : null;
+        if (budgetText && (!Number.isFinite(budget) || budget <= 0)) {
+            searchStatus.textContent = "Enter a valid maximum budget, for example 1500.";
+            budgetInput.focus();
+            return;
         }
-        else {
-
-            noResults.classList.remove("show");
-
-        }
-
+        const detailPanel = document.getElementById("providerDetailPanel");
+        if (detailPanel) detailPanel.classList.add("hidden");
+        let count = 0;
+        freelancerCards.forEach(function (card) {
+            const service = card.dataset.service.toLowerCase();
+            const name = card.querySelector(".freelancer-info strong").textContent.toLowerCase();
+            const serviceMatches = !query || service.includes(query) || name.includes(query) ||
+                (categories[query] || []).some(function (term) { return service.includes(term); });
+            const locationMatches = !location || card.dataset.location.toLowerCase().includes(location);
+            const budgetMatches = budget === null || Number(card.dataset.rate) <= budget;
+            const matches = serviceMatches && locationMatches && budgetMatches;
+            card.style.display = matches ? "flex" : "none";
+            if (matches) count++;
+        });
+        noResults.textContent = "No sample freelancers match all your filters. Try another service, location, or budget.";
+        noResults.classList.toggle("show", count === 0);
+        searchStatus.textContent = count + (count === 1 ? " sample freelancer found" : " sample freelancers found") + ".";
     }
 
 
@@ -342,18 +309,14 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
 
-    serviceSearch.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (event.key === "Enter") {
-
-                performSearch();
-
-            }
-
-        }
-    );
+    [serviceSearch, locationInput, budgetInput].forEach(function (input) {
+        input.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") { event.preventDefault(); performSearch(); }
+        });
+    });
+    const searchParams = new URLSearchParams(window.location.search);
+    const initialSearch = searchParams.get("search") || searchParams.get("category");
+    if (initialSearch) { serviceSearch.value = initialSearch; performSearch(); }
 
 
 

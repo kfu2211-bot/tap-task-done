@@ -348,8 +348,7 @@
 
                                 <input type="text"
                                        id="locationInput"
-                                       value="Metro Manila"
-                                       placeholder="Enter location..." />
+                                       placeholder="e.g. Metro Manila" />
 
                             </div>
 
@@ -371,8 +370,8 @@
 
                                 <input type="text"
                                        id="budgetInput"
-                                       value="₱300 - ₱1,500"
-                                       placeholder="Budget range..." />
+                                       inputmode="numeric"
+                                       placeholder="Maximum budget, e.g. 1500" />
 
                             </div>
 
@@ -400,6 +399,9 @@
                     <!-- RESULTS AREA -->
 
                     <div class="results-area">
+
+                        <p class="search-demo-note">Demo results only: these sample profiles are not connected to the database yet.</p>
+                        <p id="searchStatus" role="status" aria-live="polite"></p>
 
 
                         <section class="provider-search-intro">
@@ -432,7 +434,7 @@
                                 <!-- OFRACIO -->
 
                                 <article class="freelancer-card"
-                                         data-service="plumber plumbing repair">
+                                         data-service="plumber plumbing repair" data-location="Metro Manila" data-rate="600">
 
                                     <div class="freelancer-left">
 
@@ -506,7 +508,7 @@
                                 <!-- MARISOL -->
 
                                 <article class="freelancer-card"
-                                         data-service="house cleaner cleaning deep clean">
+                                         data-service="house cleaner cleaning deep clean" data-location="Metro Manila" data-rate="450">
 
                                     <div class="freelancer-left">
 
@@ -580,7 +582,7 @@
                                 <!-- DANTE -->
 
                                 <article class="freelancer-card"
-                                         data-service="electrician electrical repair">
+                                         data-service="electrician electrical repair" data-location="Metro Manila" data-rate="750">
 
                                     <div class="freelancer-left">
 
@@ -654,7 +656,7 @@
                                 <!-- LEA -->
 
                                 <article class="freelancer-card"
-                                         data-service="errand runner errands delivery">
+                                         data-service="errand runner errands delivery" data-location="Metro Manila" data-rate="300">
 
                                     <div class="freelancer-left">
 
@@ -930,7 +932,7 @@
 
 
 
-    <script src="~/js/findpost.js"></script>
+    <script src="~/js/findpost.js" asp-append-version="true"></script>
 
 </body>
 
