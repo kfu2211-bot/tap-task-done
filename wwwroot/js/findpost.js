@@ -270,7 +270,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const locationInput = document.getElementById("locationInput");
     const budgetInput = document.getElementById("budgetInput");
-    const cityInput = document.getElementById("cityInput");
     const availabilityFilter = document.getElementById("availabilityFilter");
     const clearFilters = document.getElementById("clearFilters");
     const searchStatus = document.getElementById("searchStatus");
@@ -289,7 +288,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function performSearch() {
         const query = serviceSearch.value.trim().toLowerCase();
         const location = locationInput.value.trim().toLowerCase();
-        const city = cityInput.value.trim().toLowerCase();
         const availability = availabilityFilter.value;
         const budgetText = budgetInput.value.trim().replace(/[₱,\s]/g, "");
         const budget = budgetText ? Number(budgetText) : null;
@@ -306,15 +304,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const name = card.querySelector(".freelancer-info strong").textContent.toLowerCase();
             const serviceMatches = !query || service.includes(query) || name.includes(query) ||
                 (categories[query] || []).some(function (term) { return service.includes(term); });
-            const locationMatches = !location || card.dataset.location.toLowerCase().includes(location);
-            const cityMatches = !city || card.dataset.city.toLowerCase().includes(city);
+            const area = (card.dataset.city + " " + card.dataset.location).toLowerCase();
+            const locationMatches = !location || location.split(/[\s,]+/).every(function (word) { return area.includes(word); });
             const availabilityMatches = !availability || card.dataset.availability === availability || (availability === "week" && card.dataset.availability === "today");
             const budgetMatches = budget === null || Number(card.dataset.rate) <= budget;
-            const matches = serviceMatches && locationMatches && cityMatches && availabilityMatches && budgetMatches;
+            const matches = serviceMatches && locationMatches && availabilityMatches && budgetMatches;
             card.style.display = matches ? "flex" : "none";
             const reasons = [];
             if (query) reasons.push("Service match");
-            if (location || city) reasons.push("Location match");
+            if (location) reasons.push("Location match");
             if (availability) reasons.push("Schedule match");
             if (budget !== null) reasons.push("Within budget");
             card.querySelector(".sample-match-reasons").textContent = matches ? reasons.join(" · ") : "";
@@ -332,13 +330,13 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
 
-    [serviceSearch, locationInput, cityInput, budgetInput].forEach(function (input) {
+    [serviceSearch, locationInput, budgetInput].forEach(function (input) {
         input.addEventListener("keydown", function (event) {
             if (event.key === "Enter") { event.preventDefault(); performSearch(); }
         });
     });
     clearFilters.addEventListener("click", function () {
-        serviceSearch.value = ""; locationInput.value = ""; cityInput.value = ""; budgetInput.value = ""; availabilityFilter.value = "";
+        serviceSearch.value = ""; locationInput.value = ""; budgetInput.value = ""; availabilityFilter.value = "";
         performSearch();
         serviceSearch.focus();
     });
