@@ -2254,6 +2254,15 @@ html.apple-mobile body {
 .create-account-text a { color: #36e3d3; }
 .create-account-text a:hover { color: #82fff2; }
 
+.page .signup-demo-notice { margin: -14px 0 20px; color: #c9d7eb; text-align: center; font-size: 12px; line-height: 1.45; }
+.signup-alternative { margin-top: 24px; }
+.signup-divider { display: flex; align-items: center; gap: 14px; color: #92a9c5; font-size: 11px; font-weight: 700; letter-spacing: .12em; }
+.signup-divider::before, .signup-divider::after { content: ""; flex: 1; height: 1px; background: #344d70; }
+.google-signup-button { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 54px; margin-top: 18px; border: 1px solid #486284; border-radius: 12px; background: #132642; color: #e5ecf5; font: inherit; font-weight: 700; }
+.google-signup-button:disabled { cursor: not-allowed; opacity: .76; }
+.google-signup-icon { width: 24px; height: 24px; flex: none; }
+.google-signup-status { margin: 8px 0 0; color: #a8bad0; text-align: center; font-size: 12px; }
+
 @media (max-width: 600px) {
     .login-page { min-height: 100vh; padding: 112px 18px 32px; align-items: flex-start; }
     .login-logo { left: 24px; top: 24px; }
