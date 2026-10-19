@@ -35,6 +35,7 @@
                 </div>
                 <form id="profileForm" class="settings-card account-card">
                     <h2>Account profile</h2>
+                    <p class="local-settings-notice">Demo only: changes are saved in this browser and do not update the public freelancer search or other devices.</p>
                     <div class="profile-summary" aria-label="Current profile">
                         <span id="profileAvatar" class="profile-avatar">U</span>
                         <div><strong id="profileSummaryName">User</strong><span id="profileSummaryEmail">user@email.com</span></div>
@@ -55,7 +56,7 @@
                         <legend>Personal details</legend>
                         <div class="field-grid">
                             <label>Display name<input id="profileNameInput" required maxlength="60" /></label>
-                            <label>Email<input id="profileEmailInput" type="email" required /></label>
+                            <label>Account email<input id="profileEmailInput" type="email" readonly /><small>Email changes are not available in this demo.</small></label>
                         </div>
                     </fieldset>
                     <fieldset class="settings-group work-group">
@@ -65,8 +66,12 @@
                             <label>Account role<select id="profileRoleInput"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select></label>
                             <label>Availability<select id="profileAvailabilityInput"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label>
                         </div>
+                        <div class="field-grid service-details">
+                            <label>Service area<input id="profileLocationInput" maxlength="100" placeholder="e.g. Makati, Metro Manila" /></label>
+                            <label>Starting rate (₱)<input id="profileRateInput" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 500" /></label>
+                        </div>
                     </fieldset>
-                    <fieldset class="settings-group"><legend>Weekly availability</legend><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability"></div></fieldset>
+                    <fieldset class="settings-group"><legend>Weekly availability</legend><p class="form-message">Choose the days you normally accept work. Select each day to turn it on or off.</p><div id="weeklyAvailability" aria-label="Available days"></div></fieldset>
                     <div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite"></p><button class="primary-button" type="submit">Save changes</button></div>
                 </form>
                 <section class="settings-card demo-card" aria-labelledby="demoDataHeading">
@@ -84,6 +89,6 @@
             </section>
         </main>
     </div>
-    <script src="/js/settings.js"></script>
+    <script src="/js/settings.js" asp-append-version="true"></script>
 </body>
 </html>
