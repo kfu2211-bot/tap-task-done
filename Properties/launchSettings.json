@@ -22,7 +22,6 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "https://tap-task-done.onrender.com/",
       "applicationUrl": "http://localhost:5133",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -32,7 +31,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "https://tap-task-done.onrender.com/",
+      "launchUrl": "http://localhost:5133/",
       "applicationUrl": "http://0.0.0.0:5133",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -41,7 +40,6 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "https://tap-task-done.onrender.com/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

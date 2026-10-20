@@ -34,21 +34,7 @@ namespace tts.Pages
             Email = email;
 
             var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 2 || parts[0].Length > 45 || string.Join(' ', parts.Skip(1)).Length > 45)
-            {
-                ErrorMessage = "Please enter your first and last name (maximum 45 characters each).";
-                return Page();
-            }
-            if (email.Length > 45 || !new EmailAddressAttribute().IsValid(email))
-            {
-                ErrorMessage = "Please enter a valid email of at most 45 characters.";
-                return Page();
-            }
-            if (password.Length < 8 || password.Length > 256 || !Regex.IsMatch(password, "[A-Z]") || !Regex.IsMatch(password, "[a-z]") || !Regex.IsMatch(password, "[0-9]") || !Regex.IsMatch(password, "[^a-zA-Z0-9]"))
-            {
-                ErrorMessage = "Please choose a strong password of at least 8 characters.";
-                return Page();
-            }
+            
             try
             {
                 var db = HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();

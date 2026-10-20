@@ -44,11 +44,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     if (string.IsNullOrWhiteSpace(connectionString))
         throw new InvalidOperationException("ConnectionStrings:ApplicationDatabase must be configured before using the database.");
     var versionText = builder.Configuration["Database:MySqlVersion"];
+    // Accept "8", "8.0", "8.0.36" or "8.0.36-log"; missing parts default to 0.
+    var versionMatch = System.Text.RegularExpressions.Regex.Match(versionText ?? "", @"^\s*(\d+)(?:\.(\d+))?(?:\.(\d+))?");
     var serverVersion = string.IsNullOrWhiteSpace(versionText)
         ? ServerVersion.AutoDetect(connectionString)
-        : Version.TryParse(versionText, out var version) && version.Build >= 0
-            ? new MySqlServerVersion(version)
-            : throw new InvalidOperationException("Database:MySqlVersion must contain the MySQL version (major.minor.patch).");
+        : versionMatch.Success
+            ? new MySqlServerVersion(new Version(
+                int.Parse(versionMatch.Groups[1].Value),
+                versionMatch.Groups[2].Success ? int.Parse(versionMatch.Groups[2].Value) : 0,
+                versionMatch.Groups[3].Success ? int.Parse(versionMatch.Groups[3].Value) : 0))
+            : throw new InvalidOperationException("Database:MySqlVersion must contain the MySQL version, for example 8.0.36.");
     options.UseMySql(connectionString, serverVersion);
 });
 
