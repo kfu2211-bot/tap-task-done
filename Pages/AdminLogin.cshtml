@@ -1,0 +1,38 @@
+@page
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin sign in - Tap, Task, Done</title>
+    <link rel="stylesheet" href="/css/admin-login.css" asp-append-version="true" />
+</head>
+<body>
+    <main class="admin-login-page">
+        <a class="admin-login-brand" href="/"><span>✓</span><strong>Tap, Task, Done</strong></a>
+        <section class="admin-login-card" aria-labelledby="adminLoginTitle">
+            <p class="admin-eyebrow">RESTRICTED DEMO AREA</p>
+            <h1 id="adminLoginTitle">Sign in to<br />Admin Center</h1>
+            <p class="admin-login-copy">Review local verification requests, reports, and account activity.</p>
+            <form id="adminLoginForm">
+                <label for="adminEmail">ADMIN EMAIL</label>
+                <input id="adminEmail" type="email" autocomplete="username" placeholder="admin@example.com" required />
+                <label for="adminPassword">PASSWORD</label>
+                <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required />
+                <label class="keep-signed-in"><input id="keepAdminSignedIn" type="checkbox" checked /> <span>Keep me signed in on this device</span></label>
+                <p id="adminLoginError" class="admin-login-error" role="alert"></p>
+                <button type="submit">Sign in securely <span>→</span></button>
+            </form>
+            <details class="demo-credentials">
+                <summary>Show local demo account</summary>
+                <p>Email: <code>admin@tap-task-done.local</code><br />Password: <code>AdminDemo!2026</code></p>
+            </details>
+            <a class="return-link" href="/Login">← Return to regular sign in</a>
+        </section>
+        <p class="local-warning">Local demo only — this browser-based login is not production security.</p>
+    </main>
+    <script src="/js/admin-auth.js" asp-append-version="true"></script>
+    <script src="/js/admin-login.js" asp-append-version="true"></script>
+</body>
+</html>

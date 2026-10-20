@@ -1,0 +1,44 @@
+/* Phone-first finishing touches shared by every signed-in user page. */
+@media (max-width:700px) {
+    html, body { max-width:100%; overflow-x:hidden; }
+
+    #mobileMenuToggle {
+        width:46px !important;
+        height:46px !important;
+        border-radius:13px !important;
+        border:1px solid #3c514a !important;
+        background:#15201d !important;
+        color:#f4f8f6 !important;
+        font-size:22px !important;
+        box-shadow:0 10px 28px rgba(0,0,0,.28);
+    }
+
+    .content, .settings-content, .reviews-content, .messages-wrapper,
+    .tracking-content, .findpost-content, .mytasks-content, .jobs-content {
+        width:calc(100% - 28px) !important;
+        margin-left:auto !important;
+        margin-right:auto !important;
+    }
+
+    .quick-schedule-picker, .field-grid, .work-field-grid,
+    .confirm-task-actions { grid-template-columns:1fr !important; }
+
+    .quick-schedule-actions { grid-column:auto !important; }
+    .quick-schedule-actions .schedule-clear-button { margin-left:0 !important; }
+
+    .post-form-actions, .success-actions, .offer-actions,
+    .booking-request-actions, .job-actions {
+        width:100%;
+    }
+
+    .post-form-actions button, .success-actions button,
+    .offer-actions button, .booking-request-actions button,
+    .job-actions button { flex:1 1 100%; min-height:46px; }
+
+    .mode-switcher { width:100%; overflow-x:auto; scrollbar-width:none; }
+    .mode-switcher::-webkit-scrollbar { display:none; }
+    .mode-button { white-space:nowrap; flex:1 0 auto; min-height:46px; }
+
+    .photo-upload-button, .remove-photo-button,
+    .demo-actions button, .save-row button { min-height:46px; }
+}

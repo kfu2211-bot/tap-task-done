@@ -806,6 +806,93 @@ body {
 
 .find-flow-steps{width:min(800px,100%);margin:0 auto 18px;display:flex;align-items:center;justify-content:center;gap:12px;color:#aaa;font-size:12px}.find-flow-steps span{display:flex;align-items:center;gap:7px}.find-flow-steps b{display:grid;place-items:center;width:23px;height:23px;border:1px solid #58605c;border-radius:50%;font-size:11px}.find-flow-steps .active{color:#effff7;font-weight:700}.find-flow-steps .active b{border-color:#2acd94;background:#16835f;color:#fff}.find-flow-steps i{width:58px;height:1px;background:#3b413f}.provider-detail-panel{margin-top:16px;padding:20px;border:1px solid #3a5046;border-radius:10px;background:#141817}.provider-detail-panel.hidden{display:none}.provider-detail-heading{display:flex;justify-content:space-between;gap:16px}.provider-detail-heading span{color:#75dcb1;font-size:11px;font-weight:700}.provider-detail-heading h2{margin:5px 0 4px;font-size:19px}.provider-detail-heading p{margin:0;color:#aaa;font-size:13px}.provider-detail-heading button{width:32px;height:32px;border:0;background:transparent;color:#bbb;font-size:24px;cursor:pointer}.provider-detail-stats{display:flex;flex-wrap:wrap;gap:10px;margin:17px 0 13px}.provider-detail-stats span{padding:7px 10px;border:1px solid #35413c;border-radius:99px;color:#dfece5;font-size:12px}.provider-detail-stats .available-now{color:#59dca3}.provider-detail-help{margin:0 0 17px;color:#b1bab5;font-size:13px;line-height:1.5}.send-booking-request{min-height:42px;padding:0 17px;border:1px solid #35ce95;border-radius:8px;background:#28c98d;color:#071711;font-size:13px;font-weight:700;cursor:pointer}.send-booking-request:hover{background:#3be2aa}
 .provider-search-intro{margin:0 0 17px;padding:18px 20px;border:1px solid #303b36;border-radius:10px;background:#131615}.provider-search-intro span{color:#67d9a4;font-size:11px;font-weight:700}.provider-search-intro h2{margin:7px 0 6px;color:#f2f5f3;font-size:18px}.provider-search-intro p{margin:0;color:#a8b2ad;font-size:13px;line-height:1.45}
+.match-details,.search-match-reasons{display:block;margin-top:4px;color:#aab6b0;font-size:11px;line-height:1.45}.search-match-reasons:not(:empty){color:#83d7ad}.provider-detail-panel{width:100%;margin:0 0 4px}.provider-detail-heading p{line-height:1.5}
+
+/* Desktop search: keep the existing dark theme consistent, including autofill. */
+@media (min-width: 701px) {
+    #findFreelancerSection .filter-panel {
+        align-self: start;
+        min-height: 0;
+        height: auto;
+        padding: 22px;
+        background: #151515;
+    }
+
+    #findFreelancerSection .filter-group { margin-bottom: 18px; }
+    #findFreelancerSection .filter-group label {
+        margin-bottom: 8px;
+        color: #b8b8b8;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    #findFreelancerSection .input-wrapper {
+        min-width: 0;
+        height: 42px;
+        border-color: #353535;
+        background: #0e0e0e;
+    }
+
+    #findFreelancerSection .input-wrapper:focus-within {
+        border-color: #8c9a93;
+        box-shadow: 0 0 0 2px rgba(190, 210, 200, .12);
+    }
+
+    #findFreelancerSection .input-wrapper input,
+    #findFreelancerSection .input-wrapper select {
+        min-width: 0;
+        border: 0 !important;
+        background: transparent !important;
+        color: #ededed !important;
+        font-size: 13px;
+    }
+
+    #findFreelancerSection .input-wrapper input:focus,
+    #findFreelancerSection .input-wrapper select:focus { outline: none !important; }
+
+    #findFreelancerSection .input-wrapper select { color-scheme: dark; }
+    #findFreelancerSection .input-wrapper input:-webkit-autofill,
+    #findFreelancerSection .input-wrapper input:-webkit-autofill:hover,
+    #findFreelancerSection .input-wrapper input:-webkit-autofill:focus {
+        -webkit-text-fill-color: #ededed;
+        -webkit-box-shadow: 0 0 0 1000px #0e0e0e inset;
+        caret-color: #ededed;
+    }
+
+    #findFreelancerSection .search-button {
+        height: 42px;
+        min-height: 42px;
+        max-height: 42px;
+        margin-top: 2px;
+        font-weight: 600;
+    }
+
+    #findFreelancerSection .provider-search-intro {
+        padding: 20px 22px;
+        border-color: #303833;
+        border-radius: 12px;
+    }
+
+    #findFreelancerSection .section-heading { margin-bottom: 5px; }
+    #findFreelancerSection .freelancer-list { gap: 10px; }
+    #findFreelancerSection .freelancer-card {
+        min-height: 78px;
+        padding: 14px 16px;
+        gap: 16px;
+        flex-wrap: wrap;
+        border-color: #303833;
+        background: #131615;
+    }
+
+    #findFreelancerSection .freelancer-right {
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    #findFreelancerSection .freelancer-info span,
+    #findFreelancerSection .freelancer-jobs,
+    #findFreelancerSection .freelancer-rating small { color: #a3aaa6; }
+    #findFreelancerSection .arrow-button { min-height: 36px; }
+}
 
 
 /* =========================================================
@@ -1163,6 +1250,9 @@ body {
     font-size: 10px;
     line-height: 1.4;
 }
+
+/* Quick editable schedule: native phone pickers are faster than six dropdowns. */
+.quick-schedule-picker{display:grid;grid-template-columns:1fr 1fr;gap:10px}.quick-schedule-field{display:flex;flex-direction:column;gap:7px;padding:12px;border:1px solid #37433f;border-radius:10px;background:#111716}.quick-schedule-field>span{color:#b7c7c2;font-size:10px;font-weight:700}.post-field .quick-schedule-field input{height:34px;padding:0;border:0;border-radius:0;background:transparent;color:#f7f7f7;font-size:14px;font-weight:700;color-scheme:dark}.quick-schedule-field:focus-within{border-color:#38d4a1;box-shadow:0 0 0 2px rgba(56,212,161,.12)}.quick-schedule-actions{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px}.quick-schedule-actions button{min-height:35px;padding:0 12px;border:1px solid #3b4c47;border-radius:999px;background:#161e1c;color:#d8e4e0;font:inherit;font-size:11px;font-weight:700;cursor:pointer}.quick-schedule-actions button:hover{border-color:#35d5a0;background:#173d33;color:#fff}.quick-schedule-actions .schedule-clear-button{margin-left:auto;border-color:transparent;background:transparent;color:#58d9b4;text-decoration:underline}
 
 .post-categories {
     display: grid;

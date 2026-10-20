@@ -1,0 +1,79 @@
+/* Final desktop-only presentation layer. It preserves existing page content and flows. */
+@media (min-width:701px){
+:root{--u-bg:#071a36;--u-panel:#0b2b4f;--u-line:rgba(112,190,235,.3);--u-text:#f5fbff;--u-muted:#aec9e2;--u-teal:#39ddcd}
+html body{background:var(--u-bg)!important;color:var(--u-text)!important}
+html body .app-shell,html body .settings-layout,html body .tracking-layout,html body .verification-page,html body .reviews-page,html body .mytasks-app,html body .messages-wrapper,html body .main-content{background:radial-gradient(circle at 88% 0%,rgba(41,151,188,.16),transparent 31%),linear-gradient(135deg,#06142b,#092247 58%,#06172f)!important}
+html body .sidebar,html body .mytasks-sidebar{background:linear-gradient(180deg,#06162f,#041025)!important;border-right-color:rgba(115,191,235,.25)!important}
+html body .sidebar-logo,html body .brand,html body .logo-area,html body .mytasks-logo{background:transparent!important;border-bottom-color:rgba(115,191,235,.18)!important;color:var(--u-text)!important}
+html body .logo-check,html body .brand-icon,html body .mytasks-logo-check,html body .logo-circle{background:linear-gradient(135deg,#4be5d6,#18b9b4)!important;border-color:transparent!important;color:#03213a!important;box-shadow:0 9px 23px rgba(39,217,202,.2)}
+html body .sidebar-item,html body .sidebar-menu a,html body .sidebar-nav a,html body .navigation .nav-item,html body .mytasks-nav-item{color:#b9cbe4!important}
+html body .sidebar-item:hover,html body .sidebar-item.active,html body .sidebar-menu a:hover,html body .sidebar-menu a.active,html body .sidebar-nav a:hover,html body .sidebar-nav a.active,html body .navigation .nav-item:hover,html body .navigation .nav-item.active,html body .mytasks-nav-item:hover,html body .mytasks-nav-item.active{color:#fff!important;background:linear-gradient(90deg,rgba(40,219,203,.23),rgba(40,219,203,.04))!important;border-color:rgba(55,228,211,.42)!important;box-shadow:inset 3px 0 0 var(--u-teal)!important}
+html body .sidebar-user,html body .sidebar-account,html body .mytasks-user{background:linear-gradient(135deg,#0b4155,#08223f)!important;border-color:rgba(64,224,208,.4)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 24px rgba(0,0,0,.2)!important}
+html body .user-avatar,html body .account-avatar,html body .mytasks-avatar{background:rgba(42,219,203,.16)!important;border-color:rgba(75,233,216,.45)!important;color:#7cf3e3!important}
+html body .topbar,html body .top-header,html body .settings-topbar,html body .tracking-topbar,html body .mytasks-topbar{background:rgba(5,19,40,.78)!important;border-color:rgba(115,191,235,.18)!important;backdrop-filter:blur(16px)}
+html body .notification,html body .notification-button,html body .mytasks-notification{background:#0c3555!important;border-color:rgba(75,223,210,.42)!important;color:#8ff5e6!important}
+html body [class*="card"],html body [class*="panel"],html body [class*="summary"],html body [class*="empty"]{background:linear-gradient(145deg,rgba(13,48,85,.96),rgba(7,30,59,.98))!important;border-color:var(--u-line)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 14px 28px rgba(0,0,0,.14)!important}
+html body .chat-panel,html body .conversation-panel,html body .chat-messages,html body .message-input-area{background:#08213e!important;border-color:var(--u-line)!important}
+html body input,html body select,html body textarea{background:#071f3c!important;border-color:rgba(112,190,235,.4)!important;color:var(--u-text)!important}
+html body input::placeholder,html body textarea::placeholder{color:#91afcb!important}
+html body input:focus,html body select:focus,html body textarea:focus{border-color:var(--u-teal)!important;box-shadow:0 0 0 3px rgba(57,221,205,.13)!important}
+html body .primary-button,html body .submit-button,html body .save-button,html body .action-primary,html body .search-button,html body .accept-button,html body .submit-report,html body .submit-review-button{background:linear-gradient(135deg,#4ce4d5,#18babf)!important;color:#032039!important;border-color:transparent!important;box-shadow:0 10px 22px rgba(22,206,192,.18)!important}
+html body .task-filters button,html body .job-tabs button,html body .review-filters button,html body .filter-button{background:#0a294a!important;border-color:rgba(112,190,235,.3)!important;color:#c7d9eb!important}
+html body .task-filters button.active,html body .job-tabs button.active,html body .review-filters button.active,html body .filter-button.active{background:linear-gradient(135deg,#4ce4d5,#18babf)!important;color:#032039!important;border-color:transparent!important}
+html body h1,html body h2,html body h3,html body h4,html body strong{color:var(--u-text)!important}
+html body p,html body label,html body small,html body .subtitle,html body .page-note,html body .muted{color:var(--u-muted)!important}
+html body .status-badge,html body .task-status,html body .rating,html body .stars{color:#62efd8!important}
+}
+
+/* Desktop-only styling for the existing Post a Task and Find Jobs flows. */
+@media (min-width: 701px) {
+  html body .app-shell #postTaskSection,
+  html body .app-shell #findJobsSection {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  html body .app-shell #postTaskStart,
+  html body .app-shell #findJobsContent > .mode-placeholder {
+    min-height: 360px;
+    padding: 48px 28px;
+    border: 1px solid rgba(112,190,235,.3) !important;
+    border-radius: 18px;
+    background: linear-gradient(145deg,#0b294a,#081d38) !important;
+    box-shadow: 0 18px 42px rgba(1,12,30,.18) !important;
+  }
+  html body .app-shell .mode-placeholder .placeholder-icon {
+    width: 68px; height: 68px; min-width: 68px; max-width: 68px;
+    min-height: 68px; max-height: 68px; margin-bottom: 22px;
+    border: 1px solid rgba(66,224,216,.55);
+    background: rgba(30,191,195,.12); color: #59e8dd; font-size: 32px;
+  }
+  html body .app-shell .mode-placeholder h2 { font-size: 24px; font-weight: 700; margin-bottom: 10px; }
+  html body .app-shell .mode-placeholder p { font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+  html body .app-shell #postTaskStart button,
+  html body .app-shell .job-offer-card > button {
+    min-height: 44px; max-height: none; height: auto; padding: 12px 22px;
+    border: 0; border-radius: 10px; background: linear-gradient(135deg,#49e2d4,#18babf) !important;
+    color: #032039 !important; font-size: 13px; font-weight: 700;
+    box-shadow: 0 8px 22px rgba(23,195,188,.16);
+  }
+  html body .app-shell #findJobsContent { display: grid; gap: 18px; }
+  html body .app-shell #findJobsContent .job-offer-card {
+    width: 100%; margin: 0; padding: 26px; display: grid;
+    grid-template-columns: minmax(0,1.15fr) minmax(240px,.85fr);
+    grid-template-areas: 'eyebrow fields' 'title fields' 'details fields' 'notice action';
+    column-gap: 32px; align-items: start; align-content: start;
+    border: 1px solid rgba(112,190,235,.3) !important; border-radius: 16px;
+    background: linear-gradient(145deg,#0d2d50,#09213f) !important;
+    box-shadow: 0 14px 30px rgba(1,12,30,.16) !important;
+  }
+  html body .app-shell .job-offer-eyebrow { grid-area: eyebrow; color: #78dfd8; }
+  html body .app-shell .job-offer-card h2 { grid-area: title; margin: 10px 0; overflow-wrap: anywhere; }
+  html body .app-shell .job-offer-details { grid-area: details; margin: 0 0 14px; overflow-wrap: anywhere; }
+  html body .app-shell .job-offer-note { grid-area: notice; margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+  html body .app-shell .job-offer-fields { grid-area: fields; display: grid; grid-template-columns: 1fr; gap: 10px; margin: 0; }
+  html body .app-shell .job-offer-fields input { height: 44px; font-size: 13px; padding: 0 13px; border-radius: 9px; }
+  html body .app-shell .job-offer-card > button { grid-area: action; width: 100%; margin: 12px 0 0; }
+  html body .app-shell .job-offer-card > button:disabled { opacity: .55; box-shadow: none; }
+}
+

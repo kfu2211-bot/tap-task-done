@@ -201,6 +201,7 @@
     }
 }
 
+
 /* Final mobile drawer override. Several original page styles collapse the
    desktop sidebar into an icon rail; this rule deliberately wins on phones. */
 @media (max-width: 700px) {
@@ -701,3 +702,31 @@
         line-height: 12px !important;
     }
 }
+
+/* Keep the sidebar and page header dividers aligned on desktop. */
+@media (min-width: 701px) {
+    html body .sidebar-logo,
+    html body .mytasks-logo,
+    html body .logo-area,
+    html body .brand {
+        box-sizing: border-box !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 68px !important;
+        min-height: 68px !important;
+        max-height: 68px !important;
+        border-bottom: 1px solid #292929 !important;
+    }
+
+    html body .topbar,
+    html body .top-header,
+    html body .mytasks-topbar,
+    html body .settings-layout > main > header {
+        box-sizing: border-box !important;
+        height: 68px !important;
+        min-height: 68px !important;
+        max-height: 68px !important;
+        border-bottom: 1px solid #292929 !important;
+    }
+}
+

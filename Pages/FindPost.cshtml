@@ -296,9 +296,6 @@
 
                 </div>
 
-                <div class="find-flow-steps" aria-label="Find a freelancer steps">
-                    <span class="active"><b>1</b> Search</span><i></i><span><b>2</b> Choose a provider</span><i></i><span><b>3</b> Send request</span>
-                </div>
 
 
 
@@ -351,8 +348,7 @@
 
                                 <input type="text"
                                        id="locationInput"
-                                       value="Metro Manila"
-                                       placeholder="Enter location..." />
+                                       placeholder="City or province, e.g. Makati" />
 
                             </div>
 
@@ -374,8 +370,7 @@
 
                                 <input type="text"
                                        id="budgetInput"
-                                       value="₱300 - ₱1,500"
-                                       placeholder="Budget range..." />
+                                       placeholder="Maximum budget, e.g. 1500" inputmode="decimal" />
 
                             </div>
 
@@ -383,6 +378,7 @@
 
 
 
+                        <div class="filter-group"><label for="availabilityFilter">Availability</label><div class="input-wrapper"><select id="availabilityFilter" style="width:100%;height:100%;padding:0 12px;border:0;background:transparent;color:inherit;font:inherit"><option value="">Any availability</option><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></div></div>
                         <button class="search-button"
                                 id="searchButton"
                                 type="button">
@@ -408,7 +404,7 @@
                         <section class="provider-search-intro">
                             <span>Find a trusted provider</span>
                             <h2>Compare freelancers before you send a request.</h2>
-                            <p>Use the filters, open a profile, then choose the provider who best fits your task.</p>
+                            <p>Use the filters, then open a profile to see the service area and details. Location uses the text saved in the freelancer's profile; sample profiles are marked.</p>
                         </section>
 
 
@@ -435,7 +431,7 @@
                                 <!-- OFRACIO -->
 
                                 <article class="freelancer-card"
-                                         data-service="plumber plumbing repair">
+                                         data-service="plumber plumbing repair" data-location="Metro Manila" data-rate="600" data-availability="Available" data-demo="true">
 
                                     <div class="freelancer-left">
 
@@ -509,7 +505,7 @@
                                 <!-- MARISOL -->
 
                                 <article class="freelancer-card"
-                                         data-service="house cleaner cleaning deep clean">
+                                         data-service="house cleaner cleaning deep clean" data-location="Metro Manila" data-rate="450" data-availability="Available" data-demo="true">
 
                                     <div class="freelancer-left">
 
@@ -583,7 +579,7 @@
                                 <!-- DANTE -->
 
                                 <article class="freelancer-card"
-                                         data-service="electrician electrical repair">
+                                         data-service="electrician electrical repair" data-location="Metro Manila" data-rate="750" data-availability="Available" data-demo="true">
 
                                     <div class="freelancer-left">
 
@@ -657,7 +653,7 @@
                                 <!-- LEA -->
 
                                 <article class="freelancer-card"
-                                         data-service="errand runner errands delivery">
+                                         data-service="errand runner errands delivery" data-location="Metro Manila" data-rate="300" data-availability="Available" data-demo="true">
 
                                     <div class="freelancer-left">
 
@@ -741,7 +737,7 @@
 
                             <section id="providerDetailPanel" class="provider-detail-panel hidden" aria-live="polite">
                                 <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
-                                <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span class="available-now">● Available today</span></div>
+                                <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span id="selectedProviderAvailability" class="available-now">Availability —</span></div>
                                 <p class="provider-detail-help">Review the provider, then send a booking request for your selected task. The provider can accept or decline it.</p>
                                 <button id="sendBookingRequestButton" type="button" class="send-booking-request">Send booking request</button>
                             </section>
@@ -814,20 +810,17 @@
 
                         <label class="post-field">
                             <span>Preferred date and time <em>Optional</em></span>
-                            <div class="schedule-picker" aria-label="Preferred date and time">
-                                <div class="schedule-picker-row">
-                                    <div class="schedule-dropdown schedule-month" id="scheduleMonthDropdown"><button type="button" class="schedule-dropdown-button"><span>Month</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                    <div class="schedule-dropdown schedule-day" id="scheduleDayDropdown"><button type="button" class="schedule-dropdown-button"><span>Day</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                    <div class="schedule-dropdown schedule-year" id="scheduleYearDropdown"><button type="button" class="schedule-dropdown-button"><span>Year</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                </div>
-                                <div class="schedule-picker-row schedule-time-row">
-                                    <div class="schedule-dropdown schedule-hour" id="scheduleHourDropdown"><button type="button" class="schedule-dropdown-button"><span>Hour</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                    <span class="schedule-time-separator">:</span>
-                                    <div class="schedule-dropdown schedule-minute" id="scheduleMinuteDropdown"><button type="button" class="schedule-dropdown-button"><span>Minute</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
-                                    <div class="schedule-dropdown schedule-period" id="schedulePeriodDropdown"><button type="button" class="schedule-dropdown-button"><span>AM / PM</span><b>⌄</b></button><div class="schedule-dropdown-menu"></div></div>
+                            <div class="quick-schedule-picker" aria-label="Preferred date and time">
+                                <label class="quick-schedule-field"><span>Preferred date</span><input id="preferredDateInput" type="date" /></label>
+                                <label class="quick-schedule-field"><span>Preferred time</span><input id="preferredTimeInput" type="time" /></label>
+                                <div class="quick-schedule-actions" aria-label="Quick date options">
+                                    <button type="button" id="scheduleTodayButton">Today</button>
+                                    <button type="button" id="scheduleTomorrowButton">Tomorrow</button>
+                                    <button type="button" id="scheduleChooseDateButton">Choose date</button>
+                                    <button type="button" id="scheduleClearButton" class="schedule-clear-button">Clear schedule</button>
                                 </div>
                             </div>
-                            <small class="schedule-help">Choose any date and time you prefer, or leave this empty to schedule later.</small>
+                            <small class="schedule-help">You can change this anytime before a freelancer accepts, or leave it empty to schedule later.</small>
                         </label>
 
                         <div class="post-form-actions">
@@ -936,7 +929,7 @@
 
 
 
-    <script src="~/js/findpost.js"></script>
+    <script src="~/js/findpost.js" asp-append-version="true"></script>
 
 </body>
 

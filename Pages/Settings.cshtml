@@ -62,20 +62,30 @@
                         <legend>Work preferences</legend>
                         <div class="field-grid work-field-grid">
                             <label>Service / profession<input id="profileServiceInput" maxlength="60" placeholder="e.g. Plumber" /></label>
+                            <label>Service location<input id="profileLocationInput" maxlength="80" placeholder="e.g. Angeles City, Pampanga" /><small>Enter the city and province where you provide services. Clients can search this text.</small></label>
+                            <label>Rate per task (₱)<input id="profileRateInput" type="number" min="1" step="1" placeholder="e.g. 600" /></label>
                             <label>Account role<select id="profileRoleInput"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select></label>
                             <label>Availability<select id="profileAvailabilityInput"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label>
                         </div>
                     </fieldset>
+                    <fieldset class="settings-group"><legend>Weekly availability</legend><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability"></div></fieldset>
                     <div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite"></p><button class="primary-button" type="submit">Save changes</button></div>
                 </form>
                 <section class="settings-card demo-card" aria-labelledby="demoDataHeading">
-                    <div class="demo-title"><h2 id="demoDataHeading">Demo data</h2><span>Testing only</span></div>
-                    <p>Reset local tasks, offers, messages, reviews, reports, and notifications. Your profile stays saved.</p>
-                    <div class="demo-actions"><button id="resetDemoButton" class="danger-button" type="button">⌫&nbsp; Reset local demo data</button><span class="demo-hint">Use only when you want to test the flow again from the beginning.</span></div>
+                    <div class="demo-title"><h2 id="demoDataHeading">Saved data</h2><span>On this device</span></div>
+                    <p>Clear tasks, offers, messages, reviews, reports, and notifications. Your profile stays saved.</p>
+                    <div class="demo-actions"><button id="resetDemoButton" class="danger-button" type="button">⌫&nbsp; Clear saved data</button><span class="demo-hint">Use this only when you want to start over.</span></div>
+                </section>
+                <section class="settings-card signout-card" aria-labelledby="signOutHeading">
+                    <div>
+                        <h2 id="signOutHeading">Sign out</h2>
+                        <p>End this local session on this device. Your local demo tasks and submissions will stay saved for testing.</p>
+                    </div>
+                    <button id="signOutButton" class="signout-button" type="button">Sign out</button>
                 </section>
             </section>
         </main>
     </div>
-    <script src="/js/settings.js"></script>
+    <script src="/js/settings.js" asp-append-version="true"></script>
 </body>
 </html>

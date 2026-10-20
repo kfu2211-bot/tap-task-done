@@ -634,6 +634,10 @@
             "click",
             function (event) {
 
+                // Real sidebar links navigate themselves, including role-specific pages.
+                const href = item.getAttribute("href");
+                if (href && href !== "#") return;
+
                 const text =
                     item.textContent
                         .trim()

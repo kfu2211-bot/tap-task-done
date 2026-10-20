@@ -80,6 +80,17 @@ document.addEventListener("DOMContentLoaded", function () {
         currentTask = null;
     }
 
+    // The globally selected task may belong to another signed-in demo account.
+    try {
+        const account = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}");
+        const email = String(account.email || "").toLowerCase();
+        const tasks = JSON.parse(localStorage.getItem("tapTaskDoneTasks") || "[]");
+        const eligible = Array.isArray(tasks) ? tasks.filter(function (task) {
+            return email && [task.clientEmail, task.providerEmail].some(function (value) { return value && String(value).toLowerCase() === email; }) && ["assigned", "completed", "client-confirmed"].includes(task.status);
+        }) : [];
+        currentTask = eligible.find(function (task) { return currentTask && task.id === currentTask.id; }) || eligible[eligible.length - 1] || null;
+    } catch (error) { currentTask = null; }
+
     if (!currentTask) {
         const trackingContent = document.querySelector(".tracking-content");
 
@@ -145,8 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // INITIAL STATE
     // =====================================================
 
-    let taskStatus =
-        localStorage.getItem("tapTaskDoneTrackingStatus");
+    let taskStatus = currentTask.status === "client-confirmed" ? "client-confirmed" : currentTask.status === "completed" ? "completed" : (currentTask.freelancerProgress || "on-the-way");
 
     // The rating modal is shown only immediately after the client confirms completion,
     // never merely because the Tracking page was opened.
@@ -166,6 +176,31 @@ document.addEventListener("DOMContentLoaded", function () {
             "tapTaskDoneTrackingStatus",
             taskStatus
         );
+    }
+
+    // Keep the task list, the active tracking card, and notifications in sync.
+    // It uses local storage only while the database is not connected.
+    function syncTaskStatus(status, notification, href) {
+        try {
+            const tasks = JSON.parse(localStorage.getItem("tapTaskDoneTasks") || "[]");
+            if (Array.isArray(tasks) && currentTask.id) {
+                const updated = tasks.map(function (task) {
+                    if (task.id !== currentTask.id) return task;
+                    return Object.assign({}, task, { status: status, freelancerProgress: taskStatus, updatedAt: "Just now" });
+                });
+                const latest = updated.find(function (task) { return task.id === currentTask.id; });
+                if (latest) currentTask = latest;
+                localStorage.setItem("tapTaskDoneTasks", JSON.stringify(updated));
+                localStorage.setItem("tapTaskDoneCurrentTask", JSON.stringify(currentTask));
+            }
+        } catch (error) { }
+
+        if (!notification) return;
+        let notifications = [];
+        try { notifications = JSON.parse(localStorage.getItem("tapTaskDoneNotifications") || "[]"); } catch (error) { notifications = []; }
+        if (!Array.isArray(notifications)) notifications = [];
+        notifications.unshift({ id: "notice-" + Date.now(), message: notification, href: href || "/Tracking", read: false, createdAt: "Just now" });
+        localStorage.setItem("tapTaskDoneNotifications", JSON.stringify(notifications.slice(0, 30)));
     }
 
 
@@ -338,6 +373,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "tapTaskDoneTrackingStatus",
             taskStatus
         );
+        syncTaskStatus("client-confirmed", "Task completion confirmed. You can now leave a review.", "/Tracking");
 
 
         // Update screen
@@ -391,6 +427,14 @@ document.addEventListener("DOMContentLoaded", function () {
             localStorage.setItem(
                 "tapTaskDoneTrackingStatus",
                 taskStatus
+            );
+            const isCompleted = taskStatus === "completed";
+            syncTaskStatus(
+                isCompleted ? "completed" : "assigned",
+                isCompleted
+                    ? "Your provider marked " + (currentTask.title || "the task") + " as finished. Please review it."
+                    : "Work has started for " + (currentTask.title || "your task") + ".",
+                "/Tracking"
             );
 
             updateTracking();
@@ -475,11 +519,14 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
                 const tasks = JSON.parse(localStorage.getItem("tapTaskDoneTasks") || "[]");
                 if (Array.isArray(tasks) && currentTask.id) {
-                    localStorage.setItem("tapTaskDoneTasks", JSON.stringify(tasks.filter(function (task) {
-                        return task.id !== currentTask.id;
+                    localStorage.setItem("tapTaskDoneTasks", JSON.stringify(tasks.map(function (task) {
+                        return task.id === currentTask.id
+                            ? Object.assign({}, task, { status: "reviewed", reviewedAt: "Just now" })
+                            : task;
                     })));
                 }
             } catch (error) { }
+            syncTaskStatus("reviewed", "Your review for " + (currentTask.title || "the task") + " was submitted.", "/Reviews");
             localStorage.removeItem("tapTaskDoneCurrentTask");
             localStorage.removeItem("tapTaskDoneTrackingStatus");
             localStorage.removeItem("tapTaskDonePendingRating");

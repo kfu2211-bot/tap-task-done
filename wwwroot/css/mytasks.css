@@ -1114,3 +1114,63 @@ body {
             font-size: 17px;
         }
 }
+
+/* Desktop task workspace: a task list alongside the selected task. */
+@media (min-width: 1000px) {
+    .mytasks-content {
+        width: min(1400px, calc(100% - 64px));
+        margin: 30px auto 70px;
+        display: grid;
+        grid-template-columns: minmax(290px, 0.85fr) minmax(430px, 1fr);
+        grid-template-rows: auto auto 1fr;
+        gap: 16px;
+        align-items: start;
+    }
+    .my-task-list-section {
+        grid-column: 1;
+        grid-row: 1 / 4;
+        align-self: stretch;
+        min-height: 620px;
+        margin: 0;
+        padding: 26px;
+        background: #111313;
+        border: 1px solid #303434;
+        border-radius: 14px;
+    }
+    .my-task-list-heading { gap: 16px; align-items: flex-start; margin-bottom: 22px; }
+    .my-task-list-heading h2 { color: #f5f5f5; font-size: 24px; }
+    .my-task-list-heading p { margin-top: 7px; color: #a6acab; font-size: 13px; line-height: 1.5; }
+    .my-task-list-heading a { padding: 9px 12px; border-color: #48514c; border-radius: 8px; font-size: 11px; }
+    .task-filters { gap: 8px; margin-bottom: 20px; }
+    .task-filters button { padding: 9px 14px; font-size: 12px; }
+    .task-filters button.selected { background: #d5f4df; border-color: #a5e2b9; color: #102019; }
+    .my-task-list { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+    .my-task-card { min-height: 105px; padding: 17px 18px; border-color: #343a37; border-radius: 10px; background: #191c1b; }
+    .my-task-card:hover, .my-task-card:focus-visible { border-color: #8acfa2; }
+    .my-task-card.selected { border-color: #92d9aa; background: #18231d; box-shadow: inset 3px 0 #92d9aa; }
+    .my-task-card strong { font-size: 15px; overflow-wrap: anywhere; }
+    .my-task-card .task-card-meta { margin-top: 8px; font-size: 12px; }
+    .my-task-card .task-card-status { margin-top: 12px; color: #8cdbab; font-size: 11px; }
+    .details-layout { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .task-details-card, .order-summary-card, .assigned-provider-card {
+        padding: 24px;
+        background: #151817;
+        border: 1px solid #303735;
+        border-radius: 14px;
+    }
+    .task-details-card h2 { font-size: 23px; margin-bottom: 16px; overflow-wrap: anywhere; }
+    .card-label { background: #26362c; color: #a5e3b8; }
+    .detail-content span { color: #a0aaa5; font-size: 12px; }
+    .detail-content strong { color: #edf2ef; font-size: 14px; overflow-wrap: anywhere; }
+    .order-summary-card h2, .assigned-provider-card h2 { font-size: 17px; }
+    .summary-row { color: #a4aca8; font-size: 13px; }
+    .summary-row strong { color: #f0f4f1; font-size: 13px; }
+    .summary-total { font-size: 14px; }
+    .summary-total strong { font-size: 18px; }
+    .confirm-details-button { height: 44px; background: #a9e8be; color: #122218; font-size: 13px; font-weight: 700; }
+    .confirm-details-button:disabled { background: #343b37; color: #a4ada7; cursor: not-allowed; }
+    .summary-note { margin: 14px 0 0; padding: 12px; border: 1px solid #38413c; border-radius: 8px; background: #202522; color: #bcc6c0; text-align: left; font-size: 12px; }
+    .assigned-provider-card { grid-column: 2; grid-row: 2; margin: 0; }
+    .provider-assignment-message { line-height: 1.55; }
+    .task-message { grid-column: 2; grid-row: 3; }
+}

@@ -76,6 +76,8 @@ document.addEventListener("DOMContentLoaded", function () {
     form.addEventListener("submit", function (event) {
         event.preventDefault();
         const reports = read();
+        let account = {};
+        try { account = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}"); } catch (error) { account = {}; }
         reports.push({
             id: "report-" + Date.now(),
             target: document.getElementById("reportTarget").value.trim(),
@@ -84,11 +86,18 @@ document.addEventListener("DOMContentLoaded", function () {
             description: document.getElementById("reportDescription").value.trim(),
             evidenceNames: selectedEvidence.map(function (file) { return file.name; }),
             status: "Pending",
+            reporterName: account.nickname || account.name || "Current demo user",
+            reporterEmail: account.email || "",
+            reporterRole: account.role || "client",
             createdAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
         });
         localStorage.setItem(key, JSON.stringify(reports));
+        let notifications = [];
+        try { notifications = JSON.parse(localStorage.getItem("tapTaskDoneNotifications") || "[]"); } catch (error) { notifications = []; }
+        notifications.unshift({ id: "notice-" + Date.now(), message: "Your safety report was submitted and is pending review.", read: false, createdAt: "Just now" });
+        localStorage.setItem("tapTaskDoneNotifications", JSON.stringify(notifications.slice(0, 30)));
         document.getElementById("reportSavedMessage").textContent = selectedEvidence.length
-            ? "Report submitted with " + selectedEvidence.length + " evidence image(s). Status: Pending."
+            ? "Report submitted. Only the evidence file names were saved in this local demo; the images cannot be reviewed. Status: Pending."
             : "Report submitted. Status: Pending.";
         form.reset();
         selectedEvidence = [];

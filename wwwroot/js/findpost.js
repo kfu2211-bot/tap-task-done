@@ -244,116 +244,113 @@ document.addEventListener("DOMContentLoaded", function () {
        SEARCH
     ===================================================== */
 
-    const serviceSearch =
-        document.getElementById(
-            "serviceSearch"
-        );
+    const serviceSearch = document.getElementById("serviceSearch");
+    const locationInput = document.getElementById("locationInput");
+    const budgetInput = document.getElementById("budgetInput");
+    const availabilityFilter = document.getElementById("availabilityFilter");
+    const searchButton = document.getElementById("searchButton");
+    const noResults = document.getElementById("noResults");
+    const freelancerList = document.getElementById("freelancerList");
+    let signedIn = {};
+    let localAccounts = [];
+    try { signedIn = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}"); localAccounts = JSON.parse(localStorage.getItem("tapTaskDoneDemoAccounts") || "[]"); } catch (error) { }
+    if (!Array.isArray(localAccounts)) localAccounts = [];
 
-
-    const searchButton =
-        document.getElementById(
-            "searchButton"
-        );
-
-
-    const freelancerCards =
-        document.querySelectorAll(
-            ".freelancer-card"
-        );
-
-
-    const noResults =
-        document.getElementById(
-            "noResults"
-        );
-
+    // Browser-local accounts are demo profiles, not a public directory.
+    localAccounts.filter(function (profile) {
+        return ["freelancer", "both"].includes(String(profile.role || "").toLowerCase()) &&
+            profile.email && String(profile.email).toLowerCase() !== String(signedIn.email || "").toLowerCase();
+    }).forEach(function (profile) {
+        const card = document.createElement("article");
+        card.className = "freelancer-card";
+        card.dataset.service = profile.service || "";
+        card.dataset.location = profile.serviceLocation || "";
+        card.dataset.rate = profile.serviceRate || "";
+        card.dataset.availability = profile.availability || "";
+        card.dataset.email = profile.email;
+        card.dataset.demo = "false";
+        const left = document.createElement("div"); left.className = "freelancer-left";
+        const avatar = document.createElement("div"); avatar.className = "freelancer-avatar";
+        avatar.textContent = String(profile.nickname || profile.name || "User").slice(0, 2).toUpperCase();
+        const info = document.createElement("div"); info.className = "freelancer-info";
+        const name = document.createElement("strong"); name.textContent = profile.nickname || profile.name || "Freelancer";
+        const service = document.createElement("span"); service.textContent = profile.service || "Service not set";
+        info.append(name, service); left.append(avatar, info);
+        const right = document.createElement("div"); right.className = "freelancer-right";
+        const rating = document.createElement("div"); rating.className = "freelancer-rating";
+        const ratingValue = document.createElement("strong"); ratingValue.textContent = "New"; rating.append(ratingValue);
+        const price = document.createElement("div"); price.className = "freelancer-price";
+        price.textContent = profile.serviceRate ? "₱" + profile.serviceRate : "Rate not set";
+        const button = document.createElement("button"); button.className = "arrow-button"; button.type = "button";
+        button.dataset.name = profile.nickname || profile.name || "Freelancer"; button.textContent = "View profile";
+        right.append(rating, price, button); card.append(left, right); freelancerList.append(card);
+    });
+    const freelancerCards = document.querySelectorAll(".freelancer-card");
+    function matchesService(value, search) {
+        const text = String(value || "").toLowerCase();
+        const term = String(search || "").toLowerCase().trim();
+        if (!term) return true;
+        if (text.includes(term) || (term.length > 3 && term.endsWith("s") && text.includes(term.slice(0, -1)))) return true;
+        const categories = { repairs: ["repair", "plumb", "electric"], cleaning: ["clean"], errands: ["errand", "delivery"], moving: ["moving", "mover", "hauling"] };
+        return !!categories[term] && categories[term].some(function (word) { return text.includes(word); });
+    }
+    freelancerCards.forEach(function (card) {
+        const label = document.createElement("small");
+        label.className = "match-details";
+        label.textContent = "Service area: " + (card.dataset.location || "Not set") +
+            " · " + (card.dataset.availability || "Availability not set") +
+            (card.dataset.demo === "true" ? " · Sample profile" : " · Local profile");
+        card.querySelector(".freelancer-info").append(label);
+        const reasons = document.createElement("small");
+        reasons.className = "search-match-reasons";
+        card.querySelector(".freelancer-info").append(reasons);
+    });
 
     function performSearch() {
-
-        const searchValue =
-            serviceSearch
-                .value
-                .trim()
-                .toLowerCase();
-
-
-        let foundCount = 0;
-
-
-        freelancerCards.forEach(
-            function (card) {
-
-                const service =
-                    card.dataset.service
-                        .toLowerCase();
-
-
-                const freelancerName =
-                    card
-                        .querySelector(
-                            ".freelancer-info strong"
-                        )
-                        .textContent
-                        .toLowerCase();
-
-
-                const matches =
-                    searchValue === "" ||
-                    service.includes(searchValue) ||
-                    freelancerName.includes(searchValue);
-
-
-                if (matches) {
-
-                    card.style.display =
-                        "flex";
-
-                    foundCount++;
-
-                }
-                else {
-
-                    card.style.display =
-                        "none";
-
-                }
-
-            }
-        );
-
-
-        if (foundCount === 0) {
-
+        const openProfile = document.getElementById("providerDetailPanel");
+        if (openProfile) openProfile.classList.add("hidden");
+        const query = serviceSearch.value.trim().toLowerCase();
+        const location = locationInput.value.trim().toLowerCase();
+        const budgetText = budgetInput.value.trim().replace(/[₱,\s]/g, "");
+        const maximum = budgetText === "" ? null : Number(budgetText);
+        const availability = availabilityFilter.value.toLowerCase();
+        if (maximum !== null && (!Number.isFinite(maximum) || maximum <= 0)) {
+            noResults.textContent = "Enter a valid maximum budget, for example 1500.";
             noResults.classList.add("show");
-
+            return;
         }
-        else {
-
-            noResults.classList.remove("show");
-
-        }
-
+        let count = 0;
+        freelancerCards.forEach(function (card) {
+            const name = card.querySelector(".freelancer-info strong").textContent.toLowerCase();
+            const service = String(card.dataset.service || "").toLowerCase();
+            const area = String(card.dataset.location || "").toLowerCase();
+            const rate = Number(card.dataset.rate);
+            const status = String(card.dataset.availability || "").toLowerCase();
+            const matches = (!query || matchesService(service, query) || name.includes(query)) &&
+                (!location || area.includes(location)) &&
+                (maximum === null || (rate > 0 && rate <= maximum)) &&
+                (!availability || status === availability);
+            card.style.display = matches ? "flex" : "none";
+            const reasons = [];
+            if (query && (matchesService(service, query) || name.includes(query))) reasons.push("service or name");
+            if (location && area.includes(location)) reasons.push("location");
+            if (maximum !== null && rate > 0 && rate <= maximum) reasons.push("budget");
+            if (availability && status === availability) reasons.push("availability");
+            const match = card.querySelector(".search-match-reasons");
+            if (match) match.textContent = matches && reasons.length ? "Matched: " + reasons.join(", ") : "";
+            if (matches) count++;
+        });
+        noResults.textContent = "No freelancers match these filters. Try a different service, location, budget, or availability.";
+        noResults.classList.toggle("show", count === 0);
     }
-
-
-    searchButton.addEventListener(
-        "click",
-        performSearch
-    );
-
-
-    serviceSearch.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (event.key === "Enter") {
-
-                performSearch();
-
-            }
-
-        }
-    );
+    searchButton.addEventListener("click", performSearch);
+    [serviceSearch, locationInput, budgetInput].forEach(function (input) {
+        input.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); performSearch(); } });
+    });
+    availabilityFilter.addEventListener("change", performSearch);
+    const searchParams = new URLSearchParams(window.location.search);
+    const fromHome = searchParams.get("search") || searchParams.get("category") || "";
+    if (fromHome) { serviceSearch.value = fromHome; performSearch(); }
 
 
 
@@ -438,11 +435,6 @@ document.addEventListener("DOMContentLoaded", function () {
        FREELANCER DETAILS
     ===================================================== */
 
-    const arrowButtons =
-        document.querySelectorAll(
-            ".arrow-button"
-        );
-
     const providerDetailPanel = document.getElementById("providerDetailPanel");
     const sendBookingRequestButton = document.getElementById("sendBookingRequestButton");
     let selectedProvider = null;
@@ -452,41 +444,40 @@ document.addEventListener("DOMContentLoaded", function () {
         const tasks = readPostedTasks();
         const task = tasks.find(function (item) { return item.id === selectedId; });
         if (!task) { showMessage("Choose a task first", "Post a task, then select it in My Tasks before sending a booking request."); return; }
+        let bookingAccount = {};
+        try { bookingAccount = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}"); } catch (error) { }
+        if (!bookingAccount.email || String(task.clientEmail || "").toLowerCase() !== String(bookingAccount.email).toLowerCase()) { showMessage("Choose your own task", "Select a task created by your account in My Tasks."); return; }
         if (task.status !== "open") { showMessage("Task is not ready", "Confirm the task details in My Tasks first. Freelancers can receive requests after the task is open."); return; }
         task.bookingRequests = Array.isArray(task.bookingRequests) ? task.bookingRequests : [];
         if (task.bookingRequests.some(function (request) { return request.providerName === provider.name && request.status === "pending"; })) { showMessage("Request already sent", provider.name + " already has a pending booking request for this task."); return; }
-        task.bookingRequests.push({ id: "request-" + Date.now(), providerName: provider.name, providerService: provider.service, providerReviews: provider.rating, price: provider.price, status: "pending" });
+        if (provider.availability !== "Available") { showMessage("Provider unavailable", "Choose an available freelancer before sending a request."); return; }
+        if (provider.email && provider.email.toLowerCase() === String(bookingAccount.email).toLowerCase()) { showMessage("Choose another freelancer", "You cannot send a booking request to your own account."); return; }
+        task.bookingRequests.push({ id: "request-" + Date.now(), providerName: provider.name, providerEmail: provider.email || "", providerService: provider.service, providerReviews: provider.rating, price: provider.price, status: "pending" });
         savePostedTasks(tasks);
         addNotification("Booking request sent to " + provider.name + " for " + task.title);
-        showMessage("Booking request sent", provider.name + " can now review this request in the Freelancer demo inbox.");
+        showMessage("Booking request sent", provider.name + (provider.email ? " can review this request in My Jobs on this browser." : " is a sample profile; use the sample freelancer demo inbox to respond."));
     }
 
 
-    arrowButtons.forEach(
-        function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    const name = button.dataset.name.replace(/[\u00ad\u200b]/g, "").trim();
+    freelancerList.addEventListener("click", function (event) {
+                    const button = event.target.closest(".arrow-button");
+                    if (!button || !freelancerList.contains(button)) return;
+                    const name = String(button.dataset.name || "").replace(/[\u00ad\u200b]/g, "").trim();
                     const card = button.closest(".freelancer-card");
                     const service = card.querySelector(".freelancer-info span").textContent.trim();
-                    const rating = "★ " + card.querySelector(".freelancer-rating strong").textContent.trim();
+                    const rating = card.dataset.demo === "true" ? "★ " + card.querySelector(".freelancer-rating strong").textContent.trim() : "New freelancer";
                     const price = card.querySelector(".freelancer-price").textContent.trim();
-                    selectedProvider = { name: name, service: service, rating: rating, price: price };
+                    selectedProvider = { name: name, email: card.dataset.email || "", service: service, rating: rating, price: price, availability: card.dataset.availability || "", location: card.dataset.location || "", demo: card.dataset.demo === "true" };
                     document.getElementById("selectedProviderName").textContent = name;
-                    document.getElementById("selectedProviderMeta").textContent = service + " · Trusted local freelancer";
+                    document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set") + (selectedProvider.demo ? " · Sample profile" : " · Local profile");
                     document.getElementById("selectedProviderRating").textContent = rating;
-                    document.getElementById("selectedProviderPrice").textContent = price + " per task";
+                    document.getElementById("selectedProviderPrice").textContent = card.dataset.rate ? price + " per task" : price;
+                    document.getElementById("selectedProviderAvailability").textContent = selectedProvider.availability || "Availability not set";
+                    sendBookingRequestButton.disabled = selectedProvider.availability !== "Available";
+                    card.insertAdjacentElement("afterend", providerDetailPanel);
                     providerDetailPanel.classList.remove("hidden");
                     providerDetailPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-
-                }
-            );
-
-        }
-    );
+    });
 
     if (sendBookingRequestButton) sendBookingRequestButton.addEventListener("click", function () { if (selectedProvider) sendBookingRequest(selectedProvider); });
     const closeProviderDetail = document.getElementById("closeProviderDetail");
@@ -512,134 +503,50 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const tasksKey = "tapTaskDoneTasks";
 
-    // A familiar Month / Day / Year picker, followed by a separate time picker.
-    // It gives clients full control without relying on a small browser calendar.
-    const scheduleValues = { month: "", day: "", year: "", hour: "", minute: "", period: "" };
-    const scheduleDropdowns = {
-        month: document.getElementById("scheduleMonthDropdown"),
-        day: document.getElementById("scheduleDayDropdown"),
-        year: document.getElementById("scheduleYearDropdown"),
-        hour: document.getElementById("scheduleHourDropdown"),
-        minute: document.getElementById("scheduleMinuteDropdown"),
-        period: document.getElementById("schedulePeriodDropdown")
-    };
-    const schedulePlaceholders = { month: "Month", day: "Day", year: "Year", hour: "Hour", minute: "Minute", period: "AM / PM" };
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const preferredDateInput = document.getElementById("preferredDateInput");
+    const preferredTimeInput = document.getElementById("preferredTimeInput");
 
-    function setScheduleOptions(dropdown, options) {
-        if (!dropdown) return;
-        const menu = dropdown.querySelector(".schedule-dropdown-menu");
-        menu.textContent = "";
-        options.forEach(function (option) {
-            const item = document.createElement("button");
-            item.type = "button";
-            item.className = "schedule-dropdown-option";
-            item.dataset.value = option.value;
-            item.textContent = option.label;
-            menu.append(item);
-        });
-    }
-
-    function setScheduleLabel(name, label) {
-        const dropdown = scheduleDropdowns[name];
-        if (!dropdown) return;
-        dropdown.querySelector(".schedule-dropdown-button span").textContent = label;
-    }
-
-    function setupScheduleDropdown(name, onSelect) {
-        const dropdown = scheduleDropdowns[name];
-        if (!dropdown) return;
-        const button = dropdown.querySelector(".schedule-dropdown-button");
-        const menu = dropdown.querySelector(".schedule-dropdown-menu");
-
-        button.addEventListener("click", function (event) {
-            event.stopPropagation();
-            Object.keys(scheduleDropdowns).forEach(function (key) {
-                if (key !== name && scheduleDropdowns[key]) scheduleDropdowns[key].classList.remove("active");
-            });
-            dropdown.classList.toggle("active");
-        });
-
-        menu.addEventListener("click", function (event) {
-            const option = event.target.closest(".schedule-dropdown-option");
-            if (!option) return;
-            scheduleValues[name] = option.dataset.value;
-            setScheduleLabel(name, option.textContent);
-            dropdown.classList.remove("active");
-            if (onSelect) onSelect(option.dataset.value);
-        });
-    }
-
-    function updateScheduleDays() {
-        const month = Number(scheduleValues.month);
-        const year = Number(scheduleValues.year) || new Date().getFullYear();
-        const days = month ? new Date(year, month, 0).getDate() : 31;
-        const options = [];
-        for (let day = 1; day <= days; day++) options.push({ value: String(day), label: String(day) });
-        setScheduleOptions(scheduleDropdowns.day, options);
-        if (Number(scheduleValues.day) > days) {
-            scheduleValues.day = "";
-            setScheduleLabel("day", schedulePlaceholders.day);
-        }
+    function localDateValue(date) {
+        const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return offsetDate.toISOString().slice(0, 10);
     }
 
     function resetSchedulePicker() {
-        Object.keys(scheduleValues).forEach(function (key) {
-            scheduleValues[key] = "";
-            setScheduleLabel(key, schedulePlaceholders[key]);
-            if (scheduleDropdowns[key]) scheduleDropdowns[key].classList.remove("active");
-        });
-        updateScheduleDays();
+        if (preferredDateInput) preferredDateInput.value = "";
+        if (preferredTimeInput) preferredTimeInput.value = "";
     }
 
     function selectedSchedule() {
-        const selected = Object.keys(scheduleValues).filter(function (key) { return scheduleValues[key] !== ""; });
-        if (!selected.length) return { value: "To be scheduled" };
-        if (selected.length !== Object.keys(scheduleValues).length) {
-            return { error: "Please choose the complete date and time, or leave every schedule field empty." };
-        }
+        const dateValue = preferredDateInput ? preferredDateInput.value : "";
+        const timeValue = preferredTimeInput ? preferredTimeInput.value : "";
+        if (!dateValue && !timeValue) return { value: "To be scheduled" };
+        if (!dateValue) return { error: "Please choose a preferred date, or clear the time." };
 
-        let hour = Number(scheduleValues.hour);
-        if (scheduleValues.period === "PM" && hour !== 12) hour += 12;
-        if (scheduleValues.period === "AM" && hour === 12) hour = 0;
-        const date = new Date(Number(scheduleValues.year), Number(scheduleValues.month) - 1, Number(scheduleValues.day), hour, Number(scheduleValues.minute));
-        // This is a local prototype, so preserve the exact date and time chosen
-        // by the user. Future-only scheduling can be enforced later with the
-        // database and real availability rules.
-        return {
-            value: date.toLocaleString("en-PH", {
-                month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit"
-            })
-        };
+        const date = new Date(dateValue + "T" + (timeValue || "00:00"));
+        const dateText = date.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
+        if (!timeValue) return { value: dateText + " · Time to be confirmed" };
+        return { value: dateText + ", " + date.toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit" }) };
     }
 
-    if (scheduleDropdowns.month) {
-        setScheduleOptions(scheduleDropdowns.month, monthNames.map(function (name, index) { return { value: String(index + 1), label: name }; }));
-        setScheduleOptions(scheduleDropdowns.year, Array.from({ length: 4 }, function (_, index) {
-            const year = new Date().getFullYear() + index;
-            return { value: String(year), label: String(year) };
-        }));
-        setScheduleOptions(scheduleDropdowns.hour, Array.from({ length: 12 }, function (_, index) { const hour = index + 1; return { value: String(hour), label: String(hour) }; }));
-        setScheduleOptions(scheduleDropdowns.minute, Array.from({ length: 12 }, function (_, index) { const minute = String(index * 5).padStart(2, "0"); return { value: minute, label: minute }; }));
-        setScheduleOptions(scheduleDropdowns.period, [{ value: "AM", label: "AM" }, { value: "PM", label: "PM" }]);
-        updateScheduleDays();
-
-        setupScheduleDropdown("month", updateScheduleDays);
-        setupScheduleDropdown("day");
-        setupScheduleDropdown("year", updateScheduleDays);
-        setupScheduleDropdown("hour");
-        setupScheduleDropdown("minute");
-        setupScheduleDropdown("period");
-        document.addEventListener("click", function () {
-            Object.keys(scheduleDropdowns).forEach(function (key) { if (scheduleDropdowns[key]) scheduleDropdowns[key].classList.remove("active"); });
-        });
-    }
+    document.getElementById("scheduleTodayButton")?.addEventListener("click", function () {
+        preferredDateInput.value = localDateValue(new Date());
+    });
+    document.getElementById("scheduleTomorrowButton")?.addEventListener("click", function () {
+        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+        preferredDateInput.value = localDateValue(tomorrow);
+    });
+    document.getElementById("scheduleChooseDateButton")?.addEventListener("click", function () {
+        preferredDateInput?.showPicker?.();
+        preferredDateInput?.focus();
+    });
+    document.getElementById("scheduleClearButton")?.addEventListener("click", resetSchedulePicker);
 
     function currentFreelancer() {
         try {
             const account = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}");
             return {
                 name: account.nickname || account.name || "Freelancer",
+                email: account.email || "",
                 service: account.service || account.profession || "Freelancer",
                 rating: "New freelancer",
                 availability: account.availability || "Available"
@@ -662,7 +569,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const uniqueTasks = new Map();
         tasks.forEach(function (task) {
             if (!task || typeof task !== "object") return;
-            const key = taskSignature(task);
+            const key = task.id || taskSignature(task);
             const existing = uniqueTasks.get(key);
             if (!existing || taskStatusWeight(task.status) >= taskStatusWeight(existing.status)) {
                 uniqueTasks.set(key, task);
@@ -686,10 +593,10 @@ document.addEventListener("DOMContentLoaded", function () {
         localStorage.setItem(tasksKey, JSON.stringify(removeDuplicatePostedTasks(tasks)));
     }
 
-    function addNotification(message) {
+    function addNotification(message, href) {
         let notifications = [];
         try { notifications = JSON.parse(localStorage.getItem("tapTaskDoneNotifications") || "[]"); } catch (error) { notifications = []; }
-        notifications.push({ id: "notice-" + Date.now(), message: message, read: false, createdAt: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) });
+        notifications.push({ id: "notice-" + Date.now(), message: message, href: href || "/MyTasks", read: false, createdAt: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) });
         localStorage.setItem("tapTaskDoneNotifications", JSON.stringify(notifications.slice(-30)));
     }
 
@@ -729,6 +636,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             const schedule = scheduleResult.value;
             const category = document.querySelector("input[name='taskCategory']:checked").value;
+            let clientAccount = {};
+            try { clientAccount = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}"); } catch (error) { }
 
             document.getElementById("postedTaskTitle").textContent = title;
             document.getElementById("postedTaskCategory").textContent = category;
@@ -743,6 +652,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 location: location,
                 budget: "₱" + budget,
                 schedule: schedule,
+                clientName: clientAccount.nickname || clientAccount.name || "Local client",
+                clientEmail: clientAccount.email || "",
                 providerName: "Waiting for a provider",
                 providerService: category,
                 providerReviews: "New task",
@@ -788,13 +699,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!demoNames.includes(demoFreelancer)) demoFreelancer = "Ofracio";
         const inbox = document.createElement("section");
         inbox.className = "demo-inbox";
-        const inboxTitle = document.createElement("h2"); inboxTitle.textContent = "Incoming booking requests";
-        const inboxHelp = document.createElement("p"); inboxHelp.textContent = "Local demo: choose a freelancer to see and respond to their requests.";
+        const inboxTitle = document.createElement("h2"); inboxTitle.textContent = "Demo freelancer booking requests";
+        const inboxHelp = document.createElement("p"); inboxHelp.textContent = "Local demo only: choose a sample freelancer. Requests sent to your account are in My Jobs.";
         const selector = document.createElement("select"); selector.className = "demo-provider-select";
         demoNames.forEach(function (name) { const option = document.createElement("option"); option.value = name; option.textContent = name + " — freelancer demo"; option.selected = name === demoFreelancer; selector.append(option); });
         selector.addEventListener("change", function () { localStorage.setItem("tapTaskDoneDemoFreelancer", selector.value); renderFindJobs(); });
         inbox.append(inboxTitle, inboxHelp, selector);
-        const requests = tasks.flatMap(function (task) { return (Array.isArray(task.bookingRequests) ? task.bookingRequests : []).filter(function (request) { return request.providerName === demoFreelancer && request.status === "pending"; }).map(function (request) { return { task: task, request: request }; }); });
+        const requests = tasks.flatMap(function (task) { return (Array.isArray(task.bookingRequests) ? task.bookingRequests : []).filter(function (request) { return task.status === "open" && !request.providerEmail && request.providerName === demoFreelancer && request.status === "pending"; }).map(function (request) { return { task: task, request: request }; }); });
         if (!requests.length) { const emptyInbox = document.createElement("p"); emptyInbox.className = "demo-inbox-empty"; emptyInbox.textContent = "No booking requests for " + demoFreelancer + " yet."; inbox.append(emptyInbox); }
         requests.forEach(function (item) {
             const requestCard = document.createElement("div"); requestCard.className = "booking-request-card";
@@ -803,12 +714,17 @@ document.addEventListener("DOMContentLoaded", function () {
             const decline = document.createElement("button"); decline.type = "button"; decline.className = "decline-offer-button"; decline.textContent = "Decline";
             decline.addEventListener("click", function () { item.request.status = "declined"; savePostedTasks(tasks); addNotification(demoFreelancer + " declined the booking request for " + item.task.title); renderFindJobs(); });
             const accept = document.createElement("button"); accept.type = "button"; accept.textContent = "Accept request";
-            accept.addEventListener("click", function () { item.request.status = "accepted"; item.task.status = "assigned"; item.task.providerName = item.request.providerName; item.task.providerService = item.request.providerService; item.task.providerReviews = item.request.providerReviews; savePostedTasks(tasks); localStorage.setItem("tapTaskDoneCurrentTask", JSON.stringify(item.task)); localStorage.setItem("tapTaskDoneTrackingStatus", "on-the-way"); addNotification(demoFreelancer + " accepted your booking request for " + item.task.title); renderFindJobs(); });
+            accept.addEventListener("click", function () { item.request.status = "accepted"; item.task.status = "assigned"; item.task.providerName = item.request.providerName; item.task.providerEmail = item.request.providerEmail || ""; item.task.providerService = item.request.providerService; item.task.providerReviews = item.request.providerReviews; savePostedTasks(tasks); localStorage.setItem("tapTaskDoneCurrentTask", JSON.stringify(item.task)); localStorage.setItem("tapTaskDoneTrackingStatus", "on-the-way"); addNotification(demoFreelancer + " accepted your booking request for " + item.task.title); renderFindJobs(); });
             actions.append(decline, accept); requestCard.append(requestInfo, actions); inbox.append(requestCard);
         });
-        findJobsContent.append(inbox);
-        const openTasks = tasks.filter(function (task) { return task.status === "open" || task.status === "Confirmed"; });
         findJobsContent.textContent = "";
+        const flowHint = document.createElement("p");
+        flowHint.textContent = "Find open tasks and send an offer here. Manage your offers, requests, and accepted jobs in My Jobs.";
+        const jobsLink = document.createElement("a"); jobsLink.href = "/MyJobs"; jobsLink.textContent = "Open My Jobs";
+        flowHint.append(" ", jobsLink); findJobsContent.append(flowHint);
+        findJobsContent.append(inbox);
+        const freelancerAccount = currentFreelancer();
+        const openTasks = tasks.filter(function (task) { return (task.status === "open" || task.status === "Confirmed") && (!task.clientEmail || String(task.clientEmail).toLowerCase() !== String(freelancerAccount.email || "").toLowerCase()); });
 
         if (!openTasks.length) {
             const empty = document.createElement("div");
@@ -844,6 +760,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const notice = document.createElement("p");
         notice.className = "job-offer-note";
         notice.textContent = "Freelancer: " + freelancer.name + " · " + freelancer.service + " · " + freelancer.rating + " · " + freelancer.availability;
+        const reasons = [];
+        if (freelancer.service && task.providerService && matchesService(freelancer.service, task.providerService)) reasons.push("service");
+        if (signedIn.serviceLocation && task.location && String(task.location).toLowerCase().includes(String(signedIn.serviceLocation).toLowerCase())) reasons.push("location");
+        const taskBudget = Number(String(task.budget || "").replace(/[^0-9.]/g, ""));
+        if (Number(signedIn.serviceRate) > 0 && taskBudget >= Number(signedIn.serviceRate)) reasons.push("budget");
+        const matchNote = document.createElement("p"); matchNote.className = "job-offer-note";
+        matchNote.textContent = reasons.length ? "Matches your profile: " + reasons.join(", ") + "." : "No profile criteria matched yet; you can still review this task.";
         const offerFields = document.createElement("div");
         offerFields.className = "job-offer-fields";
         const priceInput = document.createElement("input");
@@ -858,7 +781,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const offerButton = document.createElement("button");
         offerButton.type = "button";
         const hasOffer = Array.isArray(task.offers) && task.offers.some(function (offer) {
-            return offer.name === freelancer.name;
+            return freelancer.email ? String(offer.email || "").toLowerCase() === freelancer.email.toLowerCase() : offer.name === freelancer.name;
         });
         offerButton.textContent = hasOffer ? "Offer sent" : freelancer.availability === "Available" ? "Send offer as " + freelancer.name : "Unavailable — " + freelancer.availability;
         offerButton.disabled = hasOffer || freelancer.availability !== "Available";
@@ -867,21 +790,23 @@ document.addEventListener("DOMContentLoaded", function () {
             const latestTask = latestTasks.find(function (item) { return item.id === task.id; });
             if (!latestTask || latestTask.status !== "open") return;
             latestTask.offers = Array.isArray(latestTask.offers) ? latestTask.offers : [];
-            if (!latestTask.offers.some(function (offer) { return offer.name === freelancer.name; })) {
+            if (freelancer.email && String(latestTask.clientEmail || "").toLowerCase() === freelancer.email.toLowerCase()) return;
+            if (!latestTask.offers.some(function (offer) { return freelancer.email ? String(offer.email || "").toLowerCase() === freelancer.email.toLowerCase() : offer.name === freelancer.name; })) {
                 latestTask.offers.push({
                     id: "offer-" + Date.now(),
                     name: freelancer.name,
+                    email: freelancer.email,
                     service: freelancer.service,
                     rating: freelancer.rating,
                     price: priceInput.value.trim() || "Budget offer",
                     message: messageInput.value.trim() || "I can help with this task. I am available today."
                 });
                 savePostedTasks(latestTasks);
-                addNotification("Offer sent for: " + latestTask.title);
+                addNotification("Offer sent for: " + latestTask.title, "/MyTasks");
             }
             renderFindJobs();
         });
-        card.append(eyebrow, title, details, notice, offerFields, offerButton);
+        card.append(eyebrow, title, details, notice, matchNote, offerFields, offerButton);
         findJobsContent.append(card);
         });
     }

@@ -339,25 +339,27 @@
         new Date().getFullYear();
 
 
-    for (
-        let year = currentYear;
-        year >= 1900;
-        year--
-    ) {
+    if (yearOptions) {
+        for (
+            let year = currentYear;
+            year >= 1900;
+            year--
+        ) {
 
-        const option =
-            document.createElement("div");
+            const option =
+                document.createElement("div");
 
-        option.className =
-            "dropdown-option";
+            option.className =
+                "dropdown-option";
 
-        option.dataset.value =
-            year;
+            option.dataset.value =
+                year;
 
-        option.textContent =
-            year;
+            option.textContent =
+                year;
 
-        yearOptions.appendChild(option);
+            yearOptions.appendChild(option);
+        }
     }
 
 
@@ -366,6 +368,10 @@
     ========================================= */
 
     function setupDropdown(dropdown, callback) {
+
+        if (!dropdown) {
+            return;
+        }
 
         const button =
             dropdown.querySelector(".dropdown-button");
@@ -534,7 +540,7 @@
         if (selectedMonth == 2) {
 
             if (
-                selectedYear &&
+                !selectedYear ||
                 (
                     selectedYear % 400 === 0 ||
                     (
@@ -584,14 +590,11 @@
         }
 
 
-        // Reset selected day
-
-        selectedDay = "";
-
-
-        dayDropdown
-            .querySelector(".dropdown-button span")
-            .textContent = "Day";
+        // Preserve the selected day unless it is invalid for the new month or year.
+        if (selectedDay && Number(selectedDay) > days) {
+            selectedDay = "";
+        }
+        dayDropdown.querySelector(".dropdown-button span").textContent = selectedDay || "Day";
 
     }
 
@@ -620,141 +623,4 @@
     );
 
 
-    /* =========================================
-   REGISTER FORM
-========================================= */
-
-    const form =
-        document.getElementById("registerForm");
-
-    const successOverlay =
-        document.getElementById("successOverlay");
-
-    const continueButton =
-        document.getElementById("continueButton");
-
-
-    if (form) {
-
-        form.addEventListener(
-            "submit",
-            function (event) {
-
-                event.preventDefault();
-
-
-                const name =
-                    document
-                        .getElementById("name")
-                        .value
-                        .trim();
-
-
-                const email =
-                    document
-                        .getElementById("email")
-                        .value
-                        .trim();
-
-
-                const password =
-                    document
-                        .getElementById("password")
-                        .value;
-
-
-                /* CHECK PASSWORD */
-
-                const passwordStrong =
-                    checkPasswordStrength(password);
-
-
-                if (!passwordStrong) {
-
-                    alert(
-                        "Please create a stronger password before signing up."
-                    );
-
-                    return;
-
-                }
-
-
-                /* CHECK INFORMATION */
-
-                if (
-                    name === "" ||
-                    email === "" ||
-                    password === "" ||
-                    selectedMonth === "" ||
-                    selectedDay === "" ||
-                    selectedYear === ""
-                ) {
-
-                    alert(
-                        "Please complete all fields."
-                    );
-
-                    return;
-
-                }
-
-
-                /* SAVE ACCOUNT */
-
-                localStorage.setItem(
-                    "tapTaskDoneAccount",
-
-                    JSON.stringify({
-
-                        name: name,
-
-                        email: email,
-
-                        password: password,
-
-                        month: selectedMonth,
-
-                        day: selectedDay,
-
-                        year: selectedYear
-
-                    })
-                );
-
-
-                /* SHOW SUCCESS POPUP */
-
-                if (successOverlay) {
-
-                    successOverlay.classList.add(
-                        "show"
-                    );
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /* =========================================
-       CONTINUE BUTTON
-    ========================================= */
-
-    if (continueButton) {
-
-        continueButton.addEventListener(
-            "click",
-            function () {
-
-                window.location.href =
-                    "/Login";
-
-            }
-        );
-
-    }            
-           
 });

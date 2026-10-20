@@ -63,7 +63,8 @@
 
 
 
-            <form id="loginForm">
+            <form id="loginForm" method="post" asp-page="/Login" asp-page-handler="Login">
+                @Html.AntiForgeryToken()
 
 
                 <!-- EMAIL -->
@@ -76,6 +77,7 @@
 
                     <input type="email"
                            id="loginEmail"
+                           name="email"
                            placeholder="you@example.com"
                            autocomplete="email"
                            required />
@@ -94,6 +96,7 @@
 
                     <input type="password"
                            id="loginPassword"
+                           name="password"
                            placeholder="••••••••"
                            autocomplete="current-password"
                            required />
@@ -123,6 +126,12 @@
                 </a>
 
             </p>
+            <p class="create-account-text">Password reset is not available yet.</p>
+
+            <p class="create-account-text">
+                Are you an administrator?
+                <a href="/AdminLogin">Admin sign in</a>
+            </p>
 
 
         </div>
@@ -131,68 +140,34 @@
 
 
     <script>
-
-        document
-            .getElementById("loginForm")
-            .addEventListener(
-                "submit",
-                function (event) {
-
-                    event.preventDefault();
-
-
-                    const email =
-                        document
-                        .getElementById("loginEmail")
-                        .value
-                        .trim();
-
-
-                    const password =
-                        document
-                        .getElementById("loginPassword")
-                        .value;
-
-
-                    const savedAccount =
-                        localStorage.getItem(
-                            "tapTaskDoneAccount"
-                        );
-
-
-                    if (!savedAccount) {
-
-                        alert(
-                            "No account found. Please create an account first."
-                        );
-
-                        return;
-                    }
-
-
-                    const account =
-                        JSON.parse(savedAccount);
-
-
-                            if (
-            email === account.email &&
-            password === account.password
-        ) {
-
-            window.location.href = "/Dashboard";
-
-        } else {
-
-            alert(
-                "Incorrect email or password."
-            );
-
-        }
-
-                }
-            );
-
+        document.getElementById("loginForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const tokenInput = form.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : "";
+            const body = new URLSearchParams({
+                email: document.getElementById("loginEmail").value.trim(),
+                password: document.getElementById("loginPassword").value
+            });
+            if (token) {
+                body.append("__RequestVerificationToken", token);
+            }
+            try {
+                const response = await fetch(form.getAttribute("action") || "/Login?handler=Login", {
+                    method: "POST",
+                    headers: token ? { RequestVerificationToken: token } : undefined,
+                    body,
+                    credentials: "same-origin"
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) { alert(result.message || "Unable to log in. Please check the database connection."); return; }
+                // Legacy screens use this non-secret display profile; the server cookie is the login credential.
+                localStorage.setItem("tapTaskDoneAccount", JSON.stringify({ name: result.name, email: result.email }));
+                window.location.href = "/Dashboard";
+            } catch (error) { alert("Unable to reach the server. Please try again."); }
+        });
     </script>
+    <script src="/js/admin-auth.js" asp-append-version="true"></script>
 
 </body>
 
