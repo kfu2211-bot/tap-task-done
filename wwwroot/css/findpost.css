@@ -894,6 +894,27 @@ body {
     #findFreelancerSection .arrow-button { min-height: 36px; }
 }
 
+/* Search flow: keep the sample directory and its filters easy to understand. */
+.search-filter-heading { margin-bottom: 22px; }
+.search-filter-heading h2 { margin: 0 0 6px; color: #f3f8ff; font-size: 17px; }
+.search-filter-heading p, .filter-hint { color: #a9bacb; font-size: 12px; line-height: 1.45; }
+.search-filter-heading p { margin: 0; }
+.filter-optional { color: #98a9bb; font-weight: normal; }
+.filter-hint { display: block; margin-top: 7px; }
+.input-wrapper select { width: 100%; min-width: 0; height: 100%; border: 0; outline: 0; color: #e5f0fb; background: transparent; font: inherit; font-size: 12px; }
+.input-wrapper select option { color: #e5f0fb; background: #101c2a; }
+.input-wrapper:focus-within { border-color: #21d8c5; }
+.clear-filters { display: block; margin: 16px auto 0; border: 0; background: transparent; color: #55e0d0; cursor: pointer; text-decoration: underline; }
+.search-demo-note { margin: 0 0 16px; padding: 14px 16px; border: 1px solid #28566a; border-radius: 10px; background: #0b1e29; color: #c4dce7; font-size: 12px; line-height: 1.5; }
+.search-steps { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; padding: 0; list-style: none; counter-reset: search-step; }
+.search-steps li { display: flex; align-items: center; gap: 6px; color: #aabccd; font-size: 12px; }
+.search-steps li::before { counter-increment: search-step; content: counter(search-step); display: grid; place-items: center; width: 23px; height: 23px; border: 1px solid #385569; border-radius: 50%; color: #59e6d3; }
+.search-steps li:not(:last-child)::after { content: '→'; margin: 0 4px; color: #678093; }
+#searchStatus { margin: 0 0 12px; color: #bfd0df; font-size: 13px; }
+.freelancer-info .sample-match-details, .freelancer-info .sample-match-reasons { display: block; margin-top: 5px; color: #a8bdc9; font-size: 11px; line-height: 1.4; white-space: normal; }
+.freelancer-info .sample-match-reasons { color: #65dec8; }
+.freelancer-card { padding-top: 12px; padding-bottom: 12px; }
+
 
 /* =========================================================
    NO RESULTS

@@ -1,0 +1,72 @@
+/* Final presentation layer: removes prototype-looking noise and keeps mobile views calm. */
+:root { --presentation-radius:14px; }
+
+.demo-badge, .local-note, .local-profile-badge { display:none !important; }
+
+.empty-state, .jobs-empty, .demo-inbox-empty {
+    border:1px dashed #3b564c;
+    border-radius:var(--presentation-radius);
+    background:linear-gradient(145deg,#111a17,#0d1210);
+    color:#b9c8c1;
+    line-height:1.55;
+}
+
+button, a, input, select, textarea { -webkit-tap-highlight-color:transparent; }
+
+/* Shared Client and Freelancer workspace finish. */
+.content, .findpost-content, .mytasks-content, .jobs-content {
+    max-width:1180px;
+}
+
+.hero-card, .post-field, .filter-panel, .provider-card, .freelancer-card,
+.my-task-card, .job-card, .tracking-card, .review-card {
+    box-shadow:0 12px 32px rgba(0,0,0,.14) !important;
+}
+
+.section-title, .providers-heading, .page-heading, .page-intro {
+    gap:12px;
+}
+
+.category-card, .provider-card, .freelancer-card, .my-task-card, .job-card {
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.category-card:hover, .provider-card:hover, .freelancer-card:hover,
+.my-task-card:hover, .job-card:hover {
+    transform:translateY(-2px);
+    border-color:#3f6558 !important;
+    box-shadow:0 16px 34px rgba(0,0,0,.22) !important;
+}
+
+.hero-buttons, .task-actions, .provider-bottom, .job-actions, .offer-actions {
+    gap:10px !important;
+}
+
+.task-filters button, .job-tabs button, .mode-button {
+    font-weight:700 !important;
+}
+
+@media (max-width:700px) {
+    body { padding-bottom:env(safe-area-inset-bottom); }
+    .page-intro, .page-heading { margin-bottom:18px !important; }
+    .page-intro h1, .page-intro h2, .page-heading h1, .page-heading h2 { line-height:1.13; }
+    .settings-card, .verification-card, .tracking-card, .provider-card, .map-card,
+    .review-card, .freelancer-card, .my-task-card, .job-card, .post-field {
+        border-radius:var(--presentation-radius) !important;
+    }
+    .settings-card, .verification-card, .tracking-card, .provider-card, .map-card,
+    .review-card, .freelancer-card, .my-task-card, .job-card { padding:18px !important; }
+    input, select, textarea { font-size:16px !important; }
+    .empty-state, .jobs-empty, .demo-inbox-empty { padding:18px !important; text-align:center; }
+    .hero-card { padding:22px !important; }
+    .hero-buttons, .task-actions, .provider-bottom, .job-actions, .offer-actions { width:100%; }
+    .hero-buttons > *, .task-actions > *, .provider-bottom > *, .job-actions > *, .offer-actions > * { flex:1 1 100%; }
+    .category-grid, .provider-grid { gap:12px !important; }
+    .section { margin-top:30px !important; }
+    /* Find & Post previously kept the desktop sidebar's 70px offset on phones. */
+    .app-shell .main-area { width:100% !important; margin-left:0 !important; }
+    .app-shell .page-content { width:calc(100% - 28px) !important; margin-left:auto !important; margin-right:auto !important; }
+    .jobs-empty a { display:inline-flex; margin-top:12px; color:#8ce9cc; font-weight:800; text-decoration:none; }
+    .admin-content { padding-bottom:48px !important; }
+    .admin-card { border-radius:var(--presentation-radius) !important; }
+}
