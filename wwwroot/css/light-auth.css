@@ -52,3 +52,17 @@ body:has(.page), body:has(.login-page) { background: #f6f7f3; color: #1c302b; }
     .signup-step strong { font-size: 12px; }
     .signup-step > span:last-child { font-size: 11px; }
 }
+
+/* Keep the registration form readable and usable on narrow phones. */
+@media (max-width: 480px) {
+    .page .left-side { min-height: 0 !important; padding: 22px 18px 26px !important; }
+    .page .left-content { margin-top: 30px !important; }
+    .page .badge { white-space: normal !important; }
+    .page .right-side { padding: 20px 14px 32px !important; }
+    .page .register-box { box-sizing: border-box; width: 100% !important; max-width: 100%; padding: 28px 18px !important; }
+    .page .register-box h1 { font-size: clamp(28px, 8vw, 38px) !important; line-height: 1.1; }
+    .page .form-group input { font-size: 16px !important; }
+    .page .signup-button { width: 100%; min-height: 48px; }
+    .login-box { box-sizing: border-box; width: 100%; max-width: 100%; }
+    .login-group input { font-size: 16px; }
+}

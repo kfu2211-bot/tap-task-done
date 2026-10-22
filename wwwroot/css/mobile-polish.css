@@ -41,4 +41,19 @@
 
     .photo-upload-button, .remove-photo-button,
     .demo-actions button, .save-row button { min-height:46px; }
+
+    /* A fixed desktop sidebar must not consume the phone's content width. */
+    html body.messages-current-view .main-content {
+        width:100% !important;
+        min-width:0 !important;
+        margin-left:0 !important;
+    }
+    .messages-current { min-width:0; padding:16px 14px 28px; }
+    .messages-grid { grid-template-columns:minmax(0, 1fr); min-width:0; margin-top:16px; }
+    .messages-conversations { max-height:240px; overflow-y:auto; }
+    .messages-thread, .thread-heading, .thread-messages, .thread-form { min-width:0; }
+    .thread-heading, .thread-messages, .thread-form { padding:14px; }
+    .thread-form textarea { font-size:16px; }
+    .thread-form button { min-height:44px; }
+    .conversation-link, .thread-heading, .thread-message { overflow-wrap:anywhere; }
 }
