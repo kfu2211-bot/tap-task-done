@@ -1,6 +1,6 @@
 /* Keeps the signed-in account display identical on every authenticated page. */
 (function () {
-    function loadSidebarAccount() {
+    async function loadSidebarAccount() {
         if (!document.getElementById("productPolish")) {
             var polish = document.createElement("link");
             polish.id = "productPolish";
@@ -32,6 +32,18 @@
             return;
         }
 
+        // The database, not the browser cache, is authoritative for work preferences.
+        try {
+            var response = await fetch('/api/work-preferences', { credentials: 'same-origin' });
+            if (response.ok) {
+                var preferences = await response.json();
+                account.role = preferences.role;
+                account.service = preferences.service;
+                account.availability = preferences.availability;
+                localStorage.setItem('tapTaskDoneAccount', JSON.stringify(account));
+            }
+        } catch (error) { console.warn('Work preferences could not be refreshed.', error); }
+
         var name = (account.nickname || account.name || "User").trim();
         var email = (account.email || "user@email.com").trim();
         var initials = name
@@ -62,7 +74,7 @@
         var sidebarFlow = [
             { href: "/Dashboard", icon: "⌂", label: "Home" },
             { href: "/FindPost", icon: "⌕", label: "Find & Post" },
-            ...(isClient ? [{ href: "/MyTasks", icon: "▤", label: "My Tasks" }] : []),
+            ...(isClient ? [{ href: "/MarketTasks?view=mine", icon: "▤", label: "My Tasks" }] : []),
             ...(isFreelancer ? [{ href: "/MyJobs", icon: "▤", label: "My Jobs" }] : []),
             { href: "/Messages", icon: "□", label: "Messages" },
             { href: "/Tracking", icon: "➤", label: "Tracking" },
@@ -102,42 +114,100 @@
                     }
                 }
 
-                link.classList.toggle("active", window.location.pathname.toLowerCase() === item.href.toLowerCase());
+                link.classList.toggle("active", window.location.pathname.toLowerCase() === item.href.split("?")[0].toLowerCase());
                 // appendChild moves an existing link instead of copying it, preventing duplicates.
                 nav.appendChild(link);
             });
 
             // Remove role-only entries left over from a page's original static sidebar.
-            nav.querySelectorAll('a[href="/MyTasks"]').forEach(function (link) { if (!isClient) link.remove(); });
+            nav.querySelectorAll('a[href="/MyTasks"]').forEach(function (link) { link.remove(); });
+            nav.querySelectorAll('a[href="/Notifications"]').forEach(function (link) { link.remove(); });
             nav.querySelectorAll('a[href="/MyJobs"]').forEach(function (link) { if (!isFreelancer) link.remove(); });
         });
 
-        document.querySelectorAll(".notification, .notification-button, #notificationButton, .mytasks-notification").forEach(function (button) {
+        var popupStyle = document.createElement("link");
+        popupStyle.rel = "stylesheet";
+        popupStyle.href = "/css/notification-popup.css";
+        document.head.appendChild(popupStyle);
+        var header = document.querySelector("main > header, .topbar, .top-header, .mytasks-topbar, .market-header");
+        var notificationSelector = ".notification, .notification-button, #notificationButton, .mytasks-notification";
+        if (header && !header.querySelector(notificationSelector)) {
+            var newBell = document.createElement("button");
+            newBell.type = "button";
+            newBell.className = "notification app-notification-trigger";
+            newBell.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-2 7-2 9h16c0-2-2-2-2-9M10 20h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            header.appendChild(newBell);
+        }
+        var panel = document.createElement("section");
+        panel.className = "notification-popover";
+        panel.id = "notificationPopover";
+        panel.hidden = true;
+        panel.setAttribute("aria-label", "Notifications");
+        panel.innerHTML = '<div class="notification-popover-heading"><div><strong>Notifications</strong><small>Your latest updates</small></div><button type="button" class="notification-popover-close" aria-label="Close notifications">×</button></div><div class="notification-popover-list" aria-live="polite"></div><a class="notification-popover-all" href="/Notifications">View all notifications</a>';
+        document.body.appendChild(panel);
+        var notificationList = panel.querySelector(".notification-popover-list");
+        var currentTrigger = null;
+        function closeNotifications() {
+            panel.hidden = true;
+            if (currentTrigger) currentTrigger.setAttribute("aria-expanded", "false");
+        }
+        async function loadNotifications() {
+            notificationList.textContent = "Loading notifications…";
+            try {
+                var response = await fetch("/Notifications", { credentials: "same-origin", cache: "no-store" });
+                if (!response.ok || response.redirected) throw new Error("Notifications unavailable");
+                var doc = new DOMParser().parseFromString(await response.text(), "text/html");
+                var forms = doc.querySelectorAll(".notification-list form");
+                notificationList.replaceChildren();
+                if (!forms.length) {
+                    var emptyMessage = document.createElement("p");
+                    emptyMessage.textContent = doc.querySelector(".notification-empty") ? "No notifications yet." : "Notifications are unavailable right now.";
+                    notificationList.appendChild(emptyMessage);
+                    return;
+                }
+                Array.from(forms).slice(0, 8).forEach(function (form) {
+                    form.setAttribute("action", "/Notifications?handler=Open");
+                    notificationList.appendChild(document.importNode(form, true));
+                });
+            } catch (error) { notificationList.textContent = "Could not load notifications. Please try again."; }
+        }
+        panel.querySelector(".notification-popover-close").addEventListener("click", function () { closeNotifications(); if (currentTrigger) currentTrigger.focus(); });
+        document.addEventListener("click", function (event) { if (!panel.hidden && !panel.contains(event.target) && !(currentTrigger && currentTrigger.contains(event.target))) closeNotifications(); });
+        document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !panel.hidden) { closeNotifications(); if (currentTrigger) currentTrigger.focus(); } });
+        document.querySelectorAll(notificationSelector).forEach(function (button) {
             if (button.dataset.notificationsReady === "true") return;
             button.dataset.notificationsReady = "true";
+            button.classList.add("app-notification-trigger");
+            button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-2 7-2 9h16c0-2-2-2-2-9M10 20h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
             button.title = "View notifications";
+            button.setAttribute("aria-haspopup", "true");
+            button.setAttribute("aria-controls", "notificationPopover");
+            button.setAttribute("aria-expanded", "false");
+            if (button.tagName !== "BUTTON") { button.setAttribute("role", "button"); button.tabIndex = 0; button.addEventListener("keydown", function (event) { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); button.click(); } }); }
             button.addEventListener("click", function (event) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                document.querySelectorAll(".local-notification-popover").forEach(function (panel) { panel.remove(); });
-                let notices = [];
-                try { notices = JSON.parse(localStorage.getItem("tapTaskDoneNotifications") || "[]"); } catch (error) { notices = []; }
-                const panel = document.createElement("div");
-                panel.className = "local-notification-popover";
-                panel.style.cssText = "position:fixed;right:22px;top:58px;z-index:5000;width:min(330px,calc(100vw - 32px));padding:14px;border:1px solid #373737;border-radius:10px;background:#171717;color:#eee;box-shadow:0 20px 50px rgba(0,0,0,.55);font:12px Arial,Helvetica,sans-serif;";
-                const title = document.createElement("strong"); title.textContent = "Notifications"; title.style.display = "block"; title.style.marginBottom = "10px"; panel.append(title);
-                if (!notices.length) { const empty = document.createElement("p"); empty.textContent = "You have no notifications yet."; empty.style.cssText = "margin:0;color:#999;"; panel.append(empty); }
-                else { notices.slice(-5).reverse().forEach(function (notice) {
-                    const item = document.createElement(notice.href ? "button" : "p");
-                    item.textContent = notice.message;
-                    item.style.cssText = "display:block;width:100%;margin:0;padding:9px 0;border:0;border-top:1px solid #2b2b2b;background:transparent;color:#d8d8d8;line-height:1.4;text-align:left;font:inherit;" + (notice.href ? "cursor:pointer;" : "");
-                    if (notice.href) item.addEventListener("click", function () { window.location.href = notice.href; });
-                    panel.append(item);
-                }); }
-                document.body.append(panel);
-                setTimeout(function () { document.addEventListener("click", function close(event) { if (!panel.contains(event.target) && event.target !== button) { panel.remove(); document.removeEventListener("click", close); } }); }, 0);
+                var wasOpen = !panel.hidden && currentTrigger === button;
+                closeNotifications();
+                if (!wasOpen) { currentTrigger = button; panel.hidden = false; button.setAttribute("aria-expanded", "true"); loadNotifications(); }
             }, true);
         });
+
+        async function updateNotificationCount() {
+            try {
+                const response = await fetch("/api/notifications/unread-count", { credentials: "same-origin", cache: "no-store" });
+                if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) return;
+                const data = await response.json();
+                const count = Number(data.count) || 0;
+                document.querySelectorAll(".notification, .notification-button, #notificationButton, .mytasks-notification").forEach(function (button) {
+                    button.title = count ? count + " unread notifications" : "View notifications";
+                    button.setAttribute("aria-label", button.title);
+                    button.style.boxShadow = count ? "0 0 0 2px #22c99b" : "";
+                });
+            } catch (error) { console.warn("Notifications could not be refreshed.", error); }
+        }
+        updateNotificationCount();
+        setInterval(updateNotificationCount, 30000);
 
         // Profile cards across the signed-in sidebar lead to the same settings page.
         document.querySelectorAll("#openProfile, .sidebar .sidebar-user, .mytasks-sidebar .mytasks-user, .sidebar .sidebar-account").forEach(function (profileEntry) {

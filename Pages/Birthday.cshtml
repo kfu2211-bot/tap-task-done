@@ -1,0 +1,29 @@
+@page
+@model tts.Pages.BirthdayModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Enter your birthday - Tap, Task, Done</title>
+    <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/light-auth.css" asp-append-version="true" />
+</head>
+<body>
+    <main class="login-page">
+        <div class="login-logo"><div class="login-logo-circle">✓</div><span>Tap, Task, Done</span></div>
+        <div class="login-box">
+            <div class="login-eyebrow">ONE-TIME ACCOUNT UPDATE</div>
+            <h1>Enter your birthday</h1>
+            <p class="login-subtitle">Your account was created before birthdays were collected. You must be at least 16 years old to use Tap, Task, Done. No ID is required.</p>
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <p role="alert" style="color:#a32828">@Model.ErrorMessage</p> }
+            <form method="post">
+                <div class="login-group"><label for="DateOfBirth">DATE OF BIRTH</label><input asp-for="DateOfBirth" type="date" min="1900-01-01" max="@DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-dd")" required /></div>
+                <button type="submit" class="login-button">Save and continue</button>
+            </form>
+            <p class="create-account-text"><a href="/Login">Back to login</a></p>
+        </div>
+    </main>
+</body>
+</html>

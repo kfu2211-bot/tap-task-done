@@ -1,0 +1,21 @@
+@page
+@model tts.Pages.NotificationsModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Notifications - Tap, Task, Done</title>
+<link rel="stylesheet" href="/css/settings.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/notifications.css" asp-append-version="true" />
+<script defer src="/js/sidebar-account.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+</head>
+<body><div class="settings-layout"><aside class="sidebar"><div class="brand"><span class="brand-icon">✓</span><strong>Tap, Task, Done</strong></div>
+<nav class="sidebar-menu"></nav><div class="sidebar-account"><span class="account-avatar">U</span><div><strong id="sidebarName">User</strong><span id="sidebarEmail"></span></div></div></aside>
+<main><header><h1>Notifications</h1></header><section class="settings-content notification-page">
+<span class="notification-overline">YOUR UPDATES</span><h2>Stay up to date</h2><p>Updates about your offers, messages and task progress. Opening an update marks it as read.</p>
+@if (Model.Items.Count == 0) { <div class="notification-empty"><h3>No notifications yet</h3><p>Your task updates will appear here.</p></div> }
+else { <div class="notification-list">@foreach (var item in Model.Items) {
+<form method="post" asp-page-handler="Open"><input type="hidden" name="id" value="@item.Id" />
+<button class="notification-item @(item.IsRead ? "" : "unread")" type="submit"><span class="notification-dot" aria-hidden="true"></span><span><strong>@item.Message</strong><small>@(Model.TaskTitles.TryGetValue(item.TaskId, out var taskTitle) ? taskTitle : "Task unavailable") · @tts.Data.DisplayTime.Philippine(item.CreatedAt) · @(item.IsRead ? "Read" : "Unread")</small></span><span aria-hidden="true">→</span></button></form>
+}</div><p class="notification-footnote">Showing up to 100 most recent updates.</p> }
+</section></main></div></body></html>

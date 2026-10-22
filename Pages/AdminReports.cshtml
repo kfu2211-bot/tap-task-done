@@ -1,0 +1,40 @@
+@page
+@model tts.Pages.AdminReportsModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Safety Reports - Admin</title><link rel="stylesheet" href="/css/admin.css" asp-append-version="true" /><link rel="stylesheet" href="/css/safety-reports.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+</head>
+<body class="report-admin-body @(Model.Embedded ? "report-embedded" : "")"><div class="report-admin-layout">
+    <aside class="report-admin-sidebar" aria-label="Admin navigation">
+        <a class="report-brand" href="/Admin"><span>✓</span><strong>Tap, Task, Done</strong></a>
+        <nav><a href="/Admin">⌂ <span>Admin overview</span></a><a class="current" href="/AdminReports" aria-current="page">⚑ <span>Safety reports</span></a></nav>
+        <p>Admin workspace</p>
+    </aside>
+    <main class="report-admin-main">
+        <header class="report-admin-header"><a href="/Admin">← Admin Center</a><span>Admin workspace</span></header>
+        <div class="admin-report-page">
+            <div class="report-page-heading"><div><p class="report-eyebrow">COMMUNITY SAFETY</p><h1>Safety reports</h1><p>Review reports submitted by users and keep track of your decisions.</p></div><span class="report-total">@Model.Reports.Count @(Model.Reports.Count == 1 ? "report" : "reports")</span></div>
+            <div class="report-guidance"><strong>Review carefully</strong><p>Reported names are entered by users and are not automatically verified. File evidence is not supported yet. No account is suspended automatically.</p></div>
+            @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="safety-notice" role="status">@Model.Notice</p> }
+            @if (Model.Reports.Count == 0) { <section class="report-empty"><h2>No reports yet</h2><p>Reports submitted by users will appear here for review.</p></section> }
+            @foreach (var item in Model.Reports) {
+                var report = item.Report;
+                var statusLabel = report.Status switch { "open" => "Open", "reviewing" => "Under review", "resolved" => "Resolved", "dismissed" => "Dismissed", _ => report.Status };
+                <article class="admin-report-card">
+                    <div class="report-card-heading"><div><p class="report-eyebrow">REPORT #@report.Id</p><h2>@report.Reason</h2></div><span class="report-status status-@report.Status">@statusLabel</span></div>
+                    <dl class="report-details"><div><dt>Reported person</dt><dd>@report.Target</dd></div><div><dt>Submitted by</dt><dd>@item.Reporter</dd></div><div><dt>Related task</dt><dd>@(report.TaskId.HasValue ? (Model.TaskTitles.TryGetValue(report.TaskId.Value, out var taskTitle) ? taskTitle : "Task unavailable") : "Not provided")</dd></div><div><dt>Submitted</dt><dd>@tts.Data.DisplayTime.Philippine(report.CreatedAt)</dd></div></dl>
+                    <div class="report-message"><h3>What happened</h3><p class="admin-report-description">@report.Description</p></div>
+                    @if (report.Status is "open" or "reviewing") {
+                        <form method="post" asp-page-handler="Update" class="safety-form report-action-form"><h3>Review this report</h3><input type="hidden" name="id" value="@report.Id" /><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
+                        <label>Internal note <span>(optional; visible to admins only)</span><textarea name="note" maxlength="1000" rows="3" placeholder="Add context for other admins"></textarea></label>
+                        <label>Update status<select name="status">@if(report.Status == "open") { <option value="reviewing">Under review</option> }<option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></label>
+                        <p>Resolved and dismissed reports are closed and cannot currently be reopened.</p><button type="submit">Save status</button></form>
+                    } else { <p class="report-closed">This report is closed. Its action history is available below.</p> }
+                    <details class="report-history"><summary>Admin action history</summary>@if(!Model.Actions.Any(a => a.Action.ReportId == report.Id)) { <p>No actions recorded yet.</p> } @foreach(var entry in Model.Actions.Where(a => a.Action.ReportId == report.Id)) { <div class="report-history-entry"><strong>@entry.Action.Status</strong> · @entry.AdminName · @tts.Data.DisplayTime.Philippine(entry.Action.CreatedAt)@if(!string.IsNullOrWhiteSpace(entry.Action.Note)) { <p>@entry.Action.Note</p> }</div> }</details>
+                </article>
+            }
+            <p class="report-footnote">Showing up to 100 most recent reports.</p>
+        </div>
+    </main>
+</div></body></html>

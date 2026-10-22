@@ -40,12 +40,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const account = window.tapTaskDoneGetAdminAccount();
     document.getElementById("adminDisplayName").value = account.name || "System Admin";
+    document.getElementById("adminDisplayName").readOnly = true;
+    document.getElementById("adminNewPassword").disabled = true;
+    document.getElementById("adminNewPassword").placeholder = "Password changes are not available yet";
     document.getElementById("adminAccountForm").addEventListener("submit", function (event) {
-        event.preventDefault(); const name = document.getElementById("adminDisplayName").value.trim(); const newPassword = document.getElementById("adminNewPassword").value;
-        if (!name) return; if (newPassword && newPassword.length < 8) { document.getElementById("adminAccountSaved").textContent = "Password must be at least 8 characters."; return; }
-        const updated = Object.assign({}, account, { name: name }); if (newPassword) updated.password = newPassword;
-        localStorage.setItem("tapTaskDoneAdminAccount", JSON.stringify(updated)); localStorage.setItem("tapTaskDoneAdminSession", JSON.stringify({ name: updated.name, email: updated.email, role: "admin", keepSignedIn: true }));
-        document.querySelector(".admin-user strong").textContent = updated.name; document.getElementById("adminGreeting").textContent = updated.name.split(" ")[0]; document.getElementById("adminNewPassword").value = ""; document.getElementById("adminAccountSaved").textContent = "Admin account saved locally."; activity("Updated admin account", "Updated the local admin profile.");
+        event.preventDefault();
+        document.getElementById("adminAccountSaved").textContent = "Account changes are not available yet.";
     });
     renderStaff();
     const staffPanel = document.getElementById("staffPanel");

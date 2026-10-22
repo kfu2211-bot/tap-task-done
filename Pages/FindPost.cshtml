@@ -30,6 +30,8 @@
     <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
 
+<link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/findpost-light.css" asp-append-version="true" />
 </head>
 
 <body>
@@ -259,10 +261,6 @@
                             id="findFreelancerButton"
                             type="button">
 
-                        <span>
-                            ⌕
-                        </span>
-
                         Find a Freelancer
 
                     </button>
@@ -272,10 +270,6 @@
                             id="postTaskButton"
                             type="button">
 
-                        <span>
-                            ○
-                        </span>
-
                         Post a Task
 
                     </button>
@@ -284,10 +278,6 @@
                     <button class="mode-button @(mode == "jobs" ? "active" : "")"
                             id="findJobsButton"
                             type="button">
-
-                        <span>
-                            □
-                        </span>
 
                         Find Jobs
 
@@ -311,6 +301,7 @@
 
                     <aside class="filter-panel">
 
+                        <div id="otherCategoryNotice" hidden><strong>Others: unique skills</strong><p>Available services that do not match the listed categories. Search by a specific skill, or <a href="/FindPost">browse all services</a>.</p></div>
 
                         <div class="filter-group">
 
@@ -404,7 +395,8 @@
                         <section class="provider-search-intro">
                             <span>Find a trusted provider</span>
                             <h2>Compare freelancers before you send a request.</h2>
-                            <p>Use the filters, then open a profile to see the service area and details. Location uses the text saved in the freelancer's profile; sample profiles are marked.</p>
+                            <p>Search real freelancer profiles by service, location, budget, and availability.</p>
+                            @if (!string.IsNullOrEmpty(Model.Notice) && mode != "jobs") { <p role="status">@Model.Notice</p> }
                         </section>
 
 
@@ -426,7 +418,14 @@
 
                             <div class="freelancer-list"
                                  id="freelancerList">
-
+                                @foreach (var provider in Model.Providers)
+                                {
+                                    <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-location="@provider.Location" data-rate="@provider.Rate" data-availability="@provider.Availability" data-demo="false">
+                                        <div class="freelancer-left"><div class="freelancer-avatar">@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong><span>@provider.Service</span></div></div>
+                                        <div class="freelancer-right"><div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count})" : "No ratings yet")</strong></div><div class="freelancer-price">@(provider.Rate.HasValue ? $"₱{provider.Rate}" : "Rate not set")</div><button class="arrow-button" type="button" data-name="@provider.Name">View profile</button></div>
+                                    </article>
+                                }
+                                @* Retired sample directory; search displays database profiles only.
 
                                 <!-- OFRACIO -->
 
@@ -723,13 +722,14 @@
                                 </article>
 
 
+                                *@
                             </div>
 
 
                             <!-- NO RESULTS -->
 
                             <div class="no-results"
-                                 id="noResults">
+                                 id="noResults" data-unavailable="@Model.DirectoryUnavailable.ToString().ToLowerInvariant()">
 
                                 No freelancers found.
 
@@ -738,8 +738,15 @@
                             <section id="providerDetailPanel" class="provider-detail-panel hidden" aria-live="polite">
                                 <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
                                 <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span id="selectedProviderAvailability" class="available-now">Availability —</span></div>
-                                <p class="provider-detail-help">Review the provider, then send a booking request for your selected task. The provider can accept or decline it.</p>
-                                <button id="sendBookingRequestButton" type="button" class="send-booking-request">Send booking request</button>
+                                @if (Model.WorkRole is "client" or "both" && Model.BookingTasks.Count > 0) {
+                                <p class="provider-detail-help">Choose one of your open tasks. The freelancer may accept or decline your request.</p>
+                                <form method="post" asp-page="/BookingRequests" asp-page-handler="Create">
+                                    <input type="hidden" name="freelancerId" id="bookingFreelancerId" />
+                                    <label for="bookingTaskId">Your open task</label>
+                                    <select id="bookingTaskId" name="taskId" required><option value="">Select a task</option>@foreach(var task in Model.BookingTasks) { <option value="@task.Id">@task.Title · ₱@task.Budget</option> }</select>
+                                    <button id="sendBookingRequestButton" type="submit" class="send-booking-request" disabled>Send booking request</button>
+                                </form>
+                                } else { <p class="provider-detail-help">Post and confirm a task as a client before sending a booking request. <a href="/MarketTasks?view=post">Post a task</a></p> }
                             </section>
 
 
@@ -760,14 +767,15 @@
                 <section id="postTaskSection"
                          class="empty-mode-section @(mode != "post" ? "hidden" : "")">
 
-                    <div class="mode-placeholder" id="postTaskStart">
+                    <div class="mode-placeholder hidden" id="postTaskStart">
                         <div class="placeholder-icon">+</div>
                         <h2>Post a Task</h2>
                         <p>Create a task and let trusted freelancers find you.</p>
                         <button type="button" id="startPostTaskButton">Create a task</button>
                     </div>
 
-                    <form class="post-task-panel hidden" id="postTaskForm">
+                    <form class="post-task-panel" id="databasePostTaskForm" method="post" asp-page="/MarketTasks" asp-page-handler="Create">
+                        <input type="hidden" name="schedule" id="databaseSchedule" />
                         <div class="post-task-heading">
                             <div>
                                 <h2>Post a Task</h2>
@@ -778,33 +786,37 @@
 
                         <label class="post-field">
                             <span>Task title</span>
-                            <input id="taskTitleInput" type="text" maxlength="100" required placeholder="e.g. Fix a leaking kitchen faucet" />
+                            <input id="taskTitleInput" name="title" type="text" maxlength="100" required placeholder="e.g. Fix a leaking kitchen faucet" />
                         </label>
 
                         <fieldset class="post-category-field">
                             <legend>Category</legend>
                             <div class="post-categories">
-                                <label><input type="radio" name="taskCategory" value="Cleaning" required /><span>Cleaning</span></label>
-                                <label><input type="radio" name="taskCategory" value="Repairs" /><span>Repairs</span></label>
-                                <label><input type="radio" name="taskCategory" value="Errands" /><span>Errands</span></label>
-                                <label><input type="radio" name="taskCategory" value="Moving" /><span>Moving</span></label>
-                                <label><input type="radio" name="taskCategory" value="Other / General" /><span>Other / General</span></label>
+                                <label><input type="radio" name="category" value="Cleaning" required /><span>Cleaning</span></label>
+                                <label><input type="radio" name="category" value="Repairs" /><span>Repairs</span></label>
+                                <label><input type="radio" name="category" value="Errands" /><span>Errands</span></label>
+                                <label><input type="radio" name="category" value="Moving" /><span>Moving</span></label>
+                                <label><input type="radio" name="category" value="Gardening" /><span>Gardening</span></label>
+                                <label><input type="radio" name="category" value="Painting" /><span>Painting</span></label>
+                                <label><input type="radio" name="category" value="Tutoring" /><span>Tutoring</span></label>
+                                <label><input type="radio" name="category" value="Pet Care" /><span>Pet Care</span></label>
+                                <label><input type="radio" name="category" value="Other / General" /><span>Other / General</span></label>
                             </div>
                         </fieldset>
 
                         <label class="post-field">
                             <span>Description</span>
-                            <textarea id="taskDescriptionInput" maxlength="500" required placeholder="Describe the task, including important details or materials needed."></textarea>
+                            <textarea id="taskDescriptionInput" name="description" maxlength="500" required placeholder="Describe the task, including important details or materials needed."></textarea>
                         </label>
 
                         <div class="post-field-grid">
                             <label class="post-field">
                                 <span>Location</span>
-                                <input id="taskLocationInput" type="text" required placeholder="e.g. Metro Manila" />
+                                <input id="taskLocationInput" name="location" type="text" maxlength="120" required placeholder="e.g. Metro Manila" />
                             </label>
                             <label class="post-field">
                                 <span>Budget</span>
-                                <input id="taskBudgetInput" type="number" min="1" required placeholder="e.g. 600" />
+                                <input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 600" />
                             </label>
                         </div>
 
@@ -870,7 +882,23 @@
                 <section id="findJobsSection"
                          class="empty-mode-section @(mode != "jobs" ? "hidden" : "")">
 
-                    <div id="findJobsContent"></div>
+                    @if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
+                    <div class="jobs-workspace">
+                        <div class="jobs-heading"><div><span class="jobs-eyebrow">FREELANCER OPPORTUNITIES</span><h2>Find your next job</h2><p>Explore tasks posted by clients and send an offer that works for you.</p></div><span class="jobs-count">@Model.OpenTasks.Count open @(Model.OpenTasks.Count == 1 ? "task" : "tasks")</span></div>
+                        @if (Model.DirectoryUnavailable) { <div class="jobs-empty"><h3>Jobs are unavailable right now</h3><p>Please try again later.</p></div> }
+                        else if (Model.WorkRole is not ("freelancer" or "both")) { <div class="jobs-empty"><h3>Ready to find work?</h3><p>Set your work role to Freelancer or Client &amp; Freelancer to find jobs and send offers.</p><a href="/Settings">Open settings</a></div> }
+                        else if (Model.OpenTasks.Count == 0) { <div class="jobs-empty"><span class="jobs-empty-icon" aria-hidden="true">⌕</span><h3>No open jobs yet</h3><p>When another client confirms a task, it will appear here. Check back later for new opportunities.</p></div> }
+                        @foreach (var item in Model.OpenTasks) {
+                            var task = item.Task;
+                            var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
+                            <article class="jobs-card"><div class="jobs-card-top"><span class="jobs-tag">@task.Category</span><strong>₱@task.Budget</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>⌖ @task.Location</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: @item.ClientName</span></div>
+                            @if (existing != null) { <p class="jobs-offer-status">Offer sent · @existing.Offer.Status</p> }
+                            else { <details class="jobs-offer"><summary>Send an offer</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Offer"><input type="hidden" name="id" value="@task.Id" /><label class="post-field">Your price (₱)<input type="number" name="price" min="1" max="9999999999" step="0.01" required /></label><label class="post-field">Message (optional)<textarea name="message" maxlength="500"></textarea></label><button class="post-submit-button">Send offer</button></form></details> }</article>
+                        }
+                        <section class="jobs-offers"><h3>My offers</h3>
+                        @if (Model.Offers.Count == 0) { <p>Your sent offers will appear here so you can check their status.</p> }
+                        @foreach (var sent in Model.Offers) { <div class="sent-offer"><div><strong>@(Model.OfferTaskTitles.TryGetValue(sent.Offer.TaskId, out var offerTitle) ? offerTitle : "Task details unavailable")</strong><span>Offer: ₱@sent.Offer.Price</span></div><span class="sent-offer-status">@sent.Offer.Status.Replace("-", " ")</span></div> }</section>
+                    </div>
 
 
                 </section>

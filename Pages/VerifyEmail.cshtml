@@ -1,0 +1,13 @@
+@page
+@model tts.Pages.VerifyEmailModel
+@{ Layout = null; }
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Verify email - Tap, Task, Done</title><link rel="stylesheet" href="/css/site.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-auth.css" asp-append-version="true" /></head>
+<body><main class="login-page"><div class="login-logo"><div class="login-logo-circle">✓</div><span>Tap, Task, Done</span></div><div class="login-box">
+<div class="login-eyebrow">ACCOUNT SECURITY</div><h1>Verify your email</h1>
+@if (Model.Completed) { <p class="login-subtitle" role="status">Your email is verified. You can now log in.</p> }
+else if (!string.IsNullOrEmpty(Model.Token)) { <p class="login-subtitle">Confirm that you own this email address.</p><form method="post" asp-page-handler="Confirm"><input type="hidden" asp-for="Token" /><button class="login-button" type="submit">Verify email</button></form> }
+else { <p class="login-subtitle">Check the inbox and spam folder of your registered email for a verification link. If you didn't receive it, request another below.</p>
+@if (Model.Sent) { <p role="status">If an unverified account exists for this address, a link will be sent.</p> }
+<form method="post" asp-page-handler="Resend"><div class="login-group"><label for="Email">EMAIL</label><input asp-for="Email" type="email" autocomplete="email" required /></div><button class="login-button" type="submit">Resend verification link</button></form> }
+@if (Model.ErrorMessage is not null) { <p role="alert" style="color:#a32828">@Model.ErrorMessage</p> }
+<p class="create-account-text"><a href="/Login">Back to login</a></p></div></main></body></html>

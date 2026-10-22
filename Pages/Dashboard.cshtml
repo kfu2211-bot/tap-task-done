@@ -21,6 +21,7 @@
           href="/css/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/light-home.css" asp-append-version="true" />
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
 
 </head>
@@ -337,7 +338,7 @@
                             </h3>
 
                             <p>
-                                Pick a category to get matched fast
+                                Explore services and find available freelancers. Scroll over the cards or swipe to see more.
                             </p>
 
                         </div>
@@ -345,16 +346,13 @@
                     </div>
 
 
-                    <div class="category-grid">
+                    <div class="category-carousel">
+                    <div class="category-grid" id="categoryList" tabindex="0" aria-label="Service categories">
 
 
                         <!-- CLEANING -->
 
-                        <div class="category-card">
-
-                            <div class="category-icon">
-                                ♨
-                            </div>
+                        <a class="category-card" href="/FindPost?category=Cleaning">
 
                             <h4>
                                 Cleaning
@@ -365,19 +363,15 @@
                             </p>
 
                             <strong>
-                                128 pros available
+                                @(Model.CategoriesUnavailable ? "Availability unavailable" : $"{Model.CategoryCounts.GetValueOrDefault("Cleaning")} available")
                             </strong>
 
-                        </div>
+                        </a>
 
 
                         <!-- REPAIRS -->
 
-                        <div class="category-card">
-
-                            <div class="category-icon">
-                                🛠
-                            </div>
+                        <a class="category-card" href="/FindPost?category=Repairs">
 
                             <h4>
                                 Repairs
@@ -388,19 +382,15 @@
                             </p>
 
                             <strong>
-                                94 pros available
+                                @(Model.CategoriesUnavailable ? "Availability unavailable" : $"{Model.CategoryCounts.GetValueOrDefault("Repairs")} available")
                             </strong>
 
-                        </div>
+                        </a>
 
 
                         <!-- ERRANDS -->
 
-                        <div class="category-card">
-
-                            <div class="category-icon">
-                                ▣
-                            </div>
+                        <a class="category-card" href="/FindPost?category=Errands">
 
                             <h4>
                                 Errands
@@ -411,19 +401,15 @@
                             </p>
 
                             <strong>
-                                76 pros available
+                                @(Model.CategoriesUnavailable ? "Availability unavailable" : $"{Model.CategoryCounts.GetValueOrDefault("Errands")} available")
                             </strong>
 
-                        </div>
+                        </a>
 
 
                         <!-- MOVING -->
 
-                        <div class="category-card">
-
-                            <div class="category-icon">
-                                ◈
-                            </div>
+                        <a class="category-card" href="/FindPost?category=Moving">
 
                             <h4>
                                 Moving
@@ -434,11 +420,17 @@
                             </p>
 
                             <strong>
-                                41 pros available
+                                @(Model.CategoriesUnavailable ? "Availability unavailable" : $"{Model.CategoryCounts.GetValueOrDefault("Moving")} available")
                             </strong>
 
-                        </div>
+                        </a>
 
+                        <a class="category-card" href="/FindPost?category=Gardening"><h4>Gardening</h4><p>Garden care, plants &amp; landscaping</p><strong>@(Model.CategoriesUnavailable ? "Availability unavailable" : $"{Model.CategoryCounts.GetValueOrDefault("Gardening")} available")</strong></a>
+                        <a class="category-card" href="/FindPost?category=Painting"><h4>Painting</h4><p>Walls, rooms &amp; touch-ups</p><strong>@(Model.CategoriesUnavailable ? "Availability unavailable" : $"{Model.CategoryCounts.GetValueOrDefault("Painting")} available")</strong></a>
+                        <a class="category-card" href="/FindPost?category=Tutoring"><h4>Tutoring</h4><p>Lessons, homework &amp; study support</p><strong>@(Model.CategoriesUnavailable ? "Availability unavailable" : $"{Model.CategoryCounts.GetValueOrDefault("Tutoring")} available")</strong></a>
+                        <a class="category-card" href="/FindPost?category=Pet%20Care"><h4>Pet Care</h4><p>Pet sitting, walks &amp; care</p><strong>@(Model.CategoriesUnavailable ? "Availability unavailable" : $"{Model.CategoryCounts.GetValueOrDefault("Pet Care")} available")</strong></a>
+                        <a class="category-card" href="/FindPost?category=Others"><h4>Others</h4><p>Unique skills &amp; other services</p><strong>@(Model.CategoriesUnavailable ? "Availability unavailable" : $"{Model.CategoryCounts.GetValueOrDefault("Others")} available")</strong></a>
+                    </div>
                     </div>
 
                 </section>
@@ -460,7 +452,7 @@
                             </h3>
 
                             <p>
-                                Highest rated near you
+                                Highest rated from completed tasks
                             </p>
 
                         </div>
@@ -474,6 +466,11 @@
 
 
                     <div class="provider-grid">
+                        @if (Model.ReviewsUnavailable) { <p>Ratings are unavailable until the reviews database is ready.</p> }
+                        else if (Model.RatedProviders.Count == 0) { <p>No reviews yet. Rated providers will appear here after completed tasks are reviewed.</p> }
+                        @foreach (var provider in Model.RatedProviders) { <div class="provider-card"><div class="provider-top"><div class="provider-avatar">@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "?")</div><div class="provider-name"><strong>@provider.Name</strong><span>@provider.Service</span></div></div><div class="provider-stats"><span class="rating">★ @provider.Average.ToString("0.0") <small>(@provider.Count reviews)</small></span></div><div class="provider-bottom"><a href="/FindPost">Find a freelancer</a></div></div> }
+                    </div>
+                    <div class="sample-provider-grid" hidden>
 
 
                         <!-- PROVIDER 1 -->
@@ -714,7 +711,8 @@
          DASHBOARD JAVASCRIPT
     ========================================================== -->
 
-    <script src="~/js/dashboard.js"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script src="~/js/category-carousel.js" asp-append-version="true"></script>
 
 
     <!-- =========================================================

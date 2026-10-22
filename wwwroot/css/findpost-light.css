@@ -1,0 +1,67 @@
+/* Find & Post: one selected view at a time; this stylesheet changes presentation only. */
+html body .page-content .mode-switcher {
+    width:100%; max-width:none; height:auto; min-height:0; max-height:none; padding:0;
+    display:flex; align-items:stretch; gap:0; overflow-x:auto; overflow-y:hidden;
+    scrollbar-width:none; -ms-overflow-style:none;
+    background:transparent !important; border:0 !important;
+    border-bottom:1px solid #dbe7dc !important; border-radius:0;
+}
+html body .page-content .mode-switcher::-webkit-scrollbar { display:none; }
+html, html body, html body .app-shell, html body .main-area { background:#f6f7f3 !important; }
+html body .page-content .mode-switcher .mode-button,
+html body .page-content .mode-switcher .mode-button.active {
+    flex:0 0 auto; height:auto; min-height:50px; max-height:none;
+    padding:14px 22px; border:0; border-bottom:3px solid transparent;
+    border-radius:0; background:transparent !important; box-shadow:none;
+    color:#526c5d !important; font-size:14px !important; font-weight:600;
+}
+html body .page-content .mode-switcher .mode-button:hover { color:#176b50 !important; background:#edf5ed !important; }
+html body .page-content .mode-switcher .mode-button.active { color:#164d37 !important; border-bottom-color:#176b50; }
+html body .page-content .mode-switcher .mode-button:focus-visible { outline:2px solid #19765a; outline-offset:-3px; }
+
+/* Initial post state, form, and confirmation all use the light theme. */
+html body #postTaskSection .mode-placeholder {
+    background:#fff !important; border:1px solid #d9e7da !important;
+    border-radius:12px; color:#193e30 !important;
+}
+html body #postTaskSection .placeholder-icon { background:#e1efe3 !important; color:#176b50 !important; }
+html body #postTaskSection .mode-placeholder h2 { color:#193e30 !important; }
+html body #postTaskSection .mode-placeholder p { color:#526c5d !important; }
+html body #postTaskSection .mode-placeholder button { background:#19765a !important; color:#fff !important; border:1px solid #19765a; }
+html body #postTaskSection :is(.post-task-panel,.post-task-success) { background:#fff !important; border:1px solid #d9e7da !important; color:#193e30 !important; }
+html body #postTaskSection :is(.post-task-heading h2,.post-field > span,.post-category-field legend) { color:#193e30 !important; }
+html body #postTaskSection :is(.post-task-heading p,.schedule-help,.post-field em) { color:#526c5d !important; }
+html body #postTaskSection .post-step { background:#f2f7f0; border-color:#cfe0d1; color:#365b49; }
+html body #postTaskSection .post-categories span { background:#f2f7f0 !important; border-color:#cfe0d1 !important; color:#244c39 !important; font-size:13px; font-weight:600; }
+html body #postTaskSection .post-categories label:hover span { background:#e5f0e6 !important; border-color:#98c2a3 !important; }
+html body #postTaskSection .post-categories input:checked + span { background:#dcefe1 !important; border-color:#19765a !important; color:#155e48 !important; box-shadow:0 0 0 1px #19765a; }
+html body #postTaskSection .post-categories input:focus-visible + span { outline:2px solid #19765a; outline-offset:2px; }
+html body #postTaskSection .quick-schedule-field { background:#f8faf7 !important; border-color:#d4e5d5 !important; }
+html body #postTaskSection .quick-schedule-field > span { color:#365b49 !important; }
+html body #postTaskSection .quick-schedule-actions button { background:#f2f7f0; border-color:#cfe0d1; color:#176b50; }
+html body #postTaskSection .quick-schedule-actions button:hover { background:#dcefe1; color:#155e48; }
+html body #postTaskSection .post-cancel-button { background:#fff; border-color:#a9cbb0; color:#176b50; }
+html body #postTaskSection .post-form-actions { border-top:0 !important; }
+
+/* Jobs: readable empty state, offers, and existing job cards. */
+html body #findJobsSection .jobs-workspace {
+    background:#fff !important; border:1px solid #d9e7da !important;
+    border-radius:14px; padding:28px; color:#193e30 !important;
+}
+html body #findJobsSection :is(.jobs-heading p,.jobs-empty p,.jobs-offers p,.jobs-meta) { color:#526c5d !important; }
+html body #findJobsSection .jobs-eyebrow { color:#19765a !important; }
+html body #findJobsSection :is(.jobs-count,.jobs-tag) { background:#e1efe3 !important; border-color:#c8dfcd !important; color:#176b50 !important; }
+html body #findJobsSection .jobs-count { background:#175a3f !important; border-color:#175a3f !important; color:#fff !important; }
+html body #findJobsSection .jobs-empty { background:#f8faf7 !important; border-color:#d9e7da !important; }
+html body #findJobsSection .jobs-empty-icon { background:#e1efe3 !important; color:#176b50 !important; }
+html body #findJobsSection .jobs-offers { background:#e9f3ea !important; border-color:#d3e4d5 !important; color:#193e30 !important; }
+html body #findJobsSection .jobs-offer summary { background:#19765a; color:#fff; }
+html body #findJobsSection .sent-offer { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:12px; padding:14px 16px; border:1px solid #d3e4d5; border-radius:10px; background:#fff; }
+html body #findJobsSection .sent-offer strong, html body #findJobsSection .sent-offer div span { display:block; }
+html body #findJobsSection .sent-offer strong { color:#193e30; overflow-wrap:anywhere; }
+html body #findJobsSection .sent-offer div span { margin-top:4px; color:#526c5d; font-size:13px; }
+html body #findJobsSection .sent-offer-status { padding:5px 10px; border-radius:20px; background:#e1efe3; color:#176b50; font-size:12px; font-weight:700; text-transform:capitalize; }
+@media (max-width:600px) {
+    html body .page-content .mode-switcher .mode-button { padding:12px 14px; font-size:13px !important; }
+    html body #findJobsSection .jobs-workspace { padding:18px; }
+}

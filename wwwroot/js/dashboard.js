@@ -296,48 +296,6 @@
     // BROWSE CATEGORIES
     // =====================================================
 
-    const categoryCards =
-        document.querySelectorAll(
-            ".category-card"
-        );
-
-
-    categoryCards.forEach(function (card) {
-
-        card.style.cursor =
-            "pointer";
-
-
-        card.addEventListener(
-            "click",
-            function () {
-
-                const categoryNameElement =
-                    card.querySelector("h4");
-
-
-                if (!categoryNameElement) {
-                    return;
-                }
-
-
-                const categoryName =
-                    categoryNameElement
-                        .textContent
-                        .trim();
-
-
-                window.location.href =
-                    "/FindPost?category=" +
-                    encodeURIComponent(
-                        categoryName
-                    );
-
-            }
-        );
-
-    });
-
 
     // =====================================================
     // TOP SERVICE PROVIDERS
@@ -523,7 +481,7 @@
 
     const providerGrid = document.querySelector(".provider-grid");
 
-    if (providerGrid) {
+    if (providerGrid && providerGrid.dataset.enableDemo === "true") {
         const providers = [
             { name: "Ofrac", service: "Plumber", rating: 4.8, reviews: 600, jobs: 100, price: "₱600 / task", status: "Busy", statusDetail: "Currently working on another task. Available again at 4:00 PM." },
             { name: "Marisol", service: "House Cleaner", rating: 4.9, reviews: 421, jobs: 210, price: "₱450 / task", status: "Available", statusDetail: "Free to accept a new task today." },

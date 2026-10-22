@@ -20,6 +20,7 @@
 
     <link rel="stylesheet"
           href="/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/light-auth.css" asp-append-version="true" />
 
 </head>
 
@@ -60,6 +61,7 @@
             <p class="login-subtitle">
                 Pick up where you left off and manage your tasks.
             </p>
+            @if (TempData["BirthdayMessage"] is string birthdayMessage) { <p class="login-subtitle" role="status">@birthdayMessage</p> }
 
 
 
@@ -94,12 +96,15 @@
                         PASSWORD
                     </label>
 
+                    <div class="password-input-wrapper">
                     <input type="password"
                            id="loginPassword"
                            name="password"
                            placeholder="••••••••"
                            autocomplete="current-password"
                            required />
+                    <button type="button" class="password-toggle" data-password-toggle="loginPassword" aria-controls="loginPassword" aria-pressed="false" aria-label="Show password">Show</button>
+                    </div>
 
                 </div>
 
@@ -126,12 +131,7 @@
                 </a>
 
             </p>
-            <p class="create-account-text">Password reset is not available yet.</p>
-
-            <p class="create-account-text">
-                Are you an administrator?
-                <a href="/AdminLogin">Admin sign in</a>
-            </p>
+            <p class="create-account-text"><a href="/ForgotPassword">Forgot password?</a></p>
 
 
         </div>
@@ -139,6 +139,7 @@
     </div>
 
 
+    <script src="~/js/password-toggle.js" asp-append-version="true"></script>
     <script>
         document.getElementById("loginForm").addEventListener("submit", async function (event) {
             event.preventDefault();
@@ -162,12 +163,12 @@
                 const result = await response.json().catch(() => ({}));
                 if (!response.ok) { alert(result.message || "Unable to log in. Please check the database connection."); return; }
                 // Legacy screens use this non-secret display profile; the server cookie is the login credential.
-                localStorage.setItem("tapTaskDoneAccount", JSON.stringify({ name: result.name, email: result.email }));
-                window.location.href = "/Dashboard";
+                if (result.redirect === "/VerifyEmail") localStorage.removeItem("tapTaskDoneAccount");
+                else localStorage.setItem("tapTaskDoneAccount", JSON.stringify({ name: result.name, email: result.email }));
+                window.location.href = ["/Admin", "/Birthday", "/Dashboard", "/VerifyEmail"].includes(result.redirect) ? result.redirect : "/Dashboard";
             } catch (error) { alert("Unable to reach the server. Please try again."); }
         });
     </script>
-    <script src="/js/admin-auth.js" asp-append-version="true"></script>
 
 </body>
 

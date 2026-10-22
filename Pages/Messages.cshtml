@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model MessagesModel
 @{
     Layout = null;
@@ -16,9 +16,10 @@
     <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+<link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
 </head>
 
-<body>
+<body class="@(Request.Query["legacy"] == "1" ? "messages-legacy-view" : "messages-current-view")">
 
     <!-- ==============================
          SIDEBAR
@@ -113,6 +114,8 @@
              MESSAGE AREA
         =============================== -->
 
+        @if (Request.Query["legacy"] == "1") {
+        <p style="padding: 15px">Older browser-only messages have not been imported. <a href="/Messages">Back to current messages</a></p>
         <section class="messages-wrapper">
 
             <!-- CONVERSATION LIST -->
@@ -188,11 +191,39 @@
             </div>
 
         </section>
+        } else {
+        <section class="messages-current">
+            <div class="messages-intro"><h2>Your conversations</h2></div>
+            @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="messages-notice" role="status">@Model.Notice</p> }
+            @if (Model.Unavailable) { <div class="messages-empty" role="alert">Messages are unavailable. Check the database setup and try again.</div> }
+            else {
+            <div class="messages-grid"><nav class="messages-conversations" aria-label="Conversations">
+                <h3>Tasks</h3>
+                @if (Model.Conversations.Count == 0) { <p>No conversations yet. A conversation appears when a client accepts an offer.</p> }
+                @foreach (var conversation in Model.Conversations) {
+                    <a class="conversation-link @(Model.Selected?.TaskId == conversation.TaskId ? "selected" : "")" href="/Messages?taskId=@conversation.TaskId"><strong>@conversation.Title</strong><span>@(string.IsNullOrWhiteSpace(conversation.OtherName) ? "User" : conversation.OtherName)</span></a>
+                }
+            </nav><div class="messages-thread">
+                @if (Model.Selected == null) { <div class="messages-empty"><h3>No conversation selected</h3><p>After an offer is accepted, open the task here to start a conversation.</p><a href="/FindPost">Find tasks and freelancers →</a></div> }
+                else {
+                    <div class="thread-heading"><h3>@Model.Selected.Title</h3><p>Conversation with @(string.IsNullOrWhiteSpace(Model.Selected.OtherName) ? "User" : Model.Selected.OtherName)</p></div>
+                    <div class="thread-messages" aria-label="Conversation messages">
+                        @if (Model.Messages.Count == 0) { <p class="thread-empty">No messages yet. Start the conversation below.</p> }
+                        @foreach (var message in Model.Messages) {
+                            <div class="thread-message @(message.SenderId == Model.UserId ? "mine" : "theirs")"><span>@(message.SenderId == Model.UserId ? "You" : Model.Selected.OtherName)</span><p>@message.Body</p><time>@tts.Data.DisplayTime.Philippine(message.CreatedAt)</time></div>
+                        }
+                    </div>
+                    <form method="post" asp-page-handler="Send" class="thread-form"><input type="hidden" name="taskId" value="@Model.Selected.TaskId" /><label for="messageBody">Your message</label><textarea id="messageBody" name="body" maxlength="2000" required rows="3" placeholder="Write a message…"></textarea><button type="submit">Send message</button></form>
+                }
+            </div></div>
+            }
+        <script defer src="/js/messages-live.js" asp-append-version="true"></script></section>
+        }
 
     </main>
 
 
-    <script src="~/js/messages.js" asp-append-version="true"></script>
+    @if (Request.Query["legacy"] == "1") { <script src="~/js/messages.js" asp-append-version="true"></script> }
 
 </body>
 </html>

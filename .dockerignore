@@ -2,6 +2,7 @@ bin/
 obj/
 .git/
 .vs/
+appsettings.Local.json
 *.user
 *.suo
 README.md

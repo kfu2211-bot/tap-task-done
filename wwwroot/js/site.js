@@ -321,11 +321,11 @@
         document.getElementById("yearDropdown");
 
 
-    let selectedMonth = "";
+    let selectedMonth = document.getElementById("birthMonth")?.value || "";
 
-    let selectedDay = "";
+    let selectedDay = document.getElementById("birthDay")?.value || "";
 
-    let selectedYear = "";
+    let selectedYear = document.getElementById("birthYear")?.value || "";
 
 
     /* =========================================
@@ -469,6 +469,8 @@
             selectedMonth =
                 value;
 
+            document.getElementById("birthMonth").value = value;
+
             updateDays();
 
         }
@@ -486,6 +488,8 @@
             selectedDay =
                 value;
 
+            document.getElementById("birthDay").value = value;
+
         }
     );
 
@@ -500,6 +504,8 @@
 
             selectedYear =
                 value;
+
+            document.getElementById("birthYear").value = value;
 
             updateDays();
 
@@ -593,10 +599,23 @@
         // Preserve the selected day unless it is invalid for the new month or year.
         if (selectedDay && Number(selectedDay) > days) {
             selectedDay = "";
+            document.getElementById("birthDay").value = "";
         }
         dayDropdown.querySelector(".dropdown-button span").textContent = selectedDay || "Day";
 
     }
+
+    if (selectedMonth && selectedYear) updateDays();
+    if (selectedMonth) monthDropdown.querySelector(".dropdown-button span").textContent = new Date(2000, Number(selectedMonth) - 1, 1).toLocaleString("en", { month: "long" });
+    if (selectedDay) dayDropdown.querySelector(".dropdown-button span").textContent = selectedDay;
+    if (selectedYear) yearDropdown.querySelector(".dropdown-button span").textContent = selectedYear;
+
+    document.getElementById("registerForm")?.addEventListener("submit", function (event) {
+        if (!selectedMonth || !selectedDay || !selectedYear) {
+            event.preventDefault();
+            alert("Please select your complete date of birth.");
+        }
+    });
 
 
     /* =========================================

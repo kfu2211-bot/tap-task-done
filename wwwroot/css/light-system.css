@@ -1,0 +1,71 @@
+/* Shared light theme for the signed-in and admin workspaces. */
+:root { color-scheme: light; --bg:#f6f7f3; --panel:#fff; --line:#d9e7da; --muted:#526c5d; --text:#1c302b; --teal:#176b50; --page:#f6f7f3; --surface:#fff; --surface-2:#f2f7f0; --brand:#19765a; }
+html, body, .app-shell, .settings-layout, .mytasks-app, .reviews-page, .messages-page, .tracking-page, .admin-shell { background:#f6f7f3 !important; color:#1c302b !important; }
+body :is(.main-content,.mytasks-main,.admin-main,.market-main) { background:#f6f7f3 !important; color:#1c302b; }
+/* Match Home's navigation without changing its responsive positioning. */
+html body :is(.sidebar,.mytasks-sidebar,.admin-sidebar,.report-admin-sidebar) { background:#e7f0e5 !important; border-color:#d1e1d2 !important; }
+html body :is(.sidebar-logo,.mytasks-logo,.brand,.admin-brand,.report-brand) { color:#193e30 !important; border-color:#d1e1d2 !important; }
+html body :is(.logo-check,.mytasks-logo-check,.brand-icon,.admin-brand > span) { background:#d4e9d7 !important; color:#176b50 !important; border-color:#b6d6bd !important; }
+html body :is(.sidebar-navigation,.sidebar-nav,.sidebar-menu,.mytasks-navigation,.admin-sidebar nav,.report-admin-sidebar nav) a { color:#193e30 !important; }
+html body :is(.sidebar-navigation,.sidebar-nav,.sidebar-menu,.mytasks-navigation,.admin-sidebar nav,.report-admin-sidebar nav) a:not(.active):not(.current):hover { background:#d6e9db !important; color:#153e2d !important; }
+html body :is(.sidebar-navigation,.sidebar-nav,.sidebar-menu,.mytasks-navigation,.admin-sidebar nav,.report-admin-sidebar nav) a:is(.active,.current) { background:#175a3f !important; color:#fff !important; }
+html body :is(.sidebar-navigation,.sidebar-nav,.sidebar-menu,.mytasks-navigation,.admin-sidebar nav) a:is(.active,.current) span { color:#fff !important; }
+html body :is(.sidebar-user,.sidebar-account,.mytasks-user) { background:#f8faf4 !important; border-color:#cfe0ce !important; color:#193e30 !important; }
+html body :is(.sidebar-user,.sidebar-account,.mytasks-user) :is(strong,small,span:not(.account-avatar):not(.user-avatar)) { color:#365b49 !important; }
+html body :is(.topbar,.top-header,.mytasks-topbar,.market-header,.admin-topbar,.report-admin-header,main > header) { background:#fff !important; color:#1c302b !important; border-color:#dfe9df !important; }
+html body :is(.topbar,.top-header,.mytasks-topbar,.market-header,.admin-topbar,.report-admin-header,main > header) h1 { color:#20372e !important; }
+html body :is(.notification,.notification-button,.mytasks-notification,.mobile-menu) { background:#f2f7f0 !important; color:#176b50 !important; border-color:#d5e5d7 !important; }
+/* White panels and soft green cards create the same hierarchy as Home. */
+html body :is(.settings-card,.filter-panel,.post-field,.freelancer-card,.my-task-card,.task-details-card,.order-summary-card,.assigned-provider-card,.job-card,.review-card,.verification-card,.tracking-card,.map-card,.admin-card,.stat-card,.admin-report-card,.safety-notice,.card,.modal-panel,.confirm-task-dialog,.profile-panel,.jobs-empty,.market-empty,.reviews-empty,.empty-state,.messages-empty-state,.report-empty,.notification-card) { background:#fff !important; color:#1c302b !important; border-color:#d9e7da !important; }
+html body :is(.freelancer-card,.my-task-card,.job-card,.review-card,.stat-card,.admin-report-card) { background:#f2f7f0 !important; }
+html body :is(h1,h2,h3,h4,h5,legend) { color:#193e30; }
+html body :is(.page-intro p,.page-heading p,.market-intro p,.jobs-intro p,.section-title p,.admin-intro p:not(.eyebrow),.task-card-meta,.job-meta,.muted,.summary-note,.schedule-help,.empty-state p,.report-footnote,.settings-card label,.safety-form label,.admin-card label) { color:#526c5d !important; }
+html body :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea) { background:#fff !important; color:#1c302b !important; border-color:#bfd3c3 !important; color-scheme:light; }
+html body :is(input,textarea)::placeholder { color:#718579 !important; opacity:1; }
+html body :is(input,select,textarea):focus-visible { outline:2px solid #19765a !important; outline-offset:2px; }
+html body :is(.primary-button,.post-submit-button,.confirm-task-submit,.job-primary,.market-primary,.jobs-find-button,.reviews-action,.primary-action,.submit-review-button,.complete-button) { background:#19765a !important; border-color:#19765a !important; color:#fff !important; }
+html body :is(.job-tabs,.reviews-tabs,.task-filters) :is(button,a) { background:#f2f7f0; color:#244c39; border-color:#cfdfd1; }
+html body :is(.job-tabs,.reviews-tabs,.task-filters) :is(button,a):is(.active,.selected) { background:#175a3f !important; color:#fff !important; border-color:#175a3f !important; }
+html body :is(.eyebrow,.market-eyebrow,.jobs-overline,.reviews-eyebrow,.report-eyebrow) { color:#176b50 !important; }
+html body :is(.user-menu,.mytasks-user-menu) { background:#fff !important; color:#193e30 !important; border-color:#d1e1d2 !important; }
+html body a:not([class]) { color:#176b50; }
+html body :is(.main-area,.verification-page,.tracking-layout,.report-admin-body) { background:#f6f7f3 !important; color:#1c302b !important; }
+html body :is(.logo-area,.brand-name) { color:#193e30 !important; }
+html body :is(.logo-circle,.mini-logo) { background:#d4e9d7 !important; color:#176b50 !important; border-color:#b6d6bd !important; }
+html body .navigation .nav-item { color:#193e30 !important; }
+html body .navigation .nav-item.active { background:#175a3f !important; color:#fff !important; }
+html body .navigation .nav-item.active span { color:#fff !important; }
+html body :is(.post-task-panel,.provider-search-intro,.provider-detail-panel,.jobs-workspace,.jobs-card,.jobs-offer,.conversation-panel,.chat-panel,.messages-conversations,.messages-thread,.db-tracking-card,.db-tracking-empty,.tracking-summary-card,.status-card,.upload-area,.notification-item,.notification-empty,.complete-task-dialog,.message-popup,.input-wrapper,.mode-switcher) { background:#fff !important; color:#1c302b !important; border-color:#d9e7da !important; }
+html body :is(.jobs-card,.jobs-offer,.db-tracking-card,.notification-item,.tracking-summary-card) { background:#f2f7f0 !important; }
+html body :is(.filter-panel,.post-task-panel,.provider-search-intro,.provider-detail-panel,.freelancer-card,.job-card,.jobs-card,.jobs-offer,.conversation-panel,.chat-panel,.messages-conversations,.messages-thread,.db-tracking-card,.tracking-summary-card,.verification-card,.notification-item,.admin-card,.admin-report-card,.settings-card) :is(h2,h3,h4,strong,label) { color:#193e30; }
+html body :is(.filter-panel,.post-task-panel,.provider-search-intro,.provider-detail-panel,.freelancer-card,.job-card,.jobs-card,.jobs-offer,.conversation-panel,.chat-panel,.messages-conversations,.messages-thread,.db-tracking-card,.tracking-summary-card,.verification-card,.notification-item,.admin-card,.admin-report-card,.settings-card) :is(p,small) { color:#526c5d; }
+html body :is(.mode-button,.search-button,.arrow-button,.job-tabs button,.reviews-tabs a) { color:#176b50; }
+html body .mode-button.active { background:#175a3f !important; color:#fff !important; }
+html body .success-page { background:#f6f7f3 !important; color:#193e30 !important; }
+html body .success-card { background:#fff !important; border-color:#d9e7da !important; color:#193e30 !important; }
+html body .success-card p { color:#526c5d !important; }
+html body .success-card button { background:#19765a !important; color:#fff !important; }
+
+/* Shared brand text and Find & Post details: override the old dark palette. */
+html body :is(.sidebar-logo,.mytasks-logo,.logo-area,.brand,.admin-brand,.report-brand) > span:not(.logo-check):not(.mini-logo):not(.brand-icon):not(.mytasks-logo-check),
+html body :is(.sidebar-logo,.mytasks-logo,.logo-area,.brand,.admin-brand,.report-brand) > strong { color:#193e30 !important; }
+html body #findFreelancerSection .filter-group label { color:#365b49 !important; }
+html body #findFreelancerSection .section-heading h2 { color:#193e30 !important; }
+html body #findFreelancerSection .input-wrapper { background:#fff !important; border-color:#cfe0d1 !important; }
+html body #findFreelancerSection .input-wrapper :is(input,select) { color:#1c302b !important; background:transparent !important; color-scheme:light; }
+html body #findFreelancerSection .input-wrapper select option { color:#1c302b; background:#fff; }
+html body #findFreelancerSection .input-wrapper :is(input,select):focus-visible { outline:2px solid #19765a !important; outline-offset:-2px; }
+html body #findFreelancerSection .input-wrapper input:-webkit-autofill { -webkit-text-fill-color:#1c302b !important; box-shadow:0 0 0 1000px #fff inset !important; caret-color:#1c302b; }
+html body #findFreelancerSection .search-button { background:#19765a !important; border-color:#19765a !important; color:#fff !important; }
+html body #findFreelancerSection .search-button:hover { background:#155e48 !important; }
+html body #findFreelancerSection .freelancer-avatar { background:#d4e9d7 !important; color:#176b50 !important; }
+html body #findFreelancerSection .freelancer-price { color:#405e4e !important; }
+html body #findFreelancerSection .freelancer-info span,
+html body #findFreelancerSection .freelancer-jobs,
+html body #findFreelancerSection .freelancer-rating small { color:#526c5d !important; }
+html body #findFreelancerSection .arrow-button { background:#fff !important; border-color:#19765a !important; color:#176b50 !important; }
+html body #findFreelancerSection .arrow-button:hover { background:#e1efe3 !important; color:#155e48 !important; }
+html body #findFreelancerSection .provider-search-intro span { color:#19765a !important; }
+html body #findFreelancerSection .provider-detail-stats span { background:#f2f7f0; border-color:#d4e5d5; color:#365b49; }
+html body #findFreelancerSection .provider-detail-heading button { color:#365b49; }
+html body :is(.arrow-button,.search-button,.mode-button):focus-visible { outline:2px solid #19765a; outline-offset:3px; }

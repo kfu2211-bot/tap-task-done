@@ -58,7 +58,21 @@ document.addEventListener("DOMContentLoaded", function () {
             if (filter === "active") return mine(task) && (task.status === "assigned" || task.status === "completed" || task.status === "client-confirmed");
             return mine(task) && task.status === "reviewed";
         });
-        if (!visible.length && !requests.length) { jobsList.innerHTML = filter === "offers" ? '<div class="jobs-empty">You have no pending offers. <a href="/FindPost?mode=jobs">Find jobs</a> to send an offer.</div>' : filter === "requests" ? '<div class="jobs-empty">No booking requests for your account yet.</div>' : '<div class="jobs-empty">No jobs in this section yet.</div>'; return; }
+        if (!visible.length && !requests.length) {
+            const emptyText = {
+                requests: ["No booking requests yet", "Browser-saved booking requests for your account will appear here."],
+                offers: ["No browser-saved offers yet", "View your database offers in Find Jobs, or explore available tasks."],
+                active: ["No browser-saved active jobs", "Jobs accepted in the older browser-saved flow will appear here."],
+                completed: ["No browser-saved completed jobs", "Completed jobs from the older browser-saved flow will appear here."]
+            }[filter];
+            const empty = document.createElement("div"); empty.className = "jobs-empty";
+            const icon = document.createElement("span"); icon.className = "jobs-empty-icon"; icon.setAttribute("aria-hidden", "true"); icon.textContent = "▤";
+            const title = document.createElement("h3"); title.textContent = emptyText[0];
+            const description = document.createElement("p"); description.textContent = emptyText[1];
+            empty.append(icon, title, description);
+            if (filter === "offers") { const link = document.createElement("a"); link.href = "/FindPost?mode=jobs"; link.textContent = "Go to Find Jobs →"; empty.append(link); }
+            jobsList.append(empty); return;
+        }
         visible.slice().reverse().forEach(function (task) { jobsList.append(createCard(task)); });
     }
     function createCard(task) {
@@ -101,5 +115,5 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     function showChangeForm(task, card) { if (card.querySelector(".job-change-panel")) return; const panel=document.createElement("div"); panel.className="job-change-panel"; panel.innerHTML='<input type="date" /><input placeholder="New budget (optional)" /><textarea placeholder="Explain the schedule, budget, or task-detail change"></textarea><button type="button" class="job-primary">Send change request</button>'; panel.querySelector("button").addEventListener("click",function(){const values=panel.querySelectorAll("input,textarea"); const note=values[2].value.trim(); if(!note){values[2].focus();return;} update(task.id,function(item){item.changeRequest={date:values[0].value,budget:values[1].value.trim(),note:note,from:freelancerName,status:"pending"};}); notify("Change request sent for " + task.title + ".", "/MyTasks"); render();}); card.append(panel); }
     function update(id, change) { const all=tasks(); const item=all.find(function(task){return task.id===id;}); if(item){change(item); save(all); if(mine(item))localStorage.setItem("tapTaskDoneCurrentTask",JSON.stringify(item));} }
-    document.querySelectorAll(".job-tabs button").forEach(function(button){button.addEventListener("click",function(){filter=button.dataset.filter;document.querySelectorAll(".job-tabs button").forEach(function(item){item.classList.toggle("selected",item===button);});render();});}); render();
+    document.querySelectorAll(".job-tabs button").forEach(function(button){button.addEventListener("click",function(){filter=button.dataset.filter;document.querySelectorAll(".job-tabs button").forEach(function(item){item.classList.toggle("selected",item===button);item.setAttribute("aria-pressed", item === button ? "true" : "false");});render();});}); render();
 });

@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model TrackingModel
 @{
     Layout = null;
@@ -13,9 +13,20 @@
     <title>Tracking - Tap, Task, Done</title>
 
     <link rel="stylesheet" href="/css/tracking.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/tracking-database.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+<link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+<style>
+    html, html body, html body .tracking-layout, html body .tracking-layout > .main-content {
+        background: #f6f7f3 !important;
+        min-height: 100%;
+    }
+    html body .tracking-layout, html body .tracking-layout > .main-content { min-height: 100vh; }
+    html body .tracking-layout > .main-content { display: flow-root; }
+    @@media (min-width: 769px) { html body #mobileMenuToggle, html body #mobileMenuOverlay { display: none !important; } }
+</style>
 </head>
 
 <body>
@@ -122,7 +133,9 @@
 
             <!-- ================= TRACKING CONTENT ================= -->
 
+            @if (Request.Query["legacy"] == "1") {
             <section class="tracking-content">
+                <p class="tracking-legacy-note">Older browser-saved tracking; this is not connected to MySQL. <a href="/Tracking">Back to current tracking</a></p>
 
 
                 <!-- TASK SELECTOR -->
@@ -513,13 +526,78 @@
 
 
             </section>
+            } else {
+            <section class="tracking-content db-tracking">
+                <style>
+                    .db-tracking .db-tracking-header h2,.db-tracking .db-tracking-card h3 { color:#143d31; }
+                    .db-tracking .db-tracking-empty h3 { color:#143d31; }
+                    .db-tracking .db-tracking-empty p { color:#526e60; }
+                    .db-tracking .db-tracking-empty a { color:#126345; }
+                    .db-tracking .db-tracking-header p,.db-tracking .db-tracking-card p { color:#526e60; }
+                    .tracking-intro { background:#fff; border:1px solid #d5e5d6; border-radius:14px; padding:28px; margin-bottom:20px; }
+                    .tracking-intro .db-tracking-header { margin-bottom:0; }
+                    .tracking-selector { margin-top:24px; }
+                    .tracking-selector label { display:block; color:#193e30; font-weight:700; margin-bottom:9px; }
+                    .tracking-select { display:block; width:100%; max-width:100%; min-height:48px; padding:12px 16px; margin:0; border:1px solid #cde0cf; border-radius:10px; background:white; color:#143d31; }
+                    .tracking-select:focus-visible { outline:3px solid #a7d8ba; outline-offset:2px; }
+                    html body .db-tracking .db-tracking-card { background:white !important; border:1px solid #d5e5d6; border-radius:14px; margin:20px 0; padding:26px; }
+                    .db-tracking .db-tracking-details > div { background:#f2f7f1; color:#264d3c; border:1px solid #e1eee1; }
+                    .db-tracking .db-tracking-details strong { color:#143d31; }
+                    .tracking-detail-layout { display:grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap:18px; margin-top:22px; align-items:start; }
+                    .tracking-panel { border:1px solid #dce9dc; border-radius:12px; padding:22px; background:#fff; }
+                    .tracking-panel h4 { color:#143d31; margin:0 0 18px; font-size:1.05rem; }
+                    .tracking-timeline { list-style:none; margin:0; padding:0; }
+                    .tracking-timeline li { display:flex; position:relative; gap:14px; padding:0 0 25px; color:#6b8074; }
+                    .tracking-timeline li:not(:last-child)::after { content:""; position:absolute; left:13px; top:28px; bottom:0; width:2px; background:#dce9dc; }
+                    .tracking-timeline li.done::after { background:#a1cfaf; }
+                    .tracking-timeline li div { padding-top:3px; }
+                    .tracking-timeline li small { display:block; margin-top:5px; color:#667f70; font-weight:400; line-height:1.4; }
+                    .tracking-timeline li span { display:grid; place-items:center; width:28px; height:28px; flex:none; border:1px solid #adc9b1; border-radius:50%; }
+                    .tracking-timeline li.current,.tracking-timeline li.done { color:#175e45; font-weight:600; }
+                    .tracking-timeline li.current span,.tracking-timeline li.done span { background:#1a7657; color:white; border-color:#1a7657; }
+                    .tracking-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+                    .tracking-actions a,.tracking-actions button { display:inline-flex; align-items:center; justify-content:center; padding:10px 16px; border:1px solid #98c7a8; border-radius:8px; background:white; color:#126345; text-decoration:none; font-weight:600; cursor:pointer; }
+                    .tracking-actions .tracking-primary { background:#197355; border-color:#197355; color:white; }
+                    .tracking-actions form { margin:0; }
+                    .tracking-person { font-size:1.1rem; font-weight:700; color:#143d31; }
+                    .tracking-location { margin-top:16px; padding:18px; background:#fff; border:1px solid #dce9dc; border-radius:12px; color:#143d31; }
+                    .tracking-location strong,.tracking-location span { display:block; }
+                    .tracking-location span { margin-top:6px; color:#526e60; overflow-wrap:anywhere; }
+                    .tracking-map-preview { position:relative; overflow:hidden; height:155px; margin:14px 0 10px; border-radius:9px; background:repeating-linear-gradient(32deg, transparent 0 34px, #fff 35px 40px, transparent 41px 72px), repeating-linear-gradient(112deg, #e8f0e2 0 43px, #fff 44px 49px, #e8f0e2 50px 80px); border:1px solid #dce9dc; }
+                    .tracking-map-preview::after { content:""; position:absolute; left:50%; top:48%; width:20px; height:20px; border:5px solid white; border-radius:50%; background:#187353; box-shadow:0 2px 8px #54786766; transform:translate(-50%,-50%); }
+                    .tracking-map-note { font-size:12px; line-height:1.45; color:#526e60; }
+                    .tracking-aside { display:grid; gap:16px; }
+                    @@media(max-width:700px) { .tracking-detail-layout { grid-template-columns:1fr; } }
+                </style>
+                @{ var selectedTask = long.TryParse(Request.Query["taskId"], out var requestedTask) && Model.Tasks.Any(x => x.Task.Id == requestedTask) ? requestedTask : Model.Tasks.FirstOrDefault()?.Task.Id; }
+                <div class="tracking-intro"><div class="db-tracking-header"><div><span class="db-tracking-eyebrow">TASK PROGRESS</span><h2>Track your tasks</h2><p>See the progress of your assigned work in one place.</p></div></div>
+                @if (Model.Tasks.Count > 0) { <div class="tracking-selector"><label for="tracking-task-select">Select a task</label><select id="tracking-task-select" class="tracking-select" onchange="window.location.href='/Tracking?taskId='+encodeURIComponent(this.value)">@foreach (var entry in Model.Tasks) { <option value="@entry.Task.Id" selected="@(entry.Task.Id == selectedTask)">@entry.Task.Title — @(entry.IsClient ? "Posted task" : "Accepted job")</option> }</select></div> }</div>
+                @if (Model.Unavailable) { <div class="db-tracking-empty"><h3>Tracking is unavailable</h3><p>Please check the database connection and try again.</p></div> }
+                else if (Model.Tasks.Count == 0) { <div class="db-tracking-empty"><span aria-hidden="true">✓</span><h3>No tasks to track</h3><p>Assigned tasks appear here until completion. Completed tasks are available in My Tasks or My Jobs.</p><a href="/FindPost">Explore Find &amp; Post</a></div> }
+                @foreach (var item in Model.Tasks.Where(x => x.Task.Id == selectedTask)) {
+                    var task = item.Task;
+                    var status = task.Status switch { "assigned" => 0, "in-progress" => 1, "awaiting-confirmation" => 2, "completed" => 3, _ => -1 };
+                    var label = task.Status switch { "assigned" => "Assigned", "in-progress" => "In progress", "awaiting-confirmation" => "Awaiting client confirmation", "completed" => "Completed", "cancelled" => "Cancelled", "disputed" => "Dispute under review", _ => "Status unavailable" };
+                    var steps = new[] { "Assigned", "In progress", "Awaiting confirmation", "Completed" };
+                    <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><span class="db-tracking-status">@label</span></div>
+                    <div class="db-tracking-details"><div><span>Client</span><strong>@item.Client</strong></div><div><span>Freelancer</span><strong>@item.Freelancer</strong></div><div><span>Task budget</span><strong>₱@task.Budget</strong></div><div><span>Schedule</span><strong>@(string.IsNullOrWhiteSpace(task.ScheduleText) ? "To be arranged" : task.ScheduleText)</strong></div></div>
+                    <div class="tracking-detail-layout"><section class="tracking-panel"><h4>Task progress</h4>
+                    @if (status >= 0) { var descriptions = new[] { "A freelancer is assigned to the task.", "The freelancer starts the work.", "The client reviews the finished work.", "The client confirms completion." }; <ol class="tracking-timeline">@for (var i = 0; i < steps.Length; i++) { <li class="@(status == i ? "current" : status > i ? "done" : "")"><span>@(status > i ? "✓" : (i + 1).ToString())</span><div>@steps[i]<small>@descriptions[i]</small></div></li> }</ol> }
+                    <p>@(task.Status == "cancelled" ? "This task was cancelled." : task.Status == "disputed" ? "Task progress is paused while the dispute is reviewed." : status == 0 ? "The freelancer can start work when ready." : status == 1 ? "Work is in progress." : status == 2 ? "The freelancer marked the work finished. The client can check and confirm completion." : status == 3 ? "The client confirmed completion." : "Please check the task in your workspace.")</p>
+                    <div class="tracking-actions">
+                    @if (task.Status == "disputed") { <a href="/Disputes?taskId=@task.Id">View dispute</a> }
+                    <a href="@(item.IsClient ? "/MarketTasks?view=mine" : task.Status == "cancelled" ? "/MyJobs?view=cancelled" : status == 3 ? "/MyJobs?view=completed" : "/MyJobs?view=active")">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a></div></section>
+                    <aside class="tracking-aside"><section class="tracking-panel"><h4>@(item.IsClient ? "Freelancer" : "Client")</h4><div class="tracking-person">@(item.IsClient ? item.Freelancer : item.Client)</div><p>Assigned to this task</p><div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a>@if (task.Status is "assigned" or "in-progress" or "awaiting-confirmation" or "disputed" or "completed") { <a href="/Disputes?taskId=@task.Id">View or raise a dispute</a> }</div></section><section class="tracking-location"><strong>Task location</strong><span>@(string.IsNullOrWhiteSpace(task.Location) ? "Location not provided" : task.Location)</span><div class="tracking-map-preview" aria-hidden="true"></div><div class="tracking-map-note">Map preview only — not a real map or live location.</div></section></aside></div></article>
+                }
+            </section>
+            }
 
         </main>
 
     </div>
 
 
-    <script src="~/js/tracking.js"></script>
+    @if (Request.Query["legacy"] == "1") { <script src="~/js/tracking.js" asp-append-version="true"></script> }
 
 </body>
 </html>

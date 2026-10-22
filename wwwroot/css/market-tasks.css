@@ -1,0 +1,96 @@
+.market-main { min-width: 0; }
+.market-header { min-height: 70px; display: flex; align-items: center; padding: 0 32px; border-bottom: 1px solid #293a36; }
+.market-header h1 { font-size: 22px; margin: 0; }
+.market-content { max-width: 1040px; margin: 0 auto; padding: 42px 32px 72px; }
+.market-intro { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.market-intro h2 { font-size: 30px; margin: 8px 0; }
+.market-eyebrow { color:#35d7b3; font-size:11px; font-weight:800; letter-spacing:.13em; }
+.muted { color:#a4bab4; line-height:1.5; }
+.market-primary, .market-content button { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:9px; background:#27c99d; color:#08221a; padding:12px 18px; font-weight:700; text-decoration:none; cursor:pointer; }
+.market-tabs { display:flex; flex-wrap:wrap; gap:6px; margin:30px 0 18px; border-bottom:1px solid #283b35; }
+.market-tabs a { padding:12px 16px; color:#a4b3af; text-decoration:none; border-bottom:2px solid transparent; }
+.market-tabs a.active { color:#62e4c0; border-color:#2ed0a5; font-weight:700; }
+.market-legacy { margin:20px 0; font-size:13px; }
+.market-content a:not(.market-primary):not(.active) { color:#8dddc6; }
+.market-section-title { display:flex; align-items:center; justify-content:space-between; }
+.market-section-title h2, .market-section h2 { font-size:19px; }
+.market-section-title span { color:#93aaa3; font-size:13px; }
+.market-empty, .card { background:#111b19; border:1px solid #2c403a; border-radius:14px; padding:24px; margin:16px 0; }
+.market-empty { text-align:center; padding:55px 24px; }
+.market-empty h3 { margin:12px 0 6px; font-size:19px; }
+.market-empty p { color:#a4bab4; margin:0 0 22px; }
+.market-empty-icon { display:inline-grid; place-items:center; width:50px; height:50px; border-radius:13px; color:#48deb5; background:#183d33; font-size:25px; }
+.market-content input:not([type=hidden]), .market-content textarea, .market-content select { box-sizing:border-box; width:100%; margin:6px 0 14px; padding:11px; border:1px solid #40564f; border-radius:8px; background:#0b1412; color:#effaf6; font:inherit; }
+.market-content textarea { min-height:85px; resize:vertical; }
+.market-content label { display:block; font-weight:600; }
+.notice { background:#173b32; padding:12px; border-radius:8px; }
+.offer { border-top:1px solid #304842; margin-top:14px; padding-top:14px; }
+@media(max-width:700px) { .market-header { padding:0 18px; } .market-content { padding:28px 18px 56px; } .market-intro { align-items:flex-start; flex-direction:column; } .market-intro h2 { font-size:25px; } }
+
+/* My Tasks: light, readable task details without changing task actions. */
+html, html body { min-height:100%; background:#f6f7f3 !important; }
+html body .market-main { min-height:100vh; background:#f6f7f3 !important; }
+html body .market-content .task-card { padding:28px; background:#fff !important; border:1px solid #d9e7da !important; color:#193e30 !important; }
+html body .market-content .task-card h3 { margin:0 0 10px; color:#193e30 !important; font-size:21px; }
+html body .market-content .task-description { margin:0 0 24px; color:#526c5d !important; line-height:1.5; overflow-wrap:anywhere; }
+html body .market-content .task-meta { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
+html body .market-content .task-meta > div { min-width:0; }
+html body .market-content :is(.task-meta span,.task-status > span) { display:block; margin-bottom:6px; color:#60786b !important; font-size:13px; }
+html body .market-content .task-meta strong { display:block; color:#193e30 !important; font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+html body .market-content .task-status { margin-top:22px; }
+html body .market-content .task-status-badge { display:inline-block; padding:6px 12px; border-radius:20px; background:#e5f1e6; color:#176b50 !important; font-size:13px; text-transform:capitalize; }
+html body .market-content .task-actions { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-top:22px; padding-top:20px; border-top:1px solid #e3ece3; }
+html body .market-content .task-actions:empty { display:none; }
+html body .market-content .task-actions .cancel-task { flex:1; min-width:0; }
+html body .market-content .task-actions summary { color:#176b50 !important; font-weight:600; cursor:pointer; }
+html body .market-content .task-actions button { background:#19765a !important; color:#fff !important; }
+html body .market-content .task-actions > form { flex-shrink:0; }
+html body .market-content .task-card a:not(.market-primary) { color:#176b50 !important; }
+html body .market-header { border-bottom:1px solid #dce8dd !important; }
+html body .market-content .notice { background:#e5f3e8 !important; border:1px solid #c8e2ce; color:#175a3f !important; padding:14px 16px; line-height:1.5; }
+html body .market-content .task-filters { display:flex; flex-wrap:wrap; gap:10px; margin:8px 0 22px; }
+html body .market-content .task-filters button { padding:9px 16px; border:1px solid #d4e5d6 !important; border-radius:22px; background:#eaf4ea !important; color:#176b50 !important; font-size:13px; }
+html body .market-content .task-filters button[aria-pressed="true"] { background:#19765a !important; border-color:#19765a !important; color:#fff !important; }
+html body .market-content .task-filters button:focus-visible { outline:2px solid #176b50; outline-offset:3px; }
+html body .market-content .task-filter-empty { padding:28px; border:1px solid #d9e7da; border-radius:12px; background:#fff; color:#526c5d; text-align:center; }
+html body .market-content [hidden] { display:none !important; }
+html body .market-main > .market-header { border-bottom:1px solid #dce8dd !important; }
+html body .market-content .task-card .task-support { margin:18px 0 0; }
+html body .market-content .task-card .task-support a { font-size:13px; font-weight:600; text-decoration:none; }
+html body .market-content .task-card .task-support a:hover { text-decoration:underline; }
+html body .market-content .task-card .task-message { margin:16px 0 0; }
+html body .market-content .task-card .task-message a { display:inline-flex; align-items:center; min-height:40px; padding:0 15px; border:1px solid #a9cbb0; border-radius:8px; background:#fff; color:#176b50 !important; font-size:13px; font-weight:700; text-decoration:none; }
+html body .market-content .task-card .task-message a:hover { background:#edf6ed; }
+html body .market-content .task-card .offer { margin-top:20px; padding:18px; border:1px solid #d8e9d9 !important; border-radius:11px; background:#f5f9f3 !important; color:#193e30 !important; }
+html body .market-content .offer-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+html body .market-content .offer-heading strong { display:block; color:#193e30 !important; font-size:15px; overflow-wrap:anywhere; }
+html body .market-content .offer-label { display:block; margin-bottom:5px; color:#60786b; font-size:12px; }
+html body .market-content .offer-status { padding:5px 10px; border-radius:20px; background:#e1efe3; color:#176b50; font-size:12px; font-weight:700; text-transform:capitalize; }
+html body .market-content .offer-details { display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:12px; color:#526c5d; font-size:13px; }
+html body .market-content .offer-message { margin:12px 0 0; color:#365b49 !important; line-height:1.5; overflow-wrap:anywhere; }
+html body .market-content .offer form { margin-top:14px; }
+html body .market-content .offer button { background:#19765a !important; color:#fff !important; }
+/* Task actions share one aligned row; cancellation remains an expandable form. */
+html body .market-content .task-card .task-actions { display:flex; flex-wrap:wrap; justify-content:flex-start; align-items:flex-start; gap:10px; margin-top:22px; padding-top:0; border-top:0; }
+html body .market-content .task-card .task-actions:empty { display:none; }
+html body .market-content .task-card .task-actions :is(.task-action-message,.task-action-dispute,.cancel-task > summary) { box-sizing:border-box; display:flex; align-items:center; justify-content:center; min-height:44px; padding:10px 16px; border:1px solid #a9cbb0; border-radius:9px; background:#fff; color:#176b50 !important; font-size:13px; font-weight:700; line-height:1.3; text-align:center; text-decoration:none; cursor:pointer; }
+html body .market-content .task-card .task-actions :is(.task-action-message,.task-action-dispute,.cancel-task) { flex:1 1 190px; min-width:0; }
+html body .market-content .task-card .task-actions .task-action-message { background:#19765a !important; border-color:#19765a; color:#fff !important; }
+html body .market-content .task-card a.task-action-message:not(.market-primary) { color:#fff !important; }
+html body .market-content .task-card .task-actions :is(.task-action-dispute,.cancel-task > summary):hover { background:#edf6ed; }
+html body .market-content .task-card .cancel-task > summary { list-style:none; }
+html body .market-content .task-card .cancel-task > summary::-webkit-details-marker { display:none; }
+html body .market-content .task-card .cancel-task > summary::before { content:'▾'; margin-right:8px; }
+html body .market-content .task-card .cancel-task[open] > summary::before { content:'▴'; }
+html body .market-content .task-card .cancel-task p { color:#526c5d; font-size:13px; line-height:1.5; }
+html body .market-content .task-card .task-actions :is(a,summary,button):focus-visible { outline:2px solid #176b50; outline-offset:3px; }
+html body .market-content .task-card .task-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:start; }
+html body .market-content .task-card .task-actions :is(.task-action-message,.task-action-dispute,.cancel-task > summary) { width:100%; min-height:46px; margin:0; }
+html body .market-content .task-card .task-actions > form { min-width:0; }
+html body .market-content .task-card .task-actions > form > button { width:100%; min-height:46px; }
+@media(max-width:700px) { html body .market-content .task-card .task-actions { grid-template-columns:1fr; } }
+@media(max-width:700px) {
+    html body .market-content .task-card { padding:20px; }
+    html body .market-content .task-meta { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    html body .market-content .task-actions { flex-direction:column; }
+}

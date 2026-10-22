@@ -1,0 +1,26 @@
+.notification-page { max-width: 980px; }
+.notification-page h2 { font-size: 30px; margin: 10px 0; }
+.notification-page > p, .notification-empty p, .notification-footnote { color: #a9bdba; }
+.notification-overline { color: #32d6b2; font-weight: 700; font-size: 12px; letter-spacing: .12em; }
+.notification-list { margin-top: 28px; display: grid; gap: 10px; }
+.notification-item { display: flex; align-items: center; gap: 16px; width: 100%; padding: 20px; text-align: left; color: #e9f5f1; background: #101b19; border: 1px solid #29403b; border-radius: 12px; cursor: pointer; font: inherit; }
+.notification-item:hover { border-color: #35cda4; }
+.notification-item.unread { background: #14332b; }
+.notification-item > span:nth-child(2) { flex: 1; }
+.notification-item small { display: block; margin-top: 7px; color: #abc5be; }
+.notification-dot { width: 9px; height: 9px; border-radius: 50%; background: #73837e; flex: none; }
+.notification-item.unread .notification-dot { background: #36e0b2; }
+.notification-empty { padding: 36px; margin-top: 28px; border: 1px solid #29403b; border-radius: 12px; background: #101b19; }
+.notification-footnote { margin-top: 18px; }
+html body .notification-page { color:#193e30 !important; }
+html body .notification-page :is(h2,h3) { color:#193e30 !important; }
+html body .notification-page > p, html body .notification-page .notification-empty p, html body .notification-page .notification-footnote { color:#526c5d !important; line-height:1.5; }
+html body .notification-page .notification-overline { color:#19765a !important; }
+html body .notification-page .notification-list { gap:10px; }
+html body .notification-page .notification-item { background:#fff !important; border:1px solid #d8e7da !important; color:#193e30 !important; }
+html body .notification-page .notification-item.unread { background:#eaf4ea !important; border-color:#bcd9c1 !important; }
+html body .notification-page .notification-item:hover { border-color:#19765a !important; }
+html body .notification-page .notification-item small { color:#526c5d !important; }
+html body .notification-page .notification-item strong { color:#193e30 !important; }
+html body .notification-page .notification-empty { background:#fff !important; border-color:#d8e7da !important; }
+html body .notification-page .notification-item:focus-visible { outline:2px solid #19765a; outline-offset:2px; }

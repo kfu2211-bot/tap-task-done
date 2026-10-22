@@ -20,6 +20,7 @@
 
     <link rel="stylesheet"
           href="/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/light-auth.css" asp-append-version="true" />
 
 </head>
 
@@ -54,55 +55,31 @@
                 </div>
 
                 <h2>
-                    Local help is just<br />
-                    a few <em>taps away.</em>
+                    Local help,<br />
+                    made simple.
                 </h2>
 
                 <p>
-                    From home repairs to cleaning and moving, find trusted
-                    local pros, book with confidence, and get it done.
+                    Find the right person for your everyday tasks.
                 </p>
 
 
-                <div class="feature">
-
-                    <div class="feature-icon">
-                        ☆
+                <div class="signup-steps" aria-label="How Tap, Task, Done works">
+                    <div class="signup-step">
+                        <span class="signup-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="13" height="18" rx="2"/><path d="M8 8h5M8 12h5M17 14v7M13.5 17.5h7"/></svg></span>
+                        <strong>Post a task</strong>
+                        <span>Share what you need help with.</span>
                     </div>
-
-                    <div>
-
-                        <strong>
-                            Trusted local pros
-                        </strong>
-
-                        <small>
-                            Verified profiles and real reviews
-                        </small>
-
+                    <div class="signup-step">
+                        <span class="signup-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3.5"/><path d="M5 20v-2a7 7 0 0 1 14 0v2H5Z"/></svg></span>
+                        <strong>Connect</strong>
+                        <span>Connect with a freelancer.</span>
                     </div>
-
-                </div>
-
-
-                <div class="feature">
-
-                    <div class="feature-icon">
-                        ◉
+                    <div class="signup-step">
+                        <span class="signup-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L19 7"/></svg></span>
+                        <strong>Get it done</strong>
+                        <span>Complete your task together.</span>
                     </div>
-
-                    <div>
-
-                        <strong>
-                            Simple task booking
-                        </strong>
-
-                        <small>
-                            Post once and receive offers quickly
-                        </small>
-
-                    </div>
-
                 </div>
 
             </div>
@@ -132,7 +109,7 @@
                 </h1>
 
                 <p class="signup-subtitle">Start finding trusted local help today.</p>
-                <p class="signup-demo-notice" role="status">Enter your first and last name. Date of birth is not saved yet.</p>
+                <p class="signup-demo-notice" role="status">Enter your first and last name. You must be at least 16 years old to register.</p>
                 @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
                 {
                     <p class="signup-demo-notice" role="alert">@Model.ErrorMessage</p>
@@ -196,6 +173,8 @@
                                    required
                                    minlength="8" />
 
+                            <button type="button" class="password-toggle" data-password-toggle="password" aria-controls="password" aria-pressed="false" aria-label="Show password">Show</button>
+
                             <div id="passwordPopup"
                                  class="password-popup">
 
@@ -241,6 +220,10 @@
 
 
                     <!-- DATE OF BIRTH -->
+
+                    <input type="hidden" id="birthMonth" name="BirthMonth" value="@Model.BirthMonth" />
+                    <input type="hidden" id="birthDay" name="BirthDay" value="@Model.BirthDay" />
+                    <input type="hidden" id="birthYear" name="BirthYear" value="@Model.BirthYear" />
 
                     <div class="form-group">
 
@@ -481,6 +464,7 @@
 
 
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/password-toggle.js" asp-append-version="true"></script>
     <script>
         (function () {
             const isAppleMobile =

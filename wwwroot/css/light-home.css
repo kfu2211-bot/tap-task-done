@@ -1,0 +1,96 @@
+/* Home-only light theme; shared navigation and application behaviour remain intact. */
+body, .dashboard, .main-content { background: #f6f7f3; color: #1c302b; }
+body .sidebar { background: #fff !important; border-color: #e2e9e2 !important; }
+body .sidebar-logo, body .sidebar-logo > span { color: #1c302b !important; }
+body .mini-logo { background: #e2f0e7 !important; border-color: #c4ddca !important; color: #19765a !important; }
+html body .navigation .nav-item, html body .navigation .nav-item > span:not(.nav-icon) { color: #40574c !important; }
+html body .navigation .nav-item:hover, html body .navigation .nav-item.active { background: #e2f0e7 !important; color: #155e48 !important; }
+body .navigation .nav-icon { color: #28765a !important; }
+html body .sidebar-user { background: #f8faf7 !important; border-color: #dfe8df !important; color: #1c302b !important; }
+html body .sidebar-user .user-info strong, html body .sidebar-user .user-info small { color: #40574c !important; }
+.topbar { background: #fff; border-color: #e4eae4; }
+.topbar h1 { color: #20372e; }
+.notification { background: #fff; color: #19765a; border-color: #d7e4d9; }
+.notification:hover { background: #e5f1e8; color: #155e48; }
+.search-box, .search-box:focus-within { background: #fff; border-color: #dbe5dd; }
+.search-box input { color: #1c302b; }
+.search-box input::placeholder, .search-icon { color: #788b80; }
+.hero-card { background: #e4eee3; border-color: #d9e8d9; padding: 42px; }
+.hero-card::after { border-color: rgba(25,118,90,.15); box-shadow: 0 0 0 55px rgba(25,118,90,.03), 0 0 0 110px rgba(25,118,90,.025); }
+.hero-label { color: #19765a; }
+.hero-text h2 { color: #19392c; font-weight: 700; }
+.hero-text p { color: #4f6859; }
+.post-button, .post-button:hover { background: #19765a; color: #fff; }
+.find-button, .find-button:hover { background: #fff; border-color: #19765a; color: #155e48; }
+.section { padding: 22px; background: #fff; border: 1px solid #e4ebe4; border-radius: 14px; }
+.section-title h3, .providers-heading h3 { color: #1c302b; }
+.section-title p, .providers-heading p { color: #718277; }
+.providers-heading a, .provider-bottom a { color: #19765a; }
+.category-card, .provider-card { background: #fff; border-color: #e0e9e1; }
+.category-card:hover { background: #f4faf5; border-color: #a9d0b4; }
+.category-card h4, .provider-name strong { color: #233c30; }
+.category-card p, .provider-name span, .provider-stats small { color: #718277; }
+.category-card strong, .rating { color: #19765a; }
+.category-carousel::before { background: linear-gradient(90deg, #fff, transparent); }
+.category-carousel::after { background: linear-gradient(270deg, #fff, transparent); }
+.provider-avatar, .user-avatar { background: #dcefe1; color: #19765a; }
+@media (max-width: 700px) { .section { padding: 16px; } .hero-card { padding: 28px 24px; } }
+
+/* Override the shared dark navigation styles on the light Home page only. */
+html body .dashboard .sidebar { background: #fff !important; border-color: #e2e9e2 !important; }
+html body .dashboard .sidebar-logo { color: #1c302b !important; border-color: #e2e9e2 !important; }
+html body .dashboard .mini-logo { background: #e2f0e7 !important; border-color: #c4ddca !important; color: #19765a !important; }
+html body .dashboard .navigation .nav-item { color: #40574c !important; }
+html body .dashboard .navigation .nav-item.active,
+html body .dashboard .navigation .nav-item:hover { background: #e2f0e7 !important; color: #155e48 !important; }
+html body .dashboard .navigation .nav-item .nav-icon { color: #28765a !important; }
+html body .dashboard .sidebar-user { background: #f8faf7 !important; border-color: #dfe8df !important; }
+html body .dashboard .topbar { background: #fff !important; border-color: #e4eae4 !important; }
+html body .dashboard .topbar h1 { color: #20372e !important; }
+html body .dashboard .notification { background: #f4faf5 !important; color: #19765a !important; border-color: #d7e4d9 !important; }
+html body .dashboard .search-box input { background: transparent !important; color: #1c302b !important; }
+html body .dashboard .search-box input::placeholder { color: #687e71 !important; opacity: 1; }
+
+/* Sage sidebar and light page background, scoped to Home. */
+html, html body { background: #f6f7f3 !important; }
+html body .dashboard .sidebar { background: #e7f0e5 !important; border-color: #d1e1d2 !important; }
+html body .dashboard .sidebar-logo { border-color: #d1e1d2 !important; }
+html body .dashboard .navigation .nav-item { color: #193e30 !important; }
+html body .dashboard .navigation .nav-item:not(.active):hover { background: #d6e9db !important; color: #153e2d !important; }
+html body .dashboard .navigation .nav-item.active { background: #175a3f !important; color: #fff !important; }
+html body .dashboard .navigation .nav-item.active > span,
+html body .dashboard .navigation .nav-item.active .nav-icon { color: #fff !important; }
+html body .dashboard .sidebar-user { background: #f8faf4 !important; border-color: #cfe0ce !important; }
+
+/* Rated provider cards must not inherit dark card styling from product-polish. */
+html body .dashboard .provider-grid .provider-card,
+html body .dashboard .provider-grid .provider-card:hover {
+    background: #f7faf5 !important;
+    border: 1px solid #d7e5d8 !important;
+    box-shadow: 0 4px 14px rgba(27, 75, 51, .05) !important;
+}
+html body .dashboard .provider-grid .provider-card:hover { border-color: #a9cbb0 !important; }
+html body .dashboard .provider-grid .provider-name strong { color: #193e30 !important; font-size: 14px !important; }
+html body .dashboard .provider-grid .provider-name span { color: #5d7466 !important; font-size: 12px !important; }
+html body .dashboard .provider-grid .provider-stats,
+html body .dashboard .provider-grid .rating { color: #176b50 !important; font-size: 13px !important; }
+html body .dashboard .provider-grid .rating small { color: #5d7466 !important; }
+html body .dashboard .provider-grid .provider-bottom a { color: #176b50 !important; font-size: 13px; font-weight: 600; }
+html body .dashboard .provider-grid .provider-bottom a:focus-visible { outline: 2px solid #176b50; outline-offset: 3px; }
+
+/* A shared, softly tinted surface keeps category and provider cards cohesive. */
+html body .dashboard .category-carousel .category-card,
+html body .dashboard .provider-grid .provider-card {
+    background: #f2f7f0 !important;
+    border: 1px solid #d4e5d5 !important;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(27, 75, 51, .04) !important;
+}
+html body .dashboard .category-carousel .category-card:hover,
+html body .dashboard .provider-grid .provider-card:hover {
+    background: #e8f2e8 !important;
+    border-color: #a9cbb0 !important;
+}
+html body .dashboard .category-card h4 { color: #193e30; }
+html body .dashboard .category-card p { color: #596f62; }
+html body .dashboard .category-card strong { color: #176b50; }

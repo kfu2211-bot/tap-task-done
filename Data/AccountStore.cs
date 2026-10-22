@@ -7,6 +7,7 @@ namespace tts.Data;
 // A database unique constraint is still required to prevent concurrent duplicates.
 public sealed class AccountStore(ApplicationDbContext db)
 {
+    public static string SessionFingerprint(byte[]? hash) => hash is null ? "" : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(hash));
     private readonly PasswordHasher<AppUser> hasher = new();
 
     public async Task<bool> UsernameExistsAsync(string username, CancellationToken cancellationToken = default)

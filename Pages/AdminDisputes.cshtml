@@ -1,0 +1,11 @@
+@page
+@model tts.Pages.AdminDisputesModel
+@{ Layout = null; }
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Task disputes</title><link rel="stylesheet" href="/css/admin.css" asp-append-version="true" /><link rel="stylesheet" href="/css/safety-reports.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+</head>
+<body class="report-admin-body report-embedded"><main class="admin-report-page"><p class="report-eyebrow">TASK RESOLUTION</p><h1>Task disputes</h1><p>Review disagreements between task participants. Closing a dispute restores the task's previous status; it does not issue a refund or payment.</p>
+@if(!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="safety-notice" role="status">@Model.Notice</p> }
+@if(Model.Items.Count == 0) { <section class="report-empty"><h2>No disputes yet</h2></section> }
+@foreach(var item in Model.Items) { var dispute = item.Dispute; <article class="admin-report-card"><h2>@item.TaskTitle · #@dispute.Id</h2><p>Status: @dispute.Status · @tts.Data.DisplayTime.Philippine(dispute.CreatedAt)</p><p><strong>Reason shared by participant</strong></p><p class="admin-report-description">@dispute.Reason</p>
+@if(dispute.Status == "open") { <form method="post" asp-page-handler="Close" class="safety-form report-action-form"><input type="hidden" name="id" value="@dispute.Id" /><label>Resolution visible to both participants<textarea name="resolution" maxlength="1000" rows="4" required></textarea></label><p>Closing restores the task to @dispute.PreviousTaskStatus. This action cannot be undone.</p><button type="submit">Close dispute</button></form> } else { <p><strong>Resolution:</strong> @dispute.Resolution</p><p>Closed by admin #@dispute.ClosedById · @(dispute.ClosedAt.HasValue ? tts.Data.DisplayTime.Philippine(dispute.ClosedAt.Value) : "Date unavailable")</p> }</article> }
+<p>Showing up to 100 recent disputes.</p></main></body></html>

@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using tts.Data;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -29,7 +32,7 @@ if (lanPreview)
 }
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages(options => options.Conventions.AuthorizePage("/Admin", "AdminOnly"));
 builder.Services.AddScoped<AccountStore>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
 {
@@ -37,7 +40,62 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthentication().AddCookie("BirthdayPending", options =>
+{
+    options.Cookie.Name = "tts.birthday.pending";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+    options.SlidingExpiration = false;
+    options.LoginPath = "/Login";
+});
+builder.Services.AddAuthentication().AddCookie("AdminCookie", options =>
+{
+    options.Cookie.Name = "tts.admin";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.LoginPath = "/Login";
+    options.AccessDeniedPath = "/Login";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    options.SlidingExpiration = false;
+    options.Events.OnValidatePrincipal = async context =>
+    {
+        var valid = false;
+        if (int.TryParse(context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
+        {
+            try
+            {
+                var db = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+                var storedRole = await db.Users.AsNoTracking().Where(u => u.Id == id).Select(u => u.Role).SingleOrDefaultAsync();
+                var currentRole = (storedRole ?? "").Trim().ToLowerInvariant();
+                var cookieRole = context.Principal?.FindFirstValue(ClaimTypes.Role);
+                valid = (currentRole is "admin" or "moderator") && currentRole == cookieRole;
+            }
+            catch (Exception ex)
+            {
+                context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("AdminAuthorization").LogWarning(ex, "Admin role validation failed.");
+            }
+        }
+        if (!valid)
+        {
+            context.RejectPrincipal();
+            await context.HttpContext.SignOutAsync("AdminCookie");
+        }
+    };
+});
+builder.Services.AddAuthorization(options => options.AddPolicy("AdminOnly", policy =>
+    policy.AddAuthenticationSchemes("AdminCookie").RequireAuthenticatedUser().RequireRole("admin", "moderator")));
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("AdminLoginLimit", context =>
+        RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(5), QueueLimit = 0 }));
+    options.AddPolicy("PasswordResetLimit", context =>
+        RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(15), QueueLimit = 0 }));
+});
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("ApplicationDatabase");
@@ -90,8 +148,66 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.Use(async (context, next) =>
+{
+    // Do not expose the admin flow publicly until MFA and production controls are implemented.
+    if (!app.Environment.IsDevelopment() &&
+        (context.Request.Path.StartsWithSegments("/Admin") || context.Request.Path.StartsWithSegments("/AdminLogin") || context.Request.Path.StartsWithSegments("/AdminReports")))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+    await next();
+});
+app.UseRateLimiter();
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    var admin = await context.AuthenticateAsync("AdminCookie");
+    var principal = admin.Succeeded ? admin.Principal : context.User;
+    if (principal?.Identity?.IsAuthenticated == true && int.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
+    {
+        try
+        {
+            var db = context.RequestServices.GetRequiredService<ApplicationDbContext>();
+            var account = await db.Users.AsNoTracking().Where(u => u.Id == id).Select(u => new { u.DateOfBirth, u.PasswordHash }).SingleOrDefaultAsync();
+            var emailVerified = !VerificationMailer.Enabled(app.Configuration) || await db.VerifiedEmails.AnyAsync(v => v.UserId == id && db.Users.Any(u => u.Id == id && u.Username == v.Email));
+            if (!emailVerified || account is null || !account.DateOfBirth.HasValue || account.DateOfBirth.Value.Date > DateTime.UtcNow.AddHours(8).Date.AddYears(-16) ||
+                principal.FindFirstValue("password_version") != AccountStore.SessionFingerprint(account.PasswordHash))
+            {
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                await context.SignOutAsync("AdminCookie");
+                if (context.Request.Path.StartsWithSegments("/api")) context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                else context.Response.Redirect("/Login");
+                return;
+            }
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException)
+        {
+            context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("BirthdayCheck").LogError(ex, "Birthday check failed.");
+            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            return;
+        }
+    }
+    await next();
+});
 app.UseAuthorization();
+
+app.MapGet("/api/work-preferences", async (HttpContext context, ApplicationDbContext db) =>
+{
+    if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        return Results.Unauthorized();
+    var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == userId);
+    return Results.Json(new { role = profile?.WorkRole ?? "client", service = profile?.Service ?? "", availability = profile?.Availability ?? "Available" });
+}).RequireAuthorization();
+
+app.MapGet("/api/notifications/unread-count", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0)
+        return Results.Unauthorized();
+    var count = await db.MarketplaceNotifications.CountAsync(n => n.UserId == userId && !n.IsRead, ct);
+    return Results.Json(new { count });
+}).RequireAuthorization();
 
 app.MapRazorPages();
 
