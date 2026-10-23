@@ -1,6 +1,9 @@
 /* Shared light theme for the signed-in and admin workspaces. */
 :root { color-scheme: light; --bg:#f6f7f3; --panel:#fff; --line:#d9e7da; --muted:#526c5d; --text:#1c302b; --teal:#176b50; --page:#f6f7f3; --surface:#fff; --surface-2:#f2f7f0; --brand:#19765a; }
 html, body, .app-shell, .settings-layout, .mytasks-app, .reviews-page, .messages-page, .tracking-page, .admin-shell { background:#f6f7f3 !important; color:#1c302b !important; }
+/* Keep the light canvas behind long pages, including any bottom overflow. */
+html, body { min-height:100%; background-color:#f6f7f3 !important; }
+body :is(.app-shell,.settings-layout,.mytasks-app,.reviews-page,.messages-page,.tracking-page,.tracking-layout,.verification-page,.admin-shell) { min-height:100vh; min-height:100dvh; background-color:#f6f7f3 !important; }
 body :is(.main-content,.mytasks-main,.admin-main,.market-main) { background:#f6f7f3 !important; color:#1c302b; }
 /* Match Home's navigation without changing its responsive positioning. */
 html body :is(.sidebar,.mytasks-sidebar,.admin-sidebar,.report-admin-sidebar) { background:#e7f0e5 !important; border-color:#d1e1d2 !important; }

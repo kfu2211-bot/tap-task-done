@@ -9,7 +9,7 @@ using tts.Data;
 namespace tts.Pages;
 
 [Authorize]
-public sealed class MarketTasksModel(ApplicationDbContext db) : PageModel
+public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironment environment) : PageModel
 {
     public record TaskItem(MarketplaceTask Task, string ClientName);
     public record OfferItem(MarketplaceOffer Offer, string Name, string Service);
@@ -85,12 +85,17 @@ public sealed class MarketTasksModel(ApplicationDbContext db) : PageModel
         var role = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
         if (UserId == 0 || role is not ("client" or "both") || !ModelState.IsValid || title.Length is < 1 or > 120 || description.Length is < 1 or > 5000 || category.Length is < 1 or > 60 || location.Length is < 1 or > 120 || schedule.Length > 120 || budget <= 0 || budget > 9999999999m)
         { Notice = "Please check the task details and your client role."; return RedirectToPage(); }
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot create new tasks while restricted. Check your notifications."; return RedirectToPage(); }
         db.MarketplaceTasks.Add(new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, Location = location, Budget = budget, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow });
-        await db.SaveChangesAsync(ct); Notice = "Task saved. Confirm it below to make it visible to freelancers."; return RedirectToPage();
+        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Task saved. Confirm it below to make it visible to freelancers."; return RedirectToPage();
     }
     public async Task<IActionResult> OnPostConfirmAsync(long id, CancellationToken ct)
     {
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot confirm new tasks while restricted. Check your notifications."; return RedirectToPage(); }
         var count = await db.MarketplaceTasks.Where(t => t.Id == id && t.ClientId == UserId && t.Status == "pending-confirmation").ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, "open"), ct);
+        await tx.CommitAsync(ct);
         Notice = count == 1 ? "Task is now open for offers." : "Task could not be confirmed."; return RedirectToPage();
     }
     public async Task<IActionResult> OnPostCancelAsync(long id, string? reason, CancellationToken ct)
@@ -139,6 +144,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db) : PageModel
         if (profile is null || profile.WorkRole is not ("freelancer" or "both") || profile.Availability != "Available" || !ModelState.IsValid || price <= 0 || price > 9999999999m || message.Length > 500)
         { Notice = "Check your freelancer role, availability and offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot send offers while restricted. Check your notifications."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId != UserId && t.Status == "open", ct);
         if (task is null || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct)) { Notice = "This task is unavailable or you already sent an offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = id, FreelancerId = UserId, Price = price, Message = message, Status = "pending", CreatedAt = DateTime.UtcNow });
@@ -153,6 +159,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db) : PageModel
         var offer = await db.MarketplaceOffers.SingleOrDefaultAsync(o => o.Id == id && o.Status == "pending", ct);
         var task = offer is null ? null : await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == offer.TaskId && t.ClientId == UserId && t.Status == "open", ct);
         if (task is null || offer is null) { Notice = "This offer is no longer available."; return RedirectToPage(); }
+        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account is restricted."; return RedirectToPage(); }
         task.Status = "assigned"; offer.Status = "accepted";
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(offer.FreelancerId, task.Id, "accepted", "The client accepted your offer."));
         await db.MarketplaceOffers.Where(o => o.TaskId == task.Id && o.Id != offer.Id && o.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, "declined"), ct);

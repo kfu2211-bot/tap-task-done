@@ -8,7 +8,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
+<head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" />
 
     <meta charset="utf-8" />
 
@@ -24,6 +24,7 @@
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
 
 <link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/reviews-polish.css" asp-append-version="true" />
 </head>
 
 <body>
@@ -147,10 +148,21 @@
             {
             <section class="reviews-live">
                 <div class="reviews-live-heading">
-                    <div><span class="reviews-eyebrow">YOUR FEEDBACK</span><h2>Reviews</h2><p>See feedback you have received or reviews you have given after completed tasks.</p></div>
-                    <a class="reviews-action" href="/MarketTasks?view=mine">View my tasks</a>
+                    <div class="reviews-hero-copy"><span class="reviews-eyebrow">YOUR FEEDBACK</span><h2>Reviews that matter.</h2><p>Every completed task is a chance to build trust. See the feedback you've received and shared along the way.</p></div>
+                    <a class="reviews-action" href="/MarketTasks?view=mine">View my tasks <span aria-hidden="true">↗</span></a>
                 </div>
                 @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="reviews-notice" role="status">@Model.Notice</p> }
+                @if (!Model.Unavailable)
+                {
+                    <div class="reviews-overview" aria-label="Review summary">
+                        <div class="reviews-overview-icon" aria-hidden="true">★</div>
+                        <div><span class="reviews-overview-label">@(Model.View == "given" ? "FEEDBACK YOU'VE SHARED" : "YOUR REPUTATION")</span><strong>@Model.Items.Count @(Model.Items.Count == 1 ? "review" : "reviews")</strong><p>@(Model.Items.Count == 0 ? "Your review history will appear here." : "Based on the reviews shown below.")</p></div>
+                        @if (Model.Items.Count > 0)
+                        {
+                            <div class="reviews-overview-score"><span>AVERAGE RATING</span><strong>@Model.Items.Average(x => x.Review.Rating).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) <small>/ 5</small></strong></div>
+                        }
+                    </div>
+                }
                 <nav class="reviews-tabs" aria-label="Review type">
                     <a class="@(Model.View == "received" ? "selected" : "")" href="/Reviews?view=received" aria-current="@(Model.View == "received" ? "page" : null)">Received</a>
                     <a class="@(Model.View == "given" ? "selected" : "")" href="/Reviews?view=given" aria-current="@(Model.View == "given" ? "page" : null)">Given</a>
@@ -169,13 +181,13 @@
                     @foreach (var item in Model.Items)
                     {
                         <article class="review-card live-review">
-                            <div class="review-top"><div><strong>@(string.IsNullOrWhiteSpace(item.OtherName) ? "User" : item.OtherName)</strong><p>@item.TaskTitle</p></div><time>@tts.Data.DisplayTime.PhilippineDate(item.Review.CreatedAt)</time></div>
-                            <div class="review-rating" aria-label="@item.Review.Rating out of 5 stars">@(new string('★', item.Review.Rating))@(new string('☆', 5 - item.Review.Rating)) <span>@item.Review.Rating / 5</span></div>
-                            <p>@(string.IsNullOrWhiteSpace(item.Review.Feedback) ? "No written feedback." : item.Review.Feedback)</p>
+                            <div class="review-top"><div class="review-person"><span class="review-avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(item.OtherName) ? "U" : item.OtherName.Trim()[0].ToString().ToUpperInvariant())</span><div><strong>@(string.IsNullOrWhiteSpace(item.OtherName) ? "User" : item.OtherName)</strong><p>@(Model.View == "given" ? "Review given" : "Review received")</p></div></div><time>@tts.Data.DisplayTime.PhilippineDate(item.Review.CreatedAt)</time></div>
+                            <div class="review-rating" aria-label="@item.Review.Rating out of 5 stars"><span class="review-stars" aria-hidden="true">@(new string('★', item.Review.Rating))@(new string('☆', 5 - item.Review.Rating))</span> <span>@item.Review.Rating / 5</span></div>
+                            <p class="review-feedback">@(string.IsNullOrWhiteSpace(item.Review.Feedback) ? "No written feedback." : item.Review.Feedback)</p>
+                            <div class="review-task"><span aria-hidden="true">▧</span> <span>Completed task</span><strong>@item.TaskTitle</strong></div>
                         </article>
                     }
                 }
-                <p class="reviews-legacy"><a href="/Reviews?legacy=1">View older reviews saved on this browser</a> (not imported into MySQL).</p>
             </section>
             }
             else

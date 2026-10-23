@@ -1,0 +1,117 @@
+/* Admin surfaces: presentation only; data sources and actions remain unchanged. */
+:root { color-scheme: light; }
+.admin-shell { min-width: 0; }
+.admin-main { min-width: 0; }
+.admin-content { width: min(1550px, calc(100% - 56px)); }
+.admin-intro h2, .section-title h2 { color: #173e30; line-height: 1.15; }
+.admin-intro p:not(.eyebrow), .section-title p:not(.eyebrow) { color: #526e60 !important; line-height: 1.55; }
+.admin-shell .eyebrow, .admin-report-page .report-eyebrow { color: #197257 !important; }
+.admin-shell .local-note { border-color: #d5bc91; background: #fff9ed; color: #795520; }
+.admin-shell .stat-card, .admin-shell .admin-card { border: 1px solid #d8e8da !important; border-radius: 13px; box-shadow: 0 5px 20px rgba(27, 68, 45, .035); }
+.admin-shell .stat-card { background: #f1f7ef !important; min-width: 0; }
+.admin-shell .stat-card strong { color: #153e31 !important; }
+.admin-shell .stat-card small { color: #597366 !important; }
+.admin-shell .stat-card:hover { border-color: #9bc9a7 !important; }
+.admin-shell .admin-card { background: #fff !important; }
+.admin-shell .card-heading p, .admin-shell .person small, .admin-shell .highlight-row small, .admin-shell .admin-notice small, .admin-shell .staff-row small { color: #607a6c !important; }
+.admin-shell .highlight-row, .admin-shell .queue-row, .admin-shell .local-user, .admin-shell .activity-row, .admin-shell .admin-notice, .admin-shell .staff-row { border-color: #e0eae2; }
+.admin-shell .highlight-row { padding: 16px 0; }
+.admin-shell .review-button, .admin-shell .admin-notice button, .admin-shell .staff-row button, .admin-shell .case-workflow button, .admin-shell .role-preview + .review-button { min-height: 38px; border: 1px solid #a8cbb1; background: #fff; color: #176b4e !important; border-radius: 8px; }
+.admin-shell .review-button:hover, .admin-shell .admin-notice button:hover, .admin-shell .staff-row button:hover { background: #edf7ee; border-color: #19765a; }
+.admin-shell button:focus-visible, .admin-shell input:focus-visible, .admin-shell select:focus-visible, .identity-admin :is(button,a,textarea):focus-visible { outline: 3px solid #4eaa80; outline-offset: 2px; }
+.admin-shell .card-tools input, .admin-shell .card-tools select { min-width: 0; min-height: 44px; }
+.admin-shell .table-labels { color: #60786a; border-color: #e0eae2; }
+.admin-shell .queue-row { padding: 12px 0; min-width: 0; }
+.admin-shell .person > div { min-width: 0; }
+.admin-shell .status { background: #fff2d6; border-color: #ead29d; color: #775019; }
+.admin-shell .status.resolved, .admin-shell .status.approved, .admin-shell .status.active { background: #e6f5e9; border-color: #b8dec1; color: #176747; }
+.admin-shell .status.urgent, .admin-shell .status.suspended, .admin-shell .status.rejected { background: #fff0ed; border-color: #efc1b9; color: #9b3935; }
+.admin-shell .local-user-extras button:first-child { background: #fff9ec; color: #80521a; border-color: #e3c78d; }
+.admin-shell .local-user-extras button:last-child { background: #fff5f3; color: #a83e3a; border-color: #e7b3ac; }
+.admin-shell .activity-row { grid-template-columns: minmax(95px,.7fr) minmax(100px,1fr) minmax(140px,1.3fr) minmax(180px,2fr); padding: 12px 0; color: #526e60; }
+.admin-shell .activity-row strong { color: #193e30; }
+.admin-shell .activity-row > *, .admin-shell .admin-notice > div, .admin-shell .highlight-row > div { min-width: 0; overflow-wrap: anywhere; }
+.admin-shell .admin-notice { padding: 16px 12px; }
+.admin-shell .admin-notice.unread { background: #f4faf3; border-left-color: #27a878; }
+.admin-shell .empty-state { color: #5d7868; padding: 20px; background: #f7faf6; border-radius: 10px; }
+.admin-shell .settings-card label, .admin-shell .admin-account-form label, .admin-shell .role-preview { color: #315948; }
+.admin-shell input[type=checkbox] { accent-color: #19765a; }
+.admin-shell .primary-action { background: #19765a; border-color: #19765a; color: white; }
+.admin-shell .modal-panel { background: white; border-color: #c9dfce; color: #193e30; }
+.admin-shell .modal-details div { background: #f5faf4; border-color: #d9e9dc; }
+.admin-shell .modal-details small, .admin-shell .modal-note-label, .admin-shell .modal-close { color: #526e60; }
+.admin-shell .secondary-action { color: #a64039; border-color: #d5a49d; }
+.admin-reports-frame { min-width: 0; }
+.admin-users-frame { height: 300px; min-height: 0; overflow: hidden; }
+
+/* Database-backed reports and disputes, including open forms and closed history. */
+.report-admin-body, .report-admin-body .admin-report-page { background: #f6f7f3; color: #193e30; }
+.report-admin-body .admin-report-page > p, .report-page-heading p, .report-footnote { color: #526e60 !important; line-height: 1.55; }
+.report-admin-body .admin-report-card, .report-admin-body .report-empty { background: #fff !important; color: #193e30 !important; border: 1px solid #d9e8dc !important; box-shadow: 0 5px 20px rgba(27,68,45,.035); }
+.report-admin-body .report-empty { padding: 28px; }
+.report-admin-body .report-guidance { background: #eaf4e9; color: #193e30; border-color: #cbe1ce; }
+.report-admin-body .report-guidance p, .report-admin-body .report-empty p, .report-admin-body .admin-report-description, .report-admin-body .report-closed, .report-admin-body .report-history-entry, .report-admin-body .report-history p { color: #526e60 !important; }
+.report-admin-body .report-details, .report-admin-body .report-history { border-color: #dfebe1; }
+.report-admin-body .report-details dt { color: #607a6c; }
+.report-admin-body .report-details dd { color: #193e30; }
+.report-admin-body .report-action-form { background: #f5faf4; border-color: #d9e9dc; }
+.report-admin-body .report-action-form p, .report-admin-body .report-action-form label span { color: #526e60; }
+.report-admin-body .report-action-form button { background: #19765a; color: white; }
+.report-admin-body .report-history summary, .report-admin-body .admin-report-page a { color: #176b50; }
+.report-admin-body .report-status, .report-admin-body .report-total { background: #e7f4e9; border-color: #badbc1; color: #176b50; }
+.report-admin-body .status-open { background: #fff2d6; border-color: #ead29d; color: #775019; }
+.report-admin-body .status-dismissed { background: #f0f3f0; border-color: #d6dfd8; color: #53695a; }
+
+/* Real identity submissions page linked from the admin navigation. */
+.identity-admin { color: #193e30; background: #f6f7f3; }
+.identity-admin main { width: min(1050px, 100%); margin: 24px auto; }
+.identity-admin h1 { font-size: clamp(26px, 3vw, 36px); }
+.identity-admin main > p, .identity-admin article p { color: #526e60; line-height: 1.55; }
+.identity-admin article { box-shadow: 0 5px 20px rgba(27,68,45,.035); overflow-wrap: anywhere; }
+.identity-admin textarea { box-sizing: border-box; border: 1px solid #bfd3c3; border-radius: 8px; padding: 10px; font: inherit; }
+.identity-admin button[value=rejected] { color: #a64039; background: #fff5f3; border: 1px solid #dba8a2; }
+@media (max-width: 760px) {
+ .admin-content { width: calc(100% - 28px); }
+ .admin-shell .activity-row { grid-template-columns: 1fr 1fr; }
+ .admin-shell .activity-row > :nth-child(3), .admin-shell .activity-row > :nth-child(4) { grid-column: 1 / -1; }
+ .admin-shell .stat-card { min-width: 0; }
+ .report-admin-body .report-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .identity-admin main { padding: 20px 16px; }
+}
+@media (max-width: 420px) { .report-admin-body .report-details { grid-template-columns: 1fr; } }
+.registered-user{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0;padding:16px 0;border-bottom:1px solid #dce9df}
+.registered-user:last-child{border-bottom:0}
+.registered-user .person{min-width:0}
+.registered-user .person strong{color:#153e32}
+.registered-user .person small{color:#607a6d}
+.registered-user .status{flex-shrink:0;background:#eaf5ee;border-color:#cde7d6;color:#17664c;text-transform:capitalize}
+
+/* Verification workspace: empty, populated, and database-error states. */
+.identity-admin{margin:0;min-height:100vh;background:#f6f7f3;color:#173e30;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+.identity-admin *, .identity-admin *::before, .identity-admin *::after{box-sizing:border-box}
+.identity-topbar{height:68px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 clamp(20px,5vw,72px);background:#fff;border-bottom:1px solid #dce9df}
+.identity-topbar span{color:#688274;font-size:13px}.identity-back{color:#176b50;text-decoration:none;font-weight:700}.identity-back:hover{text-decoration:underline}
+.identity-admin .identity-workspace{width:min(1050px,calc(100% - 40px));margin:0 auto;padding:44px 0 70px}
+.identity-heading,.identity-request-heading{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.identity-heading h1{margin:6px 0;font-size:clamp(28px,3vw,38px);line-height:1.15;letter-spacing:-.035em}.identity-heading p:not(.identity-eyebrow){margin:8px 0 0;color:#526e60}
+.identity-eyebrow{margin:0;color:#197257;font-size:11px;font-weight:800;letter-spacing:.14em}.identity-count,.identity-status{border:1px solid #c8e2ce;background:#eaf5eb;color:#176b50;border-radius:99px;padding:7px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.identity-guidance{display:flex;gap:14px;margin:28px 0 22px;padding:19px 22px;background:#edf7ed;border:1px solid #d0e6d2;border-radius:12px}.identity-guidance>span,.identity-empty-icon{display:grid;place-items:center;flex:none;border-radius:50%;background:#d9eddd;color:#176b50;font-weight:800}.identity-guidance>span{width:36px;height:36px}.identity-guidance p{margin:3px 0 0;color:#526e60;font-size:13px}
+.identity-empty,.identity-request{background:#fff;border:1px solid #d9e8dc;border-radius:14px;box-shadow:0 5px 20px rgba(27,68,45,.035)}
+.identity-empty{text-align:center;padding:56px 24px}.identity-empty-icon{width:56px;height:56px;margin:0 auto 18px;font-size:23px}.identity-empty h2{margin:0;font-size:21px}.identity-empty p{max-width:420px;margin:10px auto 22px;color:#607a6c}.identity-empty a{display:inline-block;padding:10px 16px;border:1px solid #bedac4;border-radius:9px;text-decoration:none;color:#176b50;font-weight:700}
+.identity-notice{padding:15px 18px;background:#fff8ea;border:1px solid #ead5ae;border-radius:10px;color:#775019}.identity-request{margin:16px 0;padding:26px}.identity-request h2{margin:5px 0;font-size:21px}.identity-status{text-transform:capitalize}.identity-status-pending{background:#fff5df;border-color:#ebd6aa;color:#79551f}.identity-status-rejected{background:#fff0ed;border-color:#efc1b9;color:#9b3935}
+.identity-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:22px 0;padding:18px 0;border-block:1px solid #e1ece3}.identity-details dt{color:#6a8273;font-size:13px}.identity-details dd{margin:5px 0 0;font-weight:600}.identity-documents h3{margin:0 0 12px;font-size:15px}.identity-document-links{display:flex;gap:8px;flex-wrap:wrap}.identity-document-links a{padding:9px 12px;border:1px solid #c9e1cd;border-radius:8px;color:#176b50;text-decoration:none;font-weight:600;font-size:13px}.identity-document-links a:hover,.identity-empty a:hover{background:#edf7ee}
+.identity-review{display:grid;gap:10px;margin-top:22px;padding:20px;background:#f5faf4;border:1px solid #dfede0;border-radius:10px}.identity-review label{font-weight:700}.identity-review label span{font-size:12px;color:#688274;font-weight:400}.identity-admin .identity-review textarea{width:100%;min-height:85px;background:#fff;color:#173e30;resize:vertical}.identity-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}.identity-actions button{padding:10px 15px;border:1px solid #19765a;border-radius:8px;background:#19765a;color:#fff;font:inherit;font-weight:700;cursor:pointer}.identity-reviewed,.identity-footnote{color:#607a6c;font-size:13px}
+.report-admin-body .report-history summary{font-weight:700;cursor:pointer}.report-admin-body .report-history summary span{display:block;margin:4px 0 0 20px;color:#6c8577;font-size:12px;font-weight:400}.report-history-list{margin-top:18px}.report-admin-body .report-history-entry{display:flex;gap:12px;position:relative;padding:0 0 18px;line-height:1.5}.report-history-entry strong{display:block;color:#193e30}.report-history-meta{display:block;margin-top:2px;font-size:12px}.report-history-marker{flex:0 0 11px;height:11px;margin-top:5px;border-radius:50%;background:#67aa82}.report-admin-body .report-history-entry p{margin:9px 0 0;padding:10px 12px;background:#f5faf4;border-radius:8px;overflow-wrap:anywhere}
+@media(max-width:600px){.identity-admin .identity-workspace{width:calc(100% - 32px);padding:28px 0 50px}.identity-heading,.identity-request-heading{align-items:flex-start;flex-direction:column;gap:12px}.identity-request{padding:20px}.identity-details{grid-template-columns:1fr}.identity-actions button{flex:1}.identity-topbar span{display:none}}
+
+.identity-admin.identity-embedded .identity-workspace{width:min(1050px,calc(100% - 32px));padding:16px 0 36px}
+.report-admin-body .report-closed{display:flex;align-items:center;gap:10px;margin:24px 0 14px;padding:14px 16px;border:1px solid #d6e9d9;border-radius:10px;background:#f4faf3;color:#3e6651!important;font-size:13px}
+.report-admin-body .report-closed::before{content:'✓';display:grid;place-items:center;flex:0 0 27px;height:27px;border-radius:50%;background:#dcefe0;color:#176b50;font-weight:800}
+.report-admin-body .report-history{padding:0;border:1px solid #dceadf;border-radius:10px;background:#fff;overflow:hidden}
+.report-admin-body .report-history summary{position:relative;list-style:none;display:block;padding:16px 44px 16px 18px;background:#f8fbf7;color:#176b50;font-size:14px}
+.report-admin-body .report-history summary::-webkit-details-marker{display:none}
+.report-admin-body .report-history summary::after{content:'⌄';position:absolute;right:19px;top:16px;font-size:19px;line-height:1}
+.report-admin-body .report-history[open] summary::after{transform:rotate(180deg)}
+.report-admin-body .report-history summary span{margin:3px 0 0}
+.report-admin-body .report-history-list,.report-admin-body .report-history>p{margin:0;padding:18px}
+.report-admin-body .report-history-entry:last-child{padding-bottom:0}

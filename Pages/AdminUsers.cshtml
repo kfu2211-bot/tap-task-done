@@ -1,0 +1,58 @@
+@page
+@model tts.Pages.AdminUsersModel
+@{ Layout = null; }
+<!doctype html>
+<html lang="en" class="@(Model.Embedded ? "embedded" : "")">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Account management</title>
+    <link rel="stylesheet" href="/css/admin-users.css" asp-append-version="true" />
+</head>
+<body>
+<main class="users-page">
+    @if (!Model.Embedded) { <h1>Users</h1> }
+    <p class="intro">Manage registered accounts and review moderation decisions.</p>
+    @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="notice" role="status">@Model.Notice</p> }
+    @if (Model.Unavailable) { <div class="empty" role="alert">Account moderation is unavailable. Check the local database setup.</div> }
+    else {
+        <label class="search"><span class="sr-only">Search users</span><input id="search" type="search" placeholder="Search by name or email" /></label>
+        <div class="user-list">
+        @foreach (var user in Model.Users) {
+            var history = Model.History.Where(h => h.UserId == user.Id).ToList();
+            <article class="user-card" data-search="@($"{user.Name} {user.Email}".ToLowerInvariant())">
+                <div class="user-head"><div class="user-identity"><span class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(user.Name) ? "U" : user.Name.Trim().Substring(0, 1).ToUpperInvariant())</span><div><strong>@user.Name</strong><p>@user.Email <span aria-hidden="true">·</span> @user.Role</p></div></div><span class="badge @(user.Suspended ? "suspended" : user.Restricted ? "restricted" : "")">@(user.Suspended ? "Suspended" : user.Restricted ? "Restricted" : "Active")</span></div>
+                @if (!tts.Data.AccountModerationRules.IsStaff(user.Role)) {
+                    <form method="post" onsubmit="return confirm(event.submitter?.value === 'suspend' ? 'Suspend this account? The user will be signed out and unable to log in until restored.' : 'Confirm this account action? The user will see the reason.')">
+                        <input type="hidden" name="userId" value="@user.Id" /><input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
+                        <label class="reason-label" for="reason-@user.Id">Reason for this decision <span>(required)</span></label>
+                        <textarea id="reason-@user.Id" name="reason" required maxlength="500" rows="2" placeholder="Provide a clear reason for this action"></textarea>
+                        <div class="actions"><button type="submit" name="action" value="warn">Warn</button>@if (user.Suspended || user.Restricted) { <button type="submit" class="primary" name="action" value="restore">Restore</button> } else { <button type="submit" name="action" value="restrict">Restrict</button> } @if (!user.Suspended) { <button type="submit" class="suspend-action" name="action" value="suspend">Suspend</button> }</div>
+                    </form>
+                }
+                <details class="history"><summary><span><strong>Admin action history</strong><small>View decisions and notes</small></span><span class="chevron" aria-hidden="true">⌄</span></summary>
+                    <div class="history-content">@if (history.Count == 0) { <p class="history-empty">No decisions recorded for this account yet.</p> } else { @foreach (var item in history) { <div class="history-entry"><div><strong>@(item.Action == "warn" ? "Warning" : item.Action == "restrict" ? "Restricted" : item.Action == "suspend" ? "Suspended" : "Restored")</strong><small>@item.Admin · @tts.Data.DisplayTime.Philippine(item.CreatedAt)</small></div><p>@item.Reason</p></div> } }</div>
+                </details>
+            </article>
+        }
+        </div>
+        <p class="empty" id="noMatches" hidden>No accounts match your search.</p>
+    }
+</main>
+<script>
+    const search = document.getElementById('search');
+    search?.addEventListener('input', () => {
+        const query = search.value.trim().toLowerCase();
+        const users = [...document.querySelectorAll('[data-search]')];
+        users.forEach(user => user.hidden = !user.dataset.search.includes(query));
+        document.getElementById('noMatches').hidden = users.some(user => !user.hidden);
+    });
+    if (document.documentElement.classList.contains('embedded') && window.parent !== window) {
+        const reportHeight = () => window.parent.postMessage({ type: 'admin-users-height', height: document.querySelector('.users-page').getBoundingClientRect().height }, window.location.origin);
+        new ResizeObserver(reportHeight).observe(document.querySelector('.users-page'));
+        document.querySelectorAll('details').forEach(details => details.addEventListener('toggle', reportHeight));
+        window.addEventListener('load', reportHeight);
+        reportHeight();
+    }
+</script>
+</body></html>

@@ -172,6 +172,14 @@ app.Use(async (context, next) =>
             var db = context.RequestServices.GetRequiredService<ApplicationDbContext>();
             var account = await db.Users.AsNoTracking().Where(u => u.Id == id).Select(u => new { u.DateOfBirth, u.PasswordHash }).SingleOrDefaultAsync();
             var emailVerified = !VerificationMailer.Enabled(app.Configuration) || await db.VerifiedEmails.AnyAsync(v => v.UserId == id && db.Users.Any(u => u.Id == id && u.Username == v.Email));
+            if (!admin.Succeeded && app.Environment.IsDevelopment() && await ModerationGuard.IsSuspendedAsync(db, id, context.RequestAborted))
+            {
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                await context.SignOutAsync("BirthdayPending");
+                if (context.Request.Path.StartsWithSegments("/api")) context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                else context.Response.Redirect("/Login?suspended=1");
+                return;
+            }
             if (!emailVerified || account is null || !account.DateOfBirth.HasValue || account.DateOfBirth.Value.Date > DateTime.UtcNow.AddHours(8).Date.AddYears(-16) ||
                 principal.FindFirstValue("password_version") != AccountStore.SessionFingerprint(account.PasswordHash))
             {

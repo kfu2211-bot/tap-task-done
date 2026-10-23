@@ -38,6 +38,8 @@ namespace tts.Pages
                 var name = $"{user.FirstName} {user.LastName}".Trim();
                 var role = (user.Role ?? "").Trim().ToLowerInvariant();
                 var isStaff = role is "admin" or "moderator";
+                if (!isStaff && HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment() && await ModerationGuard.IsSuspendedAsync(db, user.Id, cancellationToken))
+                    return new JsonResult(new { message = "Your account is suspended. Please contact the administrator for assistance." }) { StatusCode = 403 };
                 if (isStaff && !HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
                     return new JsonResult(new { message = "Staff login is unavailable until production security is configured." }) { StatusCode = 403 };
 

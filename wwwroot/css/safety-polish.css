@@ -1,0 +1,26 @@
+/* Safety reporting: keep the existing form and data flow, with a calmer light theme. */
+.safety-page { box-sizing:border-box; width:min(900px,calc(100% - 48px)); max-width:900px; margin:42px auto 72px; }
+.safety-page .page-intro { margin-bottom:20px; }
+.safety-eyebrow { display:block; color:#19765a; font-size:11px; font-weight:800; letter-spacing:.14em; }
+html body .safety-page .page-intro h2 { margin:10px 0; color:#193e30; font-size:clamp(27px,3vw,36px); line-height:1.18; letter-spacing:-.025em; }
+html body .safety-page .page-intro p { max-width:730px; margin:0; color:#526c5d !important; font-size:14px; line-height:1.65; }
+.safety-emergency { display:flex; align-items:center; gap:12px; padding:15px 18px; border:1px solid #ead7ad; border-radius:12px; background:#fff8e8; color:#65491f; }
+.safety-emergency > span { display:grid; place-items:center; flex:none; width:28px; height:28px; border-radius:50%; background:#f4e2b7; color:#80591f; font-weight:800; }
+.safety-emergency p { margin:0; font-size:13px; font-weight:700; line-height:1.5; }
+html body .safety-page .settings-card { box-sizing:border-box; margin-top:18px; padding:26px; border:1px solid #d9e7da !important; border-radius:14px; background:#fff !important; box-shadow:0 8px 28px rgba(38,72,49,.04); }
+.safety-form { gap:9px; }
+html body .safety-form label { margin-top:9px; color:#294c3b !important; font-size:13px; font-weight:700; }
+.safety-form label:first-child { margin-top:0; }
+html body .safety-form :is(input,select,textarea) { box-sizing:border-box; width:100%; min-height:45px; padding:12px 13px; border:1px solid #bfd3c3 !important; border-radius:9px; background:#fff !important; color:#1c302b !important; font-size:14px; }
+.safety-form textarea { min-height:110px; resize:vertical; }
+html body .safety-form small,html body .safety-form .safety-evidence-note { margin:0; color:#61786b !important; font-size:12px; line-height:1.55; }
+.safety-form .safety-evidence-note { padding:12px 14px; margin-top:4px !important; border-radius:9px; background:#f2f7f0; }
+html body .safety-form .primary-button { min-height:46px; margin-top:8px; padding:0 22px; border-radius:9px; }
+.safety-history-heading { display:flex; align-items:center; gap:14px; }
+.safety-history-icon { display:grid; place-items:center; flex:none; width:44px; height:44px; border-radius:50%; background:#eaf4e9; color:#19765a; font-size:20px; }
+html body .safety-history-heading h2 { margin:0 0 4px; color:#193e30; font-size:18px; }
+html body .safety-history-heading p,html body .safety-history-empty,html body .safety-history p { margin:0; color:#61786b !important; font-size:13px; line-height:1.55; }
+.safety-history-empty { padding:20px 0 0 58px; }
+.safety-history { margin-top:18px; padding:18px 0 0; border-color:#e4eee4; }
+.safety-history strong { color:#244b37; }.safety-history p { margin-top:7px !important; white-space:pre-wrap; }
+@media(max-width:600px) { .safety-page { width:calc(100% - 32px); margin:28px auto 48px; } html body .safety-page .settings-card { padding:19px; } .safety-form .primary-button { width:100%; } .safety-history-empty { padding-left:0; } }

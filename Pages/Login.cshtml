@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model LoginModel
 
 @{
@@ -9,7 +9,7 @@
 
 <html lang="en">
 
-<head>
+<head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" />
 
     <meta charset="utf-8" />
 
@@ -62,6 +62,7 @@
                 Pick up where you left off and manage your tasks.
             </p>
             @if (TempData["BirthdayMessage"] is string birthdayMessage) { <p class="login-subtitle" role="status">@birthdayMessage</p> }
+            @if (Request.Query["suspended"] == "1") { <p class="login-subtitle" role="alert">Your session ended because your account is suspended. Please contact the administrator.</p> }
 
 
 

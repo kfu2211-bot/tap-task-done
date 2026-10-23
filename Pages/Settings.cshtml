@@ -3,7 +3,7 @@
 @{ Layout = null; }
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings - Tap, Task, Done</title>
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
 <link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/settings-polish.css" asp-append-version="true" />
 </head>
 <body>
     <div class="settings-layout">
@@ -69,7 +70,7 @@
                             <label>Availability<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label>
                         </div>
                     </fieldset>
-                    <fieldset class="settings-group"><legend>Weekly availability</legend><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label style="display:inline-block; margin:8px"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /> @day</label> }</div></fieldset>
+                    <fieldset class="settings-group"><legend>Weekly availability</legend><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> }</div></fieldset>
                     <div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite">@Model.Message</p><button class="primary-button" type="submit">Save changes</button></div>
                 </form>
                 <section class="settings-card demo-card" aria-labelledby="demoDataHeading" hidden>

@@ -1,0 +1,38 @@
+/* Settings page: light, responsive presentation without changing its form flow. */
+.settings-layout { width: 100%; min-width: 0; }
+.settings-layout > main { flex: 1 1 auto; min-width: 0; width: auto; margin-left: 190px; }
+.settings-content { width: min(980px, calc(100% - 48px)); padding: 42px 0 64px; }
+.page-intro h2 { color: #143d30; font-size: clamp(22px, 2vw, 28px); }
+.settings-card { border-radius: 14px; box-shadow: 0 5px 22px rgba(30, 72, 48, .035); }
+.account-card { padding: 28px 28px 0; }
+.account-card > h2 { color: #143d30; font-size: 19px; }
+.settings-card .profile-summary { min-width: 0; padding: 16px 18px; background: #edf5ed; border-color: #dcebdd; }
+.profile-summary > div { min-width: 0; overflow-wrap: anywhere; }
+.profile-summary div span { color: #526c5d; }
+.local-profile-badge { flex-shrink: 0; background: #fff; color: #176a4c; border: 1px solid #b8d9c2; }
+.settings-group { min-width: 0; }
+.settings-group + .settings-group { border-color: #dce9de; margin-top: 24px; padding-top: 24px; }
+.settings-group legend { color: #173d30; font-size: 17px; }
+.field-grid > label { min-width: 0; }
+.settings-card input, .settings-card select { max-width: 100%; }
+.settings-card input[readonly] { background: #f6f9f5 !important; }
+.settings-card label small { color: #637c6c; }
+#weeklyAvailability { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.settings-card #weeklyAvailability .weekly-day { display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid #d3e4d6; border-radius: 9px; background: #f7faf6; color: #284d3d; cursor: pointer; }
+.settings-card #weeklyAvailability input { width: 18px; height: 18px; margin: 0; padding: 0; accent-color: #197656; }
+.weekly-day:has(input:checked) { background: #e8f4ea !important; border-color: #93c5a1 !important; }
+.save-row { margin: 26px -28px 0; padding: 18px 28px; border-color: #dce9de; }
+.save-row .primary-button { margin-left: auto; background: #197656; color: #fff; border-color: #197656; }
+.signout-card { border-color: #d9e7da; }
+.signout-button { color: #a93d3d; border-color: #d69a9a; }
+.signout-button:hover { background: #fff2f1; color: #8e3030; }
+@media (max-width: 700px) {
+    .settings-layout > main { margin-left: 0; width: 100%; }
+    .settings-content { width: calc(100% - 28px); padding-top: 28px; }
+    .account-card { padding: 20px 18px 0; }
+    .save-row { margin: 22px -18px 0; padding: 18px; }
+    .save-row .primary-button { width: 100%; }
+    .profile-summary { flex-wrap: wrap; }
+    .local-profile-badge { margin-left: 0; }
+    .signout-card form, .signout-button { width: 100%; }
+}

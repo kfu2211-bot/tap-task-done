@@ -1,0 +1,30 @@
+html,body,.verification-page,.verification-page .main-content { background:#f6f7f3 !important; color:#193e30 !important; min-height:100%; }
+.verification-page,.verification-page .main-content { min-height:100vh; min-height:100dvh; }
+.verification-page .main-content { display:flow-root; }
+.verification-page .content { width:min(900px,calc(100% - 48px)); margin:42px auto 70px; }
+.identity-eyebrow { color:#19765a; font-size:11px; font-weight:800; letter-spacing:.14em; }
+.verification-page .page-heading h2 { margin:10px 0; color:#193e30; font-size:clamp(28px,3vw,38px); font-weight:700; }
+.verification-page .page-heading p,.verification-page .card-heading p,.verification-page .document-info p { color:#586f61 !important; font-size:14px; line-height:1.55; }
+.verification-page .status-card { background:#fff8e9 !important; border:1px solid #edddbb !important; padding:19px 22px; }
+.verification-page .status-icon { background:#f5e5c3; color:#8a581c; }
+html body .verification-page .status-text strong { color:#65481e !important; font-size:14px; }
+.verification-page .status-text p { color:#665b4a; font-size:13px; line-height:1.5; }
+.verification-page .verification-card { background:#fff !important; border:1px solid #d9e7da !important; box-shadow:0 10px 30px rgba(32,72,48,.04); }
+.verification-page .card-heading,.verification-page .document-row,.verification-page .id-number-section { border-color:#e4eee4; }
+.verification-page .card-heading { padding:24px; }
+.verification-page .card-heading h3 { color:#193e30; font-size:18px; }
+.verification-page .document-row { min-height:116px; gap:20px; }
+html body .verification-page .document-title strong,.verification-page .id-number-section label { color:#193e30 !important; font-size:14px; font-weight:700; }
+.verification-page .required,.verification-page .optional { padding:5px 9px; font-size:10px; font-weight:700; }
+.verification-page .required { background:#fff0d4; color:#82551d; }.verification-page .optional { background:#e8f4e9; color:#286c4a; }
+.verification-page .upload-area { width:245px; min-width:245px; }
+.verification-page .upload-area input[type=file] { box-sizing:border-box; width:100%; max-width:100%; padding:5px; border:1px solid #c9dfce; border-radius:10px; background:#f6faf5 !important; color:#355f48 !important; color-scheme:light; font-size:12px; cursor:pointer; }
+.verification-page .upload-area input[type=file]::file-selector-button { padding:10px 12px; margin-right:9px; border:1px solid #a8cdb3; border-radius:7px; background:#e8f4e9; color:#176b50; font-weight:700; cursor:pointer; }
+.verification-page .upload-area input[type=file]:focus-visible { outline:2px solid #19765a; outline-offset:2px; }
+.verification-page .upload-area small,.verification-page .id-number-section small { color:#617a6b; font-size:11px; }
+.verification-page .id-number-section input { margin-bottom:7px; }
+.verification-page .submit-area button { background:#19765a; color:#fff; height:48px; font-size:14px; }.verification-page .submit-area button:hover { background:#155b43; }
+.verification-page .page-note { color:#617a6b; font-size:12px; line-height:1.5; }.identity-notice { padding:14px; border-radius:10px; background:#e8f4e9; color:#24563a; }
+.identity-admin { margin:0; font:14px Arial,sans-serif; }.identity-admin main { padding:24px; }.identity-admin article { padding:20px; margin:15px 0; border:1px solid #d9e7da; border-radius:12px; background:#fff; }.identity-admin textarea { display:block; width:100%; max-width:500px; min-height:65px; margin:8px 0; }.identity-admin button { padding:10px 15px; margin-right:8px; border:0; border-radius:7px; background:#19765a; color:#fff; cursor:pointer; }.identity-admin a { color:#176b50; }
+@media(max-width:900px){.verification-page .upload-area { width:100%; min-width:0; text-align:left; }.verification-page .document-row { gap:14px; }}
+@media(max-width:650px){.verification-page .content { width:calc(100% - 30px); margin:28px auto 50px; }}

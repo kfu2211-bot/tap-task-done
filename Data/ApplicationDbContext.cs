@@ -19,9 +19,40 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<SafetyReport> SafetyReports => Set<SafetyReport>();
     public DbSet<SafetyReportAction> SafetyReportActions => Set<SafetyReportAction>();
     public DbSet<MarketplaceDispute> MarketplaceDisputes => Set<MarketplaceDispute>();
+    public DbSet<IdentityRequest> IdentityRequests => Set<IdentityRequest>();
+    public DbSet<AccountRestriction> AccountRestrictions => Set<AccountRestriction>();
+    public DbSet<AccountModerationAction> AccountModerationActions => Set<AccountModerationAction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var restriction = modelBuilder.Entity<AccountRestriction>();
+        restriction.ToTable("admin_account_restrictions");
+        restriction.HasKey(x => x.UserId);
+        restriction.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId);
+        restriction.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UpdatedById);
+        var accountAction = modelBuilder.Entity<AccountModerationAction>();
+        accountAction.ToTable("admin_account_actions");
+        accountAction.HasKey(x => x.Id);
+        accountAction.Property(x => x.Action).HasMaxLength(16);
+        accountAction.Property(x => x.Reason).HasMaxLength(500);
+        accountAction.HasIndex(x => new { x.UserId, x.Id });
+        accountAction.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId);
+        accountAction.HasOne<AppUser>().WithMany().HasForeignKey(x => x.AdminId);
+        var identity = modelBuilder.Entity<IdentityRequest>();
+        identity.ToTable("identity_requests");
+        identity.HasKey(x => x.Id);
+        identity.HasIndex(x => new { x.UserId, x.Id });
+        identity.Property(x => x.IdLast4).HasMaxLength(4);
+        identity.Property(x => x.Status).HasMaxLength(16);
+        identity.Property(x => x.ReviewNote).HasMaxLength(500);
+        identity.Property(x => x.GovernmentType).HasMaxLength(32);
+        identity.Property(x => x.CertificationType).HasMaxLength(32);
+        identity.Property(x => x.SupportingType).HasMaxLength(32);
+        identity.Property(x => x.GovernmentId).HasColumnType("mediumblob");
+        identity.Property(x => x.Certification).HasColumnType("mediumblob");
+        identity.Property(x => x.SupportingDocument).HasColumnType("mediumblob");
+        identity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId);
+        identity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.ReviewedById);
         var user = modelBuilder.Entity<AppUser>();
         user.ToTable("tbl_user");
         user.HasKey(x => x.Id);

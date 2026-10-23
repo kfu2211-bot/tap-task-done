@@ -1,7 +1,7 @@
 @page
 @model tts.Pages.AdminDisputesModel
 @{ Layout = null; }
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Task disputes</title><link rel="stylesheet" href="/css/admin.css" asp-append-version="true" /><link rel="stylesheet" href="/css/safety-reports.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+<!DOCTYPE html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" /><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Task disputes</title><link rel="stylesheet" href="/css/admin.css" asp-append-version="true" /><link rel="stylesheet" href="/css/safety-reports.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" /><link rel="stylesheet" href="/css/admin-polish.css" asp-append-version="true" />
 </head>
 <body class="report-admin-body report-embedded"><main class="admin-report-page"><p class="report-eyebrow">TASK RESOLUTION</p><h1>Task disputes</h1><p>Review disagreements between task participants. Closing a dispute restores the task's previous status; it does not issue a refund or payment.</p>
 @if(!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="safety-notice" role="status">@Model.Notice</p> }

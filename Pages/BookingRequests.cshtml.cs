@@ -8,7 +8,7 @@ using tts.Data;
 namespace tts.Pages;
 
 [Authorize]
-public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingRequestsModel> logger) : PageModel
+public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingRequestsModel> logger, IWebHostEnvironment environment) : PageModel
 {
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     [TempData] public string? Notice { get; set; }
@@ -19,6 +19,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
     {
         if (UserId <= 0) return Challenge();
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, freelancerId)) { Notice = "This request cannot be sent while either account is restricted."; return RedirectToPage("/FindPost"); }
         var role = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == UserId, ct))?.WorkRole ?? "client";
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == taskId && t.ClientId == UserId && t.Status == "open", ct);
         var provider = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == freelancerId && p.UserId != UserId && (p.WorkRole == "freelancer" || p.WorkRole == "both") && p.Availability == "Available" && p.Service != "" && p.Location != "", ct);
@@ -46,6 +47,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         }
         else
         {
+            if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This request cannot be accepted while either account is restricted."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             booking.Status = "accepted"; task.Status = "assigned";
             var offer = await db.MarketplaceOffers.SingleOrDefaultAsync(o => o.TaskId == task.Id && o.FreelancerId == UserId, ct);
             if (offer == null) db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = task.Id, FreelancerId = UserId, Price = task.Budget, Message = "Direct booking at the posted task budget.", Status = "accepted", CreatedAt = DateTime.UtcNow });

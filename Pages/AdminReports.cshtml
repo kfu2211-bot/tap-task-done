@@ -2,8 +2,8 @@
 @model tts.Pages.AdminReportsModel
 @{ Layout = null; }
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Safety Reports - Admin</title><link rel="stylesheet" href="/css/admin.css" asp-append-version="true" /><link rel="stylesheet" href="/css/safety-reports.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+<html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" /><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Safety Reports - Admin</title><link rel="stylesheet" href="/css/admin.css" asp-append-version="true" /><link rel="stylesheet" href="/css/safety-reports.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" /><link rel="stylesheet" href="/css/admin-polish.css" asp-append-version="true" />
 </head>
 <body class="report-admin-body @(Model.Embedded ? "report-embedded" : "")"><div class="report-admin-layout">
     <aside class="report-admin-sidebar" aria-label="Admin navigation">
@@ -31,7 +31,7 @@
                         <label>Update status<select name="status">@if(report.Status == "open") { <option value="reviewing">Under review</option> }<option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></label>
                         <p>Resolved and dismissed reports are closed and cannot currently be reopened.</p><button type="submit">Save status</button></form>
                     } else { <p class="report-closed">This report is closed. Its action history is available below.</p> }
-                    <details class="report-history"><summary>Admin action history</summary>@if(!Model.Actions.Any(a => a.Action.ReportId == report.Id)) { <p>No actions recorded yet.</p> } @foreach(var entry in Model.Actions.Where(a => a.Action.ReportId == report.Id)) { <div class="report-history-entry"><strong>@entry.Action.Status</strong> · @entry.AdminName · @tts.Data.DisplayTime.Philippine(entry.Action.CreatedAt)@if(!string.IsNullOrWhiteSpace(entry.Action.Note)) { <p>@entry.Action.Note</p> }</div> }</details>
+                    <details class="report-history"><summary>Admin action history <span>View decisions and notes</span></summary>@if(!Model.Actions.Any(a => a.Action.ReportId == report.Id)) { <p>No actions recorded yet.</p> } <div class="report-history-list">@foreach(var entry in Model.Actions.Where(a => a.Action.ReportId == report.Id)) { <div class="report-history-entry"><div class="report-history-marker" aria-hidden="true"></div><div><strong>@(entry.Action.Status == "reviewing" ? "Under review" : entry.Action.Status == "resolved" ? "Resolved" : entry.Action.Status == "dismissed" ? "Dismissed" : entry.Action.Status)</strong><span class="report-history-meta">@entry.AdminName · @tts.Data.DisplayTime.Philippine(entry.Action.CreatedAt)</span>@if(!string.IsNullOrWhiteSpace(entry.Action.Note)) { <p>@entry.Action.Note</p> }</div></div> }</div></details>
                 </article>
             }
             <p class="report-footnote">Showing up to 100 most recent reports.</p>

@@ -8,9 +8,11 @@ using tts.Data;
 namespace tts.Pages;
 
 [Authorize]
-public class NotificationsModel(ApplicationDbContext db) : PageModel
+public class NotificationsModel(ApplicationDbContext db, IWebHostEnvironment environment) : PageModel
 {
     public List<MarketplaceNotification> Items { get; private set; } = [];
+    public List<AccountModerationAction> AccountUpdates { get; private set; } = [];
+    public bool AccountUpdatesUnavailable { get; private set; }
     public Dictionary<long, string> TaskTitles { get; private set; } = [];
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
@@ -21,7 +23,23 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
             .OrderByDescending(n => n.Id).Take(100).ToListAsync(ct);
         var taskIds = Items.Select(n => n.TaskId).Distinct().ToList();
         TaskTitles = await db.MarketplaceTasks.AsNoTracking().Where(t => taskIds.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.Title, ct);
+        if (environment.IsDevelopment())
+        {
+            try { AccountUpdates = await db.AccountModerationActions.AsNoTracking().Where(x => x.UserId == UserId).OrderByDescending(x => x.Id).Take(100).ToListAsync(ct); }
+            catch (MySqlConnector.MySqlException) { AccountUpdatesUnavailable = true; }
+        }
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostReadAccountAsync(long id, CancellationToken ct)
+    {
+        if (!environment.IsDevelopment()) return NotFound();
+        if (UserId <= 0) return Challenge();
+        var item = await db.AccountModerationActions.SingleOrDefaultAsync(x => x.Id == id && x.UserId == UserId, ct);
+        if (item is null) return NotFound();
+        item.ReadAt ??= DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return RedirectToPage();
     }
 
     public async Task<IActionResult> OnPostOpenAsync(long id, CancellationToken ct)

@@ -2,21 +2,22 @@
 @model tts.Pages.ReportsModel
 @{ Layout = null; }
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" /><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Safety &amp; Reports - Tap, Task, Done</title>
 <link rel="stylesheet" href="/css/settings.css" asp-append-version="true" /><link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" /><link rel="stylesheet" href="/css/safety-reports.css" asp-append-version="true" />
-<script defer src="/js/sidebar-account.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
+<script defer src="/js/sidebar-account.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" /><link rel="stylesheet" href="/css/safety-polish.css" asp-append-version="true" />
 </head>
 <body><div class="settings-layout"><aside class="sidebar"><div class="brand"><span class="brand-icon">✓</span><strong>Tap, Task, Done</strong></div><nav class="sidebar-menu"></nav><div class="sidebar-account"><span class="account-avatar">U</span><div><strong id="sidebarName">User</strong><span id="sidebarEmail"></span></div></div></aside>
 <main><header><h1>Safety &amp; Reports</h1></header><section class="settings-content safety-page">
-<div class="page-intro"><h2>Report a safety issue</h2><p>Tell us about a scam, no-show, harassment, or work dispute. Your report is saved to the database for admin review.</p><p>If someone is in immediate danger, contact local emergency services.</p></div>
+<div class="page-intro"><span class="safety-eyebrow">TRUST &amp; SAFETY</span><h2>Report a safety issue</h2><p>Tell us about a scam, no-show, harassment, or work dispute. Your report is saved to the database for admin review.</p></div>
+<div class="safety-emergency"><span aria-hidden="true">!</span><p>If someone is in immediate danger, contact local emergency services.</p></div>
 @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="safety-notice" role="status">@Model.Notice</p> }
 <form method="post" class="settings-card safety-form">
 <label for="reportTarget">Person or provider name</label><input id="reportTarget" name="target" maxlength="80" required placeholder="Name of the person being reported" /><small>This is a name for review, not an automatically verified account.</small>
 <label for="reportTask">Related task (optional)</label><select id="reportTask" name="taskId"><option value="">No related task</option>@foreach(var task in Model.Tasks) { <option value="@task.Id">@task.Title (#@task.Id)</option> }</select>
 <label for="reportReason">Reason</label><select id="reportReason" name="reason" required><option>Scam or fake account</option><option>Payment outside the app</option><option>No-show</option><option>Harassment or inappropriate behavior</option><option>Work dispute</option><option>Other</option></select>
 <label for="reportDescription">What happened?</label><textarea id="reportDescription" name="description" maxlength="1000" required rows="5" placeholder="Describe what happened. Do not include passwords or sensitive identity details."></textarea>
-<p>Image or document evidence is not supported yet. Please do not submit sensitive documents here.</p><button class="primary-button" type="submit">Submit report</button></form>
-<section class="settings-card"><h2>Your report history</h2>@if(Model.Reports.Count == 0) { <p>No reports submitted yet.</p> } @foreach(var report in Model.Reports) { <article class="safety-history"><strong>@report.Reason · @report.Status</strong><p>@report.Target · @tts.Data.DisplayTime.Philippine(report.CreatedAt)</p><p>@report.Description</p></article> }</section>
+<p class="safety-evidence-note">Image or document evidence is not supported yet. Please do not submit sensitive documents here.</p><button class="primary-button" type="submit">Submit report</button></form>
+<section class="settings-card safety-history-card"><div class="safety-history-heading"><span class="safety-history-icon" aria-hidden="true">▤</span><div><h2>Your report history</h2><p>Review the reports you have submitted.</p></div></div>@if(Model.Reports.Count == 0) { <p class="safety-history-empty">No reports submitted yet.</p> } @foreach(var report in Model.Reports) { <article class="safety-history"><strong>@report.Reason · @report.Status</strong><p>@report.Target · @tts.Data.DisplayTime.Philippine(report.CreatedAt)</p><p>@report.Description</p></article> }</section>
 </section></main></div></body></html>

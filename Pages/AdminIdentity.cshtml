@@ -1,0 +1,21 @@
+@page
+@model tts.Pages.AdminIdentityModel
+@{ Layout = null; }
+<!DOCTYPE html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" /><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Verification requests - Admin</title><link rel="stylesheet" href="/css/admin-polish.css" asp-append-version="true" /></head>
+<body class="identity-admin @(Model.Embedded ? "identity-embedded" : "")">
+@if (!Model.Embedded) { <header class="identity-topbar"><a href="/Admin" class="identity-back">← Admin Center</a><span>Admin workspace</span></header> }
+<main class="identity-workspace">
+    <div class="identity-heading"><div><p class="identity-eyebrow">IDENTITY CHECKS</p><h1>Verification requests</h1><p>Review submitted documents and record your decision.</p></div><span class="identity-count">@(Model.DatabaseUnavailable ? "Unavailable" : $"{Model.Items.Count} requests")</span></div>
+    <div class="identity-guidance"><span aria-hidden="true">✓</span><div><strong>Review with care</strong><p>Check the submitted documents before approving or rejecting a request. Review notes are visible to the user.</p></div></div>
+    @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="identity-notice" role="status">@Model.Notice</p> }
+    @if (!Model.DatabaseUnavailable && Model.Items.Count == 0) { <section class="identity-empty"><div class="identity-empty-icon" aria-hidden="true">✓</div><h2>No verification requests yet</h2><p>When users submit their identity documents, their requests will appear here for review.</p>@if (!Model.Embedded) { <a href="/Admin">Back to Admin Center</a> }</section> }
+    @foreach (var item in Model.Items) {
+        <article class="identity-request">
+            <div class="identity-request-heading"><div><p class="identity-eyebrow">REQUEST #@item.Id</p><h2>@(string.IsNullOrWhiteSpace(item.Name) ? "User" : item.Name)</h2></div><span class="identity-status identity-status-@item.Status">@item.Status</span></div>
+            <dl class="identity-details"><div><dt>ID number</dt><dd>•••• @item.IdLast4</dd></div><div><dt>Submitted</dt><dd>@item.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC</dd></div></dl>
+            <div class="identity-documents"><h3>Submitted documents</h3><div class="identity-document-links"><a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="id">↓ Government ID</a>@if(item.HasCertification) { <a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="certification">↓ Certification</a> } @if(item.HasSupporting) { <a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="supporting">↓ Supporting document</a> }</div></div>
+            @if(item.Status == "pending") { <form method="post" asp-page-handler="Review" class="identity-review"><input type="hidden" name="id" value="@item.Id"/><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" /><label for="review-note-@item.Id">Review note <span>(optional; visible to user)</span></label><textarea id="review-note-@item.Id" name="note" maxlength="500" rows="3" placeholder="Add a note about your decision"></textarea><div class="identity-actions"><button name="decision" value="rejected">Reject request</button><button name="decision" value="approved">Approve request</button></div></form> } else { <p class="identity-reviewed">This request has already been reviewed.</p> }
+        </article>
+    }
+    @if (!Model.DatabaseUnavailable && Model.Items.Count > 0) { <p class="identity-footnote">Showing up to 100 most recent requests.</p> }
+</main></body></html>
