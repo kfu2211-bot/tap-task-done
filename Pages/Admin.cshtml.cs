@@ -6,7 +6,7 @@ using tts.Data;
 
 namespace tts.Pages;
 
-public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logger, IWebHostEnvironment environment) : PageModel
+public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logger, IWebHostEnvironment environment, IdentityVerificationAvailability verification) : PageModel
 {
     public record RegisteredUser(string Name, string Email, string Role);
     public record AdminActivity(DateTime Time, string Admin, string Action, string Detail);
@@ -15,6 +15,7 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
     public bool ActivityIncomplete { get; private set; }
     public bool UsersUnavailable { get; private set; }
     public bool IsDevelopment => environment.IsDevelopment();
+    public bool VerificationAvailable => verification.Enabled;
     public int? PendingVerifications { get; private set; }
     public int? OpenReports { get; private set; }
     public int? OpenDisputes { get; private set; }
@@ -35,7 +36,7 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
             logger.LogWarning(ex, "Unable to load registered users for admin.");
             UsersUnavailable = true;
         }
-        if (environment.IsDevelopment())
+        if (verification.Enabled)
         {
             try { PendingVerifications = await db.IdentityRequests.AsNoTracking().CountAsync(x => x.Status == "pending", cancellationToken); }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load verification count."); }
@@ -68,6 +69,9 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
                 Activities.AddRange(moderation.Select(a => new AdminActivity(a.CreatedAt, ($"{a.FirstName} {a.LastName}").Trim(), "Account " + a.Action, $"Account #{a.UserId}")));
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { ActivityIncomplete = true; logger.LogWarning(ex, "Unable to load account moderation activity."); }
+        }
+        if (verification.Enabled)
+        {
             try
             {
                 var decisions = await (from r in db.IdentityRequests.AsNoTracking() join u in db.Users.AsNoTracking() on r.ReviewedById equals u.Id

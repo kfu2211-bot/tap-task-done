@@ -20,6 +20,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<SafetyReportAction> SafetyReportActions => Set<SafetyReportAction>();
     public DbSet<MarketplaceDispute> MarketplaceDisputes => Set<MarketplaceDispute>();
     public DbSet<IdentityRequest> IdentityRequests => Set<IdentityRequest>();
+    public DbSet<IdentityResource> IdentityResources => Set<IdentityResource>();
     public DbSet<AccountRestriction> AccountRestrictions => Set<AccountRestriction>();
     public DbSet<AccountModerationAction> AccountModerationActions => Set<AccountModerationAction>();
 
@@ -53,6 +54,14 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         identity.Property(x => x.SupportingDocument).HasColumnType("mediumblob");
         identity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId);
         identity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.ReviewedById);
+        var resource = modelBuilder.Entity<IdentityResource>();
+        resource.ToTable("identity_resources");
+        resource.HasKey(x => x.Id);
+        resource.Property(x => x.Kind).HasMaxLength(16);
+        resource.Property(x => x.ContentType).HasMaxLength(32);
+        resource.Property(x => x.EncryptedData).HasColumnType("mediumblob");
+        resource.HasIndex(x => new { x.IdentityRequestId, x.Kind }).IsUnique();
+        resource.HasOne<IdentityRequest>().WithMany().HasForeignKey(x => x.IdentityRequestId).OnDelete(DeleteBehavior.Restrict);
         var user = modelBuilder.Entity<AppUser>();
         user.ToTable("tbl_user");
         user.HasKey(x => x.Id);

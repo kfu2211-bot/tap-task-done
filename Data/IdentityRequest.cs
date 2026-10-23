@@ -10,8 +10,8 @@ public sealed class IdentityRequest
     public DateTime? ReviewedAt { get; set; }
     public int? ReviewedById { get; set; }
     public string? ReviewNote { get; set; }
-    public byte[] GovernmentId { get; set; } = [];
-    public string GovernmentType { get; set; } = "";
+    public byte[]? GovernmentId { get; set; }
+    public string? GovernmentType { get; set; }
     public byte[]? Certification { get; set; }
     public string? CertificationType { get; set; }
     public byte[]? SupportingDocument { get; set; }

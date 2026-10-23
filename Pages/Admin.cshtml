@@ -15,7 +15,7 @@
     <script>window.tapTaskDoneGetAdminSession = () => ({ name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(User.Identity?.Name ?? "Admin")) }); window.tapTaskDoneGetAdminAccount = window.tapTaskDoneGetAdminSession; window.tapTaskDoneEndAdminSession = () => document.getElementById("adminLogoutForm").submit(); window.registeredUsers = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RegisteredUsers, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase })); window.registeredUsersUnavailable = @(Model.UsersUnavailable ? "true" : "false");</script>
 <link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/admin-polish.css" asp-append-version="true" />
-<script>window.adminSummary = { verifications: @(Model.PendingVerifications?.ToString() ?? "null"), verificationAvailable: @(Model.IsDevelopment ? "true" : "false"), reports: @(Model.OpenReports?.ToString() ?? "null"), disputes: @(Model.OpenDisputes?.ToString() ?? "null") };</script>
+<script>window.adminSummary = { verifications: @(Model.PendingVerifications?.ToString() ?? "null"), verificationAvailable: @(Model.VerificationAvailable ? "true" : "false"), reports: @(Model.OpenReports?.ToString() ?? "null"), disputes: @(Model.OpenDisputes?.ToString() ?? "null") };</script>
 <script>window.databaseAdminActivity = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Activities, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase })); window.adminActivityIncomplete = @(Model.ActivityIncomplete ? "true" : "false");</script>
 </head>
 <body>

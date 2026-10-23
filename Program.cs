@@ -5,6 +5,9 @@ using tts.Data;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -15,6 +18,24 @@ if (builder.Environment.IsDevelopment())
 var lanPreview = string.Equals(Environment.GetEnvironmentVariable("TTS_LAN_PREVIEW"), "true", StringComparison.OrdinalIgnoreCase);
 var renderDeployment = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RENDER_EXTERNAL_URL"));
 var assignedPort = Environment.GetEnvironmentVariable("PORT");
+
+// Production verification is opt-in and requires database-backed, encrypted keys.
+var verificationEnabled = builder.Environment.IsDevelopment();
+if (!verificationEnabled && builder.Configuration.GetValue<bool>("IdentityVerification:Enabled"))
+{
+    var certificateBase64 = builder.Configuration["IdentityVerification:CertificateBase64"];
+    var certificatePassword = builder.Configuration["IdentityVerification:CertificatePassword"];
+    var keyConnection = builder.Configuration.GetConnectionString("ApplicationDatabase");
+    if (string.IsNullOrWhiteSpace(certificateBase64) || string.IsNullOrWhiteSpace(certificatePassword) || string.IsNullOrWhiteSpace(keyConnection))
+        throw new InvalidOperationException("Identity verification requires a database and a password-protected certificate.");
+    var certificate = new X509Certificate2(Convert.FromBase64String(certificateBase64), certificatePassword, X509KeyStorageFlags.EphemeralKeySet);
+    if (!certificate.HasPrivateKey) throw new InvalidOperationException("Identity verification certificate must include its private key.");
+    builder.Services.AddDataProtection().SetApplicationName("TapTaskDone")
+        .ProtectKeysWithCertificate(certificate);
+    builder.Services.Configure<KeyManagementOptions>(options => options.XmlRepository = new MySqlKeyRepository(keyConnection));
+    verificationEnabled = true;
+}
+builder.Services.AddSingleton(new IdentityVerificationAvailability(verificationEnabled));
 
 // Hosting services such as Render provide the port at runtime. This keeps the
 // local development address unchanged while making the deployed app reachable.
