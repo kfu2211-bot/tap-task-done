@@ -7,6 +7,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 {
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<PasswordResetRequest> PasswordResetRequests => Set<PasswordResetRequest>();
+    public DbSet<PasswordResetCode> PasswordResetCodes => Set<PasswordResetCode>();
     public DbSet<EmailVerification> EmailVerifications => Set<EmailVerification>();
     public DbSet<VerifiedEmail> VerifiedEmails => Set<VerifiedEmail>();
     public DbSet<FreelancerProfile> FreelancerProfiles => Set<FreelancerProfile>();
@@ -18,6 +19,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<MarketplaceBooking> MarketplaceBookings => Set<MarketplaceBooking>();
     public DbSet<SafetyReport> SafetyReports => Set<SafetyReport>();
     public DbSet<SafetyReportAction> SafetyReportActions => Set<SafetyReportAction>();
+    public DbSet<SafetyReportEvidence> SafetyReportEvidence => Set<SafetyReportEvidence>();
     public DbSet<MarketplaceDispute> MarketplaceDisputes => Set<MarketplaceDispute>();
     public DbSet<IdentityRequest> IdentityRequests => Set<IdentityRequest>();
     public DbSet<IdentityResource> IdentityResources => Set<IdentityResource>();
@@ -26,6 +28,13 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var evidence = modelBuilder.Entity<SafetyReportEvidence>();
+        evidence.ToTable("safety_report_evidence");
+        evidence.HasKey(x => x.Id);
+        evidence.Property(x => x.ContentType).HasMaxLength(32);
+        evidence.Property(x => x.Data).HasColumnType("mediumblob");
+        evidence.HasIndex(x => x.ReportId);
+        evidence.HasOne<SafetyReport>().WithMany().HasForeignKey(x => x.ReportId).OnDelete(DeleteBehavior.Restrict);
         var restriction = modelBuilder.Entity<AccountRestriction>();
         restriction.ToTable("admin_account_restrictions");
         restriction.HasKey(x => x.UserId);
@@ -78,6 +87,13 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         reset.Property(x => x.TokenHash).HasMaxLength(64).IsUnicode(false);
         reset.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId);
         reset.HasIndex(x => x.UserId);
+        var resetCode = modelBuilder.Entity<PasswordResetCode>();
+        resetCode.ToTable("password_reset_codes");
+        resetCode.HasKey(x => x.ChallengeHash);
+        resetCode.Property(x => x.ChallengeHash).HasMaxLength(64).IsUnicode(false);
+        resetCode.Property(x => x.CodeHash).HasMaxLength(64).IsUnicode(false);
+        resetCode.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId);
+        resetCode.HasIndex(x => x.UserId);
         var verification = modelBuilder.Entity<EmailVerification>();
         verification.ToTable("email_verification_requests");
         verification.HasKey(x => x.TokenHash);

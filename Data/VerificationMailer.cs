@@ -1,5 +1,3 @@
-using System.Net;
-using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -29,9 +27,6 @@ public static class VerificationMailer
         db.EmailVerifications.Add(new EmailVerification { TokenHash = Hash(token), UserId = user.Id, Email = user.Username, ExpiresUtc = DateTime.UtcNow.AddHours(24) });
         await db.SaveChangesAsync(ct);
         var link = baseUrl!.TrimEnd('/') + "/VerifyEmail?token=" + token;
-        using var message = new MailMessage(sender, user.Username, "Verify your Tap, Task, Done email", $"Confirm your email using this link. It expires in 24 hours and can be used once.\n\n{link}\n\nIf you did not create this account, ignore this email.");
-        using var smtp = new SmtpClient(host, int.TryParse(config["PasswordReset:Smtp:Port"], out var port) ? port : 587)
-        { EnableSsl = true, Credentials = new NetworkCredential(username, password), Timeout = 10000 };
-        await smtp.SendMailAsync(message, ct);
+        await SmtpMailer.SendAsync(config, user.Username, "Verify your Tap, Task, Done email", $"Confirm your email using this link. It expires in 24 hours and can be used once.\n\n{link}\n\nIf you did not create this account, ignore this email.", ct);
     }
 }

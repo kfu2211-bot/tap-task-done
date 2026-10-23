@@ -15,6 +15,21 @@
 .settings-group legend { color: #173d30; font-size: 17px; }
 .field-grid > label { min-width: 0; }
 .settings-card input, .settings-card select { max-width: 100%; }
+/* Keep the native photo picker accessible without letting general input sizing
+   expand its invisible absolute box beyond the viewport. */
+.photo-actions { position: relative; }
+.settings-card .photo-actions input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
 .settings-card input[readonly] { background: #f6f9f5 !important; }
 .settings-card label small { color: #637c6c; }
 #weeklyAvailability { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }

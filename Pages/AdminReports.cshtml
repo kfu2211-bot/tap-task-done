@@ -15,7 +15,7 @@
         <header class="report-admin-header"><a href="/Admin">← Admin Center</a><span>Admin workspace</span></header>
         <div class="admin-report-page">
             <div class="report-page-heading"><div><p class="report-eyebrow">COMMUNITY SAFETY</p><h1>Safety reports</h1><p>Review reports submitted by users and keep track of your decisions.</p></div><span class="report-total">@Model.Reports.Count @(Model.Reports.Count == 1 ? "report" : "reports")</span></div>
-            <div class="report-guidance"><strong>Review carefully</strong><p>Reported names are entered by users and are not automatically verified. File evidence is not supported yet. No account is suspended automatically.</p></div>
+            <div class="report-guidance"><strong>Review carefully</strong><p>Reported names are entered by users and are not automatically verified. Treat attachments as untrusted files. No account is suspended automatically.</p></div>
             @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="safety-notice" role="status">@Model.Notice</p> }
             @if (Model.Reports.Count == 0) { <section class="report-empty"><h2>No reports yet</h2><p>Reports submitted by users will appear here for review.</p></section> }
             @foreach (var item in Model.Reports) {
@@ -25,6 +25,7 @@
                     <div class="report-card-heading"><div><p class="report-eyebrow">REPORT #@report.Id</p><h2>@report.Reason</h2></div><span class="report-status status-@report.Status">@statusLabel</span></div>
                     <dl class="report-details"><div><dt>Reported person</dt><dd>@report.Target</dd></div><div><dt>Submitted by</dt><dd>@item.Reporter</dd></div><div><dt>Related task</dt><dd>@(report.TaskId.HasValue ? (Model.TaskTitles.TryGetValue(report.TaskId.Value, out var taskTitle) ? taskTitle : "Task unavailable") : "Not provided")</dd></div><div><dt>Submitted</dt><dd>@tts.Data.DisplayTime.Philippine(report.CreatedAt)</dd></div></dl>
                     <div class="report-message"><h3>What happened</h3><p class="admin-report-description">@report.Description</p></div>
+                    <div class="report-message"><h3>Supporting evidence</h3>@if (!Model.Evidence.Any(e => e.ReportId == report.Id)) { <p>No files attached.</p> } else { <ul>@foreach (var file in Model.Evidence.Where(e => e.ReportId == report.Id)) { <li><a asp-page="/AdminReports" asp-page-handler="Evidence" asp-route-id="@file.Id">Download evidence #@file.Id (@(file.ContentType == "application/pdf" ? "PDF" : "Image"))</a></li> }</ul> }</div>
                     @if (report.Status is "open" or "reviewing") {
                         <form method="post" asp-page-handler="Update" class="safety-form report-action-form"><h3>Review this report</h3><input type="hidden" name="id" value="@report.Id" /><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
                         <label>Internal note <span>(optional; visible to admins only)</span><textarea name="note" maxlength="1000" rows="3" placeholder="Add context for other admins"></textarea></label>

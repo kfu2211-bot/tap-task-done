@@ -1,6 +1,36 @@
 /* Keeps the signed-in account display identical on every authenticated page. */
 (function () {
+    // One outline icon set for both existing links and role-specific links.
+    // Decorating a link never replaces its label, destination, or event handlers.
+    var sidebarIcons = {
+        dashboard: '<path d="m3 10 9-7 9 7v10H15v-6H9v6H3z"/>',
+        findpost: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
+        markettasks: '<rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5V3h6v2M9 11h6M9 16h6"/>',
+        myjobs: '<rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V3h8v4M3 12a24 24 0 0 0 18 0M10 13v3h4v-3"/>',
+        messages: '<path d="M21 11a8 8 0 0 1-8 8H7l-4 3V11a9 9 0 0 1 18 0Z"/><path d="M7 10h10M7 14h6"/>',
+        tracking: '<path d="m3 10 18-7-7 18-3-8zM11 13 21 3"/>',
+        reviews: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/>',
+        identityverification: '<path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6zM8 12l3 3 5-6"/>',
+        reports: '<path d="M5 21V3c5-3 9 3 14 0v11c-5 3-9-3-14 0"/>',
+        settings: '<path d="m10 3-.5 3-2 1L5 6 3 10l2 2v2l-2 2 2 4 2.5-1 2 1 .5 2h4l.5-2 2-1 2.5 1 2-4-2-2v-2l2-2-2-4-2.5 1-2-1L14 3z"/><circle cx="12" cy="12.5" r="3"/>',
+        notifications: '<path d="M18 8a6 6 0 0 0-12 0c0 7-2 7-2 9h16c0-2-2-2-2-9M10 21h4"/>'
+    };
+
+    function decorateSidebarLink(link) {
+        var key = new URL(link.href, window.location.href).pathname.replace(/\//g, "").toLowerCase();
+        if (key === "mytasks") key = "markettasks";
+        if (!sidebarIcons[key]) return;
+        var icon = link.querySelector("span:first-child");
+        if (!icon) return;
+        icon.classList.add("shared-sidebar-icon");
+        icon.setAttribute("aria-hidden", "true");
+        icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">' + sidebarIcons[key] + '</svg>';
+    }
+
     async function loadSidebarAccount() {
+        // Apply presentation before the preferences request, so slow networking
+        // cannot leave each page with a different icon style.
+        document.querySelectorAll(".sidebar > nav a, .mytasks-sidebar > nav a").forEach(decorateSidebarLink);
         if (!document.getElementById("productPolish")) {
             var polish = document.createElement("link");
             polish.id = "productPolish";
@@ -115,6 +145,7 @@
                 }
 
                 link.classList.toggle("active", window.location.pathname.toLowerCase() === item.href.split("?")[0].toLowerCase());
+                decorateSidebarLink(link);
                 // appendChild moves an existing link instead of copying it, preventing duplicates.
                 nav.appendChild(link);
             });

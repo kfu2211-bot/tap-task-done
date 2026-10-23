@@ -13,6 +13,15 @@ html body .safety-form label { margin-top:9px; color:#294c3b !important; font-si
 .safety-form label:first-child { margin-top:0; }
 html body .safety-form :is(input,select,textarea) { box-sizing:border-box; width:100%; min-height:45px; padding:12px 13px; border:1px solid #bfd3c3 !important; border-radius:9px; background:#fff !important; color:#1c302b !important; font-size:14px; }
 .safety-form textarea { min-height:110px; resize:vertical; }
+.report-task-optional { margin-left:5px; padding:3px 8px; border-radius:20px; background:#eaf4e9; color:#3f7155; font-size:11px; font-weight:600; }
+.report-task-selection:not([hidden]) { display:grid; gap:4px; padding:13px 15px; border:1px solid #d4e6d7; border-radius:9px; background:#f4f9f3; color:#264d3b; font-size:13px; }
+.report-task-selection-label { color:#638372; font-size:10px; font-weight:800; letter-spacing:.08em; }
+.report-task-selection strong { color:#173d2f; font-size:14px; overflow-wrap:anywhere; }
+.report-task-selection span:last-child { color:#60796a; }
+.report-evidence-field { display:grid; gap:9px; margin-top:8px; padding:16px; border:1px solid #d4e6d7; border-radius:10px; background:#f4f9f3; }
+html body .safety-form .report-evidence-field label { margin:0; }
+html body .safety-form .report-evidence-field p { margin:0; color:#526c5d; font-size:13px; line-height:1.5; }
+html body .safety-form .report-evidence-field input { background:#fff !important; }
 html body .safety-form small,html body .safety-form .safety-evidence-note { margin:0; color:#61786b !important; font-size:12px; line-height:1.55; }
 .safety-form .safety-evidence-note { padding:12px 14px; margin-top:4px !important; border-radius:9px; background:#f2f7f0; }
 html body .safety-form .primary-button { min-height:46px; margin-top:8px; padding:0 22px; border-radius:9px; }

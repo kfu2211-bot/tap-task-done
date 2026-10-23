@@ -115,7 +115,10 @@ builder.Services.AddRateLimiter(options =>
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(5), QueueLimit = 0 }));
     options.AddPolicy("PasswordResetLimit", context =>
         RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(15), QueueLimit = 0 }));
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 15, Window = TimeSpan.FromMinutes(15), QueueLimit = 0 }));
+    options.AddPolicy("MobileLocationLimit", context =>
+        RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(5), QueueLimit = 0 }));
 });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -227,6 +230,7 @@ app.MapGet("/api/notifications/unread-count", async (HttpContext context, Applic
     return Results.Json(new { count });
 }).RequireAuthorization();
 
+app.MapMobileEndpoints();
 app.MapRazorPages();
 
 app.Run();

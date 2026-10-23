@@ -1,0 +1,223 @@
+/* Final, shared presentation for signed-in navigation. Keep the existing sage
+   and green palette; scope these rules to the sidebar so page content is intact.
+   Repeated :is() raises specificity above legacy page-specific sidebar rules. */
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) {
+    --sidebar-width: 190px;
+    box-sizing: border-box !important;
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: var(--sidebar-width) !important;
+    min-width: var(--sidebar-width) !important;
+    max-width: var(--sidebar-width) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background: #e7f0e5 !important;
+    border: 0 !important;
+    border-right: 1px solid #d1e1d2 !important;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif !important;
+    z-index: 1000 !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) {
+    box-sizing: border-box !important;
+    flex: 0 0 68px !important;
+    width: 100% !important;
+    min-height: 68px !important;
+    height: 68px !important;
+    max-height: 68px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    border-bottom: 1px solid #d1e1d2 !important;
+    color: #193e30 !important;
+    white-space: nowrap !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) :is(strong, span:not(.brand-icon):not(.logo-check):not(.mytasks-logo-check)) {
+    color: #193e30 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(.mini-logo, .logo-check, .mytasks-logo-check, .logo-circle, .brand-icon) {
+    box-sizing: border-box !important;
+    flex: 0 0 30px !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px solid #b6d6bd !important;
+    border-radius: 50% !important;
+    background: #d4e9d7 !important;
+    color: #176b50 !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav {
+    box-sizing: border-box !important;
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 12px 9px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 5px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a {
+    box-sizing: border-box !important;
+    flex: 0 0 43px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 43px !important;
+    min-height: 43px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    border: 1px solid transparent !important;
+    border-radius: 9px !important;
+    color: #193e30 !important;
+    background: transparent !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    line-height: 1.25 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    transform: none !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a > span {
+    color: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a > span:first-child {
+    flex: 0 0 18px !important;
+    width: 18px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) .shared-sidebar-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a:not(.active):hover {
+    background: #d6e9db !important;
+    color: #153e2d !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a.active {
+    background: #175a3f !important;
+    color: #fff !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(a, [role="link"]):focus-visible {
+    outline: 2px solid #19765a !important;
+    outline-offset: -2px;
+}
+
+/* The account occupies its own flex row. Only navigation scrolls on short
+   screens, so the card cannot cover links or move with the page content. */
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-user, .sidebar-account, .mytasks-user) {
+    box-sizing: border-box !important;
+    position: static !important;
+    flex: 0 0 55px !important;
+    width: calc(100% - 18px) !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 55px !important;
+    height: 55px !important;
+    margin: 0 9px 10px !important;
+    padding: 7px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    border: 1px solid #cfe0ce !important;
+    border-radius: 10px !important;
+    background: #f8faf4 !important;
+    color: #365b49 !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(.user-avatar, .account-avatar, .mytasks-avatar) {
+    box-sizing: border-box !important;
+    flex: 0 0 35px !important;
+    width: 35px !important;
+    min-width: 35px !important;
+    height: 35px !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px solid #b6d6bd !important;
+    border-radius: 50% !important;
+    background: #d4e9d7 !important;
+    color: #176b50 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+}
+
+html body :is(.sidebar-user, .sidebar-account, .mytasks-user) > :is(.user-info, .user-details, .mytasks-user-info, .account-details, div:not(.user-avatar):not(.account-avatar):not(.mytasks-avatar):not(.account-more)) {
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(#sidebarName, #sidebarEmail) {
+    display: block !important;
+    width: 100%;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+    color: #365b49 !important;
+    font-size: 11px !important;
+    line-height: 15px !important;
+}
+
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) #sidebarEmail { font-size: 9px !important; }
+
+@media (min-width: 701px) {
+    html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) { transform: none !important; }
+    html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) + :is(main, .main-content, .main-area, .mytasks-main) {
+        box-sizing: border-box !important;
+        width: calc(100% - 190px) !important;
+        margin-left: 190px !important;
+    }
+}
+
+@media (max-width: 700px) {
+    html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) {
+        --sidebar-width: min(330px, 88vw);
+        transform: translateX(-110%) !important;
+        z-index: 6000 !important;
+    }
+    html body.sidebar-open :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) { transform: translateX(0) !important; }
+    html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a { font-size: 14px !important; flex-basis: 48px !important; height: 48px !important; min-height: 48px !important; }
+    html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-user, .sidebar-account, .mytasks-user) { margin-bottom: max(10px, env(safe-area-inset-bottom)) !important; }
+    html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) + main { width: 100% !important; margin-left: 0 !important; }
+}
