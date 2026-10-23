@@ -66,3 +66,22 @@ body:has(.page), body:has(.login-page) { background: #f6f7f3; color: #1c302b; }
     .login-box { box-sizing: border-box; width: 100%; max-width: 100%; }
     .login-group input { font-size: 16px; }
 }
+/* Login keeps its existing green button while making pending requests visible. */
+#loginForm .login-button { display: flex; align-items: center; justify-content: center; gap: 12px; }
+#loginForm .login-button-label { font: inherit; }
+#loginForm .login-button:disabled { cursor: wait; opacity: .8; }
+#loginForm .login-spinner {
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    border: 2px solid rgba(255, 255, 255, .4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: login-spin .75s linear infinite;
+}
+#loginForm [hidden] { display: none !important; }
+#loginForm .login-status { margin: 12px 0 0; color: #176b50; font-size: 14px; line-height: 1.5; }
+#loginForm .login-status:empty { display: none; }
+@keyframes login-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { #loginForm .login-spinner { animation: none; } }

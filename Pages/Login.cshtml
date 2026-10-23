@@ -114,11 +114,14 @@
                 <button type="submit"
                         class="login-button">
 
-                    Log in <span>→</span>
+                    <span class="login-button-label">Log in</span>
+                    <span class="login-button-arrow" aria-hidden="true">→</span>
+                    <span class="login-spinner" aria-hidden="true" hidden></span>
 
                 </button>
 
 
+                <p id="loginStatus" class="login-status" role="status" aria-live="polite"></p>
             </form>
 
 
@@ -142,8 +145,33 @@
 
     <script src="~/js/password-toggle.js" asp-append-version="true"></script>
     <script>
+        const loginForm = document.getElementById("loginForm");
+        const loginButton = loginForm.querySelector('button[type="submit"]');
+        const loginStatus = document.getElementById("loginStatus");
+        let loginPending = false;
+        let loginNavigating = false;
+
+        function setLoginLoading(loading) {
+            loginPending = loading;
+            loginButton.disabled = loading;
+            loginForm.setAttribute("aria-busy", String(loading));
+            loginButton.querySelector(".login-button-label").textContent = loading ? "Logging in…" : "Log in";
+            loginButton.querySelector(".login-button-arrow").hidden = loading;
+            loginButton.querySelector(".login-spinner").hidden = !loading;
+        }
+
+        // Restore the form when returning through the browser's back/forward cache.
+        window.addEventListener("pageshow", function () {
+            loginNavigating = false;
+            setLoginLoading(false);
+            loginStatus.textContent = "";
+        });
+
         document.getElementById("loginForm").addEventListener("submit", async function (event) {
             event.preventDefault();
+            if (loginPending) return;
+            setLoginLoading(true);
+            loginStatus.textContent = "Signing you in. Please wait…";
             const form = event.currentTarget;
             const tokenInput = form.querySelector('input[name="__RequestVerificationToken"]');
             const token = tokenInput ? tokenInput.value : "";
@@ -162,12 +190,21 @@
                     credentials: "same-origin"
                 });
                 const result = await response.json().catch(() => ({}));
-                if (!response.ok) { alert(result.message || "Unable to log in. Please check the database connection."); return; }
+                if (!response.ok) {
+                    loginStatus.textContent = result.message || "Unable to log in. Please try again.";
+                    return;
+                }
                 // Legacy screens use this non-secret display profile; the server cookie is the login credential.
                 if (result.redirect === "/VerifyEmail") localStorage.removeItem("tapTaskDoneAccount");
                 else localStorage.setItem("tapTaskDoneAccount", JSON.stringify({ name: result.name, email: result.email }));
+                loginStatus.textContent = "Login successful. Redirecting…";
                 window.location.href = ["/Admin", "/Birthday", "/Dashboard", "/VerifyEmail"].includes(result.redirect) ? result.redirect : "/Dashboard";
-            } catch (error) { alert("Unable to reach the server. Please try again."); }
+                loginNavigating = true;
+            } catch (error) {
+                loginStatus.textContent = "Unable to reach the server. Please try again.";
+            } finally {
+                if (!loginNavigating) setLoginLoading(false);
+            }
         });
     </script>
 
