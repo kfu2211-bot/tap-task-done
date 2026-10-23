@@ -40,9 +40,6 @@ namespace tts.Pages
                 var isStaff = role is "admin" or "moderator";
                 if (!isStaff && HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment() && await ModerationGuard.IsSuspendedAsync(db, user.Id, cancellationToken))
                     return new JsonResult(new { message = "Your account is suspended. Please contact the administrator for assistance." }) { StatusCode = 403 };
-                if (isStaff && !HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
-                    return new JsonResult(new { message = "Staff login is unavailable until production security is configured." }) { StatusCode = 403 };
-
                 // Remove any previous identity so changing accounts cannot retain staff access.
                 await HttpContext.SignOutAsync("AdminCookie");
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

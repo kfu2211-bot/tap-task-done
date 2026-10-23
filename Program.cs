@@ -148,17 +148,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.Use(async (context, next) =>
-{
-    // Do not expose the admin flow publicly until MFA and production controls are implemented.
-    if (!app.Environment.IsDevelopment() &&
-        (context.Request.Path.StartsWithSegments("/Admin") || context.Request.Path.StartsWithSegments("/AdminLogin") || context.Request.Path.StartsWithSegments("/AdminReports")))
-    {
-        context.Response.StatusCode = StatusCodes.Status404NotFound;
-        return;
-    }
-    await next();
-});
 app.UseRateLimiter();
 app.UseAuthentication();
 app.Use(async (context, next) =>
