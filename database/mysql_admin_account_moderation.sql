@@ -1,4 +1,5 @@
--- LOCAL DEVELOPMENT ONLY. Review the connected database and back it up before use.
+-- Apply to the intended database before deploying production account moderation.
+-- Back up the target database first. Required by login and marketplace enforcement.
 -- This script creates new tables; it does not delete or alter existing account records.
 CREATE TABLE IF NOT EXISTS admin_account_restrictions (
     UserId INT NOT NULL PRIMARY KEY,

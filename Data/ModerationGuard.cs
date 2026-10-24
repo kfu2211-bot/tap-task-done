@@ -14,7 +14,6 @@ public static class ModerationGuard
     }
     public static async Task<bool> AllowedAsync(ApplicationDbContext db, IWebHostEnvironment environment, CancellationToken ct, params int[] userIds)
     {
-        if (!environment.IsDevelopment()) return true;
         try
         {
             foreach (var id in userIds.Distinct().Order())

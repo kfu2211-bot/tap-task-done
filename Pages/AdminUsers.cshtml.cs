@@ -8,7 +8,7 @@ using tts.Data;
 namespace tts.Pages;
 
 [Authorize(Policy = "AdminOnly")]
-public sealed class AdminUsersModel(ApplicationDbContext db, IWebHostEnvironment environment, ILogger<AdminUsersModel> logger) : PageModel
+public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersModel> logger) : PageModel
 {
     public record UserRow(int Id, string Name, string Email, string Role, bool Restricted, bool Suspended);
     public record ActionRow(int UserId, string Action, string Reason, DateTime CreatedAt, string Admin);
@@ -16,12 +16,11 @@ public sealed class AdminUsersModel(ApplicationDbContext db, IWebHostEnvironment
     public List<ActionRow> History { get; private set; } = [];
     public bool Unavailable { get; private set; }
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
-    [TempData] public string? Notice { get; set; }
+    [TempData(Key = "AdminUsersNotice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (!environment.IsDevelopment()) return NotFound();
         Response.Headers.CacheControl = "no-store";
         try
         {
@@ -39,7 +38,6 @@ public sealed class AdminUsersModel(ApplicationDbContext db, IWebHostEnvironment
 
     public async Task<IActionResult> OnPostAsync(int userId, string? action, string? reason, CancellationToken ct)
     {
-        if (!environment.IsDevelopment()) return NotFound();
         if (AdminId <= 0) return Challenge();
         if (!AccountModerationRules.IsValidAction(action) || !AccountModerationRules.IsValidReason(reason) || userId == AdminId)
         { Notice = "Choose an action and provide a reason of up to 500 characters."; return RedirectToPage(new { embedded = Embedded }); }
@@ -62,7 +60,7 @@ public sealed class AdminUsersModel(ApplicationDbContext db, IWebHostEnvironment
             Notice = "Decision saved and the user has an account notice.";
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException)
-        { logger.LogWarning(ex, "Unable to save moderation decision"); Notice = "Decision could not be saved. Check the local moderation database setup."; }
+        { logger.LogWarning(ex, "Unable to save moderation decision"); Notice = "Decision could not be saved. Check the moderation database setup."; }
         return RedirectToPage(new { embedded = Embedded });
     }
 }

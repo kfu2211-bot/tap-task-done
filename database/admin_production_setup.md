@@ -1,5 +1,21 @@
 # Admin verification and safety reports
 
+## Account management
+
+Before deploying the shared local/production Users moderation page, back up the
+target database and apply `mysql_admin_account_moderation.sql`. It creates
+`admin_account_restrictions` and `admin_account_actions` without changing account
+records. Both tables are required by login, active-session suspension checks,
+marketplace restrictions, admin history, and user account notices.
+
+Verify both tables exist before deploying. Then test Warn, Restrict, Suspend, and
+Restore using a dedicated non-staff test account. Check that suspension blocks
+login and existing sessions, restrictions prevent new marketplace commitments,
+and the user can read the admin reason in Notifications. Staff accounts and
+self-moderation remain blocked by the server. Do not test on real user accounts.
+
+## Identity verification and reports
+
 The admin queue can list request metadata while document review is paused. A count of
 0 means no pending requests; a dash means the database count could not be loaded.
 Document submission, downloads, and review require secure storage configuration.

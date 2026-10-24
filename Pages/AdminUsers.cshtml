@@ -14,7 +14,7 @@
     @if (!Model.Embedded) { <h1>Users</h1> }
     <p class="intro">Manage registered accounts and review moderation decisions.</p>
     @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="notice" role="status">@Model.Notice</p> }
-    @if (Model.Unavailable) { <div class="empty" role="alert">Account moderation is unavailable. Check the local database setup.</div> }
+    @if (Model.Unavailable) { <div class="empty" role="alert">Account moderation is unavailable. Check the account moderation database setup.</div> }
     else {
         <label class="search"><span class="sr-only">Search users</span><input id="search" type="search" placeholder="Search by name or email" /></label>
         <div class="user-list">

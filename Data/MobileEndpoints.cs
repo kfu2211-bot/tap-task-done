@@ -26,7 +26,7 @@ public static class MobileEndpoints
                 return Results.Json(new { message = "Complete your eligible account profile on the website first." }, statusCode: 403);
             if (VerificationMailer.Enabled(app.Configuration) && !await VerificationMailer.IsVerifiedAsync(db, user, ct))
                 return Results.Json(new { message = "Verify your email on the website first." }, statusCode: 403);
-            if (app.Environment.IsDevelopment() && await ModerationGuard.IsSuspendedAsync(db, user.Id, ct)) return Results.StatusCode(403);
+            if (await ModerationGuard.IsSuspendedAsync(db, user.Id, ct)) return Results.StatusCode(403);
             var session = System.Text.Json.JsonSerializer.Serialize(new Session(user.Id, AccountStore.SessionFingerprint(user.PasswordHash)));
             return Results.Ok(new { token = protector.Protect(session, TimeSpan.FromHours(8)), name = $"{user.FirstName} {user.LastName}".Trim() });
         }).RequireRateLimiting("AdminLoginLimit");
@@ -44,7 +44,7 @@ public static class MobileEndpoints
             var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == session.UserId, ct);
             if (user is null || session.PasswordVersion != AccountStore.SessionFingerprint(user.PasswordHash) || !user.DateOfBirth.HasValue || user.DateOfBirth.Value.Date > DateTime.UtcNow.AddHours(8).Date.AddYears(-16)) return Results.Unauthorized();
             if (VerificationMailer.Enabled(app.Configuration) && !await VerificationMailer.IsVerifiedAsync(db, user, ct)) return Results.Unauthorized();
-            if (app.Environment.IsDevelopment() && await ModerationGuard.IsSuspendedAsync(db, user.Id, ct)) return Results.StatusCode(403);
+            if (await ModerationGuard.IsSuspendedAsync(db, user.Id, ct)) return Results.StatusCode(403);
             var allowedTask = await db.MarketplaceTasks.AsNoTracking().AnyAsync(t => t.Id == input.TaskId && t.Status == "in-progress" && db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == user.Id && o.Status == "accepted"), ct);
             if (!allowedTask) return Results.Json(new { message = "The task is not in progress or is not assigned to this account." }, statusCode: 403);
             if (!double.IsFinite(input.Latitude) || !double.IsFinite(input.Longitude) || input.Latitude is < -90 or > 90 || input.Longitude is < -180 or > 180 || (input.AccuracyMeters.HasValue && (!double.IsFinite(input.AccuracyMeters.Value) || input.AccuracyMeters.Value < 0 || input.AccuracyMeters.Value > 100000))) return Results.BadRequest(new { message = "Invalid coordinates." });

@@ -58,7 +58,6 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
             Activities.AddRange(disputes.Select(d => new AdminActivity(d.ClosedAt!.Value, ($"{d.FirstName} {d.LastName}").Trim(), "Dispute closed", $"Dispute #{d.Id}")));
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { ActivityIncomplete = true; logger.LogWarning(ex, "Unable to load dispute activity."); }
-        if (environment.IsDevelopment())
         {
             try
             {

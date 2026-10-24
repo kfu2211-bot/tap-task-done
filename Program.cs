@@ -185,7 +185,7 @@ app.Use(async (context, next) =>
             var db = context.RequestServices.GetRequiredService<ApplicationDbContext>();
             var account = await db.Users.AsNoTracking().Where(u => u.Id == id).Select(u => new { u.DateOfBirth, u.PasswordHash }).SingleOrDefaultAsync();
             var emailVerified = !VerificationMailer.Enabled(app.Configuration) || await db.VerifiedEmails.AnyAsync(v => v.UserId == id && db.Users.Any(u => u.Id == id && u.Username == v.Email));
-            if (!admin.Succeeded && app.Environment.IsDevelopment() && await ModerationGuard.IsSuspendedAsync(db, id, context.RequestAborted))
+            if (!admin.Succeeded && await ModerationGuard.IsSuspendedAsync(db, id, context.RequestAborted))
             {
                 await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 await context.SignOutAsync("BirthdayPending");
