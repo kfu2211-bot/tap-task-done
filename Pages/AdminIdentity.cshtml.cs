@@ -12,14 +12,33 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
     public record Item(long Id, string Name, string Status, string IdLast4, DateTime CreatedAt, bool HasCertification, bool HasSupporting);
     public List<Item> Items { get; private set; } = [];
     public bool DatabaseUnavailable { get; private set; }
+    public bool ReviewEnabled => availability.Enabled;
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     [TempData] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (!availability.Enabled) return NotFound(); Response.Headers.CacheControl = "no-store";
-        try { Items = await (from r in db.IdentityRequests.AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id orderby r.Id descending select new Item(r.Id, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), r.Status, r.IdLast4, r.CreatedAt, r.Certification != null || db.IdentityResources.Any(d => d.IdentityRequestId == r.Id && d.Kind == "certification"), r.SupportingDocument != null || db.IdentityResources.Any(d => d.IdentityRequestId == r.Id && d.Kind == "supporting"))).Take(100).ToListAsync(ct); }
-        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { DatabaseUnavailable = true; Notice = "Verification database is temporarily unavailable. Please try again later."; }
+        Response.Headers.CacheControl = "no-store";
+        if (!availability.Enabled) Notice = "Document review is paused until secure document storage is configured. Existing requests are listed below.";
+        try { Items = await (from r in db.IdentityRequests.AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id orderby r.Id descending select new Item(r.Id, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), r.Status, r.IdLast4, r.CreatedAt, r.Certification != null, r.SupportingDocument != null)).Take(100).ToListAsync(ct); }
+        catch (MySqlConnector.MySqlException ex) when (ex.Number == 1146 && !availability.Enabled)
+        { Notice = "No verification requests have been set up. Document submissions and review are paused until secure document storage is configured."; }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { DatabaseUnavailable = true; Notice = "Verification requests could not be loaded. Please check the database setup and try again."; }
+        if (Items.Count > 0)
+        {
+            try
+            {
+                var ids = Items.Select(x => x.Id).ToList();
+                var resources = await db.IdentityResources.AsNoTracking().Where(x => ids.Contains(x.IdentityRequestId))
+                    .Select(x => new { x.IdentityRequestId, x.Kind }).ToListAsync(ct);
+                Items = Items.Select(item => item with {
+                    HasCertification = item.HasCertification || resources.Any(x => x.IdentityRequestId == item.Id && x.Kind == "certification"),
+                    HasSupporting = item.HasSupporting || resources.Any(x => x.IdentityRequestId == item.Id && x.Kind == "supporting")
+                }).ToList();
+            }
+            catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+            { Notice = "Requests are shown, but supplemental documents could not be loaded. Please check document storage before reviewing attachments."; }
+        }
         return Page();
     }
     public async Task<IActionResult> OnPostReviewAsync(long id, string? decision, string? note, CancellationToken ct)

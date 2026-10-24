@@ -8,7 +8,7 @@ using tts.Data;
 namespace tts.Pages;
 
 [Authorize(Policy = "AdminOnly")]
-public class AdminReportsModel(ApplicationDbContext db) : PageModel
+public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsModel> logger) : PageModel
 {
     public record ReportItem(SafetyReport Report, string Reporter);
     public record ActionItem(SafetyReportAction Action, string AdminName);
@@ -17,6 +17,9 @@ public class AdminReportsModel(ApplicationDbContext db) : PageModel
     public List<ActionItem> Actions { get; private set; } = [];
     public List<EvidenceItem> Evidence { get; private set; } = [];
     public Dictionary<long, string> TaskTitles { get; private set; } = [];
+    public bool DatabaseUnavailable { get; private set; }
+    public bool EvidenceUnavailable { get; private set; }
+    public bool HistoryUnavailable { get; private set; }
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     [TempData] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
@@ -24,15 +27,45 @@ public class AdminReportsModel(ApplicationDbContext db) : PageModel
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (AdminId <= 0) return Challenge();
+        Response.Headers.CacheControl = "no-store";
+        try
+        {
         Reports = await (from r in db.SafetyReports.AsNoTracking() join u in db.Users.AsNoTracking() on r.ReporterId equals u.Id
             orderby r.Id descending select new ReportItem(r, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).Take(100).ToListAsync(ct);
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+        {
+            logger.LogError(ex, "Unable to load safety reports.");
+            DatabaseUnavailable = true;
+            Notice = "Safety reports could not be loaded. Please check the report database setup and try again.";
+            return Page();
+        }
         var ids = Reports.Select(x => x.Report.Id).ToList();
+        if (ids.Count == 0) return Page();
+        try
+        {
         Evidence = await db.SafetyReportEvidence.AsNoTracking().Where(e => ids.Contains(e.ReportId)).OrderBy(e => e.Id).Select(e => new EvidenceItem(e.Id, e.ReportId, e.ContentType)).ToListAsync(ct);
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+        {
+            logger.LogWarning(ex, "Unable to load report evidence.");
+            EvidenceUnavailable = true;
+            Notice = "Reports are shown, but attachments could not be loaded. Please check the evidence database setup.";
+        }
+        try
+        {
         var taskIds = Reports.Where(x => x.Report.TaskId.HasValue).Select(x => x.Report.TaskId!.Value).Distinct().ToList();
-        TaskTitles = await db.MarketplaceTasks.AsNoTracking().Where(t => taskIds.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.Title, ct);
+        if (taskIds.Count > 0) TaskTitles = await db.MarketplaceTasks.AsNoTracking().Where(t => taskIds.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.Title, ct);
         Actions = await (from a in db.SafetyReportActions.AsNoTracking() join u in db.Users.AsNoTracking() on a.AdminId equals u.Id
             where ids.Contains(a.ReportId) orderby a.Id descending
             select new ActionItem(a, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).ToListAsync(ct);
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+        {
+            logger.LogWarning(ex, "Unable to load report task details or action history.");
+            HistoryUnavailable = true;
+            Notice = (Notice is null ? "" : Notice + " ") + "Some task details or action history could not be loaded. Please check the database setup.";
+        }
         return Page();
     }
 

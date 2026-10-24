@@ -36,11 +36,9 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
             logger.LogWarning(ex, "Unable to load registered users for admin.");
             UsersUnavailable = true;
         }
-        if (verification.Enabled)
-        {
             try { PendingVerifications = await db.IdentityRequests.AsNoTracking().CountAsync(x => x.Status == "pending", cancellationToken); }
+            catch (MySqlConnector.MySqlException ex) when (ex.Number == 1146 && !verification.Enabled) { PendingVerifications = 0; }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load verification count."); }
-        }
         try { OpenReports = await db.SafetyReports.AsNoTracking().CountAsync(x => x.Status == "open" || x.Status == "reviewing", cancellationToken); }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load report count."); }
         try { OpenDisputes = await db.MarketplaceDisputes.AsNoTracking().CountAsync(x => x.Status == "open", cancellationToken); }

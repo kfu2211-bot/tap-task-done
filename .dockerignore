@@ -6,3 +6,4 @@ appsettings.Local.json
 *.user
 *.suo
 README.md
+.local-secrets/
