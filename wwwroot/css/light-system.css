@@ -16,6 +16,8 @@ html body :is(.sidebar-navigation,.sidebar-nav,.sidebar-menu,.mytasks-navigation
 html body :is(.sidebar-user,.sidebar-account,.mytasks-user) { background:#f8faf4 !important; border-color:#cfe0ce !important; color:#193e30 !important; }
 html body :is(.sidebar-user,.sidebar-account,.mytasks-user) :is(strong,small,span:not(.account-avatar):not(.user-avatar)) { color:#365b49 !important; }
 html body :is(.topbar,.top-header,.mytasks-topbar,.market-header,.admin-topbar,.report-admin-header,main > header) { background:#fff !important; color:#1c302b !important; border-color:#dfe9df !important; }
+/* No dark underline on workspace headers; preserve border width and page height. */
+html body :is(.main-content,.main-area,.mytasks-main,.settings-layout > main,.admin-main,.report-admin-main) > :is(header,.topbar,.top-header,.mytasks-topbar,.market-header,.admin-topbar,.report-admin-header) { border-bottom-color:transparent !important; box-shadow:none !important; }
 html body :is(.topbar,.top-header,.mytasks-topbar,.market-header,.admin-topbar,.report-admin-header,main > header) h1 { color:#20372e !important; }
 html body :is(.notification,.notification-button,.mytasks-notification,.mobile-menu) { background:#f2f7f0 !important; color:#176b50 !important; border-color:#d5e5d7 !important; }
 /* White panels and soft green cards create the same hierarchy as Home. */

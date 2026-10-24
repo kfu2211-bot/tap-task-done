@@ -1,3 +1,9 @@
+/* Keep the header's one-pixel geometry without a dark separator on user pages. */
+html body :is(.main-content, .main-area, .mytasks-main, .settings-layout > main) > :is(header, .topbar, .top-header, .mytasks-topbar, .market-header) {
+    border-bottom-color: transparent !important;
+    box-shadow: none !important;
+}
+
 /* Final, shared presentation for signed-in navigation. Keep the existing sage
    and green palette; scope these rules to the sidebar so page content is intact.
    Repeated :is() raises specificity above legacy page-specific sidebar rules. */
