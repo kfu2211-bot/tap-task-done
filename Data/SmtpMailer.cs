@@ -28,7 +28,7 @@ public static class SmtpMailer
             await smtp.SendAsync(message, ct);
             await smtp.DisconnectAsync(true, ct);
         }
-        catch (Exception ex) when (ex is MailKit.ServiceNotConnectedException or MailKit.ServiceNotAuthenticatedException or MailKit.Security.AuthenticationException or MailKit.Net.Smtp.SmtpCommandException or MailKit.Net.Smtp.SmtpProtocolException or MailKit.Security.SslHandshakeException or System.IO.IOException or System.Net.Sockets.SocketException)
+        catch (Exception ex) when (ex is MailKit.ServiceNotConnectedException or MailKit.ServiceNotAuthenticatedException or MailKit.Security.AuthenticationException or MailKit.Net.Smtp.SmtpCommandException or MailKit.Net.Smtp.SmtpProtocolException or MailKit.Security.SslHandshakeException or System.IO.IOException or System.Net.Sockets.SocketException or TimeoutException || ex is OperationCanceledException && !ct.IsCancellationRequested)
         {
             throw new System.Net.Mail.SmtpException("Email delivery failed.", ex);
         }

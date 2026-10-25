@@ -32,9 +32,11 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
         NoStore();
         var email = (Email ?? "").Trim();
         if (email.Length == 0 || email.Length > 45 || !new EmailAddressAttribute().IsValid(email)) { ErrorMessage = "Enter a valid email address."; return Page(); }
+        var stage = "account lookup";
         try
         {
-            var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Username == email, ct);
+            // Account lookup needs only the ID, not encrypted profile-photo bytes.
+            var user = await db.Users.AsNoTracking().Where(u => u.Username == email).Select(u => new { u.Id }).SingleOrDefaultAsync(ct);
             if (user is null)
             {
                 Response.Cookies.Delete(CookieName);
@@ -44,17 +46,25 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
 
             var challenge = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
             var code = RandomNumberGenerator.GetInt32(1000000).ToString("D6", System.Globalization.CultureInfo.InvariantCulture);
+            stage = "reset-code storage";
             await using var tx = await db.Database.BeginTransactionAsync(ct);
             await db.PasswordResetCodes.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             db.PasswordResetCodes.Add(new PasswordResetCode { ChallengeHash = Hash(challenge), UserId = user.Id, CodeHash = CodeHash(challenge, code), ExpiresUtc = DateTime.UtcNow.AddMinutes(10) });
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            stage = "email delivery";
             await SmtpMailer.SendAsync(config, email, "Your Tap, Task, Done verification code", $"Your password reset code is {code}. It expires in 10 minutes. If you did not request this, ignore this message.", ct);
             Response.Cookies.Append(CookieName, challenge, new CookieOptions { HttpOnly = true, Secure = Request.IsHttps, SameSite = SameSiteMode.Strict, MaxAge = TimeSpan.FromMinutes(10), IsEssential = true });
             Step = "code"; Notice = "A verification code was sent. Check your inbox and spam folder."; return Page();
         }
-        catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or SmtpException or InvalidOperationException or TaskCanceledException or FormatException)
-        { logger.LogWarning("Password reset request failed ({ErrorType}).", ex.GetType().Name); ErrorMessage = "Unable to send a verification code. Please try again later."; return Page(); }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or SmtpException or InvalidOperationException or OperationCanceledException or TimeoutException or FormatException or MimeKit.ParseException)
+        {
+            // Log a safe diagnostic category without recording credentials, addresses or codes.
+            var databaseError = ex as MySqlConnector.MySqlException ?? ex.InnerException as MySqlConnector.MySqlException;
+            logger.LogWarning("Password reset request failed at {Stage}: {ErrorType}, cause {CauseType}, database code {DatabaseCode}, trace {TraceId}.",
+                stage, ex.GetType().Name, ex.InnerException?.GetType().Name, databaseError?.Number, HttpContext.TraceIdentifier);
+            ErrorMessage = "Unable to send a verification code. Please try again later."; return Page();
+        }
     }
 
     public async Task<IActionResult> OnPostVerifyAsync(CancellationToken ct)
