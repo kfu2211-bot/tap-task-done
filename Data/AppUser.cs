@@ -9,4 +9,5 @@ public sealed class AppUser
     public string? Role { get; set; }
     public byte[]? PasswordHash { get; set; }
     public DateTime? DateOfBirth { get; set; }
+    public byte[]? ProfilePicture { get; set; }
 }

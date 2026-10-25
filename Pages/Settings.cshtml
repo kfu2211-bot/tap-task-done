@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
+    <script defer src="/js/profile-photo.js" asp-append-version="true"></script>
 <link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/settings-polish.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
@@ -44,14 +45,14 @@
                         <div><strong id="profileSummaryName">@Model.DisplayName</strong><span id="profileSummaryEmail">@Model.Email</span></div>
                         <span class="local-profile-badge">Database profile</span>
                     </div>
-                    <section class="photo-settings" aria-labelledby="photoHeading" hidden>
+                    <section class="photo-settings" aria-labelledby="photoHeading">
                         <div class="photo-settings-copy"><h3 id="photoHeading">Profile photo</h3><p>Use a clear photo so people can recognize you.</p></div>
                         <div class="photo-actions">
                             <label class="photo-upload-button" for="profilePhotoInput">Change photo</label>
                             <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" />
                             <button id="removePhotoButton" class="remove-photo-button" type="button">Remove photo</button>
                             <span class="photo-file-note">JPG, PNG or WEBP · Max 5 MB</span>
-                            <span class="photo-storage-note">Your photo is stored only on this device.</span>
+                            <span class="photo-storage-note">Your photo is securely saved to your account.</span>
                             <p id="photoMessage" class="photo-message" aria-live="polite"></p>
                         </div>
                     </section>

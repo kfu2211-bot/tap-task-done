@@ -277,9 +277,11 @@
             chevron.className = "header-account-chevron";
             chevron.setAttribute("aria-hidden", "true");
             accountButton.append(avatar, accountCopy, chevron);
+            window.dispatchEvent(new Event("account-header-ready"));
             headerActions.appendChild(accountButton);
             header.querySelectorAll(notificationSelector).forEach(function (bell) { headerActions.appendChild(bell); });
             header.appendChild(headerActions);
+            window.dispatchEvent(new Event("account-header-ready"));
             document.body.classList.add("has-header-account");
 
             var accountMenu = document.createElement("div");

@@ -83,6 +83,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         resource.HasIndex(x => new { x.IdentityRequestId, x.Kind }).IsUnique();
         resource.HasOne<IdentityRequest>().WithMany().HasForeignKey(x => x.IdentityRequestId).OnDelete(DeleteBehavior.Restrict);
         var user = modelBuilder.Entity<AppUser>();
+        user.Property(x => x.ProfilePicture).HasColumnType("mediumblob");
         user.ToTable("tbl_user");
         user.HasKey(x => x.Id);
         user.Property(x => x.Id).HasColumnName("Id").ValueGeneratedOnAdd();

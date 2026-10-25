@@ -147,6 +147,7 @@ UNION ALL SELECT 'tbl_user' AS table_name, 'FirstName' AS column_name
 UNION ALL SELECT 'tbl_user' AS table_name, 'Id' AS column_name
 UNION ALL SELECT 'tbl_user' AS table_name, 'LastName' AS column_name
 UNION ALL SELECT 'tbl_user' AS table_name, 'Password' AS column_name
+UNION ALL SELECT 'tbl_user' AS table_name, 'ProfilePicture' AS column_name
 UNION ALL SELECT 'tbl_user' AS table_name, 'role' AS column_name
 UNION ALL SELECT 'tbl_user' AS table_name, 'userName' AS column_name
 UNION ALL SELECT 'verified_emails' AS table_name, 'Email' AS column_name
