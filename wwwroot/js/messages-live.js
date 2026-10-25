@@ -2,6 +2,15 @@
     const section = document.querySelector('.messages-current');
     if (!section) return;
     let updating = false;
+    const search = section.querySelector('#conversationSearch');
+    function filterConversations() {
+        const query = (search?.value || '').trim().toLowerCase();
+        const links = [...section.querySelectorAll('.conversation-link')];
+        links.forEach(link => { link.hidden = !(link.dataset.search || '').includes(query); });
+        const empty = section.querySelector('#conversationNoMatches');
+        if (empty) empty.hidden = !links.length || links.some(link => !link.hidden);
+    }
+    search?.addEventListener('input', filterConversations);
 
     async function updateConversation() {
         if (document.hidden || updating) return;
@@ -12,11 +21,15 @@
             const page = new DOMParser().parseFromString(await response.text(), 'text/html');
             if (page.querySelector('.messages-current [role="alert"]')) return;
 
-            const list = section.querySelector('.messages-conversations');
-            const updatedList = page.querySelector('.messages-conversations');
+            const list = section.querySelector('.conversation-results');
+            const updatedList = page.querySelector('.conversation-results');
             if (list && updatedList && list.innerHTML !== updatedList.innerHTML) {
                 list.replaceChildren(...Array.from(updatedList.childNodes, node => document.importNode(node, true)));
+                filterConversations();
             }
+            const count = section.querySelector('.conversation-count');
+            const updatedCount = page.querySelector('.conversation-count');
+            if (count && updatedCount) count.textContent = updatedCount.textContent;
 
             const messages = section.querySelector('.thread-messages');
             const updatedMessages = page.querySelector('.thread-messages');

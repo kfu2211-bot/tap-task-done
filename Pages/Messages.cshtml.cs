@@ -13,6 +13,8 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
 {
     public record Conversation(long TaskId, string Title, int ClientId, int FreelancerId, string OtherName);
     public List<Conversation> Conversations { get; private set; } = [];
+    public Dictionary<long, MarketplaceMessage> LatestMessages { get; private set; } = [];
+    public static string Initials(string? name) => string.Concat((name ?? "User").Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0])).ToUpperInvariant();
     public Conversation? Selected { get; private set; }
     public List<MarketplaceMessage> Messages { get; private set; } = [];
     public int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
@@ -34,6 +36,12 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
                 select new { task.Id, task.Title, task.ClientId, offer.FreelancerId, ClientFirst = client.FirstName, ClientLast = client.LastName, FreelancerFirst = freelancer.FirstName, FreelancerLast = freelancer.LastName }).ToListAsync(ct);
             Conversations = rows.Select(x => new Conversation(x.Id, x.Title, x.ClientId, x.FreelancerId,
                 (x.ClientId == UserId ? $"{x.FreelancerFirst} {x.FreelancerLast}" : $"{x.ClientFirst} {x.ClientLast}").Trim())).ToList();
+            var taskIds = Conversations.Select(c => c.TaskId).ToList();
+            if (taskIds.Count > 0) {
+                LatestMessages = await db.MarketplaceMessages.AsNoTracking().Where(m => taskIds.Contains(m.TaskId) &&
+                    !db.MarketplaceMessages.Any(later => later.TaskId == m.TaskId && later.Id > m.Id)).ToDictionaryAsync(m => m.TaskId, ct);
+                Conversations = Conversations.OrderByDescending(c => LatestMessages.TryGetValue(c.TaskId, out var latest) ? latest.CreatedAt : DateTime.MinValue).ThenByDescending(c => c.TaskId).ToList();
+            }
             if (taskId.HasValue && !Conversations.Any(c => c.TaskId == taskId.Value)) return NotFound();
             Selected = taskId.HasValue ? Conversations.FirstOrDefault(c => c.TaskId == taskId.Value) : Conversations.FirstOrDefault();
             if (Selected != null)

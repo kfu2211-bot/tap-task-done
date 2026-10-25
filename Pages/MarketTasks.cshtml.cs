@@ -106,7 +106,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         { Notice = "Please provide a cancellation reason (up to 500 characters)."; return RedirectToPage(new { view = "mine" }); }
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId == UserId &&
-            (t.Status == "pending-confirmation" || t.Status == "open" || t.Status == "assigned" || t.Status == "in-progress" || t.Status == "awaiting-confirmation"), ct);
+            (t.Status == "pending-confirmation" || t.Status == "booking-pending" || t.Status == "open" || t.Status == "assigned" || t.Status == "in-progress" || t.Status == "awaiting-confirmation"), ct);
         if (task is null)
         { Notice = "This task cannot be cancelled. It may already be completed or cancelled."; return RedirectToPage(new { view = "mine" }); }
         var recipients = await db.MarketplaceOffers.Where(o => o.TaskId == id && (o.Status == "pending" || o.Status == "accepted"))

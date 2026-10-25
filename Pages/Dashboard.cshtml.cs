@@ -7,7 +7,7 @@ namespace tts.Pages
 {
     public class DashboardModel(ApplicationDbContext db, ILogger<DashboardModel> logger) : PageModel
     {
-        public record RatedProvider(string Name, string Service, double Average, int Count);
+        public record RatedProvider(int Id, string Name, string Service, double Average, int Count);
         public List<RatedProvider> RatedProviders { get; private set; } = [];
         public bool ReviewsUnavailable { get; private set; }
         public Dictionary<string, int> CategoryCounts { get; private set; } = new();
@@ -36,13 +36,16 @@ namespace tts.Pages
             { logger.LogError(ex, "Unable to load category counts"); CategoriesUnavailable = true; }
             try
             {
+                var viewerId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var viewer) ? viewer : 0;
                 var rows = await (from review in db.MarketplaceReviews.AsNoTracking()
                     join user in db.Users.AsNoTracking() on review.FreelancerId equals user.Id
                     join profile in db.FreelancerProfiles.AsNoTracking() on user.Id equals profile.UserId
-                    where profile.WorkRole == "freelancer" || profile.WorkRole == "both"
+                    where (profile.WorkRole == "freelancer" || profile.WorkRole == "both")
+                        && user.Id != viewerId && profile.Availability == "Available"
+                        && profile.Service != "" && profile.Location != ""
                     select new { user.Id, user.FirstName, user.LastName, profile.Service, review.Rating }).ToListAsync(ct);
                 RatedProviders = rows.GroupBy(x => new { x.Id, x.FirstName, x.LastName, x.Service })
-                    .Select(g => new RatedProvider(((g.Key.FirstName ?? "") + " " + (g.Key.LastName ?? "")).Trim(), g.Key.Service, g.Average(x => x.Rating), g.Count()))
+                    .Select(g => new RatedProvider(g.Key.Id, ((g.Key.FirstName ?? "") + " " + (g.Key.LastName ?? "")).Trim(), g.Key.Service, g.Average(x => x.Rating), g.Count()))
                     .OrderByDescending(x => x.Average).ThenByDescending(x => x.Count).ThenBy(x => x.Name).Take(8).ToList();
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)

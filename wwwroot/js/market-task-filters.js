@@ -9,7 +9,7 @@
     const groups = {
         'needs-action': ['pending-confirmation', 'awaiting-confirmation'],
         open: ['open'],
-        active: ['assigned', 'in-progress', 'awaiting-confirmation', 'disputed'],
+        active: ['booking-pending', 'assigned', 'in-progress', 'awaiting-confirmation', 'disputed'],
         completed: ['completed'],
         cancelled: ['cancelled']
     };

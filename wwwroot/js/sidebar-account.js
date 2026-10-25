@@ -210,6 +210,11 @@
             button.dataset.notificationsReady = "true";
             button.classList.add("app-notification-trigger");
             button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-2 7-2 9h16c0-2-2-2-2-9M10 20h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            var badge = document.createElement("span");
+            badge.className = "notification-count-badge";
+            badge.hidden = true;
+            badge.setAttribute("aria-hidden", "true");
+            button.appendChild(badge);
             button.title = "View notifications";
             button.setAttribute("aria-haspopup", "true");
             button.setAttribute("aria-controls", "notificationPopover");
@@ -219,6 +224,8 @@
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 var wasOpen = !panel.hidden && currentTrigger === button;
+                var accountPopover = document.getElementById("headerAccountMenu");
+                if (accountPopover) { accountPopover.hidden = true; document.getElementById("headerAccountButton").setAttribute("aria-expanded", "false"); }
                 closeNotifications();
                 if (!wasOpen) { currentTrigger = button; panel.hidden = false; button.setAttribute("aria-expanded", "true"); loadNotifications(); }
             }, true);
@@ -233,12 +240,87 @@
                 document.querySelectorAll(".notification, .notification-button, #notificationButton, .mytasks-notification").forEach(function (button) {
                     button.title = count ? count + " unread notifications" : "View notifications";
                     button.setAttribute("aria-label", button.title);
-                    button.style.boxShadow = count ? "0 0 0 2px #22c99b" : "";
+                    var badge = button.querySelector(".notification-count-badge");
+                    if (badge) { badge.textContent = count > 99 ? "99+" : String(count); badge.hidden = count <= 0; }
                 });
             } catch (error) { console.warn("Notifications could not be refreshed.", error); }
         }
         updateNotificationCount();
         setInterval(updateNotificationCount, 30000);
+        window.addEventListener("pageshow", updateNotificationCount);
+        window.addEventListener("focus", updateNotificationCount);
+        document.addEventListener("visibilitychange", function () { if (!document.hidden) updateNotificationCount(); });
+
+        if (header && !document.getElementById("headerAccountButton")) {
+            var headerActions = document.createElement("div");
+            headerActions.className = "header-account-actions";
+            var accountButton = document.createElement("button");
+            accountButton.id = "headerAccountButton";
+            accountButton.type = "button";
+            accountButton.setAttribute("aria-expanded", "false");
+            accountButton.setAttribute("aria-haspopup", "true");
+            accountButton.setAttribute("aria-controls", "headerAccountMenu");
+            accountButton.setAttribute("aria-label", "Account menu for " + name);
+            var accountName = document.createElement("span");
+            accountName.className = "header-account-name";
+            accountName.textContent = name;
+            var avatar = document.createElement("span");
+            avatar.className = "header-account-avatar";
+            avatar.textContent = initials;
+            var accountCopy = document.createElement("span");
+            accountCopy.className = "header-account-copy";
+            var accountCaption = document.createElement("small");
+            accountCaption.textContent = "MY ACCOUNT";
+            accountCopy.append(accountCaption, accountName);
+            var chevron = document.createElement("span");
+            chevron.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
+            chevron.className = "header-account-chevron";
+            chevron.setAttribute("aria-hidden", "true");
+            accountButton.append(avatar, accountCopy, chevron);
+            headerActions.appendChild(accountButton);
+            header.querySelectorAll(notificationSelector).forEach(function (bell) { headerActions.appendChild(bell); });
+            header.appendChild(headerActions);
+            document.body.classList.add("has-header-account");
+
+            var accountMenu = document.createElement("div");
+            accountMenu.id = "headerAccountMenu";
+            accountMenu.hidden = true;
+            accountMenu.innerHTML = '<a href="/Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3z"/></svg>View profile</a><button type="button" class="header-account-logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M10 3H4v18h6M9 12h12m-5-5 5 5-5 5"/></svg>Log out</button><p class="header-account-status" role="status"></p>';
+            document.body.appendChild(accountMenu);
+            function closeAccountMenu() { accountMenu.hidden = true; accountButton.setAttribute("aria-expanded", "false"); }
+            accountButton.addEventListener("click", function () {
+                var open = accountMenu.hidden;
+                closeAccountMenu();
+                if (open) {
+                    closeNotifications();
+                    var bounds = accountButton.getBoundingClientRect();
+                    accountMenu.style.top = (bounds.bottom + 10) + "px";
+                    accountMenu.style.right = Math.max(12, window.innerWidth - bounds.right) + "px";
+                    accountMenu.hidden = false;
+                    accountButton.setAttribute("aria-expanded", "true");
+                }
+            });
+            document.addEventListener("click", function (event) { if (!accountMenu.contains(event.target) && !accountButton.contains(event.target)) closeAccountMenu(); });
+            document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !accountMenu.hidden) { closeAccountMenu(); accountButton.focus(); } });
+            window.addEventListener("resize", closeAccountMenu);
+            accountMenu.querySelector(".header-account-logout").addEventListener("click", async function (event) {
+                var logout = event.currentTarget;
+                logout.disabled = true;
+                accountMenu.querySelector(".header-account-status").textContent = "Logging out…";
+                try {
+                    var settingsResponse = await fetch("/Settings", { credentials: "same-origin", cache: "no-store" });
+                    if (!settingsResponse.ok || settingsResponse.redirected) throw new Error("Session unavailable");
+                    var settings = new DOMParser().parseFromString(await settingsResponse.text(), "text/html");
+                    var token = settings.querySelector('input[name="__RequestVerificationToken"]');
+                    if (!token) throw new Error("Missing logout token");
+                    var logoutResponse = await fetch("/Settings?handler=Logout", { method: "POST", credentials: "same-origin", body: new URLSearchParams({ __RequestVerificationToken: token.value }) });
+                    if (!logoutResponse.ok || new URL(logoutResponse.url).pathname.toLowerCase() !== "/login") throw new Error("Logout failed");
+                    try { Object.keys(sessionStorage).filter(function (key) { return key.indexOf("tts-location-sharing:") === 0; }).forEach(function (key) { sessionStorage.removeItem(key); }); } catch (storageError) { /* Storage may be disabled. */ }
+                    localStorage.removeItem("tapTaskDoneAccount");
+                    window.location.replace("/Login");
+                } catch (error) { logout.disabled = false; accountMenu.querySelector(".header-account-status").textContent = "Could not log out. Please try again."; }
+            });
+        }
 
         // Profile cards across the signed-in sidebar lead to the same settings page.
         document.querySelectorAll("#openProfile, .sidebar .sidebar-user, .mytasks-sidebar .mytasks-user, .sidebar .sidebar-account").forEach(function (profileEntry) {

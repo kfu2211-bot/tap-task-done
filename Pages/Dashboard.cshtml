@@ -25,6 +25,7 @@
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
 
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
 </head>
 
 <body>
@@ -459,7 +460,7 @@
                         </div>
 
 
-                        <a href="#">
+                        <a href="/FindPost">
                             View all
                         </a>
 
@@ -469,7 +470,7 @@
                     <div class="provider-grid">
                         @if (Model.ReviewsUnavailable) { <p>Ratings are unavailable until the reviews database is ready.</p> }
                         else if (Model.RatedProviders.Count == 0) { <p>No reviews yet. Rated providers will appear here after completed tasks are reviewed.</p> }
-                        @foreach (var provider in Model.RatedProviders) { <div class="provider-card"><div class="provider-top"><div class="provider-avatar">@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "?")</div><div class="provider-name"><strong>@provider.Name</strong><span>@provider.Service</span></div></div><div class="provider-stats"><span class="rating">★ @provider.Average.ToString("0.0") <small>(@provider.Count reviews)</small></span></div><div class="provider-bottom"><a href="/FindPost">Find a freelancer</a></div></div> }
+                        @foreach (var provider in Model.RatedProviders) { <div class="provider-card"><div class="provider-top"><div class="provider-avatar">@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "?")</div><div class="provider-name"><strong>@provider.Name</strong><span>@provider.Service</span></div></div><div class="provider-stats"><span class="rating">★ @provider.Average.ToString("0.0") <small>(@provider.Count reviews)</small></span></div><div class="provider-bottom"><a asp-page="/FindPost" asp-route-providerId="@provider.Id">Request work</a></div></div> }
                     </div>
                     <div class="sample-provider-grid" hidden>
 

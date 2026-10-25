@@ -1,0 +1,19 @@
+.job-location { margin-top:16px; border-top:1px solid #dce9dc; padding-top:16px; }
+.job-location-map { height:280px; width:100%; border:1px solid #dce9dc; border-radius:9px; overflow:hidden; background:#f2f7f1; }
+.job-location-status { font-size:12px; line-height:1.5; color:#526e60; margin:10px 0 0; }
+.job-location [hidden] { display:none !important; }
+.job-location .tracking-actions { margin-top:12px; }
+.job-location-map .maplibregl-ctrl-attrib { font-size:10px; color:#193e30; }
+.job-location-map .maplibregl-ctrl-attrib a { color:#175e45; }
+.job-location-map .maplibregl-popup-content { color:#193e30; font-size:12px; }
+.job-map-recenter button { display:flex; align-items:center; justify-content:center; color:#19765a; }
+.job-map-recenter button:disabled { opacity:.4; cursor:default; }
+.job-map-recenter button:focus-visible { outline:2px solid #19765a; outline-offset:2px; }
+.job-map-recenter button[aria-pressed="true"] { background:#e0f0e7; color:#125d44; }
+.job-freelancer-car { width:36px; height:54px; cursor:pointer; filter:drop-shadow(0 2px 3px #193e3040); }
+.job-freelancer-car svg { display:block; }
+.job-map-fullscreen-control button { display:flex; align-items:center; justify-content:center; color:#19765a; }
+.job-map-fullscreen-control button:focus-visible { outline:2px solid #19765a; outline-offset:2px; }
+html body .job-location-map.job-map-expanded,
+html body .job-location-map:fullscreen { position:fixed !important; inset:0 !important; width:100vw !important; height:100dvh !important; max-width:none !important; max-height:none !important; z-index:2147483647; margin:0; border:0; border-radius:0; }
+@media(max-width:600px) { .job-location-map { height:240px; } }

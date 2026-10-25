@@ -115,7 +115,6 @@
                         class="login-button">
 
                     <span class="login-button-label">Log in</span>
-                    <span class="login-button-arrow" aria-hidden="true">→</span>
                     <span class="login-spinner" aria-hidden="true" hidden></span>
 
                 </button>
@@ -156,7 +155,6 @@
             loginButton.disabled = loading;
             loginForm.setAttribute("aria-busy", String(loading));
             loginButton.querySelector(".login-button-label").textContent = loading ? "Logging in…" : "Log in";
-            loginButton.querySelector(".login-button-arrow").hidden = loading;
             loginButton.querySelector(".login-spinner").hidden = !loading;
         }
 

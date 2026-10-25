@@ -415,26 +415,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendBookingRequestButton = document.getElementById("sendBookingRequestButton");
     let selectedProvider = null;
 
-    function sendBookingRequest(provider) {
-        const selectedId = localStorage.getItem("tapTaskDoneSelectedTaskId");
-        const tasks = readPostedTasks();
-        const task = tasks.find(function (item) { return item.id === selectedId; });
-        if (!task) { showMessage("Choose a task first", "Post a task, then select it in My Tasks before sending a booking request."); return; }
-        let bookingAccount = {};
-        try { bookingAccount = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "{}"); } catch (error) { }
-        if (!bookingAccount.email || String(task.clientEmail || "").toLowerCase() !== String(bookingAccount.email).toLowerCase()) { showMessage("Choose your own task", "Select a task created by your account in My Tasks."); return; }
-        if (task.status !== "open") { showMessage("Task is not ready", "Confirm the task details in My Tasks first. Freelancers can receive requests after the task is open."); return; }
-        task.bookingRequests = Array.isArray(task.bookingRequests) ? task.bookingRequests : [];
-        if (task.bookingRequests.some(function (request) { return request.providerName === provider.name && request.status === "pending"; })) { showMessage("Request already sent", provider.name + " already has a pending booking request for this task."); return; }
-        if (provider.availability !== "Available") { showMessage("Provider unavailable", "Choose an available freelancer before sending a request."); return; }
-        if (provider.email && provider.email.toLowerCase() === String(bookingAccount.email).toLowerCase()) { showMessage("Choose another freelancer", "You cannot send a booking request to your own account."); return; }
-        task.bookingRequests.push({ id: "request-" + Date.now(), providerName: provider.name, providerEmail: provider.email || "", providerService: provider.service, providerReviews: provider.rating, price: provider.price, status: "pending" });
-        savePostedTasks(tasks);
-        addNotification("Booking request sent to " + provider.name + " for " + task.title);
-        showMessage("Booking request sent", provider.name + (provider.email ? " can review this request in My Jobs on this browser." : " is a sample profile; use the sample freelancer demo inbox to respond."));
-    }
-
-
     freelancerList.addEventListener("click", function (event) {
                     const button = event.target.closest(".arrow-button");
                     if (!button || !freelancerList.contains(button)) return;
@@ -451,7 +431,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById("selectedProviderAvailability").textContent = selectedProvider.availability || "Availability not set";
                     const bookingFreelancerId = document.getElementById("bookingFreelancerId");
                     if (bookingFreelancerId) bookingFreelancerId.value = card.dataset.id || "";
+                    const bookingBudget = document.getElementById("bookingBudget");
+                    if (bookingBudget) bookingBudget.value = card.dataset.rate || "";
                     if (sendBookingRequestButton) sendBookingRequestButton.disabled = selectedProvider.availability !== "Available" || !card.dataset.id;
+                    if (sendBookingRequestButton) sendBookingRequestButton.textContent = "Send booking request to " + name;
+                    const bookingPrivacyNotice = document.getElementById("bookingPrivacyNotice");
+                    if (bookingPrivacyNotice) bookingPrivacyNotice.textContent = "Private booking: only " + name + " will receive this request. It will not appear in Find Jobs.";
                     card.insertAdjacentElement("afterend", providerDetailPanel);
                     providerDetailPanel.classList.remove("hidden");
                     providerDetailPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -821,6 +806,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     else {
         showFindFreelancer();
+    }
+
+    // Home's provider cards keep the selected freelancer through to the real
+    // server-backed booking form, rather than opening a generic search page.
+    const requestedProviderId = searchParams.get("providerId");
+    if (requestedProviderId && /^[1-9]\d*$/.test(requestedProviderId)) {
+        showFindFreelancer();
+        const providerCard = Array.from(freelancerList.querySelectorAll(".freelancer-card[data-id]"))
+            .find(function (card) { return card.dataset.id === requestedProviderId; });
+        if (providerCard) {
+            providerCard.querySelector(".arrow-button").click();
+        } else {
+            showMessage("Provider unavailable", "This provider is no longer listed. Please choose another freelancer.");
+        }
     }
 
 

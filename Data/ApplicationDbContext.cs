@@ -28,6 +28,17 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var destination = modelBuilder.Entity<TaskDestination>();
+        destination.ToTable("task_destinations");
+        destination.HasKey(x => x.TaskId);
+        destination.HasOne<MarketplaceTask>().WithMany().HasForeignKey(x => x.TaskId).OnDelete(DeleteBehavior.Restrict);
+        var location = modelBuilder.Entity<FreelancerLocation>();
+        location.ToTable("mobile_location_updates");
+        location.HasKey(x => x.Id);
+        location.HasIndex(x => new { x.TaskId, x.RecordedAtUtc });
+        location.HasIndex(x => new { x.UserId, x.RecordedAtUtc });
+        location.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        location.HasOne<MarketplaceTask>().WithMany().HasForeignKey(x => x.TaskId).OnDelete(DeleteBehavior.Restrict);
         var evidence = modelBuilder.Entity<SafetyReportEvidence>();
         evidence.ToTable("safety_report_evidence");
         evidence.HasKey(x => x.Id);

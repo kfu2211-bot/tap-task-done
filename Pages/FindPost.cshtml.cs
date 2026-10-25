@@ -13,7 +13,6 @@ namespace tts.Pages
         public Dictionary<int, RatingSummary> Ratings { get; private set; } = [];
         public bool RatingsUnavailable { get; private set; }
         public List<MarketTasksModel.TaskItem> OpenTasks { get; private set; } = [];
-        public List<MarketplaceTask> BookingTasks { get; private set; } = [];
         public List<MarketTasksModel.OfferItem> Offers { get; private set; } = [];
         public Dictionary<long, string> OfferTaskTitles { get; private set; } = [];
         public string WorkRole { get; private set; } = "client";
@@ -25,8 +24,6 @@ namespace tts.Pages
             {
                 var userId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
                 WorkRole = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken))?.WorkRole ?? "client";
-                if (userId != 0 && WorkRole is "client" or "both")
-                    BookingTasks = await db.MarketplaceTasks.AsNoTracking().Where(t => t.ClientId == userId && t.Status == "open").OrderByDescending(t => t.Id).ToListAsync(cancellationToken);
                 if (userId != 0 && WorkRole is "freelancer" or "both")
                 {
                     OpenTasks = await (from t in db.MarketplaceTasks.AsNoTracking()

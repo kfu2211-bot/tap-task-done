@@ -18,6 +18,8 @@
     <script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
 <link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/messages-polish.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
 </head>
 
 <body class="@(Request.Query["legacy"] == "1" ? "messages-legacy-view" : "messages-current-view")">
@@ -194,27 +196,33 @@
         </section>
         } else {
         <section class="messages-current">
-            <div class="messages-intro"><h2>Your conversations</h2></div>
+
             @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="messages-notice" role="status">@Model.Notice</p> }
             @if (Model.Unavailable) { <div class="messages-empty" role="alert">Messages are unavailable. Check the database setup and try again.</div> }
             else {
             <div class="messages-grid"><nav class="messages-conversations" aria-label="Conversations">
-                <h3>Tasks</h3>
-                @if (Model.Conversations.Count == 0) { <p>No conversations yet. A conversation appears when a client accepts an offer.</p> }
+                <div class="conversations-toolbar"><div class="conversations-title"><h2>Conversations</h2><span class="conversation-count">@Model.Conversations.Count</span></div><label class="conversation-search"><span class="messages-sr-only">Search conversations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="conversationSearch" type="search" placeholder="Search conversations" autocomplete="off" /></label></div>
+                <div class="conversation-results">
+                @if (Model.Conversations.Count == 0) { <p class="conversation-list-empty">No conversations yet. Conversations become available after a booking or offer is accepted.</p> }
                 @foreach (var conversation in Model.Conversations) {
-                    <a class="conversation-link @(Model.Selected?.TaskId == conversation.TaskId ? "selected" : "")" href="/Messages?taskId=@conversation.TaskId"><strong>@conversation.Title</strong><span>@(string.IsNullOrWhiteSpace(conversation.OtherName) ? "User" : conversation.OtherName)</span></a>
+                    Model.LatestMessages.TryGetValue(conversation.TaskId, out var latest);
+                    <a class="conversation-link @(Model.Selected?.TaskId == conversation.TaskId ? "selected" : "")" href="/Messages?taskId=@conversation.TaskId" aria-current="@(Model.Selected?.TaskId == conversation.TaskId ? "page" : null)" data-search="@($"{conversation.OtherName} {conversation.Title}".ToLowerInvariant())"><span class="conversation-avatar" aria-hidden="true">@MessagesModel.Initials(conversation.OtherName)</span><span class="conversation-copy"><span class="conversation-row-heading"><strong>@(string.IsNullOrWhiteSpace(conversation.OtherName) ? "User" : conversation.OtherName)</strong>@if(latest is not null) { <time title="@tts.Data.DisplayTime.Philippine(latest.CreatedAt)">@latest.CreatedAt.AddHours(8).ToString("MMM d")</time> }</span><span class="conversation-task">@conversation.Title</span><span class="conversation-preview">@(latest is null ? "Start a conversation" : latest.Body)</span></span></a>
                 }
+                </div><p id="conversationNoMatches" class="conversation-list-empty" hidden>No conversations match your search.</p>
             </nav><div class="messages-thread">
                 @if (Model.Selected == null) { <div class="messages-empty"><h3>No conversation selected</h3><p>After an offer is accepted, open the task here to start a conversation.</p><a href="/FindPost">Find tasks and freelancers →</a></div> }
                 else {
-                    <div class="thread-heading"><h3>@Model.Selected.Title</h3><p>Conversation with @(string.IsNullOrWhiteSpace(Model.Selected.OtherName) ? "User" : Model.Selected.OtherName)</p></div>
+                    <div class="thread-heading"><span class="conversation-avatar" aria-hidden="true">@MessagesModel.Initials(Model.Selected.OtherName)</span><div class="thread-heading-copy"><h3>@(string.IsNullOrWhiteSpace(Model.Selected.OtherName) ? "User" : Model.Selected.OtherName)</h3><p>@Model.Selected.Title · Task #@Model.Selected.TaskId</p></div><a class="thread-task-link" href="@(Model.Selected.ClientId == Model.UserId ? "/MarketTasks?view=mine" : "/MyJobs")">View task</a></div>
                     <div class="thread-messages" aria-label="Conversation messages">
                         @if (Model.Messages.Count == 0) { <p class="thread-empty">No messages yet. Start the conversation below.</p> }
+                        @{ DateTime? messageDay = null; }
                         @foreach (var message in Model.Messages) {
-                            <div class="thread-message @(message.SenderId == Model.UserId ? "mine" : "theirs")"><span>@(message.SenderId == Model.UserId ? "You" : Model.Selected.OtherName)</span><p>@message.Body</p><time>@tts.Data.DisplayTime.Philippine(message.CreatedAt)</time></div>
+                            var day = message.CreatedAt.AddHours(8).Date;
+                            if (day != messageDay) { <div class="thread-date">@day.ToString("MMMM d, yyyy")</div> messageDay = day; }
+                            <div class="thread-message @(message.SenderId == Model.UserId ? "mine" : "theirs")"><p>@message.Body</p><time datetime="@message.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")" title="@tts.Data.DisplayTime.Philippine(message.CreatedAt)">@message.CreatedAt.AddHours(8).ToString("h:mm tt")</time></div>
                         }
                     </div>
-                    <form method="post" asp-page-handler="Send" class="thread-form"><input type="hidden" name="taskId" value="@Model.Selected.TaskId" /><label for="messageBody">Your message</label><textarea id="messageBody" name="body" maxlength="2000" required rows="3" placeholder="Write a message…"></textarea><button type="submit">Send message</button></form>
+                    <form method="post" asp-page-handler="Send" class="thread-form"><input type="hidden" name="taskId" value="@Model.Selected.TaskId" /><label for="messageBody" class="messages-sr-only">Your message</label><textarea id="messageBody" name="body" maxlength="2000" required rows="1" placeholder="Write a message…"></textarea><button type="submit">Send</button></form>
                 }
             </div></div>
             }

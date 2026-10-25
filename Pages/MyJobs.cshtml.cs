@@ -33,7 +33,7 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
             Bookings = await (from booking in db.MarketplaceBookings.AsNoTracking()
                               join task in db.MarketplaceTasks.AsNoTracking() on booking.TaskId equals task.Id
                               join client in db.Users.AsNoTracking() on task.ClientId equals client.Id
-                              where booking.FreelancerId == UserId && ((booking.Status == "pending" && task.Status == "open") || (booking.Status == "cancelled" && task.Status == "cancelled"))
+                              where booking.FreelancerId == UserId && ((booking.Status == "pending" && (task.Status == "open" || task.Status == "booking-pending")) || (booking.Status == "cancelled" && task.Status == "cancelled"))
                               orderby booking.Id descending
                               select new BookingItem(booking, task, ((client.FirstName ?? "") + " " + (client.LastName ?? "")).Trim())).ToListAsync(ct);
         }
@@ -63,6 +63,7 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
             await transaction.CommitAsync(ct);
         }
         Notice = updated == 1 ? (action == "start" ? "Work started." : "Work marked finished. Waiting for client confirmation.") : "The job could not be updated. It may have changed already.";
+        if (updated == 1 && action == "start") return RedirectToPage("/Tracking", new { taskId = id, shareLocation = 1 });
         return RedirectToPage(new { view = "active" });
     }
 

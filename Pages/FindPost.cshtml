@@ -33,6 +33,7 @@
 <link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/findpost-light.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
 </head>
 
 <body>
@@ -739,15 +740,22 @@
                             <section id="providerDetailPanel" class="provider-detail-panel hidden" aria-live="polite">
                                 <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
                                 <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span id="selectedProviderAvailability" class="available-now">Availability —</span></div>
-                                @if (Model.WorkRole is "client" or "both" && Model.BookingTasks.Count > 0) {
-                                <p class="provider-detail-help">Choose one of your open tasks. The freelancer may accept or decline your request.</p>
-                                <form method="post" asp-page="/BookingRequests" asp-page-handler="Create">
+                                @if (Model.WorkRole is "client" or "both") {
+                                <p class="provider-detail-help">Request work directly from this freelancer. Your request is private and will appear in their My Jobs → Booking requests.</p>
+                                <form method="post" asp-page="/BookingRequests" asp-page-handler="Direct" class="direct-booking-form">
                                     <input type="hidden" name="freelancerId" id="bookingFreelancerId" />
-                                    <label for="bookingTaskId">Your open task</label>
-                                    <select id="bookingTaskId" name="taskId" required><option value="">Select a task</option>@foreach(var task in Model.BookingTasks) { <option value="@task.Id">@task.Title · ₱@task.Budget</option> }</select>
+                                    <label for="bookingTitle">What do you need help with?</label><input id="bookingTitle" name="title" maxlength="120" required placeholder="e.g. Clean a two-bedroom home" />
+                                    <label for="bookingDescription">Work details</label><textarea id="bookingDescription" name="description" maxlength="5000" rows="3" required placeholder="Describe the work, scope, and any special requirements"></textarea>
+                                    <label for="bookingLocation">Work location</label><input id="bookingLocation" name="location" maxlength="120" required placeholder="City and work location" />
+                                    <label for="bookingSchedule">Preferred date and time (Philippine time)</label>
+                                    <input id="bookingSchedule" name="schedule" type="datetime-local" step="60" min="@DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required aria-describedby="bookingScheduleHelp" />
+                                    <small id="bookingScheduleHelp">Choose a date from the calendar and select a time. Schedule uses Philippine time (UTC+8).</small>
+                                    <label for="bookingBudget">Proposed budget (₱)</label><input id="bookingBudget" name="budget" type="number" min="1" max="9999999999" step="0.01" required />
+                                    <p>The displayed rate is a guide. The freelancer can accept or decline your proposed work and budget.</p>
+                                    <p id="bookingPrivacyNotice">Private booking: only your selected freelancer will receive this request. It will not appear in Find Jobs.</p>
                                     <button id="sendBookingRequestButton" type="submit" class="send-booking-request" disabled>Send booking request</button>
                                 </form>
-                                } else { <p class="provider-detail-help">Post and confirm a task as a client before sending a booking request. <a href="/MarketTasks?view=post">Post a task</a></p> }
+                                } else { <p class="provider-detail-help">To book a freelancer, choose Client or Client &amp; Freelancer as your work role in <a href="/Settings">Settings</a>.</p> }
                             </section>
 
 

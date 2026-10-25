@@ -1,0 +1,39 @@
+/* Shared compact rhythm for signed-in workspaces, matching Messages margins.
+   Keep the existing colors, form flow, sidebar geometry and touch targets. */
+html body main > :is(.content,.page-content,.market-content,.settings-content,.reviews-live,.reviews-content,.tracking-content,.mytasks-content,.messages-current) {
+    box-sizing:border-box !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:22px 24px 30px !important;
+}
+html body main > :is(.content,.page-content,.market-content,.settings-content,.reviews-live,.reviews-content,.tracking-content,.mytasks-content) > :is(.page-intro,.page-heading,.market-intro,.jobs-intro,.reviews-live-heading) {
+    margin-top:0 !important;
+    margin-bottom:18px !important;
+    padding-top:0 !important;
+    padding-bottom:0 !important;
+}
+html body :is(.market-intro,.jobs-intro,.page-intro,.page-heading,.reviews-live-heading) h2 { margin-top:6px; margin-bottom:8px; }
+html body .dashboard .hero-card { padding:24px !important; margin-bottom:18px !important; }
+html body .dashboard .section { padding:20px !important; margin-bottom:18px !important; }
+html body .db-tracking .tracking-intro { padding:22px !important; margin-bottom:16px !important; }
+html body .db-tracking .db-tracking-card { margin-top:16px !important; margin-bottom:16px !important; padding:20px !important; }
+html body .tracking-detail-layout { margin-top:18px; gap:16px; }
+html body .tracking-panel { padding:18px; }
+html body .page-content > .empty-mode-section { width:100%; max-width:none; margin-left:0; margin-right:0; }
+html body .settings-content > .settings-card { padding:20px; margin-bottom:16px; }
+html body .settings-content > .account-card { padding:20px 20px 0; }
+html body .settings-content > .account-card .save-row { margin:20px -20px 0; padding:16px 20px; }
+html body .market-content .task-card { padding:20px; }
+html body .verification-page .verification-card { padding:20px; }
+html body :is(.jobs-empty,.market-empty,.reviews-empty,.db-tracking-empty,.verification-empty) { min-height:0; padding:32px 20px; }
+@media(max-width:700px) {
+    html body main > :is(.content,.page-content,.market-content,.settings-content,.reviews-live,.reviews-content,.tracking-content,.mytasks-content,.messages-current) { padding:12px 12px 24px !important; }
+    html body .dashboard :is(.hero-card,.section) { padding:18px !important; }
+    html body .db-tracking :is(.tracking-intro,.db-tracking-card) { padding:18px !important; }
+    html body .settings-content > .settings-card { padding:18px; }
+    html body .settings-content > .account-card { padding:18px 18px 0; }
+    html body .settings-content > .account-card .save-row { margin:18px -18px 0; padding:14px 18px; }
+    html body .tracking-panel { padding:16px; }
+}
