@@ -38,7 +38,13 @@ public static class TaskProgress
     {
         var (from, to) = Transition(action);
         if (actor <= 0 || from == "") return new(false, "This action is unavailable.");
+        var participants = await (from t in db.MarketplaceTasks.AsNoTracking()
+            join o in db.MarketplaceOffers.AsNoTracking() on t.Id equals o.TaskId
+            where t.Id == id && o.Status == "accepted" select new { t.ClientId, o.FreelancerId }).SingleOrDefaultAsync(ct);
+        if (participants is null || (actor != participants.ClientId && actor != participants.FreelancerId)) return new(false, "This action is unavailable.");
         await using var tx = await db.Database.BeginTransactionAsync(ct);
+        foreach (var userId in new[] { participants.ClientId, participants.FreelancerId }.Distinct().Order())
+            await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {userId} FOR UPDATE").AsNoTracking().ToListAsync(ct);
         var tasks = await db.MarketplaceTasks.FromSqlInterpolated($"SELECT * FROM marketplace_tasks WHERE Id = {id} FOR UPDATE").ToListAsync(ct);
         var task = tasks.SingleOrDefault();
         var freelancer = await db.MarketplaceOffers.Where(o => o.TaskId == id && o.Status == "accepted").Select(o => (int?)o.FreelancerId).SingleOrDefaultAsync(ct);
@@ -46,6 +52,8 @@ public static class TaskProgress
             return new(false, "This action is unavailable or the task has already changed. Refresh and check its progress.");
         if (action == "travel" && !await db.Set<TaskDestination>().AnyAsync(x => x.TaskId == id, ct))
             return new(false, "Ask the client to save the exact destination pin before starting travel.");
+        if (action is "travel" or "start" && await FreelancerAvailability.ActiveTasks(db, freelancer.Value).AnyAsync(t => t.Id != id, ct))
+            return new(false, "Finish your current travel/work before starting another job.");
         note = note?.Trim();
         if (action == "finish" && (string.IsNullOrWhiteSpace(note) || note.Length > 1000))
             return new(false, "Add a completion note (up to 1,000 characters).");

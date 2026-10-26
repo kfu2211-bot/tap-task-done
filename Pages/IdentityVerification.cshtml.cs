@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using tts.Data;
 namespace tts.Pages;
 [Authorize]
-[RequestSizeLimit(16 * 1024 * 1024)]
+[RequestSizeLimit(22 * 1024 * 1024)]
 public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionProvider protection, IdentityVerificationAvailability availability, IWebHostEnvironment environment, ILogger<IdentityVerificationModel> logger) : PageModel
 {
     public bool IsDevelopment => environment.IsDevelopment();
@@ -17,17 +17,21 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
     [TempData] public string? Notice { get; set; }
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
+        Response.Headers.CacheControl = "no-store";
         if (!availability.Enabled) return NotFound();
         try { var latest = await db.IdentityRequests.AsNoTracking().Where(x => x.UserId == UserId).OrderByDescending(x => x.Id).Select(x => new { x.Status, x.ReviewNote }).FirstOrDefaultAsync(ct); Status = latest?.Status ?? "not verified"; ReviewNote = latest?.ReviewNote; }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Identity verification unavailable"); Notice = "Verification is temporarily unavailable. Please try again later."; }
         return Page();
     }
-    public async Task<IActionResult> OnPostAsync(string? idNumber, IFormFile? governmentId, IFormFile? certification, IFormFile? supportingDocument, CancellationToken ct)
+    public async Task<IActionResult> OnPostAsync(string? idNumber, IFormFile? governmentId, IFormFile? certification, IFormFile? supportingDocument, IFormFile? selfie, bool consent, CancellationToken ct)
     {
         if (!availability.Enabled) return NotFound();
         idNumber = (idNumber ?? "").Trim();
         if (UserId <= 0 || idNumber.Length is < 4 or > 50 || governmentId is null) { Notice = "Enter an ID number and choose a government ID file."; return RedirectToPage(); }
+        if (!consent || selfie is null || selfie.Length == 0) { Notice = "Take a selfie and consent to manual identity review before submitting."; return RedirectToPage(); }
         try {
+            var selfieFile = await ReadFile(selfie, ct);
+            if (selfieFile.Type is not ("image/jpeg" or "image/png")) throw new ArgumentException();
             var idFile = await ReadFile(governmentId, ct); (byte[] Bytes, string Type)? cert = certification is null || certification.Length == 0 ? null : await ReadFile(certification, ct); (byte[] Bytes, string Type)? other = supportingDocument is null || supportingDocument.Length == 0 ? null : await ReadFile(supportingDocument, ct);
             await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
             var latest = await db.IdentityRequests.Where(x => x.UserId == UserId).OrderByDescending(x => x.Id).Select(x => x.Status).FirstOrDefaultAsync(ct);
@@ -38,6 +42,8 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
             await db.SaveChangesAsync(ct);
             void AddResource(string kind, (byte[] Bytes, string Type) file) => db.IdentityResources.Add(new IdentityResource { IdentityRequestId = request.Id, Kind = kind, ContentType = file.Type, EncryptedData = protector.Protect(file.Bytes), CreatedAt = DateTime.UtcNow });
             AddResource("id", idFile);
+            AddResource("selfie", selfieFile);
+            AddResource("consent", (System.Text.Encoding.UTF8.GetBytes("Identity review consent v1: ID and selfie for manual comparison; accepted at submission."), "text/plain"));
             if (cert is not null) AddResource("certification", cert.Value);
             if (other is not null) AddResource("supporting", other.Value);
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Verification request submitted for admin review.";

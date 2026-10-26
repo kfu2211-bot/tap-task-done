@@ -12,6 +12,7 @@ namespace tts.Pages;
 public class SettingsModel(ApplicationDbContext db) : PageModel
 {
     public string DisplayName { get; private set; } = "";
+    public string EffectiveAvailability { get; private set; } = "Available";
     public string Email { get; private set; } = "";
     [BindProperty] public string? Service { get; set; }
     [BindProperty] public string? Location { get; set; }
@@ -28,6 +29,7 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
         DisplayName = $"{user.FirstName} {user.LastName}".Trim(); Email = user.Username ?? "";
         var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId);
         if (profile != null) { Service = profile.Service; Location = profile.Location; Rate = profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
+        EffectiveAvailability = await FreelancerAvailability.GetAsync(db, UserId, Availability, HttpContext.RequestAborted);
         return Page();
     }
     public async Task<IActionResult> OnPostAsync()

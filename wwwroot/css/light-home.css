@@ -91,6 +91,7 @@ html body .dashboard .provider-grid .provider-card:hover {
     background: #e8f2e8 !important;
     border-color: #a9cbb0 !important;
 }
+html body .dashboard .provider-availability { display:block; margin-top:5px; color:#176b50; font-size:12px; font-weight:600; }
 html body .dashboard .category-card h4 { color: #193e30; }
 html body .dashboard .category-card p { color: #596f62; }
 html body .dashboard .category-card strong { color: #176b50; }

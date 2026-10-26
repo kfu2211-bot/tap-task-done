@@ -221,10 +221,7 @@
         <!-- ================================================= -->
 
         <main class="main-area">
-<section class="search-demo-banner" style="margin:16px 24px;padding:14px 18px;border:1px solid #cde0cf;border-radius:10px;background:#edf5ed;color:#193e30">
-@if (Model.DemoMode) { <strong>DEMO SEARCH · 13 sample freelancers and 8 sample jobs</strong><p style="margin:6px 0">Search-only classroom examples. Bookings, offers and posting are disabled. <a href="/FindPost">Back to real records</a></p> }
-else { <span>Testing search and matching? <a href="/FindPost?demo=1">Open demo search data</a></span> }
-</section>
+
 
 
             <!-- TOP BAR -->
@@ -376,7 +373,7 @@ else { <span>Testing search and matching? <a href="/FindPost?demo=1">Open demo s
 
 
 
-                        <div class="filter-group"><label for="availabilityFilter">Availability</label><div class="input-wrapper"><select id="availabilityFilter" style="width:100%;height:100%;padding:0 12px;border:0;background:transparent;color:inherit;font:inherit"><option value="">Any availability</option><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></div></div>
+                        <div class="filter-group"><label for="availabilityFilter">Availability</label><div class="input-wrapper"><select id="availabilityFilter" style="width:100%;height:100%;padding:0 12px;border:0;background:transparent;color:inherit;font:inherit"><option value="">Any availability</option><option value="Available">Available</option><option value="Busy">Busy</option><option value="Working">Working</option><option value="Day off">Day off</option></select></div></div>
                         <button class="search-button"
                                 id="searchButton"
                                 type="button">
@@ -416,7 +413,7 @@ else { <span>Testing search and matching? <a href="/FindPost?demo=1">Open demo s
                             <div class="section-heading">
 
                                 <h2>
-                                    Available freelancers
+                                    Freelancers
                                 </h2>
 
                             </div>
@@ -427,309 +424,12 @@ else { <span>Testing search and matching? <a href="/FindPost?demo=1">Open demo s
                                  id="freelancerList">
                                 @foreach (var provider in Model.Providers)
                                 {
-                                    <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-location="@provider.Location" data-rate="@provider.Rate" data-availability="@provider.Availability" data-demo="@(Model.DemoMode ? "true" : "false")">
-                                        <div class="freelancer-left"><div class="freelancer-avatar">@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong><span>@provider.Service</span></div></div>
+                                    <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-location="@provider.Location" data-rate="@provider.Rate" data-availability="@provider.Availability">
+                                        <div class="freelancer-left"><div class="freelancer-avatar">@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong><span>@provider.Service</span><span class="provider-availability">@provider.Availability</span></div></div>
                                         <div class="freelancer-right"><div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count})" : "No ratings yet")</strong></div><div class="freelancer-price">@(provider.Rate.HasValue ? $"₱{provider.Rate}" : "Rate not set")</div><button class="arrow-button" type="button" data-name="@provider.Name">View profile</button></div>
                                     </article>
                                 }
-                                @* Retired sample directory; search displays database profiles only.
 
-                                <!-- OFRACIO -->
-
-                                <article class="freelancer-card"
-                                         data-service="plumber plumbing repair" data-location="Bacolor, Pampanga" data-rate="600" data-availability="Available" data-demo="true">
-
-                                    <div class="freelancer-left">
-
-
-                                        <div class="freelancer-avatar">
-                                            Of
-                                        </div>
-
-
-                                        <div class="freelancer-info">
-
-                                            <strong>
-                                                Ofrac­io
-                                            </strong>
-
-                                            <span>
-                                                Plumber
-                                            </span>
-
-                                        </div>
-
-
-                                    </div>
-
-
-
-                                    <div class="freelancer-right">
-
-
-                                        <div class="freelancer-rating">
-
-                                            <span class="star">
-                                                ★
-                                            </span>
-
-                                            <strong>
-                                                4.8
-                                            </strong>
-
-                                            <small>
-                                                (600)
-                                            </small>
-
-                                        </div>
-
-
-                                        <div class="freelancer-jobs">
-                                            100 jobs
-                                        </div>
-
-
-                                        <div class="freelancer-price">
-                                            ₱600
-                                        </div>
-
-
-                                        <button class="arrow-button"
-                                                type="button"
-                                                data-name="Ofrac­io">
-                                            View profile
-
-                                        </button>
-
-
-                                    </div>
-
-                                </article>
-
-
-
-                                <!-- MARISOL -->
-
-                                <article class="freelancer-card"
-                                         data-service="house cleaner cleaning deep clean" data-location="Bacolor, Pampanga" data-rate="450" data-availability="Available" data-demo="true">
-
-                                    <div class="freelancer-left">
-
-
-                                        <div class="freelancer-avatar">
-                                            Ma
-                                        </div>
-
-
-                                        <div class="freelancer-info">
-
-                                            <strong>
-                                                Marisol
-                                            </strong>
-
-                                            <span>
-                                                House Cleaner
-                                            </span>
-
-                                        </div>
-
-
-                                    </div>
-
-
-
-                                    <div class="freelancer-right">
-
-
-                                        <div class="freelancer-rating">
-
-                                            <span class="star">
-                                                ★
-                                            </span>
-
-                                            <strong>
-                                                4.9
-                                            </strong>
-
-                                            <small>
-                                                (421)
-                                            </small>
-
-                                        </div>
-
-
-                                        <div class="freelancer-jobs">
-                                            210 jobs
-                                        </div>
-
-
-                                        <div class="freelancer-price">
-                                            ₱450
-                                        </div>
-
-
-                                        <button class="arrow-button"
-                                                type="button"
-                                                data-name="Marisol">
-                                            View profile
-
-                                        </button>
-
-
-                                    </div>
-
-                                </article>
-
-
-
-                                <!-- DANTE -->
-
-                                <article class="freelancer-card"
-                                         data-service="electrician electrical repair" data-location="Bacolor, Pampanga" data-rate="750" data-availability="Available" data-demo="true">
-
-                                    <div class="freelancer-left">
-
-
-                                        <div class="freelancer-avatar">
-                                            Da
-                                        </div>
-
-
-                                        <div class="freelancer-info">
-
-                                            <strong>
-                                                Dante
-                                            </strong>
-
-                                            <span>
-                                                Electrician
-                                            </span>
-
-                                        </div>
-
-
-                                    </div>
-
-
-
-                                    <div class="freelancer-right">
-
-
-                                        <div class="freelancer-rating">
-
-                                            <span class="star">
-                                                ★
-                                            </span>
-
-                                            <strong>
-                                                4.7
-                                            </strong>
-
-                                            <small>
-                                                (288)
-                                            </small>
-
-                                        </div>
-
-
-                                        <div class="freelancer-jobs">
-                                            132 jobs
-                                        </div>
-
-
-                                        <div class="freelancer-price">
-                                            ₱750
-                                        </div>
-
-
-                                        <button class="arrow-button"
-                                                type="button"
-                                                data-name="Dante">
-                                            View profile
-
-                                        </button>
-
-
-                                    </div>
-
-                                </article>
-
-
-
-                                <!-- LEA -->
-
-                                <article class="freelancer-card"
-                                         data-service="errand runner errands delivery" data-location="Bacolor, Pampanga" data-rate="300" data-availability="Available" data-demo="true">
-
-                                    <div class="freelancer-left">
-
-
-                                        <div class="freelancer-avatar">
-                                            Le
-                                        </div>
-
-
-                                        <div class="freelancer-info">
-
-                                            <strong>
-                                                Lea
-                                            </strong>
-
-                                            <span>
-                                                Errand Runner
-                                            </span>
-
-                                        </div>
-
-
-                                    </div>
-
-
-
-                                    <div class="freelancer-right">
-
-
-                                        <div class="freelancer-rating">
-
-                                            <span class="star">
-                                                ★
-                                            </span>
-
-                                            <strong>
-                                                4.9
-                                            </strong>
-
-                                            <small>
-                                                (512)
-                                            </small>
-
-                                        </div>
-
-
-                                        <div class="freelancer-jobs">
-                                            340 jobs
-                                        </div>
-
-
-                                        <div class="freelancer-price">
-                                            ₱300
-                                        </div>
-
-
-                                        <button class="arrow-button"
-                                                type="button"
-                                                data-name="Lea">
-                                            View profile
-
-                                        </button>
-
-
-                                    </div>
-
-                                </article>
-
-
-                                *@
                             </div>
 
 
@@ -745,8 +445,8 @@ else { <span>Testing search and matching? <a href="/FindPost?demo=1">Open demo s
                             <section id="providerDetailPanel" class="provider-detail-panel hidden" aria-live="polite">
                                 <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
                                 <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span id="selectedProviderAvailability" class="available-now">Availability —</span></div>
-                                @if (Model.DemoMode) { <p class="provider-detail-help">Demo profile for search and matching only. Booking requests are disabled.</p> }
-                                else if (Model.WorkRole is "client" or "both") {
+                                @if (tts.Pages.BookingRequestsModel.CanBook(Model.WorkRole)) {
+                                @if (Model.WorkRole == "freelancer") { <p class="provider-detail-help">You can hire another freelancer. Sending this request enables Client &amp; Freelancer mode so you can track it in My Tasks.</p> }
                                 <p class="provider-detail-help">Request work directly from this freelancer. Your request is private and will appear in their My Jobs → Booking requests.</p>
                                 <form method="post" asp-page="/BookingRequests" asp-page-handler="Direct" class="direct-booking-form">
                                     <input type="hidden" name="freelancerId" id="bookingFreelancerId" />
@@ -789,7 +489,7 @@ else { <span>Testing search and matching? <a href="/FindPost?demo=1">Open demo s
                         <button type="button" id="startPostTaskButton">Create a task</button>
                     </div>
 
-                    <form data-demo-post="@(Model.DemoMode ? "true" : "false")" class="post-task-panel" id="databasePostTaskForm" method="post" asp-page="/MarketTasks" asp-page-handler="Create">
+                    <form class="post-task-panel" id="databasePostTaskForm" method="post" asp-page="/MarketTasks" asp-page-handler="Create">
                         <input type="hidden" name="schedule" id="databaseSchedule" />
                         <div class="post-task-heading">
                             <div>
@@ -907,8 +607,7 @@ else { <span>Testing search and matching? <a href="/FindPost?demo=1">Open demo s
                             var task = item.Task;
                             var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
                             <article class="jobs-card"><div class="jobs-card-top"><span class="jobs-tag">@task.Category</span><strong>₱@task.Budget</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>⌖ @task.Location</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: @item.ClientName</span></div>
-                            @if (Model.DemoMode) { <p class="jobs-offer-status">Demo task · Offers disabled</p> }
-                            else if (existing != null) { <p class="jobs-offer-status">Offer sent · @existing.Offer.Status</p> }
+                            @if (existing != null) { <p class="jobs-offer-status">Offer sent · @existing.Offer.Status</p> }
                             else { <details class="jobs-offer"><summary>Send an offer</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Offer"><input type="hidden" name="id" value="@task.Id" /><label class="post-field">Your price (₱)<input type="number" name="price" min="1" max="9999999999" step="0.01" required /></label><label class="post-field">Message (optional)<textarea name="message" maxlength="500"></textarea></label><button class="post-submit-button">Send offer</button></form></details> }</article>
                         }
                         <section class="jobs-offers"><h3>My offers</h3>

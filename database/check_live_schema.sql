@@ -40,6 +40,7 @@ UNION ALL SELECT 'identity_requests' AS table_name, 'GovernmentType' AS column_n
 UNION ALL SELECT 'identity_requests' AS table_name, 'Id' AS column_name
 UNION ALL SELECT 'identity_requests' AS table_name, 'IdLast4' AS column_name
 UNION ALL SELECT 'identity_requests' AS table_name, 'ReviewedAt' AS column_name
+UNION ALL SELECT 'identity_requests' AS table_name, 'ReviewReadAt' AS column_name
 UNION ALL SELECT 'identity_requests' AS table_name, 'ReviewedById' AS column_name
 UNION ALL SELECT 'identity_requests' AS table_name, 'ReviewNote' AS column_name
 UNION ALL SELECT 'identity_requests' AS table_name, 'Status' AS column_name

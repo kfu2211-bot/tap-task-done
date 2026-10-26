@@ -160,6 +160,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         { Notice = "Check your freelancer role, availability and offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot send offers while restricted. Check your notifications."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        if (await FreelancerAvailability.IsBusyAsync(db, UserId, ct)) { Notice = "Finish your current travel/work before sending a new offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId != UserId && t.Status == "open", ct);
         if (task is null || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct)) { Notice = "This task is unavailable or you already sent an offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = id, FreelancerId = UserId, Price = price, Message = message, Status = "pending", CreatedAt = DateTime.UtcNow });

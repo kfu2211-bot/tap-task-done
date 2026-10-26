@@ -73,6 +73,7 @@
                             <label>Availability<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label>
                         </div>
                     </fieldset>
+                    <p class="form-message">Current status: <strong>@Model.EffectiveAvailability</strong>. Your selected availability is restored after work is marked finished or cancelled. Pending client confirmation does not block new work.</p>
                     <fieldset class="settings-group"><legend>Weekly availability</legend><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> }</div></fieldset>
                     <div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite">@Model.Message</p><button class="primary-button" type="submit">Save changes</button></div>
                 </form>

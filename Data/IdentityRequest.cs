@@ -8,6 +8,7 @@ public sealed class IdentityRequest
     public string Status { get; set; } = "pending";
     public DateTime CreatedAt { get; set; }
     public DateTime? ReviewedAt { get; set; }
+    public DateTime? ReviewReadAt { get; set; }
     public int? ReviewedById { get; set; }
     public string? ReviewNote { get; set; }
     public byte[]? GovernmentId { get; set; }

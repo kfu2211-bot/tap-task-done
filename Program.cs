@@ -55,6 +55,8 @@ if (lanPreview)
 // Add services to the container.
 builder.Services.AddRazorPages(options => options.Conventions.AuthorizePage("/Admin", "AdminOnly"));
 builder.Services.AddScoped<AccountStore>();
+builder.Services.AddHostedService<CompletionReminderWorker>();
+builder.Services.AddHostedService<IdentityRetentionWorker>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
 {
     options.LoginPath = "/Login";
@@ -214,12 +216,23 @@ app.Use(async (context, next) =>
 });
 app.UseAuthorization();
 
+app.MapGet("/api/providers/availability", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    var profiles = await db.FreelancerProfiles.AsNoTracking().Where(p => p.WorkRole == "freelancer" || p.WorkRole == "both")
+        .Select(p => new { p.UserId, p.Availability }).ToListAsync(ct);
+    var active = await FreelancerAvailability.AssignmentsAsync(db, profiles.Select(p => p.UserId).ToArray(), ct);
+    return Results.Json(profiles.Select(p => new { id = p.UserId, availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.UserId) ?? []) }));
+}).RequireAuthorization();
+
 app.MapGet("/api/work-preferences", async (HttpContext context, ApplicationDbContext db) =>
 {
     if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
         return Results.Unauthorized();
     var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == userId);
-    return Results.Json(new { role = profile?.WorkRole ?? "client", service = profile?.Service ?? "", availability = profile?.Availability ?? "Available" });
+    var effective = await FreelancerAvailability.GetAsync(db, userId, profile?.Availability ?? "Available", context.RequestAborted);
+    context.Response.Headers.CacheControl = "no-store";
+    return Results.Json(new { role = profile?.WorkRole ?? "client", service = profile?.Service ?? "", availability = effective, preferredAvailability = profile?.Availability ?? "Available" });
 }).RequireAuthorization();
 
 app.MapGet("/api/notifications/unread-count", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
@@ -227,6 +240,7 @@ app.MapGet("/api/notifications/unread-count", async (HttpContext context, Applic
     if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0)
         return Results.Unauthorized();
     var count = await db.MarketplaceNotifications.CountAsync(n => n.UserId == userId && !n.IsRead && n.Kind != "dispute", ct);
+    count += await db.IdentityRequests.CountAsync(r => r.UserId == userId && r.ReviewedAt != null && r.ReviewReadAt == null, ct);
     return Results.Json(new { count });
 }).RequireAuthorization();
 

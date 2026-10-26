@@ -9,7 +9,7 @@ namespace tts.Pages;
 [Authorize(Policy = "AdminOnly")]
 public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider protection, IdentityVerificationAvailability availability) : PageModel
 {
-    public record Item(long Id, string Name, string Status, string IdLast4, DateTime CreatedAt, bool HasCertification, bool HasSupporting);
+    public record Item(long Id, string Name, string Status, string IdLast4, DateTime CreatedAt, bool HasCertification, bool HasSupporting) { public bool HasSelfie { get; init; } public string? GovernmentType { get; init; } }
     public List<Item> Items { get; private set; } = [];
     public bool DatabaseUnavailable { get; private set; }
     public bool ReviewEnabled => availability.Enabled;
@@ -30,8 +30,10 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
             {
                 var ids = Items.Select(x => x.Id).ToList();
                 var resources = await db.IdentityResources.AsNoTracking().Where(x => ids.Contains(x.IdentityRequestId))
-                    .Select(x => new { x.IdentityRequestId, x.Kind }).ToListAsync(ct);
+                    .Select(x => new { x.IdentityRequestId, x.Kind, x.ContentType }).ToListAsync(ct);
                 Items = Items.Select(item => item with {
+                    HasSelfie = resources.Any(x => x.IdentityRequestId == item.Id && x.Kind == "selfie"),
+                    GovernmentType = resources.FirstOrDefault(x => x.IdentityRequestId == item.Id && x.Kind == "id")?.ContentType,
                     HasCertification = item.HasCertification || resources.Any(x => x.IdentityRequestId == item.Id && x.Kind == "certification"),
                     HasSupporting = item.HasSupporting || resources.Any(x => x.IdentityRequestId == item.Id && x.Kind == "supporting")
                 }).ToList();
@@ -41,16 +43,18 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
         }
         return Page();
     }
-    public async Task<IActionResult> OnPostReviewAsync(long id, string? decision, string? note, CancellationToken ct)
+    public async Task<IActionResult> OnPostReviewAsync(long id, string? decision, string? note, bool matchConfirmed, CancellationToken ct)
     {
         if (!availability.Enabled) return NotFound(); note = (note ?? "").Trim();
-        if (AdminId <= 0 || decision is not ("approved" or "rejected") || note.Length > 500) return BadRequest();
-        var changed = await db.IdentityRequests.Where(x => x.Id == id && x.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, decision).SetProperty(x => x.ReviewNote, note).SetProperty(x => x.ReviewedAt, DateTime.UtcNow).SetProperty(x => x.ReviewedById, AdminId), ct);
+        if (AdminId <= 0 || decision is not ("approved" or "rejected" or "resubmit") || note.Length > 500 || (decision != "approved" && string.IsNullOrWhiteSpace(note))) { Notice = "Add a reason when rejecting or requesting a new submission (up to 500 characters)."; return RedirectToPage(new { embedded = Embedded }); }
+        if (decision == "approved" && !matchConfirmed) { Notice = "Compare the ID and selfie, then confirm your manual review before approving."; return RedirectToPage(new { embedded = Embedded }); }
+        if (decision == "approved" && !await db.IdentityResources.AnyAsync(x => x.IdentityRequestId == id && x.Kind == "selfie", ct)) { Notice = "This request has no selfie. Request a new submission with a selfie before approving."; return RedirectToPage(new { embedded = Embedded }); }
+        var changed = await db.IdentityRequests.Where(x => x.Id == id && x.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, decision).SetProperty(x => x.ReviewNote, note).SetProperty(x => x.ReviewedAt, DateTime.UtcNow).SetProperty(x => x.ReviewReadAt, (DateTime?)null).SetProperty(x => x.ReviewedById, AdminId), ct);
         Notice = changed == 1 ? "Decision saved." : "Request was already reviewed or is unavailable."; return RedirectToPage(new { embedded = Embedded });
     }
     public async Task<IActionResult> OnGetDocumentAsync(long id, string kind, CancellationToken ct)
     {
-        if (!availability.Enabled || kind is not ("id" or "certification" or "supporting")) return NotFound();
+        if (!availability.Enabled || kind is not ("id" or "certification" or "supporting" or "selfie")) return NotFound();
         var resource = await db.IdentityResources.AsNoTracking().Where(x => x.IdentityRequestId == id && x.Kind == kind).Select(x => new { x.EncryptedData, x.ContentType }).SingleOrDefaultAsync(ct);
         byte[]? data = resource?.EncryptedData; string? type = resource?.ContentType;
         if (resource is null) {

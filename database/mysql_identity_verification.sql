@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS identity_requests (
   Status varchar(16) NOT NULL,
   CreatedAt datetime(6) NOT NULL,
   ReviewedAt datetime(6) NULL,
+  ReviewReadAt datetime(6) NULL,
   ReviewedById int NULL,
   ReviewNote varchar(500) NULL,
   GovernmentId mediumblob NOT NULL,

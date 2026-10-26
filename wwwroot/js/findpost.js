@@ -267,16 +267,16 @@ document.addEventListener("DOMContentLoaded", function () {
         label.className = "match-details";
         label.textContent = "Service area: " + (card.dataset.location || "Not set") +
             " · " + (card.dataset.availability || "Availability not set") +
-            (card.dataset.demo === "true" ? " · Demo profile — search only" : " · Database profile");
+            " · Database profile";
         card.querySelector(".freelancer-info").append(label);
         const reasons = document.createElement("small");
         reasons.className = "search-match-reasons";
         card.querySelector(".freelancer-info").append(reasons);
     });
 
-    function performSearch() {
+    function performSearch(keepProfile = false) {
         const openProfile = document.getElementById("providerDetailPanel");
-        if (openProfile) openProfile.classList.add("hidden");
+        if (openProfile && keepProfile !== true) openProfile.classList.add("hidden");
         const query = serviceSearch.value.trim().toLowerCase();
         const location = locationInput.value.trim().toLowerCase();
         const budgetText = budgetInput.value.trim().replace(/[₱,\s]/g, "");
@@ -299,13 +299,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const matches = matchesOther && (!query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
                 (!location || area.includes(location)) &&
                 (maximum === null || (rate > 0 && rate <= maximum)) &&
-                (!availability || status === availability);
+                (!availability || (availability === "busy" ? status.startsWith("busy") : status === availability));
             card.style.display = matches ? "flex" : "none";
             const reasons = [];
             if (query && (matchesService(service, query) || name.includes(query))) reasons.push("service or name");
             if (location && area.includes(location)) reasons.push("location");
             if (maximum !== null && rate > 0 && rate <= maximum) reasons.push("budget");
-            if (availability && status === availability) reasons.push("availability");
+            if (availability && (availability === "busy" ? status.startsWith("busy") : status === availability)) reasons.push("availability");
             const match = card.querySelector(".search-match-reasons");
             if (match) match.textContent = matches && reasons.length ? "Matched: " + reasons.join(", ") : "";
             if (matches) count++;
@@ -423,9 +423,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     const service = card.querySelector(".freelancer-info span").textContent.trim();
                     const rating = card.querySelector(".freelancer-rating strong").textContent.trim();
                     const price = card.querySelector(".freelancer-price").textContent.trim();
-                    selectedProvider = { name: name, email: card.dataset.email || "", service: service, rating: rating, price: price, availability: card.dataset.availability || "", location: card.dataset.location || "", demo: card.dataset.demo === "true" };
+                    selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", service: service, rating: rating, price: price, availability: card.dataset.availability || "", location: card.dataset.location || "" };
                     document.getElementById("selectedProviderName").textContent = name;
-                    document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set") + (selectedProvider.demo ? " · Demo profile — search only" : " · Database profile");
+                    document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set") + " · Database profile";
                     document.getElementById("selectedProviderRating").textContent = rating;
                     document.getElementById("selectedProviderPrice").textContent = card.dataset.rate ? price + " per task" : price;
                     document.getElementById("selectedProviderAvailability").textContent = selectedProvider.availability || "Availability not set";
@@ -433,7 +433,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (bookingFreelancerId) bookingFreelancerId.value = card.dataset.id || "";
                     const bookingBudget = document.getElementById("bookingBudget");
                     if (bookingBudget) bookingBudget.value = card.dataset.rate || "";
-                    if (sendBookingRequestButton) sendBookingRequestButton.disabled = selectedProvider.demo || selectedProvider.availability !== "Available" || !card.dataset.id;
+                    if (sendBookingRequestButton) sendBookingRequestButton.disabled = selectedProvider.availability !== "Available" || !card.dataset.id;
                     if (sendBookingRequestButton) sendBookingRequestButton.textContent = "Send booking request to " + name;
                     const bookingPrivacyNotice = document.getElementById("bookingPrivacyNotice");
                     if (bookingPrivacyNotice) bookingPrivacyNotice.textContent = "Private booking: only " + name + " will receive this request. It will not appear in Find Jobs.";
@@ -442,6 +442,30 @@ document.addEventListener("DOMContentLoaded", function () {
                     providerDetailPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
 
+    async function refreshProviderAvailability() {
+        if (document.hidden) return;
+        try {
+            const response = await fetch('/api/providers/availability', { credentials: 'same-origin', cache: 'no-store' });
+            if (!response.ok || response.redirected) return;
+            const statuses = new Map((await response.json()).map(p => [Number(p.id), p.availability]));
+            freelancerCards.forEach(card => {
+                const next = statuses.get(Number(card.dataset.id));
+                if (!next) return;
+                card.dataset.availability = next;
+                const badge = card.querySelector('.provider-availability'); if (badge) badge.textContent = next;
+                const label = card.querySelector('.match-details');
+                if (label) label.textContent = 'Service area: ' + card.dataset.location + ' · ' + next + ' · Database profile';
+            });
+            if (selectedProvider && statuses.has(selectedProvider.id)) {
+                selectedProvider.availability = statuses.get(selectedProvider.id);
+                document.getElementById('selectedProviderAvailability').textContent = selectedProvider.availability;
+                if (sendBookingRequestButton) sendBookingRequestButton.disabled = selectedProvider.availability !== 'Available';
+            }
+            performSearch(true);
+        } catch { /* Keep last-known labels when offline; booking is validated on the server. */ }
+    }
+    setInterval(refreshProviderAvailability, 15000);
+    window.addEventListener('focus', refreshProviderAvailability);
     const closeProviderDetail = document.getElementById("closeProviderDetail");
     if (closeProviderDetail) closeProviderDetail.addEventListener("click", function () { providerDetailPanel.classList.add("hidden"); });
 
@@ -670,127 +694,6 @@ document.addEventListener("DOMContentLoaded", function () {
        FIND JOBS BUTTON
     ===================================================== */
 
-    const findJobsContent = document.getElementById("findJobsContent");
-
-    function renderFindJobs() {
-        if (!findJobsContent) return;
-
-        const tasks = readPostedTasks();
-        const demoNames = ["Ofracio", "Marisol", "Dante", "Lea"];
-        let demoFreelancer = localStorage.getItem("tapTaskDoneDemoFreelancer") || "Ofracio";
-        if (!demoNames.includes(demoFreelancer)) demoFreelancer = "Ofracio";
-        const inbox = document.createElement("section");
-        inbox.className = "demo-inbox";
-        const inboxTitle = document.createElement("h2"); inboxTitle.textContent = "Demo freelancer booking requests";
-        const inboxHelp = document.createElement("p"); inboxHelp.textContent = "Local demo only: choose a sample freelancer. Requests sent to your account are in My Jobs.";
-        const selector = document.createElement("select"); selector.className = "demo-provider-select";
-        demoNames.forEach(function (name) { const option = document.createElement("option"); option.value = name; option.textContent = name + " — freelancer demo"; option.selected = name === demoFreelancer; selector.append(option); });
-        selector.addEventListener("change", function () { localStorage.setItem("tapTaskDoneDemoFreelancer", selector.value); renderFindJobs(); });
-        inbox.append(inboxTitle, inboxHelp, selector);
-        const requests = tasks.flatMap(function (task) { return (Array.isArray(task.bookingRequests) ? task.bookingRequests : []).filter(function (request) { return task.status === "open" && !request.providerEmail && request.providerName === demoFreelancer && request.status === "pending"; }).map(function (request) { return { task: task, request: request }; }); });
-        if (!requests.length) { const emptyInbox = document.createElement("p"); emptyInbox.className = "demo-inbox-empty"; emptyInbox.textContent = "No booking requests for " + demoFreelancer + " yet."; inbox.append(emptyInbox); }
-        requests.forEach(function (item) {
-            const requestCard = document.createElement("div"); requestCard.className = "booking-request-card";
-            const requestInfo = document.createElement("div"); const requestTitle = document.createElement("strong"); requestTitle.textContent = item.task.title; const requestMeta = document.createElement("span"); requestMeta.textContent = (item.task.location || "Location to be confirmed") + " · " + (item.task.budget || "Budget to be confirmed"); requestInfo.append(requestTitle, requestMeta);
-            const actions = document.createElement("div"); actions.className = "booking-request-actions";
-            const decline = document.createElement("button"); decline.type = "button"; decline.className = "decline-offer-button"; decline.textContent = "Decline";
-            decline.addEventListener("click", function () { item.request.status = "declined"; savePostedTasks(tasks); addNotification(demoFreelancer + " declined the booking request for " + item.task.title); renderFindJobs(); });
-            const accept = document.createElement("button"); accept.type = "button"; accept.textContent = "Accept request";
-            accept.addEventListener("click", function () { item.request.status = "accepted"; item.task.status = "assigned"; item.task.providerName = item.request.providerName; item.task.providerEmail = item.request.providerEmail || ""; item.task.providerService = item.request.providerService; item.task.providerReviews = item.request.providerReviews; savePostedTasks(tasks); localStorage.setItem("tapTaskDoneCurrentTask", JSON.stringify(item.task)); localStorage.setItem("tapTaskDoneTrackingStatus", "on-the-way"); addNotification(demoFreelancer + " accepted your booking request for " + item.task.title); renderFindJobs(); });
-            actions.append(decline, accept); requestCard.append(requestInfo, actions); inbox.append(requestCard);
-        });
-        findJobsContent.textContent = "";
-        const flowHint = document.createElement("p");
-        flowHint.textContent = "Find open tasks and send an offer here. Manage your offers, requests, and accepted jobs in My Jobs.";
-        const jobsLink = document.createElement("a"); jobsLink.href = "/MyJobs"; jobsLink.textContent = "Open My Jobs";
-        flowHint.append(" ", jobsLink); findJobsContent.append(flowHint);
-        // The former sample-provider inbox was a browser-only demo, not real bookings.
-        const freelancerAccount = currentFreelancer();
-        const openTasks = tasks.filter(function (task) { return (task.status === "open" || task.status === "Confirmed") && (!task.clientEmail || String(task.clientEmail).toLowerCase() !== String(freelancerAccount.email || "").toLowerCase()); });
-
-        if (!openTasks.length) {
-            const empty = document.createElement("div");
-            empty.className = "mode-placeholder";
-            const icon = document.createElement("div");
-            icon.className = "placeholder-icon";
-            icon.textContent = "□";
-            const title = document.createElement("h2");
-            title.textContent = "No open tasks yet";
-            const text = document.createElement("p");
-            text.textContent = "Tasks are currently stored only in the browser where they were posted. A client must confirm a task in My Tasks, and tasks from another account or device are not yet synced through the database.";
-            empty.append(icon, title, text);
-            findJobsContent.append(empty);
-            return;
-        }
-
-        openTasks.forEach(function (task) {
-        if (task.status === "Confirmed") task.status = "open";
-        const card = document.createElement("article");
-        card.className = "job-offer-card";
-        const eyebrow = document.createElement("span");
-        eyebrow.className = "job-offer-eyebrow";
-        eyebrow.textContent = "Open task · Freelancer view";
-        const title = document.createElement("h2");
-        title.textContent = task.title || "Untitled task";
-        const details = document.createElement("p");
-        details.className = "job-offer-details";
-        details.textContent = (task.description || "No description provided.") + " · " +
-            (task.location || "Location not set") + " · " + (task.budget || "Budget not set");
-        const freelancer = currentFreelancer();
-        const notice = document.createElement("p");
-        notice.className = "job-offer-note";
-        notice.textContent = "Freelancer: " + freelancer.name + " · " + freelancer.service + " · " + freelancer.rating + " · " + freelancer.availability;
-        const reasons = [];
-        if (freelancer.service && task.providerService && matchesService(freelancer.service, task.providerService)) reasons.push("service");
-        if (signedIn.serviceLocation && task.location && String(task.location).toLowerCase().includes(String(signedIn.serviceLocation).toLowerCase())) reasons.push("location");
-        const taskBudget = Number(String(task.budget || "").replace(/[^0-9.]/g, ""));
-        if (Number(signedIn.serviceRate) > 0 && taskBudget >= Number(signedIn.serviceRate)) reasons.push("budget");
-        const matchNote = document.createElement("p"); matchNote.className = "job-offer-note";
-        matchNote.textContent = reasons.length ? "Matches your profile: " + reasons.join(", ") + "." : "No profile criteria matched yet; you can still review this task.";
-        const offerFields = document.createElement("div");
-        offerFields.className = "job-offer-fields";
-        const priceInput = document.createElement("input");
-        priceInput.type = "text";
-        priceInput.maxLength = 30;
-        priceInput.placeholder = "Your offer price (optional)";
-        const messageInput = document.createElement("input");
-        messageInput.type = "text";
-        messageInput.maxLength = 160;
-        messageInput.placeholder = "Short message to client";
-        offerFields.append(priceInput, messageInput);
-        const offerButton = document.createElement("button");
-        offerButton.type = "button";
-        const hasOffer = Array.isArray(task.offers) && task.offers.some(function (offer) {
-            return freelancer.email ? String(offer.email || "").toLowerCase() === freelancer.email.toLowerCase() : offer.name === freelancer.name;
-        });
-        offerButton.textContent = hasOffer ? "Offer sent" : freelancer.availability === "Available" ? "Send offer as " + freelancer.name : "Unavailable — " + freelancer.availability;
-        offerButton.disabled = hasOffer || freelancer.availability !== "Available";
-        offerButton.addEventListener("click", function () {
-            const latestTasks = readPostedTasks();
-            const latestTask = latestTasks.find(function (item) { return item.id === task.id; });
-            if (!latestTask || latestTask.status !== "open") return;
-            latestTask.offers = Array.isArray(latestTask.offers) ? latestTask.offers : [];
-            if (freelancer.email && String(latestTask.clientEmail || "").toLowerCase() === freelancer.email.toLowerCase()) return;
-            if (!latestTask.offers.some(function (offer) { return freelancer.email ? String(offer.email || "").toLowerCase() === freelancer.email.toLowerCase() : offer.name === freelancer.name; })) {
-                latestTask.offers.push({
-                    id: "offer-" + Date.now(),
-                    name: freelancer.name,
-                    email: freelancer.email,
-                    service: freelancer.service,
-                    rating: freelancer.rating,
-                    price: priceInput.value.trim() || "Budget offer",
-                    message: messageInput.value.trim() || "I can help with this task. I am available today."
-                });
-                savePostedTasks(latestTasks);
-                addNotification("Offer sent for: " + latestTask.title, "/MyTasks");
-            }
-            renderFindJobs();
-        });
-        card.append(eyebrow, title, details, notice, matchNote, offerFields, offerButton);
-        findJobsContent.append(card);
-        });
-    }
-
     /* =====================================================
        OPEN SPECIFIC MODE FROM ANOTHER PAGE
        This runs here because Find Jobs is now fully available.
@@ -963,10 +866,4 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     );
 
-});
-
-// Demo mode can exercise filters and profiles without creating real tasks.
-document.querySelectorAll('form[data-demo-post="true"]').forEach(form => {
-    form.addEventListener("submit", event => event.preventDefault());
-    form.querySelectorAll("input,select,textarea,button").forEach(control => control.disabled = true);
 });

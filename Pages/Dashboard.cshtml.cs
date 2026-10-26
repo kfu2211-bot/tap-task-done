@@ -7,7 +7,7 @@ namespace tts.Pages
 {
     public class DashboardModel(ApplicationDbContext db, ILogger<DashboardModel> logger) : PageModel
     {
-        public record RatedProvider(int Id, string Name, string Service, double Average, int Count);
+        public record RatedProvider(int Id, string Name, string Service, double Average, int Count) { public string Availability { get; init; } = "Available"; }
         public List<RatedProvider> RatedProviders { get; private set; } = [];
         public bool ReviewsUnavailable { get; private set; }
         public Dictionary<string, int> CategoryCounts { get; private set; } = new();
@@ -41,12 +41,14 @@ namespace tts.Pages
                     join user in db.Users.AsNoTracking() on review.FreelancerId equals user.Id
                     join profile in db.FreelancerProfiles.AsNoTracking() on user.Id equals profile.UserId
                     where (profile.WorkRole == "freelancer" || profile.WorkRole == "both")
-                        && user.Id != viewerId && profile.Availability == "Available"
+                        && user.Id != viewerId
                         && profile.Service != "" && profile.Location != ""
-                    select new { user.Id, user.FirstName, user.LastName, profile.Service, review.Rating }).ToListAsync(ct);
-                RatedProviders = rows.GroupBy(x => new { x.Id, x.FirstName, x.LastName, x.Service })
-                    .Select(g => new RatedProvider(g.Key.Id, ((g.Key.FirstName ?? "") + " " + (g.Key.LastName ?? "")).Trim(), g.Key.Service, g.Average(x => x.Rating), g.Count()))
+                    select new { user.Id, user.FirstName, user.LastName, profile.Service, profile.Availability, review.Rating }).ToListAsync(ct);
+                RatedProviders = rows.GroupBy(x => new { x.Id, x.FirstName, x.LastName, x.Service, x.Availability })
+                    .Select(g => new RatedProvider(g.Key.Id, ((g.Key.FirstName ?? "") + " " + (g.Key.LastName ?? "")).Trim(), g.Key.Service, g.Average(x => x.Rating), g.Count()) { Availability = g.Key.Availability })
                     .OrderByDescending(x => x.Average).ThenByDescending(x => x.Count).ThenBy(x => x.Name).Take(8).ToList();
+                var active = await FreelancerAvailability.AssignmentsAsync(db, RatedProviders.Select(p => p.Id).ToArray(), ct);
+                RatedProviders = RatedProviders.Select(p => p with { Availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.Id) ?? []) }).ToList();
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
             { logger.LogError(ex, "Unable to load ratings"); ReviewsUnavailable = true; }
