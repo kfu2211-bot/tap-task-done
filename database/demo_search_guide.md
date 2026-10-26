@@ -8,13 +8,15 @@ Suggested teacher checks:
 
 | Search | Location | Max budget | Availability | Expected demo results |
 |---|---|---:|---|---|
-| Cleaning | San Fernando | 700 | Available | Ana Reyes and Marco Cruz |
-| Repairs | San Fernando | 900 | Available | Carlo Garcia (plumbing repairs alias) |
+| Cleaning | Bacolor | 700 | Available | Ana Reyes and Marco Cruz |
+| Repairs | Bacolor | 900 | Available | Carlo Garcia (plumbing repairs alias) |
 | Gardening | Bacolor | 500 | Available | Eli Mendoza |
-| Gardening | San Fernando | 800 | Day off | Faye Flores |
-| Ivan | San Fernando | 400 | Available | Ivan Aquino |
-| Cleaning | San Fernando | 100 | Available | No results |
+| Gardening | Bacolor | 800 | Day off | Faye Flores |
+| Ivan | Bacolor | 400 | Available | Ivan Aquino |
+| Cleaning | Bacolor | 100 | Available | No results |
 
 Use **Find jobs** to view the 8 sample tasks; they have no actionable offer form. No fake completed jobs or ratings are supplied. The mode is intended to test search/matching, not booking, tracking, email delivery or transactions.
 
 The samples are bundled with code; deploy the updated build yourself to make this mode available on the live site. No live deployment or database seeding is performed automatically.
+
+All sample providers and tasks use Bacolor, Pampanga, matching the target service area. Existing user-entered locations are not rewritten.
