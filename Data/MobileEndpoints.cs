@@ -45,11 +45,14 @@ public static class MobileEndpoints
             if (user is null || session.PasswordVersion != AccountStore.SessionFingerprint(user.PasswordHash) || !user.DateOfBirth.HasValue || user.DateOfBirth.Value.Date > DateTime.UtcNow.AddHours(8).Date.AddYears(-16)) return Results.Unauthorized();
             if (VerificationMailer.Enabled(app.Configuration) && !await VerificationMailer.IsVerifiedAsync(db, user, ct)) return Results.Unauthorized();
             if (await ModerationGuard.IsSuspendedAsync(db, user.Id, ct)) return Results.StatusCode(403);
-            var allowedTask = await db.MarketplaceTasks.AsNoTracking().AnyAsync(t => t.Id == input.TaskId && t.Status == "in-progress" && db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == user.Id && o.Status == "accepted"), ct);
-            if (!allowedTask) return Results.Json(new { message = "The task is not in progress or is not assigned to this account." }, statusCode: 403);
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            var lockedTask = await db.MarketplaceTasks.FromSqlInterpolated($"SELECT * FROM marketplace_tasks WHERE Id = {input.TaskId} FOR UPDATE").ToListAsync(ct);
+            var allowedTask = lockedTask.Count == 1 && lockedTask[0].Status == "on-the-way" && await db.MarketplaceOffers.AnyAsync(o => o.TaskId == input.TaskId && o.FreelancerId == user.Id && o.Status == "accepted", ct);
+            if (!allowedTask) return Results.Json(new { message = "Travel is not active or the task is not assigned to this account." }, statusCode: 403);
             if (!double.IsFinite(input.Latitude) || !double.IsFinite(input.Longitude) || input.Latitude is < -90 or > 90 || input.Longitude is < -180 or > 180 || (input.AccuracyMeters.HasValue && (!double.IsFinite(input.AccuracyMeters.Value) || input.AccuracyMeters.Value < 0 || input.AccuracyMeters.Value > 100000))) return Results.BadRequest(new { message = "Invalid coordinates." });
             var now = DateTime.UtcNow;
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO mobile_location_updates (UserId, TaskId, Latitude, Longitude, AccuracyMeters, RecordedAtUtc) VALUES ({user.Id}, {input.TaskId}, {input.Latitude}, {input.Longitude}, {input.AccuracyMeters}, {now})", ct);
+            await transaction.CommitAsync(ct);
             return Results.Ok(new { recordedAtUtc = now });
         }).RequireRateLimiting("MobileLocationLimit");
     }

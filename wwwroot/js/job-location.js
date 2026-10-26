@@ -45,7 +45,7 @@
             recenterButton.setAttribute('aria-pressed', String(following));
         }
         if (!latest) {
-            setStatus(status, active ? 'No location shared yet. Waiting for the freelancer.' : 'Location sharing starts when the freelancer starts work.');
+            setStatus(status, active ? 'No location shared yet. Waiting for the freelancer.' : 'Location sharing starts when the freelancer starts travel.');
             return;
         }
         const date = new Date(latest.recordedAtUtc.endsWith('Z') ? latest.recordedAtUtc : latest.recordedAtUtc + 'Z');
@@ -82,9 +82,12 @@
             const response = await fetch(endpoint, { cache: 'no-store', headers: { Accept: 'application/json' } });
             if (!response.ok || response.redirected) throw new Error('Unable to load location. Check your connection or sign in again.');
             const result = await response.json();
+            if (result.status && root.dataset.progressStatus && result.status !== root.dataset.progressStatus && !editing && !document.querySelector('.tracking-progress-form textarea')?.value?.trim()) {
+                location.reload(); return;
+            }
             active = result.active;
             latest = result.location;
-            if (!active) stopSharing('Sharing is stopped because this job is not in progress.');
+            if (!active) stopSharing('Sharing is stopped because travel has ended.');
             await loadDestination();
             render();
         } catch (error) { setStatus(status, error.message, true); }

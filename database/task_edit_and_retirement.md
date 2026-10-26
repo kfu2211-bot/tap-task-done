@@ -1,0 +1,7 @@
+# Pending task edits and retirement of task disputes
+
+An owner can edit title, description, category, location, budget and preferred schedule while a task is pending-confirmation. Saving does not publish the task. Confirmation remains a separate action. The conditional database update checks owner and status in the same statement, so a stale form cannot edit a task after confirmation/cancellation. Opening the edit form hides the separate confirmation button until the editor is closed or saved.
+
+Task disputes have been removed from client/freelancer actions, admin navigation, counts, activity/inbox summaries, and their Razor page endpoints. Safety & Reports remains available, including the work quality/service-issue reason. Existing database dispute records and table mappings remain for archival compatibility; no records are deleted and no existing task statuses are rewritten. Existing paused tasks remain paused and direct users to Safety & Reports. Old dispute notifications are omitted from the inbox and unread badge. Retired URLs /Disputes and /AdminDisputes no longer provide a feature endpoint.
+
+No schema migration is required for these changes. No production database changes or deployment are performed automatically. Live acceptance testing should check: edit an owned draft then publish it; reject another user's edit; reject stale edits after confirmation/cancellation; verify the My Jobs progress button on desktop/mobile; verify task-dispute pages are no longer available while Safety & Reports still works.

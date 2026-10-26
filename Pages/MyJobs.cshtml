@@ -1,4 +1,5 @@
 @page
+@using tts.Data
 @model tts.Pages.MyJobsModel
 @{ Layout = null; }
 <!DOCTYPE html>
@@ -28,16 +29,15 @@ else if (selected == "requests") {
 }
 else if (visible.Count == 0 && (selected != "cancelled" || cancelledBookings.Count == 0)) { <div class="jobs-empty"><span class="jobs-empty-icon" aria-hidden="true">▤</span><h3>@(selected == "cancelled" ? "No cancelled jobs" : selected == "offers" ? "No offers yet" : selected == "active" ? "No active jobs yet" : "No completed jobs yet")</h3><p>@(selected == "cancelled" ? "Cancelled tasks will appear here." : selected == "offers" ? "Find a task and send your first offer." : selected == "active" ? "Accepted offers will appear here." : "Jobs confirmed by the client will appear here.")</p><a href="/FindPost?mode=jobs">Find jobs →</a></div> }
 @if (selected == "cancelled") { foreach (var booking in cancelledBookings) { <article class="job-card"><div class="job-card-head"><h2>@booking.Task.Title</h2><span class="job-status">Cancelled</span></div><p>Client: @booking.ClientName</p><p><strong>Cancellation reason:</strong> @booking.Task.CancellationReason</p></article> } }
-@foreach (var job in selected == "requests" ? Enumerable.Empty<MyJobsModel.JobItem>() : visible) { <article class="job-card"><div class="job-card-head"><div><h2>@job.Task.Title</h2><p>@job.Task.Description</p></div><span class="job-status">@(selected == "offers" ? job.Offer.Status : job.Task.Status)</span></div><div class="job-meta"><span>@job.Task.Location</span><span>Offer ₱@job.Offer.Price</span><span>Client: @job.ClientName</span></div>
+@foreach (var job in selected == "requests" ? Enumerable.Empty<MyJobsModel.JobItem>() : visible) { <article class="job-card"><div class="job-card-head"><div><h2>@job.Task.Title</h2><p>@job.Task.Description</p></div><span class="job-status">@(selected == "offers" ? job.Offer.Status : TaskProgress.Label(job.Task.Status))</span></div><div class="job-meta"><span>@job.Task.Location</span><span>Offer ₱@job.Offer.Price</span><span>Client: @job.ClientName</span></div>
 @if (job.Task.Status == "cancelled") { <p><strong>Cancellation reason:</strong> @job.Task.CancellationReason</p> }
-@if (job.Offer.Status == "accepted" && job.Task.Status is ("assigned" or "in-progress" or "awaiting-confirmation" or "disputed" or "completed")) { <p class="job-card-link"><a href="/Disputes?taskId=@job.Task.Id">View or raise a task dispute</a></p> }
 @if (job.Offer.Status == "withdrawn") { <p><strong>Withdrawal reason:</strong> @job.Offer.WithdrawalReason</p><p>You cannot send another offer for this same task.</p> }
 @if (job.Offer.Status == "accepted") { <p class="job-card-link"><a href="/Messages?taskId=@job.Task.Id">Message client</a></p> }
-@if (selected == "active") { <p class="job-card-link"><a href="/Tracking?taskId=@job.Task.Id">Track this job</a></p> }
-@if (selected == "active" && job.Task.Status == "assigned") { <form method="post" asp-page-handler="Advance" class="job-actions"><input type="hidden" name="id" value="@job.Task.Id" /><input type="hidden" name="action" value="start" /><p class="job-meta">Starting opens Tracking, where your browser will ask permission to share your location with this client while the page stays open.</p><button class="job-primary">Start work</button></form> }
+@if (selected == "active") { <div class="job-card-actions"><a class="job-progress-button" href="/Tracking?taskId=@job.Task.Id">View progress</a></div> }
+@if (selected == "active" && job.Task.Status == "assigned") { <form method="post" asp-page-handler="Advance" class="job-actions"><input type="hidden" name="id" value="@job.Task.Id" /><input type="hidden" name="action" value="travel" /><p class="job-meta">Travel opens Tracking and asks permission to share location until arrival.</p><button class="job-primary">Start travel</button></form> }
 @if (selected == "active" && job.Task.Status == "assigned") { <details class="job-withdraw"><summary>Withdraw from this job</summary><p>The client will be notified and the task will reopen for other freelancers. You cannot undo this or reapply to the same task.</p><form method="post" asp-page-handler="Withdraw" onsubmit="return confirm('Withdraw from this job? This cannot be undone.');"><input type="hidden" name="id" value="@job.Task.Id" /><label>Reason for withdrawing<textarea name="reason" maxlength="500" required></textarea></label><button type="submit">Confirm withdrawal</button></form></details> }
-@if (selected == "active" && job.Task.Status is "in-progress" or "awaiting-confirmation") { <p>If you cannot continue, contact the client to discuss the work and any payment already agreed upon.</p> }
-@if (selected == "active" && job.Task.Status == "in-progress") { <form method="post" asp-page-handler="Advance" class="job-actions"><input type="hidden" name="id" value="@job.Task.Id" /><input type="hidden" name="action" value="finish" /><button class="job-primary">Mark work finished</button></form> }
+@if (selected == "active" && job.Task.Status is "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation") { <p>If you cannot continue, contact the client to discuss the work and any payment already agreed upon.</p> }
+
 @if (job.Task.Status == "awaiting-confirmation" && job.Offer.Status == "accepted") { <p>Waiting for the client to confirm completion.</p> }</article> }
 </div>
 }</section></main></div></body></html>

@@ -12,6 +12,11 @@
 .job-map-recenter button[aria-pressed="true"] { background:#e0f0e7; color:#125d44; }
 .job-freelancer-car { width:36px; height:54px; cursor:pointer; filter:drop-shadow(0 2px 3px #193e3040); }
 .job-freelancer-car svg { display:block; }
+.tracking-progress-form { width:100%; display:grid; gap:12px; }
+.tracking-progress-form label { display:grid; gap:6px; font-size:13px; color:#193e30; }
+.tracking-progress-form textarea { width:100%; box-sizing:border-box; border:1px solid #bfd3c3; border-radius:8px; padding:10px; font:inherit; }
+.tracking-progress-form button { justify-self:start; }
+.tracking-completion { padding:14px; margin:12px 0; border:1px solid #dce9dc; background:#f2f7f1; border-radius:8px; }
 .job-map-fullscreen-control button { display:flex; align-items:center; justify-content:center; color:#19765a; }
 .job-map-fullscreen-control button:focus-visible { outline:2px solid #19765a; outline-offset:2px; }
 html body .job-location-map.job-map-expanded,

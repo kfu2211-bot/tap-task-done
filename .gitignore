@@ -8,3 +8,5 @@ obj/
 *.db-wal
 appsettings.Local.json
 .local-secrets/
+
+appsettings.Testing.json

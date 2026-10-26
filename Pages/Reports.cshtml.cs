@@ -8,7 +8,7 @@ namespace tts.Pages;
 [Authorize]
 public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger) : PageModel
 {
-    private static readonly string[] Reasons = ["Scam or fake account", "No-show", "Harassment or inappropriate behavior", "Work dispute", "Other"];
+    private static readonly string[] Reasons = ["Scam or fake account", "No-show", "Harassment or inappropriate behavior", "Work quality or service issue", "Other"];
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public List<SafetyReport> Reports { get; private set; } = [];
     public List<MarketplaceTask> Tasks { get; private set; } = [];

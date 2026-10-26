@@ -7,6 +7,7 @@ namespace tts.Pages
 {
     public class FindPostModel(ApplicationDbContext db, ILogger<FindPostModel> logger) : PageModel
     {
+        public bool DemoMode { get; private set; }
         public record Provider(int Id, string Name, string Service, string Location, int? Rate, string Availability);
         public record RatingSummary(double Average, int Count);
         public List<Provider> Providers { get; private set; } = [];
@@ -20,6 +21,14 @@ namespace tts.Pages
         public bool DirectoryUnavailable { get; private set; }
         public async Task OnGetAsync(CancellationToken cancellationToken)
         {
+            if (Request.Query["demo"] == "1")
+            {
+                DemoMode = true;
+                WorkRole = "both"; // Read-only previews of both search directions, not an account role change.
+                Providers = DemoSearchCatalog.Providers.Select(p => new Provider(p.Id, p.Name, p.Service, p.Location, p.Rate, p.Availability)).ToList();
+                OpenTasks = DemoSearchCatalog.Tasks().Select(t => new MarketTasksModel.TaskItem(t, "[DEMO] Sample client")).ToList();
+                return;
+            }
             try
             {
                 var userId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;

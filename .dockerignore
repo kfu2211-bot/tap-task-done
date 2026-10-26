@@ -7,3 +7,5 @@ appsettings.Local.json
 *.suo
 README.md
 .local-secrets/
+
+appsettings.Testing.json

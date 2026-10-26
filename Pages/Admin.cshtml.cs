@@ -18,7 +18,6 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
     public bool VerificationAvailable => verification.Enabled;
     public int? PendingVerifications { get; private set; }
     public int? OpenReports { get; private set; }
-    public int? OpenDisputes { get; private set; }
 
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
@@ -41,8 +40,6 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load verification count."); }
         try { OpenReports = await db.SafetyReports.AsNoTracking().CountAsync(x => x.Status == "open" || x.Status == "reviewing", cancellationToken); }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load report count."); }
-        try { OpenDisputes = await db.MarketplaceDisputes.AsNoTracking().CountAsync(x => x.Status == "open", cancellationToken); }
-        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load dispute count."); }
         try
         {
             var reports = await (from a in db.SafetyReportActions.AsNoTracking() join u in db.Users.AsNoTracking() on a.AdminId equals u.Id
@@ -50,14 +47,7 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
             Activities.AddRange(reports.Select(a => new AdminActivity(a.CreatedAt, ($"{a.FirstName} {a.LastName}").Trim(), "Safety report updated", $"Report #{a.ReportId}: {a.Status}")));
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { ActivityIncomplete = true; logger.LogWarning(ex, "Unable to load report activity."); }
-        try
-        {
-            var disputes = await (from d in db.MarketplaceDisputes.AsNoTracking() join u in db.Users.AsNoTracking() on d.ClosedById equals u.Id
-                where d.Status == "closed" && d.ClosedAt != null orderby d.Id descending
-                select new { d.Id, d.ClosedAt, u.FirstName, u.LastName }).Take(100).ToListAsync(cancellationToken);
-            Activities.AddRange(disputes.Select(d => new AdminActivity(d.ClosedAt!.Value, ($"{d.FirstName} {d.LastName}").Trim(), "Dispute closed", $"Dispute #{d.Id}")));
-        }
-        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { ActivityIncomplete = true; logger.LogWarning(ex, "Unable to load dispute activity."); }
+
         {
             try
             {

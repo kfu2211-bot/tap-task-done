@@ -28,6 +28,16 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var progress = modelBuilder.Entity<TaskProgressEvent>();
+        progress.ToTable("task_progress_events");
+        progress.HasKey(x => x.Id);
+        progress.Property(x => x.Status).HasMaxLength(24);
+        progress.Property(x => x.Note).HasMaxLength(1000);
+        progress.Property(x => x.Photo).HasColumnType("mediumblob");
+        progress.Property(x => x.PhotoType).HasMaxLength(32);
+        progress.HasIndex(x => new { x.TaskId, x.Id });
+        progress.HasOne<MarketplaceTask>().WithMany().HasForeignKey(x => x.TaskId).OnDelete(DeleteBehavior.Restrict);
+        progress.HasOne<AppUser>().WithMany().HasForeignKey(x => x.ActorId).OnDelete(DeleteBehavior.Restrict);
         var destination = modelBuilder.Entity<TaskDestination>();
         destination.ToTable("task_destinations");
         destination.HasKey(x => x.TaskId);

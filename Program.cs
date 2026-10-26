@@ -226,7 +226,7 @@ app.MapGet("/api/notifications/unread-count", async (HttpContext context, Applic
 {
     if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0)
         return Results.Unauthorized();
-    var count = await db.MarketplaceNotifications.CountAsync(n => n.UserId == userId && !n.IsRead, ct);
+    var count = await db.MarketplaceNotifications.CountAsync(n => n.UserId == userId && !n.IsRead && n.Kind != "dispute", ct);
     return Results.Json(new { count });
 }).RequireAuthorization();
 

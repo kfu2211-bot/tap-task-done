@@ -85,7 +85,14 @@ html body .market-content .task-card .cancel-task[open] > summary::before { cont
 html body .market-content .task-card .cancel-task p { color:#526c5d; font-size:13px; line-height:1.5; }
 html body .market-content .task-card .task-actions :is(a,summary,button):focus-visible { outline:2px solid #176b50; outline-offset:3px; }
 html body .market-content .task-card .task-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:start; }
-html body .market-content .task-card .task-actions :is(.task-action-message,.task-action-dispute,.cancel-task > summary) { width:100%; min-height:46px; margin:0; }
+html body .market-content .task-card .task-actions :is(.task-action-message,.edit-task > summary,.cancel-task > summary) { width:100%; min-height:46px; margin:0; }
+html body .market-content .edit-task > summary { display:flex; align-items:center; justify-content:center; box-sizing:border-box; padding:10px 16px; border:1px solid #9ac9a7; border-radius:8px; color:#176b50; background:#fff; font-weight:600; cursor:pointer; list-style:none; }
+html body .market-content .edit-task[open] { grid-column:1 / -1; }
+html body .market-content .task-edit-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; padding:16px; margin-top:10px; border:1px solid #d9e7da; border-radius:10px; background:#f2f7f1; }
+html body .market-content .task-edit-form label { min-width:0; display:grid; gap:6px; }
+html body .market-content .task-edit-form input,html body .market-content .task-edit-form textarea { box-sizing:border-box; width:100%; }
+html body .market-content .task-edit-form button { justify-self:start; min-height:42px; padding:0 18px; }
+@media(max-width:700px) { html body .market-content .task-edit-form { grid-template-columns:1fr; } }
 html body .market-content .task-card .task-actions > form { min-width:0; }
 html body .market-content .task-card .task-actions > form > button { width:100%; min-height:46px; }
 @media(max-width:700px) { html body .market-content .task-card .task-actions { grid-template-columns:1fr; } }

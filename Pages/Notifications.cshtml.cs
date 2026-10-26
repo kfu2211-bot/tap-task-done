@@ -19,7 +19,7 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (UserId <= 0) return Challenge();
-        Items = await db.MarketplaceNotifications.AsNoTracking().Where(n => n.UserId == UserId)
+        Items = await db.MarketplaceNotifications.AsNoTracking().Where(n => n.UserId == UserId && n.Kind != "dispute")
             .OrderByDescending(n => n.Id).Take(100).ToListAsync(ct);
         var taskIds = Items.Select(n => n.TaskId).Distinct().ToList();
         TaskTitles = await db.MarketplaceTasks.AsNoTracking().Where(t => taskIds.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.Title, ct);
@@ -50,10 +50,10 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
         return item.Kind switch
         {
             "message" => RedirectToPage("/Messages", new { taskId = item.TaskId }),
-            "dispute" => RedirectToPage("/Disputes", new { taskId = item.TaskId }),
+            "dispute" => RedirectToPage("/Reports"),
             "booking_request" => RedirectToPage("/MyJobs", new { view = "requests" }),
             "accepted" => RedirectToPage("/MyJobs", new { view = "active" }),
-            "completed" => RedirectToPage("/MyJobs", new { view = "completed" }),
+            "completed" or "on-the-way" or "arrived" or "started" or "finished" or "booking_accepted" => RedirectToPage("/Tracking", new { taskId = item.TaskId }),
             "cancelled" => RedirectToPage("/MyJobs", new { view = "cancelled" }),
             _ => RedirectToPage("/MarketTasks", new { view = "mine" })
         };

@@ -267,7 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
         label.className = "match-details";
         label.textContent = "Service area: " + (card.dataset.location || "Not set") +
             " · " + (card.dataset.availability || "Availability not set") +
-            " · Database profile";
+            (card.dataset.demo === "true" ? " · Demo profile — search only" : " · Database profile");
         card.querySelector(".freelancer-info").append(label);
         const reasons = document.createElement("small");
         reasons.className = "search-match-reasons";
@@ -425,7 +425,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const price = card.querySelector(".freelancer-price").textContent.trim();
                     selectedProvider = { name: name, email: card.dataset.email || "", service: service, rating: rating, price: price, availability: card.dataset.availability || "", location: card.dataset.location || "", demo: card.dataset.demo === "true" };
                     document.getElementById("selectedProviderName").textContent = name;
-                    document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set") + " · Database profile";
+                    document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set") + (selectedProvider.demo ? " · Demo profile — search only" : " · Database profile");
                     document.getElementById("selectedProviderRating").textContent = rating;
                     document.getElementById("selectedProviderPrice").textContent = card.dataset.rate ? price + " per task" : price;
                     document.getElementById("selectedProviderAvailability").textContent = selectedProvider.availability || "Availability not set";
@@ -433,7 +433,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (bookingFreelancerId) bookingFreelancerId.value = card.dataset.id || "";
                     const bookingBudget = document.getElementById("bookingBudget");
                     if (bookingBudget) bookingBudget.value = card.dataset.rate || "";
-                    if (sendBookingRequestButton) sendBookingRequestButton.disabled = selectedProvider.availability !== "Available" || !card.dataset.id;
+                    if (sendBookingRequestButton) sendBookingRequestButton.disabled = selectedProvider.demo || selectedProvider.availability !== "Available" || !card.dataset.id;
                     if (sendBookingRequestButton) sendBookingRequestButton.textContent = "Send booking request to " + name;
                     const bookingPrivacyNotice = document.getElementById("bookingPrivacyNotice");
                     if (bookingPrivacyNotice) bookingPrivacyNotice.textContent = "Private booking: only " + name + " will receive this request. It will not appear in Find Jobs.";
@@ -963,4 +963,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     );
 
+});
+
+// Demo mode can exercise filters and profiles without creating real tasks.
+document.querySelectorAll('form[data-demo-post="true"]').forEach(form => {
+    form.addEventListener("submit", event => event.preventDefault());
+    form.querySelectorAll("input,select,textarea,button").forEach(control => control.disabled = true);
 });

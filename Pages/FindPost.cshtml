@@ -221,6 +221,10 @@
         <!-- ================================================= -->
 
         <main class="main-area">
+<section class="search-demo-banner" style="margin:16px 24px;padding:14px 18px;border:1px solid #cde0cf;border-radius:10px;background:#edf5ed;color:#193e30">
+@if (Model.DemoMode) { <strong>DEMO SEARCH · 13 sample freelancers and 8 sample jobs</strong><p style="margin:6px 0">Search-only classroom examples. Bookings, offers and posting are disabled. <a href="/FindPost">Back to real records</a></p> }
+else { <span>Testing search and matching? <a href="/FindPost?demo=1">Open demo search data</a></span> }
+</section>
 
 
             <!-- TOP BAR -->
@@ -398,7 +402,7 @@
                         <section class="provider-search-intro">
                             <span>Find a trusted provider</span>
                             <h2>Compare freelancers before you send a request.</h2>
-                            <p>Search real freelancer profiles by service, location, budget, and availability.</p>
+                            <p>Search profiles by service, location, budget, and availability.</p>
                             @if (!string.IsNullOrEmpty(Model.Notice) && mode != "jobs") { <p role="status">@Model.Notice</p> }
                         </section>
 
@@ -423,7 +427,7 @@
                                  id="freelancerList">
                                 @foreach (var provider in Model.Providers)
                                 {
-                                    <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-location="@provider.Location" data-rate="@provider.Rate" data-availability="@provider.Availability" data-demo="false">
+                                    <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-location="@provider.Location" data-rate="@provider.Rate" data-availability="@provider.Availability" data-demo="@(Model.DemoMode ? "true" : "false")">
                                         <div class="freelancer-left"><div class="freelancer-avatar">@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong><span>@provider.Service</span></div></div>
                                         <div class="freelancer-right"><div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count})" : "No ratings yet")</strong></div><div class="freelancer-price">@(provider.Rate.HasValue ? $"₱{provider.Rate}" : "Rate not set")</div><button class="arrow-button" type="button" data-name="@provider.Name">View profile</button></div>
                                     </article>
@@ -741,7 +745,8 @@
                             <section id="providerDetailPanel" class="provider-detail-panel hidden" aria-live="polite">
                                 <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
                                 <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span id="selectedProviderAvailability" class="available-now">Availability —</span></div>
-                                @if (Model.WorkRole is "client" or "both") {
+                                @if (Model.DemoMode) { <p class="provider-detail-help">Demo profile for search and matching only. Booking requests are disabled.</p> }
+                                else if (Model.WorkRole is "client" or "both") {
                                 <p class="provider-detail-help">Request work directly from this freelancer. Your request is private and will appear in their My Jobs → Booking requests.</p>
                                 <form method="post" asp-page="/BookingRequests" asp-page-handler="Direct" class="direct-booking-form">
                                     <input type="hidden" name="freelancerId" id="bookingFreelancerId" />
@@ -784,7 +789,7 @@
                         <button type="button" id="startPostTaskButton">Create a task</button>
                     </div>
 
-                    <form class="post-task-panel" id="databasePostTaskForm" method="post" asp-page="/MarketTasks" asp-page-handler="Create">
+                    <form data-demo-post="@(Model.DemoMode ? "true" : "false")" class="post-task-panel" id="databasePostTaskForm" method="post" asp-page="/MarketTasks" asp-page-handler="Create">
                         <input type="hidden" name="schedule" id="databaseSchedule" />
                         <div class="post-task-heading">
                             <div>
@@ -902,7 +907,8 @@
                             var task = item.Task;
                             var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
                             <article class="jobs-card"><div class="jobs-card-top"><span class="jobs-tag">@task.Category</span><strong>₱@task.Budget</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>⌖ @task.Location</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: @item.ClientName</span></div>
-                            @if (existing != null) { <p class="jobs-offer-status">Offer sent · @existing.Offer.Status</p> }
+                            @if (Model.DemoMode) { <p class="jobs-offer-status">Demo task · Offers disabled</p> }
+                            else if (existing != null) { <p class="jobs-offer-status">Offer sent · @existing.Offer.Status</p> }
                             else { <details class="jobs-offer"><summary>Send an offer</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Offer"><input type="hidden" name="id" value="@task.Id" /><label class="post-field">Your price (₱)<input type="number" name="price" min="1" max="9999999999" step="0.01" required /></label><label class="post-field">Message (optional)<textarea name="message" maxlength="500"></textarea></label><button class="post-submit-button">Send offer</button></form></details> }</article>
                         }
                         <section class="jobs-offers"><h3>My offers</h3>

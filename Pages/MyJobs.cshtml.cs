@@ -48,23 +48,12 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
     public async Task<IActionResult> OnPostAdvanceAsync(long id, string? action, CancellationToken ct)
     {
         if (UserId == 0) return Challenge();
-        var (from, to) = action switch { "start" => ("assigned", "in-progress"), "finish" => ("in-progress", "awaiting-confirmation"), _ => ("", "") };
-        if (from == "") return BadRequest();
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        var updated = await db.MarketplaceTasks.Where(t => t.Id == id && t.Status == from &&
-            db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == UserId && o.Status == "accepted"))
-            .ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, to), ct);
-        if (updated == 1)
-        {
-            var clientId = await db.MarketplaceTasks.Where(t => t.Id == id).Select(t => t.ClientId).SingleAsync(ct);
-            db.MarketplaceNotifications.Add(MarketplaceNotification.Create(clientId, id, action == "start" ? "started" : "finished",
-                action == "start" ? "The freelancer started working on your task." : "The freelancer marked the work finished. Please check and confirm completion."));
-            await db.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
-        }
-        Notice = updated == 1 ? (action == "start" ? "Work started." : "Work marked finished. Waiting for client confirmation.") : "The job could not be updated. It may have changed already.";
-        if (updated == 1 && action == "start") return RedirectToPage("/Tracking", new { taskId = id, shareLocation = 1 });
-        return RedirectToPage(new { view = "active" });
+        if (action == "finish") return RedirectToPage("/Tracking", new { taskId = id });
+        TaskProgress.Result result;
+        try { result = await TaskProgress.AdvanceAsync(db, UserId, id, action, null, null, null, ct); }
+        catch (MySqlConnector.MySqlException) { result = new(false, "Progress storage is unavailable. Please check the database setup."); }
+        Notice = result.Message;
+        return RedirectToPage("/Tracking", new { taskId = id, shareLocation = result.Success && action == "travel" ? "1" : null });
     }
 
     public async Task<IActionResult> OnPostWithdrawAsync(long id, string? reason, CancellationToken ct)

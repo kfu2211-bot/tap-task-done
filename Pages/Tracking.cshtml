@@ -1,5 +1,6 @@
 @page
 @model TrackingModel
+@using tts.Data
 @inject IConfiguration Configuration
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @{
@@ -617,30 +618,48 @@
                     }
                 </div>
                 @if (Model.Unavailable) { <div class="db-tracking-empty"><h3>Tracking is unavailable</h3><p>Please check the database connection and try again.</p></div> }
-                else if (Model.Tasks.Count == 0) { <div class="db-tracking-empty"><span aria-hidden="true">✓</span><h3>No tasks to track</h3><p>Assigned tasks appear here until completion. Completed tasks are available in My Tasks or My Jobs.</p><a href="/FindPost">Explore Find &amp; Post</a></div> }
+                else if (Model.Tasks.Count == 0) { <div class="db-tracking-empty"><span aria-hidden="true">✓</span><h3>No tasks to track</h3><p>Accepted tasks and their progress appear here.</p><a href="/FindPost">Explore Find &amp; Post</a></div> }
                 @foreach (var item in Model.Tasks.Where(x => x.Task.Id == selectedTask)) {
                     var task = item.Task;
-                    var status = task.Status switch { "assigned" => 0, "in-progress" => 1, "awaiting-confirmation" => 2, "completed" => 3, _ => -1 };
-                    var label = task.Status switch { "assigned" => "Assigned", "in-progress" => "In progress", "awaiting-confirmation" => "Awaiting client confirmation", "completed" => "Completed", "cancelled" => "Cancelled", "disputed" => "Dispute under review", _ => "Status unavailable" };
-                    var steps = new[] { "Assigned", "In progress", "Awaiting confirmation", "Completed" };
+                    var status = Array.IndexOf(TaskProgress.States, task.Status);
+                    var label = TaskProgress.Label(task.Status);
+                    var steps = TaskProgress.Labels;
                     <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><span class="db-tracking-status">@label</span></div>
                     <div class="db-tracking-details"><div><span>Client</span><strong>@item.Client</strong></div><div><span>Freelancer</span><strong>@item.Freelancer</strong></div><div><span>Task budget</span><strong>₱@task.Budget</strong></div><div><span>Schedule</span><strong>@(string.IsNullOrWhiteSpace(task.ScheduleText) ? "To be arranged" : task.ScheduleText)</strong></div></div>
                     <div class="tracking-detail-layout"><section class="tracking-panel"><h4>Task progress</h4>
-                    @if (status >= 0) { var descriptions = new[] { "A freelancer is assigned to the task.", "The freelancer starts the work.", "The client reviews the finished work.", "The client confirms completion." }; <ol class="tracking-timeline">@for (var i = 0; i < steps.Length; i++) { <li class="@(status == i ? "current" : status > i ? "done" : "")"><span>@(status > i ? "✓" : (i + 1).ToString())</span><div>@steps[i]<small>@descriptions[i]</small></div></li> }</ol> }
-                    <p>@(task.Status == "cancelled" ? "This task was cancelled." : task.Status == "disputed" ? "Task progress is paused while the dispute is reviewed." : status == 0 ? "The freelancer can start work when ready." : status == 1 ? "Work is in progress." : status == 2 ? "The freelancer marked the work finished. The client can check and confirm completion." : status == 3 ? "The client confirmed completion." : "Please check the task in your workspace.")</p>
-                    <div class="tracking-actions">
-                    @if (task.Status == "disputed") { <a href="/Disputes?taskId=@task.Id">View dispute</a> }
-                    <a href="@(item.IsClient ? "/MarketTasks?view=mine" : task.Status == "cancelled" ? "/MyJobs?view=cancelled" : status == 3 ? "/MyJobs?view=completed" : "/MyJobs?view=active")">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a></div></section>
-                    <aside class="tracking-aside"><section class="tracking-panel"><h4>@(item.IsClient ? "Freelancer" : "Client")</h4><div class="tracking-person">@(item.IsClient ? item.Freelancer : item.Client)</div><p>Assigned to this task</p><div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a>@if (task.Status is "assigned" or "in-progress" or "awaiting-confirmation" or "disputed" or "completed") { <a href="/Disputes?taskId=@task.Id">View or raise a dispute</a> }</div></section><section class="tracking-location"><strong>Task location</strong><span>@(string.IsNullOrWhiteSpace(task.Location) ? "Location not provided" : task.Location)</span>@if (!string.IsNullOrWhiteSpace(task.Location)) { <a class="tracking-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=@Uri.EscapeDataString(task.Location)" target="_blank" rel="noopener noreferrer">Open location in Maps <span aria-hidden="true">↗</span></a> }
-<div class="job-location" data-job-location data-task-id="@task.Id" data-viewer-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" data-freelancer="@(!item.IsClient ? "true" : "false")" data-active="@(task.Status == "in-progress" ? "true" : "false")" data-address="@task.Location" data-route-url="@(Configuration["Routing:BaseUrl"] ?? (HostEnvironment.EnvironmentName == "Development" ? "https://router.project-osrm.org" : ""))">
+                    @if (status >= 0) { var descriptions = new[] { "The booking or offer has been accepted.", "The freelancer is travelling to the work location.", "The freelancer has confirmed arrival. Travel tracking stops.", "The freelancer is performing the agreed work.", "The client checks the completion note and finished work.", "The client has confirmed completion. Reviews are available." }; <ol class="tracking-timeline">@for (var i = 0; i < steps.Length; i++) { <li class="@(status == i ? "current" : status > i ? "done" : "")"><span>@(status > i ? "✓" : (i + 1).ToString())</span><div>@steps[i]<small>@descriptions[i]</small>
+@{ var recorded = Model.Progress.LastOrDefault(x => x.TaskId == task.Id && x.Status == TaskProgress.States[i]); }
+@if (recorded is not null) { <small>@recorded.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm tt") PHT</small> }</div></li> }</ol> }
+
+@if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
+@if (Model.ProgressUnavailable) { <p role="alert">Progress updates need the task_progress_events database table.</p> }
+@{ var finished = Model.Progress.LastOrDefault(x => x.TaskId == task.Id && x.Status == "awaiting-confirmation"); }
+@if (finished is not null) { <div class="tracking-completion"><strong>Completion note</strong><p style="white-space:pre-wrap">@finished.Note</p>@if (finished.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@finished.Id" target="_blank" rel="noopener"><img src="/Tracking?handler=CompletionPhoto&amp;eventId=@finished.Id" alt="Completion photo" loading="lazy" style="max-width:100%;max-height:240px;border-radius:8px" /></a> }</div> }
+<div class="tracking-actions">
+@if (!Model.ProgressUnavailable && !item.IsClient && task.Status is "assigned" or "on-the-way" or "arrived" or "in-progress") {
+var action = task.Status switch { "assigned" => "travel", "on-the-way" => "arrive", "arrived" => "start", _ => "finish" };
+var button = action switch { "travel" => "Start travel", "arrive" => "I’ve arrived", "start" => "Start work", _ => "Mark work finished" };
+<form method="post" asp-page-handler="Advance" enctype="multipart/form-data" class="tracking-progress-form"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="@action" />
+@if (action == "finish") { <label>Completion note<textarea name="note" maxlength="1000" rows="3" required placeholder="Describe the work completed"></textarea></label><label>Completion photo (optional)<input type="file" name="photo" accept="image/jpeg,image/png,image/webp" /></label> }
+@if (action == "travel") { <p>Allow location access and keep Tracking open while travelling. Sharing stops when you mark your arrival.</p> }
+<button type="submit" class="tracking-primary">@button</button></form>
+}
+@if (!Model.ProgressUnavailable && item.IsClient && task.Status == "awaiting-confirmation") { <form method="post" asp-page-handler="Advance"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="confirm" /><button type="submit" class="tracking-primary">Confirm completion</button></form> }
+@if (task.Status == "disputed") { <p>This older task is paused. Contact support through Safety &amp; Reports.</p> }
+@if (task.Status == "cancelled") { <p>This task was cancelled.</p> }
+@if (task.Status == "completed") { <a href="/Reviews">Leave a review</a> }
+<a href="@(item.IsClient ? "/MarketTasks?view=mine" : "/MyJobs?view=active")">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a>
+</div></section>
+                    <aside class="tracking-aside"><section class="tracking-panel"><h4>@(item.IsClient ? "Freelancer" : "Client")</h4><div class="tracking-person">@(item.IsClient ? item.Freelancer : item.Client)</div><p>Assigned to this task</p><div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a></div></section><section class="tracking-location"><strong>Task location</strong><span>@(string.IsNullOrWhiteSpace(task.Location) ? "Location not provided" : task.Location)</span>@if (!string.IsNullOrWhiteSpace(task.Location)) { <a class="tracking-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=@Uri.EscapeDataString(task.Location)" target="_blank" rel="noopener noreferrer">Open location in Maps <span aria-hidden="true">↗</span></a> }
+<div class="job-location" data-job-location data-task-id="@task.Id" data-viewer-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" data-freelancer="@(!item.IsClient ? "true" : "false")" data-progress-status="@task.Status" data-active="@(task.Status == "on-the-way" ? "true" : "false")" data-address="@task.Location" data-route-url="@(Configuration["Routing:BaseUrl"] ?? (HostEnvironment.EnvironmentName == "Development" ? "https://router.project-osrm.org" : ""))">
 <div class="job-location-map" data-map aria-label="Task and freelancer location map"></div>
 <p class="job-location-status" data-map-status hidden role="status">Loading map…</p>
 <p class="job-location-status" data-route-status hidden role="status">Waiting for a destination pin.</p>
-@if (item.IsClient && task.Status is "assigned" or "in-progress") {
+@if (item.IsClient && task.Status is "assigned" or "on-the-way") {
 <div class="tracking-actions"><button type="button" data-pick-destination>Set destination pin</button><button type="button" data-save-destination hidden>Save destination</button><button type="button" data-cancel-destination hidden>Cancel</button></div>
 }
 <p class="job-location-status" data-location-status hidden role="status">Waiting for a location update.</p>
-@if (!item.IsClient && task.Status == "in-progress") {
+@if (!item.IsClient && task.Status == "on-the-way") {
 <div class="tracking-actions"><button type="button" data-share>Share my location</button><button type="button" data-stop hidden>Stop sharing</button></div>
 <p class="job-location-status" data-sharing-status hidden role="status"></p>
 }

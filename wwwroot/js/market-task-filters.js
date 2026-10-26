@@ -9,11 +9,15 @@
     const groups = {
         'needs-action': ['pending-confirmation', 'awaiting-confirmation'],
         open: ['open'],
-        active: ['booking-pending', 'assigned', 'in-progress', 'awaiting-confirmation', 'disputed'],
+        active: ['booking-pending', 'assigned', 'on-the-way', 'arrived', 'in-progress', 'awaiting-confirmation', 'disputed'],
         completed: ['completed'],
         cancelled: ['cancelled']
     };
 
+    section.querySelectorAll('.edit-task').forEach(editor => {
+        const confirm = editor.closest('.task-card').querySelector('[data-confirm-task]');
+        editor.addEventListener('toggle', () => { if (confirm) confirm.hidden = editor.open; });
+    });
     filters.hidden = false;
     filters.addEventListener('click', event => {
         const button = event.target.closest('button[data-filter]');

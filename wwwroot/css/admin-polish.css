@@ -115,3 +115,6 @@
 .report-admin-body .report-history summary span{margin:3px 0 0}
 .report-admin-body .report-history-list,.report-admin-body .report-history>p{margin:0;padding:18px}
 .report-admin-body .report-history-entry:last-child{padding-bottom:0}
+.admin-main .stat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+@media(max-width:800px) { .admin-main .stat-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:500px) { .admin-main .stat-grid { grid-template-columns:1fr; } }

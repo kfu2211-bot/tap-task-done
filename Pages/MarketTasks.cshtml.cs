@@ -25,6 +25,26 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     [TempData] public string? Notice { get; set; }
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public int CurrentUserId => UserId;
+    public static bool CanEditTask(string status, int ownerId, int currentUserId) => currentUserId > 0 && ownerId == currentUserId && status == "pending-confirmation";
+    public static bool ValidTaskDetails(string title, string description, string category, string location, decimal budget, string schedule) =>
+        title.Length is >= 1 and <= 120 && description.Length is >= 1 and <= 5000 && category.Length is >= 1 and <= 60 &&
+        location.Length is >= 1 and <= 120 && schedule.Length <= 120 && budget is > 0 and <= 9999999999m;
+
+    public async Task<IActionResult> OnPostEditAsync(long id, string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct)
+    {
+        if (UserId <= 0) return Challenge();
+        title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim();
+        location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
+        if (!ModelState.IsValid || !ValidTaskDetails(title, description, category, location, budget, schedule))
+        { Notice = "Check the task details. Title, description, category, location and a valid budget are required."; return RedirectToPage(new { view = "mine" }); }
+        // The condition also protects against a concurrent confirmation or cancellation.
+        var updated = await db.MarketplaceTasks.Where(t => t.Id == id && t.ClientId == UserId && t.Status == "pending-confirmation")
+            .ExecuteUpdateAsync(set => set.SetProperty(t => t.Title, title).SetProperty(t => t.Description, description)
+                .SetProperty(t => t.Category, category).SetProperty(t => t.Location, location).SetProperty(t => t.Budget, budget)
+                .SetProperty(t => t.ScheduleText, schedule), ct);
+        Notice = updated == 1 ? "Task updated. Review the details, then confirm to publish." : "This task cannot be edited. It may already be confirmed or cancelled.";
+        return RedirectToPage(new { view = "mine" });
+    }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -106,7 +126,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         { Notice = "Please provide a cancellation reason (up to 500 characters)."; return RedirectToPage(new { view = "mine" }); }
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId == UserId &&
-            (t.Status == "pending-confirmation" || t.Status == "booking-pending" || t.Status == "open" || t.Status == "assigned" || t.Status == "in-progress" || t.Status == "awaiting-confirmation"), ct);
+            (t.Status == "pending-confirmation" || t.Status == "booking-pending" || t.Status == "open" || t.Status == "assigned" || t.Status == "on-the-way" || t.Status == "arrived" || t.Status == "in-progress" || t.Status == "awaiting-confirmation"), ct);
         if (task is null)
         { Notice = "This task cannot be cancelled. It may already be completed or cancelled."; return RedirectToPage(new { view = "mine" }); }
         var recipients = await db.MarketplaceOffers.Where(o => o.TaskId == id && (o.Status == "pending" || o.Status == "accepted"))
@@ -124,19 +144,14 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     }
     public async Task<IActionResult> OnPostConfirmCompletionAsync(long id, CancellationToken ct)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        var count = await db.MarketplaceTasks.Where(t => t.Id == id && t.ClientId == UserId && t.Status == "awaiting-confirmation")
-            .ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, "completed"), ct);
-        if (count == 1)
-        {
-            var freelancerId = await db.MarketplaceOffers.Where(o => o.TaskId == id && o.Status == "accepted").Select(o => (int?)o.FreelancerId).SingleOrDefaultAsync(ct);
-            if (freelancerId.HasValue) db.MarketplaceNotifications.Add(MarketplaceNotification.Create(freelancerId.Value, id, "completed", "The client confirmed that the task is complete."));
-            await db.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
-        }
-        Notice = count == 1 ? "Task completion confirmed." : "Task could not be confirmed. It may have changed already.";
-        return RedirectToPage();
+        if (UserId <= 0) return Challenge();
+        TaskProgress.Result result;
+        try { result = await TaskProgress.AdvanceAsync(db, UserId, id, "confirm", null, null, null, ct); }
+        catch (MySqlConnector.MySqlException) { result = new(false, "Progress storage is unavailable. Please check the database setup."); }
+        Notice = result.Message;
+        return RedirectToPage("/Tracking", new { taskId = id });
     }
+
     public async Task<IActionResult> OnPostOfferAsync(long id, decimal price, string? message, CancellationToken ct)
     {
         message = (message ?? "").Trim();
@@ -161,6 +176,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (task is null || offer is null) { Notice = "This offer is no longer available."; return RedirectToPage(); }
         if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account is restricted."; return RedirectToPage(); }
         task.Status = "assigned"; offer.Status = "accepted";
+        db.Set<TaskProgressEvent>().Add(new TaskProgressEvent { TaskId = task.Id, ActorId = UserId, Status = "assigned", CreatedAtUtc = DateTime.UtcNow });
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(offer.FreelancerId, task.Id, "accepted", "The client accepted your offer."));
         await db.MarketplaceOffers.Where(o => o.TaskId == task.Id && o.Id != offer.Id && o.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, "declined"), ct);
         await db.MarketplaceBookings.Where(b => b.TaskId == task.Id && b.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(b => b.Status, "unavailable"), ct);

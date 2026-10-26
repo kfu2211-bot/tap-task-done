@@ -96,6 +96,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         {
             if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This request cannot be accepted while either account is restricted."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             booking.Status = "accepted"; task.Status = "assigned";
+            db.Set<TaskProgressEvent>().Add(new TaskProgressEvent { TaskId = task.Id, ActorId = UserId, Status = "assigned", CreatedAtUtc = DateTime.UtcNow });
             var offer = await db.MarketplaceOffers.SingleOrDefaultAsync(o => o.TaskId == task.Id && o.FreelancerId == UserId, ct);
             if (offer == null) db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = task.Id, FreelancerId = UserId, Price = task.Budget, Message = "Direct booking at the agreed request budget.", Status = "accepted", CreatedAt = DateTime.UtcNow });
             else { offer.Price = task.Budget; offer.Message = "Direct booking at the agreed request budget."; offer.Status = "accepted"; }
