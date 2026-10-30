@@ -148,6 +148,7 @@
         const loginButton = loginForm.querySelector('button[type="submit"]');
         const loginStatus = document.getElementById("loginStatus");
         let loginPending = false;
+        let suspensionTimer;
         let loginNavigating = false;
 
         function setLoginLoading(loading) {
@@ -168,6 +169,7 @@
         document.getElementById("loginForm").addEventListener("submit", async function (event) {
             event.preventDefault();
             if (loginPending) return;
+            clearInterval(suspensionTimer);
             setLoginLoading(true);
             loginStatus.textContent = "Signing you in. Please wait…";
             const form = event.currentTarget;
@@ -190,6 +192,18 @@
                 const result = await response.json().catch(() => ({}));
                 if (!response.ok) {
                     loginStatus.textContent = result.message || "Unable to log in. Please try again.";
+                    if (result.suspendedUntilUtc) {
+                        const end = Date.parse(result.suspendedUntilUtc);
+                        if (Number.isFinite(end)) {
+                            const tick = () => {
+                                const seconds = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+                                if (!seconds) { clearInterval(suspensionTimer); loginStatus.textContent = 'The suspension time has ended. Try logging in again; the server will verify your current account status.'; return; }
+                                const days = Math.floor(seconds / 86400), hours = Math.floor(seconds % 86400 / 3600), minutes = Math.floor(seconds % 3600 / 60);
+                                loginStatus.textContent = result.message + ` Remaining: ${days}d ${hours}h ${minutes}m ${seconds % 60}s.`;
+                            };
+                            tick(); suspensionTimer = setInterval(tick, 1000);
+                        }
+                    }
                     return;
                 }
                 // Legacy screens use this non-secret display profile; the server cookie is the login credential.

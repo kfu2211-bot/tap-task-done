@@ -235,12 +235,32 @@ app.MapGet("/api/work-preferences", async (HttpContext context, ApplicationDbCon
     return Results.Json(new { role = profile?.WorkRole ?? "client", service = profile?.Service ?? "", availability = effective, preferredAvailability = profile?.Availability ?? "Available" });
 }).RequireAuthorization();
 
+app.MapGet("/api/account-warning", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0) return Results.Unauthorized();
+    return Results.Json(await OffensePolicy.GetAsync(db, userId, ct));
+}).RequireAuthorization();
+app.MapGet("/api/profile-warnings", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    var ids = context.Request.Query["ids"].ToString().Split(',').Select(s => int.TryParse(s, out var id) ? id : 0).Where(id => id > 0).Distinct().Take(20).ToArray();
+    var result = new List<object>();
+    foreach (var id in ids)
+    {
+        var status = await OffensePolicy.GetAsync(db, id, ct);
+        result.Add(new { id, warning = status.Warning, unavailable = status.Suspended });
+    }
+    return Results.Json(result);
+}).RequireAuthorization();
+
 app.MapGet("/api/notifications/unread-count", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
 {
     if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0)
         return Results.Unauthorized();
     var count = await db.MarketplaceNotifications.CountAsync(n => n.UserId == userId && !n.IsRead && n.Kind != "dispute", ct);
     count += await db.IdentityRequests.CountAsync(r => r.UserId == userId && r.ReviewedAt != null && r.ReviewReadAt == null, ct);
+    count += await db.AccountModerationActions.CountAsync(a => a.UserId == userId && a.ReadAt == null, ct);
     return Results.Json(new { count });
 }).RequireAuthorization();
 

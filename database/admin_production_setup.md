@@ -2,17 +2,7 @@
 
 ## Account management
 
-Before deploying the shared local/production Users moderation page, back up the
-target database and apply `mysql_admin_account_moderation.sql`. It creates
-`admin_account_restrictions` and `admin_account_actions` without changing account
-records. Both tables are required by login, active-session suspension checks,
-marketplace restrictions, admin history, and user account notices.
-
-Verify both tables exist before deploying. Then test Warn, Restrict, Suspend, and
-Restore using a dedicated non-staff test account. Check that suspension blocks
-login and existing sessions, restrictions prevent new marketplace commitments,
-and the user can read the admin reason in Notifications. Staff accounts and
-self-moderation remain blocked by the server. Do not test on real user accounts.
+Before deploying account moderation, apply mysql_admin_account_moderation.sql and mysql_account_offenses.sql to the intended database. See account_offense_setup.md for the current confirmed-offense, orange-warning recovery, and timed suspension policy. Warn/Restrict/Suspend buttons are replaced by evidence review and an automatically determined next penalty. Legacy history is preserved; it is not silently counted as new offenses.
 
 ## Identity verification and reports
 

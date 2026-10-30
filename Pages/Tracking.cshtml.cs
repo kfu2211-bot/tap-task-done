@@ -149,7 +149,7 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         catch (MySqlConnector.MySqlException ex)
         { logger.LogError(ex, "Unable to save freelancer location"); return StatusCode(503, new { message = "Location storage is not ready. Please contact support." }); }
     }
-    public record TrackingItem(MarketplaceTask Task, string Client, string Freelancer, bool IsClient);
+    public record TrackingItem(MarketplaceTask Task, string Client, string Freelancer, bool IsClient) { public int FreelancerId { get; init; } }
     public List<TrackingItem> Tasks { get; private set; } = [];
     public bool Unavailable { get; private set; }
 
@@ -166,7 +166,7 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
                 where offer.Status == "accepted" && (task.ClientId == userId || offer.FreelancerId == userId)
                 orderby task.Id descending
                 select new TrackingItem(task, ((client.FirstName ?? "") + " " + (client.LastName ?? "")).Trim(),
-                    ((freelancer.FirstName ?? "") + " " + (freelancer.LastName ?? "")).Trim(), task.ClientId == userId)).ToListAsync(ct);
+                    ((freelancer.FirstName ?? "") + " " + (freelancer.LastName ?? "")).Trim(), task.ClientId == userId) { FreelancerId = offer.FreelancerId }).ToListAsync(ct);
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         {

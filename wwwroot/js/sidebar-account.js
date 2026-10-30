@@ -1,5 +1,7 @@
 /* Keeps the signed-in account display identical on every authenticated page. */
 (function () {
+    const warningStyle = document.createElement('link'); warningStyle.rel='stylesheet';warningStyle.href='/css/account-warning.css';document.head.append(warningStyle);
+    const warningScript = document.createElement('script'); warningScript.src='/js/account-warning.js';warningScript.defer=true;document.head.append(warningScript);
     // One outline icon set for both existing links and role-specific links.
     // Decorating a link never replaces its label, destination, or event handlers.
     var sidebarIcons = {
@@ -188,7 +190,7 @@
                 var response = await fetch("/Notifications", { credentials: "same-origin", cache: "no-store" });
                 if (!response.ok || response.redirected) throw new Error("Notifications unavailable");
                 var doc = new DOMParser().parseFromString(await response.text(), "text/html");
-                var forms = doc.querySelectorAll(".notification-list form");
+                var forms = Array.from(doc.querySelectorAll('form')).filter(form => form.querySelector('.notification-item'));
                 notificationList.replaceChildren();
                 if (!forms.length) {
                     var emptyMessage = document.createElement("p");
@@ -197,7 +199,7 @@
                     return;
                 }
                 Array.from(forms).slice(0, 8).forEach(function (form) {
-                    form.setAttribute("action", "/Notifications?handler=Open");
+                    form.setAttribute("action", form.getAttribute('action') || "/Notifications?handler=Open");
                     notificationList.appendChild(document.importNode(form, true));
                 });
             } catch (error) { notificationList.textContent = "Could not load notifications. Please try again."; }

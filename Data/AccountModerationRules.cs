@@ -9,7 +9,7 @@ public static class AccountModerationRules
         string.Equals(role?.Trim(), "admin", StringComparison.OrdinalIgnoreCase) ||
         string.Equals(role?.Trim(), "moderator", StringComparison.OrdinalIgnoreCase);
 
-    public static bool IsValidAction(string? action) => action is "warn" or "restrict" or "suspend" or "restore";
+    public static bool IsValidAction(string? action) => action is "offense" or "restore";
 
     public static bool IsValidReason(string? reason) =>
         !string.IsNullOrWhiteSpace(reason) && reason.Trim().Length <= MaxReasonLength;

@@ -425,6 +425,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const price = card.querySelector(".freelancer-price").textContent.trim();
                     selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", service: service, rating: rating, price: price, availability: card.dataset.availability || "", location: card.dataset.location || "" };
                     document.getElementById("selectedProviderName").textContent = name;
+                    document.getElementById("selectedProviderName").dataset.accountId = card.dataset.id;
                     document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set") + " · Database profile";
                     document.getElementById("selectedProviderRating").textContent = rating;
                     document.getElementById("selectedProviderPrice").textContent = card.dataset.rate ? price + " per task" : price;

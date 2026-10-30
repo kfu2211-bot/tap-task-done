@@ -38,8 +38,17 @@ namespace tts.Pages
                 var name = $"{user.FirstName} {user.LastName}".Trim();
                 var role = (user.Role ?? "").Trim().ToLowerInvariant();
                 var isStaff = role is "admin" or "moderator";
-                if (!isStaff && await ModerationGuard.IsSuspendedAsync(db, user.Id, cancellationToken))
-                    return new JsonResult(new { message = "Your account is suspended. Please contact the administrator for assistance." }) { StatusCode = 403 };
+                if (!isStaff)
+                {
+                    var penalty = await OffensePolicy.GetAsync(db, user.Id, cancellationToken);
+                    if (penalty.Suspended)
+                    {
+                        var reason = await db.Set<AccountOffense>().AsNoTracking().Where(o => o.UserId == user.Id).OrderByDescending(o => o.Id).Select(o => o.Reason).FirstOrDefaultAsync(cancellationToken)
+                            ?? await db.AccountModerationActions.AsNoTracking().Where(a => a.UserId == user.Id && a.Action == "suspend").OrderByDescending(a => a.Id).Select(a => a.Reason).FirstOrDefaultAsync(cancellationToken);
+                        var message = penalty.Permanent ? "Your account is permanently suspended. Contact the administrator for review." : penalty.Until.HasValue ? $"Your account is suspended until {DisplayTime.Philippine(penalty.Until.Value)} (Philippine time). Access returns automatically after this time." : "Your account has a previous suspension. Contact the administrator for review.";
+                        return new JsonResult(new { message = message + (string.IsNullOrWhiteSpace(reason) ? "" : " Reason: " + reason), suspendedUntilUtc = penalty.Until?.ToString("yyyy-MM-ddTHH:mm:ssZ") }) { StatusCode = 403 };
+                    }
+                }
                 // Remove any previous identity so changing accounts cannot retain staff access.
                 await HttpContext.SignOutAsync("AdminCookie");
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

@@ -7,10 +7,7 @@ public static class ModerationGuard
 {
     public static async Task<bool> IsSuspendedAsync(ApplicationDbContext db, int userId, CancellationToken ct = default)
     {
-        var latest = await db.AccountModerationActions.AsNoTracking()
-            .Where(x => x.UserId == userId && (x.Action == "suspend" || x.Action == "restore"))
-            .OrderByDescending(x => x.Id).Select(x => x.Action).FirstOrDefaultAsync(ct);
-        return latest == "suspend";
+        return await OffensePolicy.IsSuspendedAsync(db, userId, ct);
     }
     public static async Task<bool> AllowedAsync(ApplicationDbContext db, IWebHostEnvironment environment, CancellationToken ct, params int[] userIds)
     {
@@ -21,7 +18,7 @@ public static class ModerationGuard
                 if (id <= 0) return false;
                 // Serialize against admin decisions even when no restriction row exists.
                 var user = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {id} FOR UPDATE").AsNoTracking().ToListAsync(ct)).SingleOrDefault();
-                if (user is null || await db.AccountRestrictions.AsNoTracking().AnyAsync(x => x.UserId == id && x.IsRestricted, ct) || await IsSuspendedAsync(db, id, ct)) return false;
+                if (user is null || await IsSuspendedAsync(db, id, ct)) return false;
             }
             return true;
         }

@@ -8,6 +8,17 @@ SELECT required.table_name, required.column_name,
        CASE WHEN t.TABLE_NAME IS NULL THEN 'MISSING TABLE' ELSE 'MISSING COLUMN' END AS finding
 FROM (
 SELECT 'admin_account_actions' AS table_name, 'Action' AS column_name
+UNION ALL SELECT 'admin_account_offenses', 'Id'
+UNION ALL SELECT 'admin_account_offenses', 'UserId'
+UNION ALL SELECT 'admin_account_offenses', 'AdminId'
+UNION ALL SELECT 'admin_account_offenses', 'IncidentKey'
+UNION ALL SELECT 'admin_account_offenses', 'Reason'
+UNION ALL SELECT 'admin_account_offenses', 'Number'
+UNION ALL SELECT 'admin_account_offenses', 'RecoveryTarget'
+UNION ALL SELECT 'admin_account_offenses', 'CreatedAtUtc'
+UNION ALL SELECT 'admin_account_offenses', 'SuspendedUntilUtc'
+UNION ALL SELECT 'admin_account_offenses', 'Permanent'
+UNION ALL SELECT 'admin_account_offenses', 'LiftedAtUtc'
 UNION ALL SELECT 'admin_account_actions' AS table_name, 'AdminId' AS column_name
 UNION ALL SELECT 'admin_account_actions' AS table_name, 'CreatedAt' AS column_name
 UNION ALL SELECT 'admin_account_actions' AS table_name, 'Id' AS column_name

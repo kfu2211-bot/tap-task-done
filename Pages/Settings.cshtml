@@ -42,7 +42,7 @@
                     <h2>Account profile</h2>
                     <div class="profile-summary" aria-label="Current profile">
                         <span id="profileAvatar" class="profile-avatar">@(Model.DisplayName.FirstOrDefault())</span>
-                        <div><strong id="profileSummaryName">@Model.DisplayName</strong><span id="profileSummaryEmail">@Model.Email</span></div>
+                        <div><strong id="profileSummaryName" data-own-account-name>@Model.DisplayName</strong><span id="profileSummaryEmail">@Model.Email</span></div>
                         <span class="local-profile-badge">Database profile</span>
                     </div>
                     <section class="photo-settings" aria-labelledby="photoHeading">

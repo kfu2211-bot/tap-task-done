@@ -1,0 +1,6 @@
+.account-warning-symbol { display:inline-flex!important; align-items:center; justify-content:center; width:22px; height:22px; margin-left:6px; vertical-align:middle; color:#a74605; background:#fff0d6; border:1px solid #edb773; border-radius:5px; font-size:16px; line-height:1; }
+.account-warning-symbol svg { width:17px; height:17px; }
+.account-recovery-notice { padding:14px 18px; margin:12px 0; color:#7c3d10; border:1px solid #e7bb7e; background:#fff6e8; border-radius:9px; line-height:1.6; font-size:14px; }
+.offense-confirm { display:flex; align-items:flex-start; gap:9px; margin:12px 0; font-size:13px; }
+.offense-confirm input { width:18px; height:18px; flex-shrink:0; }
+.user-card input[name=incidentKey] { box-sizing:border-box; width:100%; padding:11px; border:1px solid #bed8c5; border-radius:8px; font:inherit; margin:6px 0 12px; }

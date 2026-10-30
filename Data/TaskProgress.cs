@@ -45,6 +45,7 @@ public static class TaskProgress
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         foreach (var userId in new[] { participants.ClientId, participants.FreelancerId }.Distinct().Order())
             await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {userId} FOR UPDATE").AsNoTracking().ToListAsync(ct);
+        if (await ModerationGuard.IsSuspendedAsync(db, actor, ct)) return new(false, "This account is suspended. Check your suspension notice.");
         var tasks = await db.MarketplaceTasks.FromSqlInterpolated($"SELECT * FROM marketplace_tasks WHERE Id = {id} FOR UPDATE").ToListAsync(ct);
         var task = tasks.SingleOrDefault();
         var freelancer = await db.MarketplaceOffers.Where(o => o.TaskId == id && o.Status == "accepted").Select(o => (int?)o.FreelancerId).SingleOrDefaultAsync(ct);

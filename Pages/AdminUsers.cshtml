@@ -8,11 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Account management</title>
     <link rel="stylesheet" href="/css/admin-users.css" asp-append-version="true" />
-</head>
+<link rel="stylesheet" href="/css/account-warning.css" asp-append-version="true" /></head>
 <body>
 <main class="users-page">
     @if (!Model.Embedded) { <h1>Users</h1> }
-    <p class="intro">Manage registered accounts and review moderation decisions.</p>
+    <p class="intro">Confirm evidence-based offenses. Penalties: #1 written warning; #2 orange warning / 3 tasks; #3 3 days / 6 tasks; #4 7 days / 10 tasks; #5 permanent suspension.</p>
     @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="notice" role="status">@Model.Notice</p> }
     @if (Model.Unavailable) { <div class="empty" role="alert">Account moderation is unavailable. Check the account moderation database setup.</div> }
     else {
@@ -21,17 +21,22 @@
         @foreach (var user in Model.Users) {
             var history = Model.History.Where(h => h.UserId == user.Id).ToList();
             <article class="user-card" data-search="@($"{user.Name} {user.Email}".ToLowerInvariant())">
-                <div class="user-head"><div class="user-identity"><span class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(user.Name) ? "U" : user.Name.Trim().Substring(0, 1).ToUpperInvariant())</span><div><strong>@user.Name</strong><p>@user.Email <span aria-hidden="true">·</span> @user.Role</p></div></div><span class="badge @(user.Suspended ? "suspended" : user.Restricted ? "restricted" : "")">@(user.Suspended ? "Suspended" : user.Restricted ? "Restricted" : "Active")</span></div>
+                <div class="user-head"><div class="user-identity"><span class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(user.Name) ? "U" : user.Name.Trim().Substring(0, 1).ToUpperInvariant())</span><div><strong>@user.Name @if(user.Restricted) { <span class="account-warning-symbol" title="Account warning">⚠</span> }</strong><p>@user.Email <span aria-hidden="true">·</span> @user.Role</p></div></div><span class="badge @(user.Suspended ? "suspended" : user.Restricted ? "restricted" : "")">@user.Moderation.Penalty</span></div>
                 @if (!tts.Data.AccountModerationRules.IsStaff(user.Role)) {
-                    <form method="post" onsubmit="return confirm(event.submitter?.value === 'suspend' ? 'Suspend this account? The user will be signed out and unable to log in until restored.' : 'Confirm this account action? The user will see the reason.')">
-                        <input type="hidden" name="userId" value="@user.Id" /><input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
+                    <p><strong>Confirmed offenses: @user.Moderation.Offenses</strong> · Next: @tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)</p>
+                    @if(user.Moderation.Target > 0 && !user.Moderation.Permanent) { <p>Recovery progress: @user.Moderation.Completed / @user.Moderation.Target completed tasks. Temporary suspension ends automatically; completion credit starts after it ends.</p> }
+                    @if(user.Moderation.Legacy) { <p>Previous actions remain in history; they are not automatically counted as new offenses.</p> }
+                    <form method="post" onsubmit="return confirm(event.submitter?.value === 'offense' ? 'Record this confirmed incident and apply the displayed next penalty? The same incident must not be counted twice.' : 'Lift the current penalty after admin review? Offense history will remain.')">
+                        <input type="hidden" name="userId" value="@user.Id" /><input type="hidden" name="expectedNumber" value="@(user.Moderation.Offenses + 1)" /><input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
+                        <label class="reason-label" for="case-@user.Id">Incident reference <span>(required for a new offense; e.g. report:123)</span></label><input id="case-@user.Id" name="incidentKey" maxlength="100" placeholder="report:123 or unique case reference" />
                         <label class="reason-label" for="reason-@user.Id">Reason for this decision <span>(required)</span></label>
-                        <textarea id="reason-@user.Id" name="reason" required maxlength="500" rows="2" placeholder="Provide a clear reason for this action"></textarea>
-                        <div class="actions"><button type="submit" name="action" value="warn">Warn</button>@if (user.Suspended || user.Restricted) { <button type="submit" class="primary" name="action" value="restore">Restore</button> } else { <button type="submit" name="action" value="restrict">Restrict</button> } @if (!user.Suspended) { <button type="submit" class="suspend-action" name="action" value="suspend">Suspend</button> }</div>
+                        <textarea id="reason-@user.Id" name="reason" required maxlength="500" rows="2" placeholder="Describe the reviewed evidence and decision"></textarea>
+                        <label class="offense-confirm"><input type="checkbox" name="reviewConfirmed" value="true" /> I reviewed the evidence and confirmed this is a distinct incident.</label>
+                        <div class="actions">@if(user.Moderation.Offenses < 5 && !user.Moderation.Permanent) { <button type="submit" class="primary" name="action" value="offense">Confirm offense #@(user.Moderation.Offenses + 1)</button> } @if(user.Suspended || user.Restricted) { <button type="submit" name="action" value="restore">Lift penalty after review</button> }</div>
                     </form>
                 }
                 <details class="history"><summary><span><strong>Admin action history</strong><small>View decisions and notes</small></span><span class="chevron" aria-hidden="true">⌄</span></summary>
-                    <div class="history-content">@if (history.Count == 0) { <p class="history-empty">No decisions recorded for this account yet.</p> } else { @foreach (var item in history) { <div class="history-entry"><div><strong>@(item.Action == "warn" ? "Warning" : item.Action == "restrict" ? "Restricted" : item.Action == "suspend" ? "Suspended" : "Restored")</strong><small>@item.Admin · @tts.Data.DisplayTime.Philippine(item.CreatedAt)</small></div><p>@item.Reason</p></div> } }</div>
+                    <div class="history-content">@if (history.Count == 0) { <p class="history-empty">No decisions recorded for this account yet.</p> } else { @foreach (var item in history) { <div class="history-entry"><div><strong>@(item.Action == "warn" ? "Warning" : item.Action == "restrict" ? "Restricted" : item.Action == "suspend" ? "Suspended (legacy)" : item.Action == "offense" ? "Confirmed offense" : "Penalty lifted")</strong><small>@item.Admin · @tts.Data.DisplayTime.Philippine(item.CreatedAt)</small></div><p>@item.Reason</p></div> } }</div>
                 </details>
             </article>
         }

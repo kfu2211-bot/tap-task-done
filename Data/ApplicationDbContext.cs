@@ -28,6 +28,15 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var offense = modelBuilder.Entity<AccountOffense>();
+        offense.ToTable("admin_account_offenses");
+        offense.HasKey(x => x.Id);
+        offense.Property(x => x.IncidentKey).HasMaxLength(100);
+        offense.Property(x => x.Reason).HasMaxLength(500);
+        offense.HasIndex(x => new { x.UserId, x.IncidentKey }).IsUnique();
+        offense.HasIndex(x => new { x.UserId, x.Id });
+        offense.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        offense.HasOne<AppUser>().WithMany().HasForeignKey(x => x.AdminId).OnDelete(DeleteBehavior.Restrict);
         var progress = modelBuilder.Entity<TaskProgressEvent>();
         progress.ToTable("task_progress_events");
         progress.HasKey(x => x.Id);
