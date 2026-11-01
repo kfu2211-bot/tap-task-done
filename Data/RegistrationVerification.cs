@@ -51,7 +51,7 @@ public static class RegistrationVerification
         row.FirstLoginHash = null; row.FirstLoginExpiresUtc = null;
     }
     private static Task DeliverAsync(IConfiguration config, string email, string code, CancellationToken ct) =>
-        SmtpMailer.SendAsync(config, email, "Verify your Tap, Task, Done account", $"Your email verification code is {code}. It expires in 10 minutes.\n\nEnter this code on the Verify email page to finish registration. This does not sign you in automatically. Never share this code. If you did not register, ignore this message.", ct);
+        SmtpMailer.SendAsync(config, email, "Verify your Tap, Task, Done account", $"Your email verification code is {code}. It expires in 10 minutes.\n\nEnter this code on the Verify email page to finish registration. This does not sign you in automatically. Never share this code. If you did not register, ignore this message.", ct, VerificationEmailTemplate.Render(code));
 
     // Only called after registration or after the account password has been checked.
     public static async Task StartAsync(ApplicationDbContext db, HttpContext context, AppUser user, IConfiguration config, CancellationToken ct)

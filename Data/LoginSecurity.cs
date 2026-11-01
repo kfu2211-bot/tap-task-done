@@ -139,7 +139,7 @@ public static class LoginSecurity
         context.Response.Cookies.Delete(ChallengeCookie);
         try
         {
-            await SmtpMailer.SendAsync(context.RequestServices.GetRequiredService<IConfiguration>(), user.Username!, "New sign-in to Tap, Task, Done", $"A sign-in was completed on {device}.\nTime: {DisplayTime.Philippine(now)} (Philippine time).\n\nWas this you? Open Settings → Security on the website to review active sessions. If this wasn't you, choose Secure my account to change your password and sign out other devices.", ct);
+            await SmtpMailer.SendAsync(context.RequestServices.GetRequiredService<IConfiguration>(), user.Username!, "New sign-in to Tap, Task, Done", $"A sign-in was completed on {device}.\nTime: {DisplayTime.Philippine(now)} (Philippine time).\n\nWas this you? Open Settings → Security on the website to review active sessions. If this wasn't you, choose Secure my account to change your password and sign out other devices.", ct, VerificationEmailTemplate.SignIn(device, DisplayTime.Philippine(now)));
             alert.EmailSent = true; await db.SaveChangesAsync(ct);
         }
         catch (Exception ex) when (ex is System.Net.Mail.SmtpException or FormatException or InvalidOperationException)

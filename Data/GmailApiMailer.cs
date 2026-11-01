@@ -33,14 +33,14 @@ public sealed class GmailApiMailer(HttpClient client)
             throw new GmailDeliveryException("gmail_sender_invalid");
         return new Settings(mailbox.Address.ToLowerInvariant(), id, secret, refresh);
     }
-    public async Task SendAsync(IConfiguration config, string recipient, string subject, string text, CancellationToken ct)
+    public async Task SendAsync(IConfiguration config, string recipient, string subject, string text, CancellationToken ct, string? html = null)
     {
         var settings = ReadSettings(config);
         if (recipient.Contains('\r') || recipient.Contains('\n') || !MailboxAddress.TryParse(recipient, out var to) || to.Address != recipient || subject.Contains('\r') || subject.Contains('\n'))
             throw new GmailDeliveryException("gmail_message_invalid");
         var mime = new MimeMessage();
         mime.From.Add(new MailboxAddress("Tap, Task, Done", settings.Sender)); mime.To.Add(to);
-        mime.Subject = subject; mime.Body = new TextPart("plain") { Text = text };
+        mime.Subject = subject; mime.Body = new BodyBuilder { TextBody = text, HtmlBody = html }.ToMessageBody();
         using var memory = new MemoryStream();
         await mime.WriteToAsync(FormatOptions.Default, memory, ct);
         var raw = Convert.ToBase64String(memory.ToArray()).TrimEnd('=').Replace('+', '-').Replace('/', '_');
