@@ -107,7 +107,13 @@ namespace tts.Pages
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
                 return new JsonResult(new { name, email = user.Username, redirect = "/Dashboard" });
             }
-            catch (Exception ex) when (ex is MySqlException || ex is DbUpdateException || ex is InvalidOperationException)
+            catch (InvalidOperationException ex)
+            {
+                HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>()
+                    .LogError(ex, "Login could not complete because configuration or account state was invalid.");
+                return new JsonResult(new { message = "Unable to complete sign-in. Please try again or contact support." }) { StatusCode = 503 };
+            }
+            catch (Exception ex) when (ex is MySqlException || ex is DbUpdateException)
             {
                 HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>()
                     .LogError(ex, "Login failed while accessing the database.");
