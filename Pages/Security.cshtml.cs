@@ -73,7 +73,7 @@ public sealed class SecurityModel(ApplicationDbContext db, AccountStore accounts
                 Response.Cookies.Delete(LoginSecurity.TrustCookie(UserId));
                 await HttpContext.SignOutAsync("Cookies"); await HttpContext.SignOutAsync("AdminCookie");
                 try { await SmtpMailer.SendAsync(config, user.Username!, "Your Tap, Task, Done account was secured", "Your password was changed, all sessions were signed out, and trusted browsers were removed. If this was not you, use Forgot password on the website immediately.", ct); }
-                catch (Exception ex) when (ex is System.Net.Mail.SmtpException or FormatException or InvalidOperationException) { logger.LogWarning("Account security email failed ({Type}).", ex.GetType().Name); }
+                catch (Exception ex) when (ex is System.Net.Mail.SmtpException or FormatException or InvalidOperationException) { logger.LogWarning("Account security email failed ({Type}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex)); }
                 return RedirectToPage("/Login");
             }
             Notice = action == "forget" ? "Trusted browser removed. Its next sign-in will require a code." : "Session access revoked. Other browsers are signed out on their next request; trusted browsers have been cleared.";

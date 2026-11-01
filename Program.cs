@@ -10,6 +10,10 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 var builder = WebApplication.CreateBuilder(args);
+// Keep sender OAuth credentials in a private JSON settings file, never in tracked source.
+builder.Configuration.AddJsonFile("appsettings.Gmail.json", optional: true, reloadOnChange: true);
+if (!builder.Environment.IsDevelopment()) builder.Configuration.AddJsonFile("/etc/secrets/appsettings.Gmail.json", optional: true, reloadOnChange: false);
+builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddHttpClient<PlaceSearch>(client => client.Timeout = TimeSpan.FromSeconds(10));
 if (builder.Environment.IsDevelopment())
 {

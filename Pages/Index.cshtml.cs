@@ -80,7 +80,7 @@ namespace tts.Pages
                 {
                     try { await RegistrationVerification.StartAsync(db, HttpContext, user, HttpContext.RequestServices.GetRequiredService<IConfiguration>(), cancellationToken); }
                     catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException or System.Net.Mail.SmtpException or FormatException)
-                    { HttpContext.RequestServices.GetRequiredService<ILogger<IndexModel>>().LogWarning("Verification email could not be sent ({ErrorType}).", ex.GetType().Name); TempData["RegistrationNotice"] = "Your account is pending verification. Email delivery could not be completed. Try Resend code, or return to login to resume verification."; }
+                    { HttpContext.RequestServices.GetRequiredService<ILogger<IndexModel>>().LogWarning("Verification email could not be sent ({ErrorType}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex)); TempData["RegistrationNotice"] = "Your account is pending verification. Email delivery could not be completed. Try Resend code, or return to login to resume verification."; }
                     return RedirectToPage("/VerifyEmail");
                 }
                 AccountCreated = true;

@@ -3,6 +3,7 @@ obj/
 .git/
 .vs/
 appsettings.Local.json
+appsettings.Gmail.json
 *.user
 *.suo
 README.md

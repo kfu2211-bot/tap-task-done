@@ -1,0 +1,11 @@
+{
+  "EmailDelivery": {
+    "Provider": "GmailApi",
+    "Gmail": {
+      "Sender": "taptaskdone@gmail.com",
+      "ClientId": "YOUR_GOOGLE_OAUTH_CLIENT_ID",
+      "ClientSecret": "YOUR_GOOGLE_OAUTH_CLIENT_SECRET",
+      "RefreshToken": "YOUR_SENDER_REFRESH_TOKEN"
+    }
+  }
+}

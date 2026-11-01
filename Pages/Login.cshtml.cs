@@ -59,7 +59,7 @@ namespace tts.Pages
                 {
                     try { await RegistrationVerification.StartAsync(db, HttpContext, user, config, cancellationToken); }
                     catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException or System.Net.Mail.SmtpException or FormatException)
-                    { HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("Verification email could not be sent ({ErrorType}).", ex.GetType().Name); TempData["RegistrationNotice"] = "Email verification is still pending. If a code could not be sent, wait a minute and try again."; }
+                    { HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("Verification email could not be sent ({ErrorType}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex)); TempData["RegistrationNotice"] = "Email verification is still pending. If a code could not be sent, wait a minute and try again."; }
                     return new JsonResult(new { redirect = "/VerifyEmail" });
                 }
                 if (!user.DateOfBirth.HasValue)
@@ -78,7 +78,7 @@ namespace tts.Pages
                     try { await LoginSecurity.BeginAsync(db, HttpContext, user, config, cancellationToken); }
                     catch (Exception ex) when (ex is System.Net.Mail.SmtpException or FormatException or InvalidOperationException)
                     {
-                        HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("New-device code delivery failed ({Type}).", ex.GetType().Name);
+                        HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("New-device code delivery failed ({Type}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex));
                         return new JsonResult(new { message = "Unable to send a sign-in code. Try again later. No new session was created." }) { StatusCode = 503 };
                     }
                     return new JsonResult(new { name, email = user.Username, redirect = "/VerifyLogin" });

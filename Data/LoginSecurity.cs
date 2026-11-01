@@ -143,7 +143,7 @@ public static class LoginSecurity
             alert.EmailSent = true; await db.SaveChangesAsync(ct);
         }
         catch (Exception ex) when (ex is System.Net.Mail.SmtpException or FormatException or InvalidOperationException)
-        { context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("LoginSecurity").LogWarning("Sign-in alert email delivery failed ({Type}); the in-app alert remains available.", ex.GetType().Name); }
+        { context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("LoginSecurity").LogWarning("Sign-in alert email delivery failed ({Type}; {Reason}); the in-app alert remains available.", ex.GetType().Name, SmtpMailer.Diagnostic(ex)); }
         return staff ? "/Admin" : "/Dashboard";
     }
     public static async Task<bool> SessionValidAsync(ApplicationDbContext db, ClaimsPrincipal principal, int userId, CancellationToken ct)

@@ -5,8 +5,14 @@ namespace tts.Data;
 
 public static class SmtpMailer
 {
+    private static readonly GmailApiMailer Gmail = new(new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(20), MaxResponseContentBufferSize = 65536 });
+    public static string Diagnostic(Exception ex) => ex is GmailDeliveryException gmail ? gmail.Reason : ex.InnerException is TimeoutException ? "smtp_timeout" : "email_delivery_failed";
     public static async Task SendAsync(IConfiguration config, string recipient, string subject, string text, CancellationToken ct)
     {
+        var provider = config["EmailDelivery:Provider"] ?? "Smtp";
+        if (string.Equals(provider, "GmailApi", StringComparison.OrdinalIgnoreCase))
+        { await Gmail.SendAsync(config, recipient, subject, text, ct); return; }
+        if (!string.Equals(provider, "Smtp", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("EmailDelivery:Provider must be GmailApi or Smtp.");
         var host = config["PasswordReset:Smtp:Host"];
         var sender = config["PasswordReset:Smtp:Sender"];
         var username = config["PasswordReset:Smtp:Username"];

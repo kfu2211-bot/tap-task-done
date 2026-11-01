@@ -62,8 +62,8 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
         {
             // Log a safe diagnostic category without recording credentials, addresses or codes.
             var databaseError = ex as MySqlConnector.MySqlException ?? ex.InnerException as MySqlConnector.MySqlException;
-            logger.LogWarning("Password reset request failed at {Stage}: {ErrorType}, cause {CauseType}, database code {DatabaseCode}, trace {TraceId}.",
-                stage, ex.GetType().Name, ex.InnerException?.GetType().Name, databaseError?.Number, HttpContext.TraceIdentifier);
+            logger.LogWarning("Password reset request failed at {Stage}: {ErrorType}, cause {CauseType}, database code {DatabaseCode}, reason {EmailReason}, trace {TraceId}.",
+                stage, ex.GetType().Name, ex.InnerException?.GetType().Name, databaseError?.Number, SmtpMailer.Diagnostic(ex), HttpContext.TraceIdentifier);
             return CodePage();
         }
     }

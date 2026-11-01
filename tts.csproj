@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\images\" />
+    <Content Update="appsettings.Gmail.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>

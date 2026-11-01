@@ -71,7 +71,7 @@ public sealed class VerifyEmailModel(ApplicationDbContext db, IConfiguration con
         catch (RegistrationFlowException ex)
         { ErrorMessage = ex.Message; }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or System.Net.Mail.SmtpException or FormatException or InvalidOperationException)
-        { logger.LogWarning("Registration email delivery failed ({Type}).", ex.GetType().Name); ErrorMessage = "Unable to send a code. Your account is still pending. Check your email or try again after the cooldown."; }
+        { logger.LogWarning("Registration email delivery failed ({Type}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex)); ErrorMessage = "Unable to send a code. Your account is still pending. Check your email or try again after the cooldown."; }
         Password = Code = null; ModelState.Remove(nameof(Password)); ModelState.Remove(nameof(Code));
         await LoadSafelyAsync(ct); return Page();
     }
