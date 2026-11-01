@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace tts.Data;
 
@@ -9,7 +11,7 @@ public static class MobileEndpoints
 {
     public record LoginRequest(string? Email, string? Password);
     public record LocationRequest(long TaskId, double Latitude, double Longitude, double? AccuracyMeters);
-    private record Session(int UserId, string PasswordVersion);
+    private record Session(int UserId, string PasswordVersion, string? LoginSessionToken = null);
 
     public static void MapMobileEndpoints(this WebApplication app)
     {
@@ -27,7 +29,15 @@ public static class MobileEndpoints
             if (VerificationMailer.Enabled(app.Configuration) && !await VerificationMailer.IsVerifiedAsync(db, user, ct))
                 return Results.Json(new { message = "Verify your email on the website first." }, statusCode: 403);
             if (await ModerationGuard.IsSuspendedAsync(db, user.Id, ct)) return Results.StatusCode(403);
-            var session = System.Text.Json.JsonSerializer.Serialize(new Session(user.Id, AccountStore.SessionFingerprint(user.PasswordHash)));
+            string? browserSession = null;
+            if (LoginSecurity.Enabled(app.Configuration))
+            {
+                var auth = await context.AuthenticateAsync("Cookies");
+                if (!auth.Succeeded || auth.Principal?.FindFirstValue(ClaimTypes.NameIdentifier) != user.Id.ToString() || !await LoginSecurity.SessionValidAsync(db, auth.Principal, user.Id, ct))
+                    return Results.Json(new { message = "Complete the new-device verification on the website before requesting a mobile token.", redirect = "/Login" }, statusCode: 403);
+                browserSession = auth.Principal.FindFirstValue("login_session");
+            }
+            var session = System.Text.Json.JsonSerializer.Serialize(new Session(user.Id, AccountStore.SessionFingerprint(user.PasswordHash), browserSession));
             return Results.Ok(new { token = protector.Protect(session, TimeSpan.FromHours(8)), name = $"{user.FirstName} {user.LastName}".Trim() });
         }).RequireRateLimiting("AdminLoginLimit");
 
@@ -41,6 +51,11 @@ public static class MobileEndpoints
             try { session = System.Text.Json.JsonSerializer.Deserialize<Session>(protector.Unprotect(authorization[7..].Trim())); }
             catch (Exception ex) when (ex is CryptographicException or FormatException or System.Text.Json.JsonException) { return Results.Unauthorized(); }
             if (session is null) return Results.Unauthorized();
+            if (LoginSecurity.Enabled(app.Configuration))
+            {
+                var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim("login_session", session.LoginSessionToken ?? ""), new Claim("password_version", session.PasswordVersion) }));
+                if (!await LoginSecurity.SessionValidAsync(db, principal, session.UserId, ct)) return Results.Unauthorized();
+            }
             var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == session.UserId, ct);
             if (user is null || session.PasswordVersion != AccountStore.SessionFingerprint(user.PasswordHash) || !user.DateOfBirth.HasValue || user.DateOfBirth.Value.Date > DateTime.UtcNow.AddHours(8).Date.AddYears(-16)) return Results.Unauthorized();
             if (VerificationMailer.Enabled(app.Configuration) && !await VerificationMailer.IsVerifiedAsync(db, user, ct)) return Results.Unauthorized();

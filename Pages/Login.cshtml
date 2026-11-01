@@ -209,8 +209,8 @@
                 // Legacy screens use this non-secret display profile; the server cookie is the login credential.
                 if (result.redirect === "/VerifyEmail") localStorage.removeItem("tapTaskDoneAccount");
                 else localStorage.setItem("tapTaskDoneAccount", JSON.stringify({ name: result.name, email: result.email }));
-                loginStatus.textContent = "Login successful. Redirecting…";
-                window.location.href = ["/Admin", "/Birthday", "/Dashboard", "/VerifyEmail"].includes(result.redirect) ? result.redirect : "/Dashboard";
+                loginStatus.textContent = result.redirect === "/VerifyLogin" ? "Password verified. Check your email to finish signing in…" : "Login successful. Redirecting…";
+                window.location.href = ["/Admin", "/Birthday", "/Dashboard", "/VerifyEmail", "/VerifyLogin"].includes(result.redirect) ? result.redirect : "/Dashboard";
                 loginNavigating = true;
             } catch (error) {
                 loginStatus.textContent = "Unable to reach the server. Please try again.";

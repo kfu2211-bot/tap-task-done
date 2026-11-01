@@ -72,6 +72,7 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
 
     public async Task<IActionResult> OnPostLogoutAsync()
     {
+        if (LoginSecurity.Enabled(HttpContext.RequestServices.GetRequiredService<IConfiguration>())) await LoginSecurity.LogoutAsync(db, HttpContext, HttpContext.RequestAborted);
         await HttpContext.SignOutAsync("AdminCookie");
         return RedirectToPage("/Login");
     }

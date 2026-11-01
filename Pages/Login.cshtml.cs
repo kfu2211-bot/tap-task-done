@@ -50,15 +50,16 @@ namespace tts.Pages
                     }
                 }
                 // Remove any previous identity so changing accounts cannot retain staff access.
+                var config = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+                if (LoginSecurity.Enabled(config)) await LoginSecurity.LogoutAsync(db, HttpContext, cancellationToken);
                 await HttpContext.SignOutAsync("AdminCookie");
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 await HttpContext.SignOutAsync("BirthdayPending");
-                var config = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
                 if (VerificationMailer.Enabled(config) && !await VerificationMailer.IsVerifiedAsync(db, user, cancellationToken))
                 {
-                    try { await VerificationMailer.SendAsync(db, config, HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>(), user, cancellationToken); }
+                    try { await RegistrationVerification.StartAsync(db, HttpContext, user, config, cancellationToken); }
                     catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException or System.Net.Mail.SmtpException or FormatException)
-                    { HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("Verification email could not be sent ({ErrorType}).", ex.GetType().Name); }
+                    { HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("Verification email could not be sent ({ErrorType}).", ex.GetType().Name); TempData["RegistrationNotice"] = "Email verification is still pending. If a code could not be sent, wait a minute and try again."; }
                     return new JsonResult(new { redirect = "/VerifyEmail" });
                 }
                 if (!user.DateOfBirth.HasValue)
@@ -66,6 +67,21 @@ namespace tts.Pages
                     var pending = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), new Claim("password_version", AccountStore.SessionFingerprint(user.PasswordHash)) }, "BirthdayPending");
                     await HttpContext.SignInAsync("BirthdayPending", new ClaimsPrincipal(pending));
                     return new JsonResult(new { name, email = user.Username, redirect = "/Birthday" });
+                }
+                if (LoginSecurity.Enabled(config))
+                {
+                    if (await LoginSecurity.TrustedAsync(db, HttpContext, user, cancellationToken) || (VerificationMailer.Enabled(config) && await RegistrationVerification.FirstLoginAvailableAsync(db, HttpContext, user, cancellationToken)))
+                    {
+                        var destination = await LoginSecurity.SignInAsync(db, HttpContext, user, false, cancellationToken);
+                        return new JsonResult(new { name, email = user.Username, redirect = destination });
+                    }
+                    try { await LoginSecurity.BeginAsync(db, HttpContext, user, config, cancellationToken); }
+                    catch (Exception ex) when (ex is System.Net.Mail.SmtpException or FormatException or InvalidOperationException)
+                    {
+                        HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("New-device code delivery failed ({Type}).", ex.GetType().Name);
+                        return new JsonResult(new { message = "Unable to send a sign-in code. Try again later. No new session was created." }) { StatusCode = 503 };
+                    }
+                    return new JsonResult(new { name, email = user.Username, redirect = "/VerifyLogin" });
                 }
                 if (isStaff)
                 {

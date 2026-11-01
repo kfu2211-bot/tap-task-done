@@ -1,5 +1,6 @@
 @page
 @model IndexModel
+@inject IConfiguration Configuration
 
 @{
     Layout = null;
@@ -110,6 +111,7 @@
 
                 <p class="signup-subtitle">Start finding trusted local help today.</p>
                 <p class="signup-demo-notice" role="status">Enter your first and last name. You must be at least 16 years old to register.</p>
+                @if (tts.Data.VerificationMailer.Enabled(Configuration)) { <p class="signup-demo-notice">Next: verify your email with a six-digit code before logging in.</p> }
                 @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
                 {
                     <p class="signup-demo-notice" role="alert">@Model.ErrorMessage</p>

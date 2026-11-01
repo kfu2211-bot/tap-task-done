@@ -5,9 +5,11 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using tts.Data;
 using MySqlConnector;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace tts.Pages
 {
+    [EnableRateLimiting("PasswordResetLimit")]
     public class IndexModel : PageModel
     {
         [BindProperty]
@@ -67,7 +69,7 @@ namespace tts.Pages
                 var accounts = HttpContext.RequestServices.GetRequiredService<AccountStore>();
                 if (await accounts.UsernameExistsAsync(email, cancellationToken))
                 {
-                    ErrorMessage = "That email is already registered.";
+                    ErrorMessage = "That email is already registered. Log in to continue or finish email verification.";
                     return Page();
                 }
                 var user = new AppUser { FirstName = parts[0], LastName = string.Join(' ', parts.Skip(1)), Username = email, Role = "client", DateOfBirth = birthDate };
@@ -76,9 +78,9 @@ namespace tts.Pages
                 await db.SaveChangesAsync(cancellationToken);
                 if (VerificationMailer.Enabled(HttpContext.RequestServices.GetRequiredService<IConfiguration>()))
                 {
-                    try { await VerificationMailer.SendAsync(db, HttpContext.RequestServices.GetRequiredService<IConfiguration>(), HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>(), user, cancellationToken); }
+                    try { await RegistrationVerification.StartAsync(db, HttpContext, user, HttpContext.RequestServices.GetRequiredService<IConfiguration>(), cancellationToken); }
                     catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException or System.Net.Mail.SmtpException or FormatException)
-                    { HttpContext.RequestServices.GetRequiredService<ILogger<IndexModel>>().LogWarning("Verification email could not be sent ({ErrorType}).", ex.GetType().Name); }
+                    { HttpContext.RequestServices.GetRequiredService<ILogger<IndexModel>>().LogWarning("Verification email could not be sent ({ErrorType}).", ex.GetType().Name); TempData["RegistrationNotice"] = "Your account is pending verification. Email delivery could not be completed. Try Resend code, or return to login to resume verification."; }
                     return RedirectToPage("/VerifyEmail");
                 }
                 AccountCreated = true;

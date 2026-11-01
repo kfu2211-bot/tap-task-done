@@ -187,6 +187,14 @@ app.Use(async (context, next) =>
         try
         {
             var db = context.RequestServices.GetRequiredService<ApplicationDbContext>();
+            if (LoginSecurity.Enabled(app.Configuration) && !await LoginSecurity.SessionValidAsync(db, principal, id, context.RequestAborted))
+            {
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                await context.SignOutAsync("AdminCookie");
+                if (context.Request.Path.StartsWithSegments("/api")) context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                else context.Response.Redirect("/Login?sessionEnded=1");
+                return;
+            }
             var account = await db.Users.AsNoTracking().Where(u => u.Id == id).Select(u => new { u.DateOfBirth, u.PasswordHash }).SingleOrDefaultAsync();
             var emailVerified = !VerificationMailer.Enabled(app.Configuration) || await db.VerifiedEmails.AnyAsync(v => v.UserId == id && db.Users.Any(u => u.Id == id && u.Username == v.Email));
             if (!admin.Succeeded && await ModerationGuard.IsSuspendedAsync(db, id, context.RequestAborted))
@@ -263,9 +271,21 @@ app.MapGet("/api/notifications/unread-count", async (HttpContext context, Applic
     var count = await db.MarketplaceNotifications.CountAsync(n => n.UserId == userId && !n.IsRead && n.Kind != "dispute", ct);
     count += await db.IdentityRequests.CountAsync(r => r.UserId == userId && r.ReviewedAt != null && r.ReviewReadAt == null, ct);
     count += await db.AccountModerationActions.CountAsync(a => a.UserId == userId && a.ReadAt == null, ct);
+    if (LoginSecurity.Enabled(app.Configuration)) count += await db.Set<LoginAlert>().CountAsync(a => a.UserId == userId && a.ReadUtc == null, ct);
     return Results.Json(new { count });
 }).RequireAuthorization();
 
+app.MapGet("/api/security/status", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    if (!LoginSecurity.Enabled(app.Configuration)) return Results.Json(new { alert = (object?)null });
+    var userId = int.Parse(context.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var token = context.User.FindFirstValue("login_session");
+    var sessionId = LoginSecurity.ValidToken(token) ? LoginSecurity.Hash(token!) : "";
+    var alert = await db.Set<LoginAlert>().AsNoTracking().Where(a => a.UserId == userId && a.SessionId != sessionId && a.ReadUtc == null)
+        .OrderByDescending(a => a.Id).Select(a => new { a.Id, a.Device, a.CreatedUtc }).FirstOrDefaultAsync(ct);
+    return Results.Json(new { alert });
+}).RequireAuthorization(new Microsoft.AspNetCore.Authorization.AuthorizeAttribute { AuthenticationSchemes = "Cookies,AdminCookie" });
 app.MapMobileEndpoints();
 app.MapGet("/api/places/search", async (string? q, PlaceSearch search, CancellationToken ct) =>
 {

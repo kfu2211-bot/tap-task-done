@@ -49,5 +49,5 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
         await db.SaveChangesAsync(); Message = "Work preferences saved to the database.";
         return RedirectToPage();
     }
-    public async Task<IActionResult> OnPostLogoutAsync() { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
+    public async Task<IActionResult> OnPostLogoutAsync() { if (LoginSecurity.Enabled(HttpContext.RequestServices.GetRequiredService<IConfiguration>())) await LoginSecurity.LogoutAsync(db, HttpContext, HttpContext.RequestAborted); await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
 }

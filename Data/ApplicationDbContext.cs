@@ -28,6 +28,33 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var registration = modelBuilder.Entity<RegistrationEmailCode>();
+        registration.ToTable("registration_email_codes"); registration.HasKey(x => x.UserId);
+        registration.Property(x => x.TokenHash).HasMaxLength(64).IsUnicode(false); registration.HasIndex(x => x.TokenHash).IsUnique();
+        registration.Property(x => x.PasswordVersion).HasMaxLength(64).IsUnicode(false);
+        registration.Property(x => x.Email).HasMaxLength(45); registration.Property(x => x.CodeHash).HasMaxLength(64).IsUnicode(false);
+        registration.Property(x => x.FirstLoginHash).HasMaxLength(64).IsUnicode(false);
+        registration.HasOne<AppUser>().WithOne().HasForeignKey<RegistrationEmailCode>(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        var challenge = modelBuilder.Entity<LoginChallenge>();
+        challenge.ToTable("login_challenges"); challenge.HasKey(x => x.Id);
+        challenge.Property(x => x.Id).HasMaxLength(64); challenge.Property(x => x.CodeHash).HasMaxLength(64); challenge.Property(x => x.PasswordVersion).HasMaxLength(64);
+        challenge.HasIndex(x => new { x.UserId, x.CreatedUtc });
+        challenge.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        var loginSession = modelBuilder.Entity<LoginSession>();
+        loginSession.ToTable("login_sessions"); loginSession.HasKey(x => x.Id);
+        loginSession.Property(x => x.Id).HasMaxLength(64); loginSession.Property(x => x.PasswordVersion).HasMaxLength(64); loginSession.Property(x => x.Device).HasMaxLength(100);
+        loginSession.HasIndex(x => new { x.UserId, x.ExpiresUtc });
+        loginSession.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        var trusted = modelBuilder.Entity<TrustedLoginDevice>();
+        trusted.ToTable("trusted_login_devices"); trusted.HasKey(x => x.Id);
+        trusted.Property(x => x.Id).HasMaxLength(64); trusted.Property(x => x.PasswordVersion).HasMaxLength(64); trusted.Property(x => x.Device).HasMaxLength(100);
+        trusted.HasIndex(x => new { x.UserId, x.ExpiresUtc });
+        trusted.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        var loginAlert = modelBuilder.Entity<LoginAlert>();
+        loginAlert.ToTable("login_alerts"); loginAlert.HasKey(x => x.Id);
+        loginAlert.Property(x => x.SessionId).HasMaxLength(64); loginAlert.Property(x => x.Device).HasMaxLength(100);
+        loginAlert.HasIndex(x => new { x.UserId, x.CreatedUtc });
+        loginAlert.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         var conversation = modelBuilder.Entity<TaskConversation>();
         conversation.ToTable("task_conversations"); conversation.HasKey(c => c.Id);
         conversation.HasIndex(c => new { c.TaskId, c.FreelancerId }).IsUnique();
@@ -124,6 +151,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         user.Property(x => x.FirstName).HasColumnName("FirstName").HasMaxLength(45);
         user.Property(x => x.LastName).HasColumnName("LastName").HasMaxLength(45);
         user.Property(x => x.Username).HasColumnName("userName").HasMaxLength(45);
+        user.HasIndex(x => x.Username).IsUnique().HasDatabaseName("ux_tbl_user_email");
         user.Property(x => x.Role).HasColumnName("role").HasMaxLength(45);
         user.Property(x => x.PasswordHash).HasColumnName("Password").HasColumnType("blob");
         user.Property(x => x.DateOfBirth).HasColumnName("DateOfBirth").HasColumnType("date");

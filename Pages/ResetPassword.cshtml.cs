@@ -36,6 +36,7 @@ public class ResetPasswordModel(ApplicationDbContext db, AccountStore accounts, 
             if (user is null || !VerificationMailer.Enabled(config) || !await VerificationMailer.IsVerifiedAsync(db, user, ct)) { ErrorMessage = "This reset link is invalid or expired. Request a new link."; return Page(); }
             accounts.SetPassword(user, Password);
             await db.SaveChangesAsync(ct);
+            if (LoginSecurity.Enabled(config)) await LoginSecurity.RevokeAllAsync(db, user.Id, ct);
             await db.PasswordResetRequests.Where(r => r.UserId == user.Id).ExecuteDeleteAsync(ct);
             await transaction.CommitAsync(ct);
             Password = ConfirmPassword = Token = null;

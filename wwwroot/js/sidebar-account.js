@@ -407,3 +407,6 @@
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", enforceLocalAccountStatus); else enforceLocalAccountStatus();
 }());
+
+// Load account-security alerts on authenticated workspace screens.
+(() => { if (document.querySelector('script[src*="login-security-alert"]')) return; const script=document.createElement('script'); script.src='/js/login-security-alert.js?v=1'; script.defer=true; document.head.append(script); })();

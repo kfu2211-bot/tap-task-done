@@ -8,6 +8,12 @@ SELECT required.table_name, required.column_name,
        CASE WHEN t.TABLE_NAME IS NULL THEN 'MISSING TABLE' ELSE 'MISSING COLUMN' END AS finding
 FROM (
 SELECT 'admin_account_actions' AS table_name, 'Action' AS column_name
+UNION ALL SELECT 'registration_email_codes', 'FirstLoginHash'
+UNION ALL SELECT 'registration_email_codes', 'SendCount'
+UNION ALL SELECT 'login_challenges', 'CodeHash'
+UNION ALL SELECT 'login_sessions', 'RevokedUtc'
+UNION ALL SELECT 'trusted_login_devices', 'PasswordVersion'
+UNION ALL SELECT 'login_alerts', 'EmailSent'
 UNION ALL SELECT 'marketplace_tasks', 'IsPrivate'
 UNION ALL SELECT 'marketplace_messages', 'ConversationId'
 UNION ALL SELECT 'marketplace_notifications', 'ConversationId'

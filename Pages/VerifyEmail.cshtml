@@ -1,13 +1,18 @@
 @page
 @model tts.Pages.VerifyEmailModel
 @{ Layout = null; }
-<!DOCTYPE html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" /><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Verify email - Tap, Task, Done</title><link rel="stylesheet" href="/css/site.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-auth.css" asp-append-version="true" /></head>
-<body><main class="login-page"><div class="login-logo"><div class="login-logo-circle">✓</div><span>Tap, Task, Done</span></div><div class="login-box">
-<div class="login-eyebrow">ACCOUNT SECURITY</div><h1>Verify your email</h1>
-@if (Model.Completed) { <p class="login-subtitle" role="status">Your email is verified. You can now log in.</p> }
-else if (!string.IsNullOrEmpty(Model.Token)) { <p class="login-subtitle">Confirm that you own this email address.</p><form method="post" asp-page-handler="Confirm"><input type="hidden" asp-for="Token" /><button class="login-button" type="submit">Verify email</button></form> }
-else { <p class="login-subtitle">Check the inbox and spam folder of your registered email for a verification link. If you didn't receive it, request another below.</p>
-@if (Model.Sent) { <p role="status">If an unverified account exists for this address, a link will be sent.</p> }
-<form method="post" asp-page-handler="Resend"><div class="login-group"><label for="Email">EMAIL</label><input asp-for="Email" type="email" autocomplete="email" required /></div><button class="login-button" type="submit">Resend verification link</button></form> }
-@if (Model.ErrorMessage is not null) { <p role="alert" style="color:#a32828">@Model.ErrorMessage</p> }
-<p class="create-account-text"><a href="/Login">Back to login</a></p></div></main></body></html>
+<!DOCTYPE html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg"/><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Verify email - Tap, Task, Done</title><link rel="stylesheet" href="~/css/login-security.css" asp-append-version="true"/><script src="~/js/registration-verification.js" asp-append-version="true" defer></script></head>
+<body class="security-auth"><main class="security-card"><a href="/Index">Tap, Task, Done</a><p class="security-eyebrow">@(Model.Completed ? "REGISTRATION COMPLETE" : "STEP 2 · EMAIL VERIFICATION")</p><h1>@(Model.Completed ? "Email verified" : "Verify your email")</h1>
+@if(Model.Completed) { <p role="status">Your email is verified. Your account is ready—please log in.</p><p>Use <strong>@Model.DestinationEmail</strong> as your login email.</p><a class="security-primary-link" href="/Login">Go to login</a><p>This did not sign you in automatically.</p> }
+else {
+@if(Model.RegistrationNotice is not null) { <p class="security-notice" role="status">@Model.RegistrationNotice</p> }
+@if(Model.ErrorMessage is not null) { <p class="security-error" role="alert">@Model.ErrorMessage</p> }
+@if(Model.Pending) {
+<p>Enter the six-digit code sent to <strong>@Model.DestinationEmail</strong>. Your account stays pending until you verify this email.</p><p>Check your inbox and spam folder. Codes expire in 10 minutes.</p>
+<form method="post" asp-page-handler="Confirm"><label>Verification code<input asp-for="Code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus/></label><button type="submit">Verify email</button></form>
+<form method="post" asp-page-handler="Resend" data-resend-seconds="@Model.ResendSeconds"><button type="submit" disabled="@(Model.ResendSeconds > 0)">Resend code</button><small role="status" data-resend-label>@(Model.ResendSeconds > 0 ? $"Resend available in {Model.ResendSeconds}s" : "Didn't receive a code? Request a new one.")</small></form>
+<details class="registration-change"><summary>Wrong email? Change it</summary><p>Enter the corrected email and the password you used when registering. The email used for login changes only after you verify the new address. Previous codes will stop working.</p><form method="post" asp-page-handler="Change"><label>Correct email<input asp-for="NewEmail" type="email" autocomplete="email" maxlength="45" required/></label><label>Registration password<input asp-for="Password" type="password" autocomplete="current-password" maxlength="256" required/></label><button type="submit">Send code to corrected email</button></form></details>
+} else { <p>Start by creating an account, or log in with your email and password to resume a pending registration. An older verification link can be replaced with a new code after login.</p><p><a href="/Index">Create account</a></p> }
+<p><a href="/Login">Back to login</a></p>
+}
+</main></body></html>

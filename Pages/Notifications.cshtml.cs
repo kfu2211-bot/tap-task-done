@@ -11,6 +11,7 @@ namespace tts.Pages;
 public class NotificationsModel(ApplicationDbContext db) : PageModel
 {
     public List<MarketplaceNotification> Items { get; private set; } = [];
+    public List<LoginAlert> LoginAlerts { get; private set; } = [];
     public List<IdentityRequest> IdentityUpdates { get; private set; } = [];
     public List<AccountModerationAction> AccountUpdates { get; private set; } = [];
     public bool AccountUpdatesUnavailable { get; private set; }
@@ -21,6 +22,7 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
     {
         if (UserId <= 0) return Challenge();
         Response.Headers.CacheControl = "no-store";
+        if (LoginSecurity.Enabled(HttpContext.RequestServices.GetRequiredService<IConfiguration>())) LoginAlerts = await db.Set<LoginAlert>().AsNoTracking().Where(x => x.UserId == UserId).OrderByDescending(x => x.Id).Take(20).ToListAsync(ct);
         IdentityUpdates = await db.IdentityRequests.AsNoTracking().Where(r => r.UserId == UserId && r.ReviewedAt != null)
             .OrderByDescending(r => r.ReviewedAt).Select(r => new IdentityRequest { Id = r.Id, Status = r.Status, ReviewNote = r.ReviewNote, ReviewedAt = r.ReviewedAt, ReviewReadAt = r.ReviewReadAt }).Take(20).ToListAsync(ct);
         Items = await db.MarketplaceNotifications.AsNoTracking().Where(n => n.UserId == UserId && n.Kind != "dispute")

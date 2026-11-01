@@ -25,6 +25,12 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
     private static string CodeHash(string challenge, string code) => Convert.ToHexString(HMACSHA256.HashData(Convert.FromHexString(challenge), Encoding.UTF8.GetBytes(code)));
     private string? ResetChallenge => Request.Cookies[CookieName] is string c && c.Length == 64 && c.All(Uri.IsHexDigit) ? c : null;
     private void NoStore() { Response.Headers.CacheControl = "no-store"; Response.Headers["Referrer-Policy"] = "no-referrer"; }
+    public const string SendNotice = "If this email belongs to an eligible account, we'll send password-reset instructions. Check your inbox and spam folder.";
+    private IActionResult CodePage(string? challenge = null)
+    {
+        Response.Cookies.Append(CookieName, challenge ?? Convert.ToHexString(RandomNumberGenerator.GetBytes(32)), new CookieOptions { HttpOnly = true, Secure = Request.IsHttps, SameSite = SameSiteMode.Strict, Path = "/", MaxAge = TimeSpan.FromMinutes(10), IsEssential = true });
+        Step = "code"; Notice = SendNotice; ErrorMessage = null; return Page();
+    }
     public void OnGet() { NoStore(); Response.Cookies.Delete(CookieName); }
 
     public async Task<IActionResult> OnPostSendAsync(CancellationToken ct)
@@ -36,13 +42,9 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
         try
         {
             // Account lookup needs only the ID, not encrypted profile-photo bytes.
-            var user = await db.Users.AsNoTracking().Where(u => u.Username == email).Select(u => new { u.Id }).SingleOrDefaultAsync(ct);
-            if (user is null)
-            {
-                Response.Cookies.Delete(CookieName);
-                ErrorMessage = "No account was found for this email address. Please check your email or create an account.";
-                return Page();
-            }
+            var requireVerified = VerificationMailer.Enabled(config);
+            var user = await db.Users.AsNoTracking().Where(u => u.Username == email && (!requireVerified || db.VerifiedEmails.Any(v => v.UserId == u.Id && v.Email == u.Username))).Select(u => new { u.Id }).SingleOrDefaultAsync(ct);
+            if (user is null) return CodePage();
 
             var challenge = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
             var code = RandomNumberGenerator.GetInt32(1000000).ToString("D6", System.Globalization.CultureInfo.InvariantCulture);
@@ -54,8 +56,7 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
             await tx.CommitAsync(ct);
             stage = "email delivery";
             await SmtpMailer.SendAsync(config, email, "Your Tap, Task, Done verification code", $"Your password reset code is {code}. It expires in 10 minutes. If you did not request this, ignore this message.", ct);
-            Response.Cookies.Append(CookieName, challenge, new CookieOptions { HttpOnly = true, Secure = Request.IsHttps, SameSite = SameSiteMode.Strict, MaxAge = TimeSpan.FromMinutes(10), IsEssential = true });
-            Step = "code"; Notice = "A verification code was sent. Check your inbox and spam folder."; return Page();
+            return CodePage(challenge);
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or SmtpException or InvalidOperationException or OperationCanceledException or TimeoutException or FormatException or MimeKit.ParseException)
         {
@@ -63,7 +64,7 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
             var databaseError = ex as MySqlConnector.MySqlException ?? ex.InnerException as MySqlConnector.MySqlException;
             logger.LogWarning("Password reset request failed at {Stage}: {ErrorType}, cause {CauseType}, database code {DatabaseCode}, trace {TraceId}.",
                 stage, ex.GetType().Name, ex.InnerException?.GetType().Name, databaseError?.Number, HttpContext.TraceIdentifier);
-            ErrorMessage = "Unable to send a verification code. Please try again later."; return Page();
+            return CodePage();
         }
     }
 
@@ -107,8 +108,10 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
             if (request is null || await db.PasswordResetCodes.Where(x => x.ChallengeHash == hash && x.Verified && x.ExpiresUtc > now).ExecuteDeleteAsync(ct) != 1) { Step = "email"; ErrorMessage = "Your reset session expired. Request a new code."; return Page(); }
             var user = await db.Users.SingleOrDefaultAsync(x => x.Id == request.UserId, ct);
             if (user is null) { Step = "email"; ErrorMessage = "Your reset session expired. Request a new code."; return Page(); }
+            if (VerificationMailer.Enabled(config) && !await VerificationMailer.IsVerifiedAsync(db, user, ct)) { Step = "email"; ErrorMessage = "Your reset session expired. Verify your email before requesting a new code."; return Page(); }
             accounts.SetPassword(user, Password);
             await db.SaveChangesAsync(ct);
+            if (LoginSecurity.Enabled(config)) await LoginSecurity.RevokeAllAsync(db, user.Id, ct);
             await db.PasswordResetCodes.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             await db.PasswordResetRequests.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             await tx.CommitAsync(ct);
