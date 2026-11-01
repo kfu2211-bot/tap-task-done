@@ -1,3 +1,7 @@
+# Current workflow update
+
+See location_agreement_setup.md for the current task-location picker, private negotiation, mutual work agreement, and required migration. The historical integration notes below describe the earlier rollout; its old text-only location and Start work sharing instructions are superseded.
+
 # Task map and freelancer location
 
 No deployment or production database changes are performed by this integration.

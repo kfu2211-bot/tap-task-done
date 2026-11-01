@@ -10,6 +10,7 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHttpClient<PlaceSearch>(client => client.Timeout = TimeSpan.FromSeconds(10));
 if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
@@ -111,6 +112,7 @@ builder.Services.AddAuthorization(options => options.AddPolicy("AdminOnly", poli
     policy.AddAuthenticationSchemes("AdminCookie").RequireAuthenticatedUser().RequireRole("admin", "moderator")));
 builder.Services.AddRateLimiter(options =>
 {
+    options.AddPolicy("PlaceSearchLimit", context => RateLimitPartition.GetFixedWindowLimiter(context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.AddPolicy("AdminLoginLimit", context =>
         RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -265,6 +267,14 @@ app.MapGet("/api/notifications/unread-count", async (HttpContext context, Applic
 }).RequireAuthorization();
 
 app.MapMobileEndpoints();
+app.MapGet("/api/places/search", async (string? q, PlaceSearch search, CancellationToken ct) =>
+{
+    q = (q ?? "").Trim();
+    if (q.Length is < 3 or > 120) return Results.BadRequest(new { message = "Enter 3–120 characters of an address or landmark." });
+    try { return Results.Json(await search.SearchAsync(q, ct)); }
+    catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or InvalidOperationException)
+    { return Results.Json(new { message = "Location search is unavailable. Use the map pin or current location instead." }, statusCode: 503); }
+}).RequireAuthorization().RequireRateLimiting("PlaceSearchLimit");
 app.MapRazorPages();
 
 app.Run();

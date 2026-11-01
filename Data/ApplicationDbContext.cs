@@ -28,6 +28,21 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var conversation = modelBuilder.Entity<TaskConversation>();
+        conversation.ToTable("task_conversations"); conversation.HasKey(c => c.Id);
+        conversation.HasIndex(c => new { c.TaskId, c.FreelancerId }).IsUnique();
+        conversation.HasOne<MarketplaceTask>().WithMany().HasForeignKey(c => c.TaskId).OnDelete(DeleteBehavior.Restrict);
+        conversation.HasOne<AppUser>().WithMany().HasForeignKey(c => c.FreelancerId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<MarketplaceMessage>().HasOne<TaskConversation>().WithMany().HasForeignKey(m => m.ConversationId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<MarketplaceMessage>().HasIndex(m => new { m.ConversationId, m.Id });
+        modelBuilder.Entity<MarketplaceNotification>().HasOne<TaskConversation>().WithMany().HasForeignKey(n => n.ConversationId).OnDelete(DeleteBehavior.Restrict);
+        var agreement = modelBuilder.Entity<WorkAgreement>();
+        agreement.ToTable("work_agreements"); agreement.HasKey(a => a.Id); agreement.Ignore(a => a.Confirmed);
+        agreement.HasIndex(a => new { a.TaskId, a.Version }).IsUnique();
+        agreement.Property(a => a.Price).HasPrecision(12, 2);
+        agreement.Property(a => a.ScheduleText).HasMaxLength(120); agreement.Property(a => a.Scope).HasMaxLength(5000); agreement.Property(a => a.Location).HasMaxLength(120);
+        agreement.HasOne<MarketplaceTask>().WithMany().HasForeignKey(a => a.TaskId).OnDelete(DeleteBehavior.Restrict);
+        agreement.HasOne<AppUser>().WithMany().HasForeignKey(a => a.ProposedById).OnDelete(DeleteBehavior.Restrict);
         var offense = modelBuilder.Entity<AccountOffense>();
         offense.ToTable("admin_account_offenses");
         offense.HasKey(x => x.Id);

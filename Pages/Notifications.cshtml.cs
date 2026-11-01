@@ -60,11 +60,11 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
         await db.SaveChangesAsync(ct);
         return item.Kind switch
         {
-            "message" => RedirectToPage("/Messages", new { taskId = item.TaskId }),
+            "message" => RedirectToPage("/Messages", new { taskId = item.TaskId, conversationId = item.ConversationId }),
             "dispute" => RedirectToPage("/Reports"),
             "booking_request" => RedirectToPage("/MyJobs", new { view = "requests" }),
             "accepted" => RedirectToPage("/MyJobs", new { view = "active" }),
-            "completed" or "on-the-way" or "arrived" or "started" or "finished" or "booking_accepted" or "completion_reminder" => RedirectToPage("/Tracking", new { taskId = item.TaskId }),
+            "completed" or "on-the-way" or "arrived" or "started" or "finished" or "booking_accepted" or "completion_reminder" or "agreement" => RedirectToPage("/Tracking", new { taskId = item.TaskId }),
             "cancelled" => RedirectToPage("/MyJobs", new { view = "cancelled" }),
             _ => RedirectToPage("/MarketTasks", new { view = "mine" })
         };

@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="/css/findpost-light.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
-</head>
+<link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-location-picker.css" asp-append-version="true" /><script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><script defer src="/js/task-location-picker.js" asp-append-version="true"></script></head>
 
 <body>
 
@@ -452,7 +452,7 @@
                                     <input type="hidden" name="freelancerId" id="bookingFreelancerId" />
                                     <label for="bookingTitle">What do you need help with?</label><input id="bookingTitle" name="title" maxlength="120" required placeholder="e.g. Clean a two-bedroom home" />
                                     <label for="bookingDescription">Work details</label><textarea id="bookingDescription" name="description" maxlength="5000" rows="3" required placeholder="Describe the work, scope, and any special requirements"></textarea>
-                                    <label for="bookingLocation">Work location</label><input id="bookingLocation" name="location" maxlength="120" required placeholder="Barangay / address in Bacolor, Pampanga" />
+                                    <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
                                     <label for="bookingSchedule">Preferred date and time (Philippine time)</label>
                                     <input id="bookingSchedule" name="schedule" type="datetime-local" step="60" min="@DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required aria-describedby="bookingScheduleHelp" />
                                     <small id="bookingScheduleHelp">Choose a date from the calendar and select a time. Schedule uses Philippine time (UTC+8).</small>
@@ -525,10 +525,7 @@
                         </label>
 
                         <div class="post-field-grid">
-                            <label class="post-field">
-                                <span>Location</span>
-                                <input id="taskLocationInput" name="location" type="text" maxlength="120" required placeholder="e.g. Bacolor, Pampanga" />
-                            </label>
+                            <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
                             <label class="post-field">
                                 <span>Budget</span>
                                 <input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 600" />
@@ -606,7 +603,7 @@
                         @foreach (var item in Model.OpenTasks) {
                             var task = item.Task;
                             var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
-                            <article class="jobs-card"><div class="jobs-card-top"><span class="jobs-tag">@task.Category</span><strong>₱@task.Budget</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>⌖ @task.Location</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: <span data-account-id="@task.ClientId">@item.ClientName</span></span></div>
+                            <article class="jobs-card"><div class="jobs-card-top"><span class="jobs-tag">@task.Category</span><strong>₱@task.Budget</strong></div><h3>@task.Title</h3><p>@task.Description</p><form method="post" asp-page="/Messages" asp-page-handler="Start"><input type="hidden" name="taskId" value="@task.Id" /><button type="submit" class="task-chat-action"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z"/></svg>Ask about this task</button></form><div class="jobs-meta"><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: <span data-account-id="@task.ClientId">@item.ClientName</span></span></div>
                             @if (existing != null) { <p class="jobs-offer-status">Offer sent · @existing.Offer.Status</p> }
                             else { <details class="jobs-offer"><summary>Send an offer</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Offer"><input type="hidden" name="id" value="@task.Id" /><label class="post-field">Your price (₱)<input type="number" name="price" min="1" max="9999999999" step="0.01" required /></label><label class="post-field">Message (optional)<textarea name="message" maxlength="500"></textarea></label><button class="post-submit-button">Send offer</button></form></details> }</article>
                         }

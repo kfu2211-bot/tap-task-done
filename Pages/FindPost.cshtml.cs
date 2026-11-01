@@ -28,7 +28,7 @@ namespace tts.Pages
                 {
                     OpenTasks = await (from t in db.MarketplaceTasks.AsNoTracking()
                         join u in db.Users.AsNoTracking() on t.ClientId equals u.Id
-                        where t.ClientId != userId && t.Status == "open" orderby t.Id descending
+                        where t.ClientId != userId && t.Status == "open" && !t.IsPrivate orderby t.Id descending
                         select new MarketTasksModel.TaskItem(t, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).ToListAsync(cancellationToken);
                     Offers = await (from o in db.MarketplaceOffers.AsNoTracking()
                         join u in db.Users.AsNoTracking() on o.FreelancerId equals u.Id

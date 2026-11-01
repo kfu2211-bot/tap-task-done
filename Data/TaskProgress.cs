@@ -53,6 +53,11 @@ public static class TaskProgress
             return new(false, "This action is unavailable or the task has already changed. Refresh and check its progress.");
         if (action == "travel" && !await db.Set<TaskDestination>().AnyAsync(x => x.TaskId == id, ct))
             return new(false, "Ask the client to save the exact destination pin before starting travel.");
+        if (action is "travel" or "arrive" or "start")
+        {
+            var agreement = await AgreementRules.LatestAsync(db, id, ct);
+            if (!AgreementRules.CanProceed(agreement)) return new(false, "Both participants must confirm the latest work agreement in Tracking before continuing.");
+        }
         if (action is "travel" or "start" && await FreelancerAvailability.ActiveTasks(db, freelancer.Value).AnyAsync(t => t.Id != id, ct))
             return new(false, "Finish your current travel/work before starting another job.");
         note = note?.Trim();

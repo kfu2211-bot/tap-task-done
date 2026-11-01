@@ -70,16 +70,17 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
         { Notice = "This job cannot be withdrawn. It may have already started or changed."; return RedirectToPage(new { view = "active" }); }
 
         var offer = await db.MarketplaceOffers.SingleAsync(o => o.TaskId == id && o.FreelancerId == UserId && o.Status == "accepted", ct);
-        task.Status = "open";
+        task.Status = task.IsPrivate ? "cancelled" : "open";
+        if(task.IsPrivate) task.CancellationReason = "The selected freelancer withdrew before travel: " + reason;
         offer.Status = "withdrawn";
         offer.WithdrawalReason = reason;
         await db.MarketplaceBookings.Where(b => b.TaskId == id && b.FreelancerId == UserId && b.Status == "accepted")
             .ExecuteUpdateAsync(s => s.SetProperty(b => b.Status, "withdrawn"), ct);
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(task.ClientId, task.Id, "withdrawn",
-            "The freelancer withdrew before starting. Your task is open for new offers."));
+            task.IsPrivate ? "The freelancer withdrew. Your private request was cancelled and has not been published." : "The freelancer withdrew before starting. Your task is open for new offers."));
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
-        Notice = "You withdrew from the job. The client has been notified and the task is open for new offers.";
+        Notice = "You withdrew from the job. The client has been notified. Private requests stay private.";
         return RedirectToPage(new { view = "offers" });
     }
 }

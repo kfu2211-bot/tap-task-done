@@ -18,14 +18,14 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
     public IActionResult OnGet() => RedirectToPage("/FindPost");
 
     public async Task<IActionResult> OnPostDirectAsync(int freelancerId, string? title, string? description,
-        string? location, string? schedule, decimal budget, CancellationToken ct)
+        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null)
     {
         if (UserId <= 0) return Challenge();
         title = (title ?? "").Trim(); description = (description ?? "").Trim();
         location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (!ModelState.IsValid || freelancerId <= 0 || freelancerId == UserId || title.Length is < 1 or > 120 ||
             description.Length is < 1 or > 5000 || location.Length is < 1 or > 120 || schedule.Length is < 1 or > 120 ||
-            budget is < 1 or > 9999999999m || decimal.Round(budget, 2) != budget)
+            budget is < 1 or > 9999999999m || decimal.Round(budget, 2) != budget || !TaskLocationRules.Valid(latitude, longitude))
         { Notice = "Please complete the work details, location, schedule, and a valid budget."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
         if (!DateTime.TryParseExact(schedule, "yyyy-MM-dd'T'HH:mm", System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.None, out var preferredTime) ||
@@ -51,9 +51,11 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             if (requesterProfile is not null) requesterProfile.WorkRole = WorkRoleAfterBooking(role);
             // This internal task is private: public directories only select status "open".
             var work = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Location = location,
-                ScheduleText = schedule, Budget = budget, Category = provider.Service, Status = "booking-pending", CreatedAt = DateTime.UtcNow };
+                ScheduleText = schedule, Budget = budget, Category = provider.Service, Status = "booking-pending", IsPrivate = true, CreatedAt = DateTime.UtcNow };
             db.MarketplaceTasks.Add(work);
             await db.SaveChangesAsync(ct);
+            TaskLocationRules.Save(db, work.Id, null, latitude!.Value, longitude!.Value);
+            await AgreementRules.ConversationAsync(db, work.Id, freelancerId, ct);
             db.MarketplaceBookings.Add(new MarketplaceBooking { TaskId = work.Id, FreelancerId = freelancerId, Status = "pending", CreatedAt = DateTime.UtcNow });
             db.MarketplaceNotifications.Add(MarketplaceNotification.Create(freelancerId, work.Id, "booking_request", "A client sent you a private work request. Review it in My Jobs → Booking requests."));
             await db.SaveChangesAsync(ct);
@@ -72,11 +74,12 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, freelancerId)) { Notice = "This request cannot be sent while either account is restricted."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
         var requesterProfile = await db.FreelancerProfiles.SingleOrDefaultAsync(p => p.UserId == UserId, ct);
             var role = requesterProfile?.WorkRole ?? "client";
-        var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == taskId && t.ClientId == UserId && t.Status == "open", ct);
+        var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == taskId && t.ClientId == UserId && t.Status == "open" && !t.IsPrivate, ct);
         var provider = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == freelancerId && p.UserId != UserId && (p.WorkRole == "freelancer" || p.WorkRole == "both") && p.Availability == "Available" && p.Service != "" && p.Location != "", ct);
         if (!CanBook(role) || task is null || provider is null || await FreelancerAvailability.IsBusyAsync(db, freelancerId, ct) || await db.MarketplaceBookings.AnyAsync(b => b.TaskId == taskId && b.FreelancerId == freelancerId, ct))
         { Notice = "Request could not be sent. Check that your task is open, the freelancer is available, and you have not sent this request already."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
         if (requesterProfile is not null) requesterProfile.WorkRole = WorkRoleAfterBooking(role);
+        await AgreementRules.ConversationAsync(db, taskId, freelancerId, ct);
         db.MarketplaceBookings.Add(new MarketplaceBooking { TaskId = taskId, FreelancerId = freelancerId, Status = "pending", CreatedAt = DateTime.UtcNow });
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(freelancerId, taskId, "booking_request", "A client sent you a booking request."));
         try { await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct); Notice = "Booking request sent. The freelancer can accept or decline it in My Jobs → Booking requests."; }
@@ -102,6 +105,8 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         {
             if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This request cannot be accepted while either account is restricted."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             booking.Status = "accepted"; task.Status = "assigned";
+            await AgreementRules.ConversationAsync(db, task.Id, UserId, ct);
+            await AgreementRules.InitialAsync(db, task, task.Budget, UserId, ct);
             db.Set<TaskProgressEvent>().Add(new TaskProgressEvent { TaskId = task.Id, ActorId = UserId, Status = "assigned", CreatedAtUtc = DateTime.UtcNow });
             var offer = await db.MarketplaceOffers.SingleOrDefaultAsync(o => o.TaskId == task.Id && o.FreelancerId == UserId, ct);
             if (offer == null) db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = task.Id, FreelancerId = UserId, Price = task.Budget, Message = "Direct booking at the agreed request budget.", Status = "accepted", CreatedAt = DateTime.UtcNow });
@@ -112,7 +117,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         }
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
-        Notice = decision == "accept" ? "Booking accepted. The task is now in your active jobs." : "Booking request declined.";
+        Notice = decision == "accept" ? "Booking accepted. Confirm the final agreement together in Tracking before travel." : "Booking request declined.";
         return RedirectToPage("/MyJobs", new { view = decision == "accept" ? "active" : "requests" });
     }
 }

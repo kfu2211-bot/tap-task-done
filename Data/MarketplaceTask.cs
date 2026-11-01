@@ -11,6 +11,7 @@ public sealed class MarketplaceTask
     public decimal Budget { get; set; }
     public string ScheduleText { get; set; } = "";
     public string Status { get; set; } = "pending-confirmation";
+    public bool IsPrivate { get; set; }
     public string? CancellationReason { get; set; }
     public DateTime CreatedAt { get; set; }
 }

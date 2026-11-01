@@ -5,6 +5,7 @@ public sealed class MarketplaceNotification
     public long Id { get; set; }
     public int UserId { get; set; }
     public long TaskId { get; set; }
+    public long? ConversationId { get; set; }
     public string Kind { get; set; } = "";
     public string Message { get; set; } = "";
     public bool IsRead { get; set; }

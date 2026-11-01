@@ -60,6 +60,8 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
     }
     [TempData] public string? Notice { get; set; }
     public List<TaskProgressEvent> Progress { get; private set; } = [];
+    public Dictionary<long, WorkAgreement> Agreements { get; private set; } = [];
+    public Dictionary<long, TaskDestination> Destinations { get; private set; } = [];
     public bool ProgressUnavailable { get; private set; }
     public record Coordinates(long TaskId, double Latitude, double Longitude, double? AccuracyMeters);
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
@@ -79,30 +81,11 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         { logger.LogError(ex, "Destination storage unavailable"); return StatusCode(503, new { message = "Destination storage is not ready." }); }
     }
 
-    public async Task<IActionResult> OnPostDestinationAsync([FromBody] Coordinates input, CancellationToken ct)
+    public IActionResult OnPostDestination([FromBody] Coordinates input)
     {
-        Response.Headers.CacheControl = "no-store";
         if (UserId <= 0) return Challenge();
-        if (!ModelState.IsValid || input is null || !double.IsFinite(input.Latitude) || !double.IsFinite(input.Longitude)
-            || input.Latitude is < -90 or > 90 || input.Longitude is < -180 or > 180) return BadRequest();
-        try
-        {
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
-            var tasks = await db.MarketplaceTasks.FromSqlInterpolated($"SELECT * FROM marketplace_tasks WHERE Id = {input.TaskId} FOR UPDATE").ToListAsync(ct);
-            if (tasks.Count != 1 || tasks[0].ClientId != UserId || tasks[0].Status is not ("assigned" or "on-the-way")) return NotFound();
-            var destination = await db.Set<TaskDestination>().SingleOrDefaultAsync(x => x.TaskId == input.TaskId, ct);
-            if (destination is null) { destination = new TaskDestination { TaskId = input.TaskId }; db.Add(destination); }
-            destination.Latitude = input.Latitude;
-            destination.Longitude = input.Longitude;
-            destination.UpdatedAtUtc = DateTime.UtcNow;
-            await db.SaveChangesAsync(ct);
-            await tx.CommitAsync(ct);
-            return new JsonResult(new { destination.Latitude, destination.Longitude });
-        }
-        catch (MySqlConnector.MySqlException ex)
-        { logger.LogError(ex, "Unable to save task destination"); return StatusCode(503, new { message = "Destination storage is not ready." }); }
+        return StatusCode(409, new { message = "Change the destination through the final work agreement. Both participants must confirm it." });
     }
-
     public async Task<IActionResult> OnGetLocationAsync(long taskId, CancellationToken ct)
     {
         Response.Headers.CacheControl = "no-store";
@@ -155,6 +138,7 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
+        Response.Headers.CacheControl = "no-store";
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0) return Challenge();
         if (Request.Query["legacy"] == "1") return Page();
         try
@@ -175,6 +159,9 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         if (!Unavailable) {
             try {
                 var ids = Tasks.Select(x => x.Task.Id).ToList();
+                var terms = await db.Set<WorkAgreement>().AsNoTracking().Where(a => ids.Contains(a.TaskId)).OrderByDescending(a => a.Version).ToListAsync(ct);
+                Agreements = terms.GroupBy(a => a.TaskId).ToDictionary(g => g.Key, g => g.First());
+                Destinations = await db.Set<TaskDestination>().AsNoTracking().Where(d => ids.Contains(d.TaskId)).ToDictionaryAsync(d => d.TaskId, ct);
                 Progress = await db.Set<TaskProgressEvent>().AsNoTracking().Where(x => ids.Contains(x.TaskId))
                     .OrderBy(x => x.Id).Select(x => new TaskProgressEvent { Id = x.Id, TaskId = x.TaskId, Status = x.Status, Note = x.Note, PhotoType = x.PhotoType, CreatedAtUtc = x.CreatedAtUtc }).ToListAsync(ct);
             } catch (MySqlConnector.MySqlException) { ProgressUnavailable = true; }

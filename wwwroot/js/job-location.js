@@ -34,7 +34,7 @@
         clearInterval(sampleTimer);
         if (watchId !== null) navigator.geolocation.clearWatch(watchId);
         watchId = null;
-        if (share) { share.hidden = !active; share.disabled = false; }
+        if (share) { share.hidden = !active; share.disabled = false; share.textContent = 'Enable location / Try again'; }
         if (stop) stop.hidden = true;
         message(text, /denied|unavailable|session ended/.test(text));
     }
@@ -106,7 +106,7 @@
             if (!response.ok) throw new Error('Location could not be saved. Check your connection and try sharing again.');
             latest = { latitude: position.coords.latitude, longitude: position.coords.longitude, accuracyMeters: position.coords.accuracy, recordedAtUtc: new Date().toISOString() };
             render();
-            if (sharing) message('Sharing your location with the assigned client. Updates about every 15 seconds.');
+            if (sharing) message('Location sharing active · Updates about every 15 seconds.', true);
         } catch (error) { message(error.message, true); }
         finally { sending = false; }
     }
@@ -117,7 +117,7 @@
         remember("on");
         share.hidden = true;
         stop.hidden = false;
-        message('Waiting for location permission and a GPS fix…');
+        message('Allow location access to share your trip with the client…', true);
         watchId = navigator.geolocation.watchPosition(send, error => {
             stopSharing(error.code === 1 ? 'Location access was denied. Allow location in your browser settings, then try again.' : 'Your location is unavailable. Check device location settings and try again.');
         }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
@@ -138,6 +138,7 @@
         if (!destinationMarker) destinationMarker = new maplibregl.Marker({ color: '#dc3838' })
             .setLngLat(point).setPopup(new maplibregl.Popup({ offset: 28 }).setText('Client-selected work destination')).addTo(map);
         else destinationMarker.setLngLat(point);
+        if (!latest && !root.dataset.destinationCentered) { map.jumpTo({ center: point, zoom: 15 }); root.dataset.destinationCentered = 'true'; }
     }
     function trimTravelledRoute() {
         const coordinates = route?.geometry?.coordinates;
@@ -286,10 +287,11 @@
             map = new maplibregl.Map({
                 container: root.querySelector('[data-map]'),
                 style: 'https://tiles.openfreemap.org/styles/liberty',
-                center: [121.774, 12.8797], zoom: 5,
+                center: [120.653, 15.000], zoom: 13,
                 attributionControl: { customAttribution: '<a href="https://project-osrm.org/" target="_blank" rel="noopener noreferrer">OSRM</a> · <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">Fix map</a>' }
             });
             map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+            root.dispatchEvent(new CustomEvent('job-map-ready', { detail: { map } }));
             map.addControl({
                 onAdd(currentMap) {
                     const container = document.createElement('div');
@@ -395,5 +397,5 @@
         const url = new URL(location.href); url.searchParams.delete('shareLocation');
         history.replaceState(history.state, '', url);
     }
-    if (share && (consent() === 'on' || (autoStart && consent() !== 'off'))) startSharing();
+    if (share && (consent() === 'on' || autoStart)) startSharing();
 })();
