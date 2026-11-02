@@ -8,7 +8,7 @@ using tts.Data;
 namespace tts.Pages;
 
 [Authorize(Policy = "AdminOnly")]
-public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsModel> logger) : PageModel
+public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsModel> logger, IConfiguration config) : PageModel
 {
     public record ReportItem(SafetyReport Report, string Reporter);
     public record ActionItem(SafetyReportAction Action, string AdminName);
@@ -81,20 +81,30 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         return File(evidence.Data, "application/octet-stream", $"report-evidence-{evidence.Id}.{extension}");
     }
 
-    public async Task<IActionResult> OnPostUpdateAsync(long id, string? status, string? note, CancellationToken ct)
+    public async Task<IActionResult> OnPostUpdateAsync(long id, string? status, string? note, string? publicMessage, bool reviewConfirmed, CancellationToken ct)
     {
         if (AdminId <= 0) return Challenge();
         note = (note ?? "").Trim();
-        if (!ModelState.IsValid || status is not ("reviewing" or "resolved" or "dismissed") || note.Length > 1000)
-        { Notice = "Check the status and note."; return RedirectToPage(new { embedded = Embedded }); }
+        publicMessage = (publicMessage ?? "").Trim();
+        if (!ModelState.IsValid || !ReportReviewRules.Valid(status, note, publicMessage, reviewConfirmed))
+        { Notice = "Provide a reporter update (10–1000 characters). Closing a report also requires a completed evidence review and an internal decision reason."; return RedirectToPage(new { embedded = Embedded }); }
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var report = await db.SafetyReports.AsNoTracking().SingleOrDefaultAsync(r => r.Id == id, ct);
+        if (report is null) return NotFound();
         var changed = await db.SafetyReports.Where(r => r.Id == id && (r.Status == "open" || r.Status == "reviewing") && r.Status != status)
             .ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, status), ct);
         if (changed == 0) { Notice = "This report is unavailable or already has that status."; return RedirectToPage(new { embedded = Embedded }); }
-        db.SafetyReportActions.Add(new SafetyReportAction { ReportId = id, AdminId = AdminId, Status = status, Note = note, CreatedAt = DateTime.UtcNow });
+        db.SafetyReportActions.Add(new SafetyReportAction { ReportId = id, AdminId = AdminId, Status = status!, Note = note, PublicMessage = publicMessage, ReviewConfirmed = reviewConfirmed, CreatedAt = DateTime.UtcNow });
+        if (report.TaskId.HasValue) db.MarketplaceNotifications.Add(MarketplaceNotification.Create(report.ReporterId, report.TaskId.Value, "safety_report", $"Report #{id}: {status}. Open Safety & Reports to read the admin update."));
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
-        Notice = "Report status updated.";
+        Notice = "Decision saved. The reporter can read the update in Safety & Reports.";
+        var email = await db.Users.Where(u => u.Id == report.ReporterId).Select(u => u.Username).SingleOrDefaultAsync(ct);
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            try { await SmtpMailer.SendAsync(config, email, $"Tap, Task, Done — report #{id} update", $"Your report #{id} is now {status}.\n\n{publicMessage}\n\nOpen Safety & Reports on the website to review your report history. If you have new evidence, submit a follow-up report referencing #{id}.", ct); }
+            catch (System.Net.Mail.SmtpException ex) { logger.LogWarning("Report update email failed ({Reason}).", SmtpMailer.Diagnostic(ex)); Notice += " Email could not be delivered; the update remains available on the website."; }
+        }
         return RedirectToPage(new { embedded = Embedded });
     }
 }

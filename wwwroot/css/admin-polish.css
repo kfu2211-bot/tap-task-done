@@ -122,3 +122,8 @@
 .admin-topbar .admin-alerts:hover{background:#e1efe3;border-color:#86b99a}
 .admin-topbar .admin-alerts b{margin:0;background:#176b50;color:#fff;min-width:21px;height:21px;font-size:11px}
 .admin-topbar .admin-alerts:focus-visible{outline:2px solid #176b50;outline-offset:3px}
+.admin-auto-frame{height:550px;min-height:0;overflow:hidden}
+.report-embedded .report-admin-layout{min-height:0;display:flow-root}
+.report-embedded .report-admin-main{min-height:0}
+.report-action-form .report-review-confirm{display:flex;align-items:flex-start;gap:10px;line-height:1.5}
+.report-action-form .report-review-confirm input{width:18px;height:18px;flex:none;accent-color:#176b50;margin-top:3px}

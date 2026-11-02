@@ -33,3 +33,6 @@ html body .safety-history-heading p,html body .safety-history-empty,html body .s
 .safety-history { margin-top:18px; padding:18px 0 0; border-color:#e4eee4; }
 .safety-history strong { color:#244b37; }.safety-history p { margin-top:7px !important; white-space:pre-wrap; }
 @media(max-width:600px) { .safety-page { width:calc(100% - 32px); margin:28px auto 48px; } html body .safety-page .settings-card { padding:19px; } .safety-form .primary-button { width:100%; } .safety-history-empty { padding-left:0; } }
+.report-public-updates section{margin-top:14px;padding:16px;border:1px solid #cde2d2;border-radius:10px;background:#f2f8f1}
+.report-public-updates small{display:block;margin-top:5px;color:#526e60}
+.report-public-updates p{white-space:pre-wrap}

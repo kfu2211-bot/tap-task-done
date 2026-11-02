@@ -19,5 +19,7 @@ public sealed class SafetyReportAction
     public int AdminId { get; set; }
     public string Status { get; set; } = "";
     public string Note { get; set; } = "";
+    public string? PublicMessage { get; set; }
+    public bool ReviewConfirmed { get; set; }
     public DateTime CreatedAt { get; set; }
 }

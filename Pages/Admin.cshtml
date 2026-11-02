@@ -47,7 +47,7 @@
                 </section>
                 <section class="admin-view" data-view="verifications" id="verifications" hidden><iframe src="/AdminIdentity?embedded=true" title="Verification requests" class="admin-reports-frame" loading="lazy"></iframe><div hidden aria-hidden="true"><input id="verificationSearch" type="search" /><select id="verificationFilter"><option value="Pending">Pending</option><option value="All">All</option></select><div id="verificationQueue"></div><p id="verificationEmpty" hidden></p></div></section>
                 <section class="admin-view" data-view="reports" id="reports" hidden>
-                    <iframe src="/AdminReports?embedded=true" title="Safety reports" class="admin-reports-frame"></iframe>
+                    <iframe src="/AdminReports?embedded=true" title="Safety reports" id="adminReportsFrame" class="admin-reports-frame admin-auto-frame" scrolling="no"></iframe>
                     <div hidden aria-hidden="true"><input id="reportSearch" type="search" /><select id="reportFilter"><option value="Open">Open</option><option value="All">All</option><option value="Urgent">Urgent</option><option value="Resolved">Resolved</option><option value="Dismissed">Dismissed</option></select><div id="reportQueue"></div><p id="reportEmpty" hidden></p></div>
                 </section>
                 <section class="admin-view" data-view="deletions" id="deletions" hidden><iframe src="/AdminDeletions?embedded=true" title="Account deletion requests" class="admin-reports-frame" loading="lazy"></iframe></section><section class="admin-view" data-view="users" id="users" hidden><iframe src="/AdminUsers?embedded=true" title="Account management" class="admin-reports-frame admin-users-frame" id="adminUsersFrame" scrolling="no" loading="lazy"></iframe><div hidden><input id="userSearch"/><div id="userList"></div></div></section>
@@ -60,8 +60,8 @@
     <script src="/js/login-security-alert.js" asp-append-version="true" defer></script><script src="/js/admin.js" asp-append-version="true"></script><script src="/js/admin-actions.js" asp-append-version="true"></script><script src="/js/admin-account-link.js" asp-append-version="true"></script>
     <script>
         window.addEventListener('message', event => {
-            const frame = document.getElementById('adminUsersFrame');
-            if (!frame || event.origin !== window.location.origin || event.source !== frame.contentWindow || event.data?.type !== 'admin-users-height') return;
+            const frame = document.getElementById(event.data?.type === 'admin-reports-height' ? 'adminReportsFrame' : 'adminUsersFrame');
+            if (!frame || event.origin !== window.location.origin || event.source !== frame.contentWindow || !['admin-users-height', 'admin-reports-height'].includes(event.data?.type)) return;
             const height = Number(event.data.height);
             if (Number.isFinite(height) && height > 0 && height < 1000000) frame.style.height = Math.ceil(height) + 'px';
         });

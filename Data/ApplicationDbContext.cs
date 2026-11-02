@@ -260,6 +260,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         action.HasKey(x => x.Id);
         action.Property(x => x.Status).HasMaxLength(24);
         action.Property(x => x.Note).HasMaxLength(1000);
+        action.Property(x => x.PublicMessage).HasMaxLength(1000);
         action.HasOne<SafetyReport>().WithMany().HasForeignKey(x => x.ReportId);
         action.HasOne<AppUser>().WithMany().HasForeignKey(x => x.AdminId);
         var dispute = modelBuilder.Entity<MarketplaceDispute>();

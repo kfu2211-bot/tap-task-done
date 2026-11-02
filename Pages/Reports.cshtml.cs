@@ -11,6 +11,8 @@ public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger)
     private static readonly string[] Reasons = ["Scam or fake account", "No-show", "Harassment or inappropriate behavior", "Work quality or service issue", "Other"];
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public List<SafetyReport> Reports { get; private set; } = [];
+    public List<ReportUpdate> Updates { get; private set; } = [];
+    public record ReportUpdate(long ReportId, string Status, string Message, DateTime Time);
     public List<MarketplaceTask> Tasks { get; private set; } = [];
     public Dictionary<long, string> FreelancerNames { get; private set; } = [];
     [TempData] public string? Notice { get; set; }
@@ -18,6 +20,11 @@ public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger)
     {
         if (UserId <= 0 || !await db.Users.AnyAsync(u => u.Id == UserId, ct)) return Challenge();
         Reports = await db.SafetyReports.AsNoTracking().Where(r => r.ReporterId == UserId).OrderByDescending(r => r.Id).Take(100).ToListAsync(ct);
+        Updates = await (from a in db.SafetyReportActions.AsNoTracking()
+            join r in db.SafetyReports.AsNoTracking() on a.ReportId equals r.Id
+            where r.ReporterId == UserId && a.PublicMessage != null
+            orderby a.Id descending
+            select new ReportUpdate(a.ReportId, a.Status, a.PublicMessage!, a.CreatedAt)).Take(300).ToListAsync(ct);
         Tasks = await db.MarketplaceTasks.AsNoTracking().Where(t => t.ClientId == UserId ||
             db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == UserId && o.Status == "accepted")).OrderByDescending(t => t.Id).Take(100).ToListAsync(ct);
         var taskIds = Tasks.Select(t => t.Id).ToArray();

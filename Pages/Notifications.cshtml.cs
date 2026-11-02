@@ -62,6 +62,7 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
         await db.SaveChangesAsync(ct);
         return item.Kind switch
         {
+            "safety_report" => RedirectToPage("/Reports"),
             "message" => RedirectToPage("/Messages", new { taskId = item.TaskId, conversationId = item.ConversationId }),
             "dispute" => RedirectToPage("/Reports"),
             "booking_request" => RedirectToPage("/MyJobs", new { view = "requests" }),
