@@ -86,7 +86,7 @@ public static class LoginSecurity
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         }
         // No authenticated cookie is issued until delivery succeeds and this code is verified.
-        await SmtpMailer.SendAsync(config, user.Username!, "Your Tap, Task, Done sign-in code", $"Your sign-in code is {code}. It expires in 10 minutes.\n\nRequested from {Device(context.Request.Headers.UserAgent.ToString())}.\nNever share this code. If this wasn't you, change your password using the website.", ct);
+        await SmtpMailer.SendAsync(config, user.Username!, "Your Tap, Task, Done sign-in code", $"Your sign-in code is {code}. It expires in 10 minutes.\n\nRequested from {Device(context.Request.Headers.UserAgent.ToString())}.\nNever share this code. If this wasn't you, change your password using the website.", ct, VerificationEmailTemplate.SignInCode(code, Device(context.Request.Headers.UserAgent.ToString())));
         context.Response.Cookies.Append(ChallengeCookie, token, Cookie(context, TimeSpan.FromMinutes(10)));
     }
     public static bool Usable(LoginChallenge challenge, DateTime now) => !challenge.Consumed && challenge.Attempts < 5 && challenge.ExpiresUtc > now;

@@ -1,4 +1,38 @@
 @page
 @model tts.Pages.VerifyLoginModel
 @{ Layout = null; }
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Verify sign-in - Tap, Task, Done</title><link rel="stylesheet" href="~/css/login-security.css" asp-append-version="true"/></head><body class="security-auth"><main class="security-card"><a href="/Login">Tap, Task, Done</a><p class="security-eyebrow">ACCOUNT SECURITY</p><h1>Confirm it's you</h1><p>We sent a six-digit code to your registered email. Enter it to finish signing in on this browser.</p><p>Expires in 10 minutes. Never share your code.</p>@if(Model.ErrorMessage is not null) { <p class="security-error" role="alert">@Model.ErrorMessage</p> }<form method="post"><label>Verification code<input asp-for="Code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus /></label><label class="security-checkbox"><input asp-for="TrustDevice"/>Trust this browser for 30 days. Use only on your own device.</label><button type="submit">Verify and sign in</button></form><p><a href="/Login">Back to login / Request a new code</a></p></main></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Verify sign-in - Tap, Task, Done</title>
+    <link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" />
+    <link rel="stylesheet" href="~/css/login-security.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/email-verification.css" asp-append-version="true" />
+    <script src="~/js/registration-verification.js" asp-append-version="true" defer></script>
+</head>
+<body class="email-verification-page">
+<div class="email-verification-shell">
+<main class="email-verification-card">
+    <a class="verification-brand" href="/Login"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6" /></svg></span>Tap, Task, Done</a>
+    <nav class="verification-steps" aria-label="Sign-in progress"><span>Log in</span><span aria-hidden="true">/</span><strong aria-current="step">Verify sign-in</strong></nav>
+    <div class="verification-heading">
+        <span class="verification-envelope" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg></span>
+        <div><h1>Confirm it's you</h1><p>Enter the 6-digit code sent to your registered email to finish signing in.</p></div>
+    </div>
+    @if(Model.ErrorMessage is not null) { <p class="verification-error" role="alert">@Model.ErrorMessage</p> }
+    <form method="post" class="verification-code-form" data-code-form>
+        <label id="verification-code-label" for="Code">Verification code</label>
+        <input asp-for="Code" data-code-source inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="verification-expiry" required autofocus />
+        <p id="verification-expiry" class="verification-expiry">Code expires in 10 minutes. Never share your code.</p>
+        <label class="verification-trust"><input asp-for="TrustDevice" /><span><strong>Trust this browser for 30 days</strong><small>Only select this on your own device.</small></span></label>
+        <button type="submit" class="verification-primary">Verify and sign in</button>
+    </form>
+    <p class="verification-note">Need a new code? Return to login and sign in again.</p>
+    <a class="verification-back" href="/Login"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m10 5-7 7 7 7M3 12h18"/></svg>Back to login</a>
+</main>
+<p class="verification-footer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>An extra step to keep your account secure.</p>
+</div>
+</body>
+</html>

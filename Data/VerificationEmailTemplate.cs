@@ -27,24 +27,32 @@ public static class VerificationEmailTemplate
         return Frame("New sign-in detected", "Review the recent sign-in to your Tap, Task, Done account.", content, "This is a security notification for your Tap, Task, Done account.");
     }
 
-    public static string Render(string code)
+    public static string Render(string code) => CodeEmail(code, null);
+    public static string SignInCode(string code, string device) => CodeEmail(code, device);
+
+    private static string CodeEmail(string code, string? device)
     {
         if (!RegistrationVerification.ValidCode(code)) throw new ArgumentException("A six-digit code is required.", nameof(code));
+        var signIn = device is not null;
+        var title = signIn ? "Confirm it's you" : "Verify your email";
+        var intro = signIn ? "Use this code to finish signing in to your account." : "Use this code to finish creating your account.";
+        var deviceNote = signIn ? "<p style=\"margin:16px 0 0;font-size:13px;line-height:22px;color:#53685e;\">Requested from <strong>" + System.Net.WebUtility.HtmlEncode(device) + "</strong></p>" : "";
         // Inline styles and presentation tables keep the message usable in Gmail and Outlook.
         // No remote images, scripts, tracking pixels or links containing the verification code.
         var content = $$"""
-<p style="margin:0 0 12px;font-size:11px;line-height:18px;letter-spacing:2px;font-weight:bold;color:#18785d;">EMAIL VERIFICATION</p>
-<h1 style="margin:0 0 12px;font-size:30px;line-height:38px;font-weight:bold;color:#163e31;">Verify your email</h1>
-<p style="margin:0;font-size:15px;line-height:24px;color:#53685e;">Use this code to finish creating your account.</p>
+<p style="margin:0 0 12px;font-size:11px;line-height:18px;letter-spacing:2px;font-weight:bold;color:#18785d;">{{(signIn ? "SIGN-IN VERIFICATION" : "EMAIL VERIFICATION")}}</p>
+<h1 style="margin:0 0 12px;font-size:30px;line-height:38px;font-weight:bold;color:#163e31;">{{title}}</h1>
+<p style="margin:0;font-size:15px;line-height:24px;color:#53685e;">{{intro}}</p>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:24px;background-color:#eaf4ec;border-radius:12px;"><tr><td align="center" style="padding:24px 12px;">
-<p style="margin:0 0 12px;font-size:10px;line-height:18px;letter-spacing:1.5px;font-weight:bold;color:#426354;">YOUR VERIFICATION CODE</p>
+<p style="margin:0 0 12px;font-size:10px;line-height:18px;letter-spacing:1.5px;font-weight:bold;color:#426354;">{{(signIn ? "YOUR SIGN-IN CODE" : "YOUR VERIFICATION CODE")}}</p>
 <p style="margin:0;font-family:'Courier New',Courier,monospace;font-size:42px;line-height:54px;letter-spacing:5px;font-weight:bold;color:#163e31;">{{code}}</p>
 <p style="margin:12px 0 0;font-size:13px;line-height:20px;color:#426354;">Expires in <strong>10 minutes</strong></p>
 </td></tr></table>
 <p style="margin:22px 0 12px;font-size:14px;line-height:23px;color:#53685e;">Enter this code on the verification page.</p>
 <p style="margin:0;font-size:13px;line-height:22px;font-weight:bold;color:#18785d;">Never share this code with anyone.</p>
+{{deviceNote}}
 """;
-        return Frame("Verify your email", "Use your verification code to finish creating your account. Valid for 10 minutes.", content, "Didn't create an account? You can safely ignore this email.");
+        return Frame(title, intro + " Valid for 10 minutes.", content, signIn ? "Didn't request this sign-in? Don't share or enter the code. Change your password using the website." : "Didn't create an account? You can safely ignore this email.");
     }
 
     private static string Frame(string title, string preview, string content, string footer) => $$"""

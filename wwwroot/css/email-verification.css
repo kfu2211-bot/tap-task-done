@@ -47,5 +47,9 @@
 .verification-footer svg { width:17px; height:17px; flex:none; }
 .verification-success { background:#edf6ee; padding:13px; border-radius:9px; color:#18765b; font-size:14px; }
 .verification-note { text-align:center; font-size:12px; margin-bottom:0; }
+.verification-code-form .verification-trust { display:flex; align-items:flex-start; gap:12px; padding:14px; margin:0 0 22px; background:#f2f7f2; border:1px solid #dce8df; border-radius:10px; cursor:pointer; }
+.verification-code-form .verification-trust input { flex:none; width:18px; height:18px; margin:2px 0 0; padding:0; accent-color:#18765b; }
+.verification-trust strong { display:block; font-size:13px; line-height:21px; }
+.verification-trust small { display:block; font-size:12px; line-height:20px; color:#718578; font-weight:400; }
 @media(max-width:480px) { .email-verification-page { padding:20px 14px; } .email-verification-card { padding:24px 20px; border-radius:16px; } .verification-brand { font-size:18px; } .verification-heading { gap:12px; } .verification-heading h1 { font-size:25px; } .verification-envelope { width:45px; height:45px; border-radius:10px; } .verification-envelope svg { width:26px; height:26px; } .verification-code-cells { gap:7px; } .verification-code-cells input { height:49px; font-size:23px; } .verification-change summary { font-size:12px; } .verification-footer { font-size:11px; } }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto; } }
