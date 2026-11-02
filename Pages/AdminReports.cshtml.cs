@@ -21,7 +21,7 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     public bool EvidenceUnavailable { get; private set; }
     public bool HistoryUnavailable { get; private set; }
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
-    [TempData] public string? Notice { get; set; }
+    [TempData(Key = "AdminReports.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)

@@ -52,3 +52,14 @@
 .completion-upload-preview small { color:#587365; }
 .completion-upload-preview button { justify-self:start; background:white; color:#176b50; border:1px solid #9fc5ad; border-radius:6px; padding:6px 10px; font:inherit; cursor:pointer; }
 .completion-upload .completion-upload-feedback { color:#a43f2d; font-size:13px; margin-bottom:0; }
+.post-work-details{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0}
+.post-work-details>.post-field{width:100%;min-width:0}
+.post-work-details>.task-location-picker{box-sizing:border-box;width:100%;margin:0;min-width:0}
+@media(max-width:700px){
+ .task-location-picker{box-sizing:border-box;width:100%;padding:12px}
+ .location-picker-map{height:260px;min-width:0}
+ .location-picker-actions{display:grid;grid-template-columns:1fr;gap:8px}
+ .location-picker-actions button{width:100%;min-height:44px}
+ .task-location-picker p{margin:10px 0;font-size:12px}
+ .task-location-picker .maplibregl-ctrl-attrib{max-width:calc(100% - 12px)}
+}

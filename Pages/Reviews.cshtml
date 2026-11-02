@@ -152,7 +152,7 @@
             <section class="reviews-live">
                 <div class="reviews-live-heading">
                     <div class="reviews-hero-copy"><span class="reviews-eyebrow">YOUR FEEDBACK</span><h2>Reviews that matter.</h2><p>Every completed task is a chance to build trust. See the feedback you've received and shared along the way.</p></div>
-                    <a class="reviews-action" href="/MarketTasks?view=mine">View my tasks <span aria-hidden="true">↗</span></a>
+                    <a class="reviews-action" href="/MarketTasks?view=mine">View my tasks</a>
                 </div>
                 @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="reviews-notice" role="status">@Model.Notice</p> }
                 @if (!Model.Unavailable)
@@ -179,7 +179,7 @@
                     <div class="reviews-section-heading"><h3>@(Model.View == "given" ? "Reviews you gave" : "Reviews you received")</h3><span>@Model.Items.Count @(Model.Items.Count == 1 ? "review" : "reviews")</span></div>
                     @if (Model.Items.Count == 0)
                     {
-                        <div class="reviews-empty"><strong>No reviews @(Model.View == "given" ? "given" : "received") yet</strong><p>@(Model.View == "given" ? "After confirming a task is complete, open My Tasks to rate your freelancer." : "Client feedback will appear here after they review a completed task.")</p><a href="/MarketTasks?view=mine">Go to My Tasks →</a></div>
+                        <div class="reviews-empty"><strong>No reviews @(Model.View == "given" ? "given" : "received") yet</strong><p>@(Model.View == "given" ? "After confirming a task is complete, open My Tasks to rate your freelancer." : "Client feedback will appear here after they review a completed task.")</p><a href="/MarketTasks?view=mine">Go to My Tasks</a></div>
                     }
                     @foreach (var item in Model.Items)
                     {

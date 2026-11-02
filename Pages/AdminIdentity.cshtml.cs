@@ -12,9 +12,10 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
     public record Item(long Id, string Name, string Status, string IdLast4, DateTime CreatedAt, bool HasCertification, bool HasSupporting) { public bool HasSelfie { get; init; } public string? GovernmentType { get; init; } }
     public List<Item> Items { get; private set; } = [];
     public bool DatabaseUnavailable { get; private set; }
+    public Dictionary<long, string> DocumentTypes { get; private set; } = [];
     public bool ReviewEnabled => availability.Enabled;
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
-    [TempData] public string? Notice { get; set; }
+    [TempData(Key = "AdminIdentity.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -29,6 +30,12 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
             try
             {
                 var ids = Items.Select(x => x.Id).ToList();
+                var types = await db.IdentityResources.AsNoTracking().Where(x => ids.Contains(x.IdentityRequestId) && x.Kind == "document-type").Select(x => new { x.IdentityRequestId, x.EncryptedData }).ToListAsync(ct);
+                foreach (var type in types)
+                {
+                    try { DocumentTypes[type.IdentityRequestId] = System.Text.Encoding.UTF8.GetString(protection.CreateProtector("tts.identity.documents.v1").Unprotect(type.EncryptedData)); }
+                    catch (System.Security.Cryptography.CryptographicException) { DocumentTypes[type.IdentityRequestId] = "Unavailable — inspect the submitted document"; }
+                }
                 var resources = await db.IdentityResources.AsNoTracking().Where(x => ids.Contains(x.IdentityRequestId))
                     .Select(x => new { x.IdentityRequestId, x.Kind, x.ContentType }).ToListAsync(ct);
                 Items = Items.Select(item => item with {

@@ -20,11 +20,19 @@ public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger)
     {
         if (UserId <= 0 || !await db.Users.AnyAsync(u => u.Id == UserId, ct)) return Challenge();
         Reports = await db.SafetyReports.AsNoTracking().Where(r => r.ReporterId == UserId).OrderByDescending(r => r.Id).Take(100).ToListAsync(ct);
+        try
+        {
         Updates = await (from a in db.SafetyReportActions.AsNoTracking()
             join r in db.SafetyReports.AsNoTracking() on a.ReportId equals r.Id
             where r.ReporterId == UserId && a.PublicMessage != null
             orderby a.Id descending
             select new ReportUpdate(a.ReportId, a.Status, a.PublicMessage!, a.CreatedAt)).Take(300).ToListAsync(ct);
+        }
+        catch (MySqlConnector.MySqlException ex) when (ex.Number is 1054 or 1146)
+        {
+            logger.LogWarning("Reporter updates unavailable: report-review schema is incomplete (database code {Code}).", ex.Number);
+            Notice = "Your reports are shown, but admin updates are temporarily unavailable. Please contact support.";
+        }
         Tasks = await db.MarketplaceTasks.AsNoTracking().Where(t => t.ClientId == UserId ||
             db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == UserId && o.Status == "accepted")).OrderByDescending(t => t.Id).Take(100).ToListAsync(ct);
         var taskIds = Tasks.Select(t => t.Id).ToArray();

@@ -14,7 +14,7 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public string Status { get; private set; } = "not verified";
     public string? ReviewNote { get; private set; }
-    [TempData] public string? Notice { get; set; }
+    [TempData(Key = "IdentityVerification.Notice")] public string? Notice { get; set; }
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         Response.Headers.CacheControl = "no-store";
@@ -23,9 +23,10 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Identity verification unavailable"); Notice = "Verification is temporarily unavailable. Please try again later."; }
         return Page();
     }
-    public async Task<IActionResult> OnPostAsync(string? idNumber, IFormFile? governmentId, IFormFile? certification, IFormFile? supportingDocument, IFormFile? selfie, bool consent, CancellationToken ct)
+    public async Task<IActionResult> OnPostAsync(string? idNumber, IFormFile? governmentId, IFormFile? certification, IFormFile? supportingDocument, IFormFile? selfie, bool consent, string? documentType, CancellationToken ct)
     {
         if (!availability.Enabled) return NotFound();
+        if (!IdentityDocumentTypes.Supports(documentType)) { Notice = "Choose a supported government photo ID type. Other images are not accepted as identity documents."; return RedirectToPage(); }
         idNumber = (idNumber ?? "").Trim();
         if (UserId <= 0 || idNumber.Length is < 4 or > 50 || governmentId is null) { Notice = "Enter an ID number and choose a government ID file."; return RedirectToPage(); }
         if (!consent || selfie is null || selfie.Length == 0) { Notice = "Take a selfie and consent to manual identity review before submitting."; return RedirectToPage(); }
@@ -42,6 +43,7 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
             await db.SaveChangesAsync(ct);
             void AddResource(string kind, (byte[] Bytes, string Type) file) => db.IdentityResources.Add(new IdentityResource { IdentityRequestId = request.Id, Kind = kind, ContentType = file.Type, EncryptedData = protector.Protect(file.Bytes), CreatedAt = DateTime.UtcNow });
             AddResource("id", idFile);
+            AddResource("document-type", (System.Text.Encoding.UTF8.GetBytes(documentType!), "text/plain"));
             AddResource("selfie", selfieFile);
             AddResource("consent", (System.Text.Encoding.UTF8.GetBytes("Identity review consent v1: ID and selfie for manual comparison; accepted at submission."), "text/plain"));
             if (cert is not null) AddResource("certification", cert.Value);

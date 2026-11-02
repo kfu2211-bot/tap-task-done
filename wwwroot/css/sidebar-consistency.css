@@ -227,3 +227,7 @@ html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sid
     html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-user, .sidebar-account, .mytasks-user) { margin-bottom: max(10px, env(safe-area-inset-bottom)) !important; }
     html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) + main { width: 100% !important; margin-left: 0 !important; }
 }
+@media(max-width:700px){
+ html body.sidebar-open #mobileMenuToggle{background:#175d45!important;color:#fff!important;border:1px solid #175d45!important;font-size:30px!important;font-weight:600!important;line-height:1!important;display:grid!important;place-items:center!important;box-shadow:0 2px 8px #173e3026!important}
+ html body.sidebar-open #mobileMenuToggle:focus-visible{outline:3px solid #88ba9b!important;outline-offset:3px!important}
+}

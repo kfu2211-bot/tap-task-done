@@ -15,7 +15,7 @@ public sealed class AdminDeletionsModel(ApplicationDbContext db, IConfiguration 
     public List<Row> Requests { get; } = [];
     public List<AccountDeletionEvent> History { get; private set; } = [];
     public bool Unavailable { get; private set; }
-    [TempData] public string? Notice { get; set; }
+    [TempData(Key = "AdminDeletions.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {

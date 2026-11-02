@@ -524,12 +524,12 @@
                             <textarea id="taskDescriptionInput" name="description" maxlength="500" required placeholder="Describe the task, including important details or materials needed."></textarea>
                         </label>
 
-                        <div class="post-field-grid">
-                            <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
+                        <div class="post-work-details">
                             <label class="post-field">
                                 <span>Budget</span>
                                 <input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 600" />
                             </label>
+                            <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
                         </div>
 
                         <label class="post-field">
