@@ -35,8 +35,8 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         try
         {
             await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
-            if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, freelancerId))
-            { Notice = "This request cannot be sent while either account is restricted."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
+            if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, freelancerId))
+            { Notice = "This request cannot be sent while either account is restricted or has a pending deletion request."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
             var requesterProfile = await db.FreelancerProfiles.SingleOrDefaultAsync(p => p.UserId == UserId, ct);
             var role = requesterProfile?.WorkRole ?? "client";
             var provider = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == freelancerId &&
@@ -71,7 +71,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
     {
         if (UserId <= 0) return Challenge();
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
-        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, freelancerId)) { Notice = "This request cannot be sent while either account is restricted."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, freelancerId)) { Notice = "This request cannot be sent while either account is restricted or has a pending deletion request."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
         var requesterProfile = await db.FreelancerProfiles.SingleOrDefaultAsync(p => p.UserId == UserId, ct);
             var role = requesterProfile?.WorkRole ?? "client";
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == taskId && t.ClientId == UserId && t.Status == "open" && !t.IsPrivate, ct);
@@ -103,7 +103,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         }
         else
         {
-            if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This request cannot be accepted while either account is restricted."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
+            if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This request cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             booking.Status = "accepted"; task.Status = "assigned";
             await AgreementRules.ConversationAsync(db, task.Id, UserId, ct);
             await AgreementRules.InitialAsync(db, task, task.Budget, UserId, ct);

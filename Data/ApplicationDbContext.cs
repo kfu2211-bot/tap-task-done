@@ -28,6 +28,19 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var deletion = modelBuilder.Entity<AccountDeletionRequest>();
+        deletion.ToTable("account_deletion_requests"); deletion.HasKey(x => x.UserId);
+        deletion.Property(x => x.Status).HasMaxLength(16); deletion.Property(x => x.ReviewReason).HasMaxLength(1000);
+        deletion.Property(x => x.CodeHash).HasMaxLength(64); deletion.Property(x => x.CodeSalt).HasMaxLength(64); deletion.Property(x => x.PasswordVersion).HasMaxLength(64);
+        deletion.HasIndex(x => new { x.Status, x.EligibleUtc });
+        deletion.HasOne<AppUser>().WithOne().HasForeignKey<AccountDeletionRequest>(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        deletion.HasOne<AppUser>().WithMany().HasForeignKey(x => x.ReviewedById).OnDelete(DeleteBehavior.Restrict);
+        var deletionEvent = modelBuilder.Entity<AccountDeletionEvent>();
+        deletionEvent.ToTable("account_deletion_events"); deletionEvent.HasKey(x => x.Id);
+        deletionEvent.Property(x => x.Action).HasMaxLength(20); deletionEvent.Property(x => x.Reason).HasMaxLength(1000);
+        deletionEvent.HasIndex(x => new { x.UserId, x.Id });
+        deletionEvent.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        deletionEvent.HasOne<AppUser>().WithMany().HasForeignKey(x => x.ActorId).OnDelete(DeleteBehavior.Restrict);
         var registration = modelBuilder.Entity<RegistrationEmailCode>();
         registration.ToTable("registration_email_codes"); registration.HasKey(x => x.UserId);
         registration.Property(x => x.TokenHash).HasMaxLength(64).IsUnicode(false); registration.HasIndex(x => x.TokenHash).IsUnique();

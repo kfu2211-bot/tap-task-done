@@ -114,7 +114,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var role = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
         if (role is not ("client" or "both")) { Notice = "Choose Client or Client & Freelancer in Settings to post tasks."; return RedirectToPage(); }
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
-        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot create new tasks while restricted. Check your notifications."; return RedirectToPage(); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot create new tasks while restricted or pending account deletion."; return RedirectToPage(); }
         var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, Location = location, Budget = budget, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
         db.MarketplaceTasks.Add(task); await db.SaveChangesAsync(ct);
         TaskLocationRules.Save(db, task.Id, null, latitude!.Value, longitude!.Value);
@@ -123,7 +123,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     public async Task<IActionResult> OnPostConfirmAsync(long id, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
-        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot confirm new tasks while restricted. Check your notifications."; return RedirectToPage(); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot confirm new tasks while restricted or pending account deletion."; return RedirectToPage(); }
         if (!await db.Set<TaskDestination>().AnyAsync(d => d.TaskId == id && d.Latitude >= 14.92 && d.Latitude <= 15.10 && d.Longitude >= 120.54 && d.Longitude <= 120.73, ct)) { Notice = "Edit this draft and confirm a work-location pin before publishing."; return RedirectToPage(new { view = "mine" }); }
         var count = await db.MarketplaceTasks.Where(t => t.Id == id && t.ClientId == UserId && t.Status == "pending-confirmation").ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, "open"), ct);
         await tx.CommitAsync(ct);
@@ -170,10 +170,11 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (profile is null || profile.WorkRole is not ("freelancer" or "both") || profile.Availability != "Available" || !ModelState.IsValid || price <= 0 || price > 9999999999m || message.Length > 500)
         { Notice = "Check your freelancer role, availability and offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
-        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot send offers while restricted. Check your notifications."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot send offers while restricted or pending account deletion."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         if (await FreelancerAvailability.IsBusyAsync(db, UserId, ct)) { Notice = "Finish your current travel/work before sending a new offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId != UserId && t.Status == "open" && !t.IsPrivate, ct);
         if (task is null || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct)) { Notice = "This task is unavailable or you already sent an offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This task cannot receive offers while an account is pending deletion or restricted."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         await AgreementRules.ConversationAsync(db, id, UserId, ct);
         db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = id, FreelancerId = UserId, Price = price, Message = message, Status = "pending", CreatedAt = DateTime.UtcNow });
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(task.ClientId, id, "offer", "A freelancer sent an offer for your task."));
@@ -187,7 +188,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var offer = await db.MarketplaceOffers.SingleOrDefaultAsync(o => o.Id == id && o.Status == "pending", ct);
         var task = offer is null ? null : await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == offer.TaskId && t.ClientId == UserId && t.Status == "open" && !t.IsPrivate, ct);
         if (task is null || offer is null) { Notice = "This offer is no longer available."; return RedirectToPage(); }
-        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account is restricted."; return RedirectToPage(); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage(); }
         task.Status = "assigned"; offer.Status = "accepted";
         await AgreementRules.ConversationAsync(db, task.Id, offer.FreelancerId, ct);
         await AgreementRules.InitialAsync(db, task, offer.Price, UserId, ct);

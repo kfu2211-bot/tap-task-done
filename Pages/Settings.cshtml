@@ -83,12 +83,12 @@
                     <div class="demo-actions"><button id="resetDemoButton" class="danger-button" type="button">⌫&nbsp; Clear saved data</button><span class="demo-hint">Use this only when you want to start over.</span></div>
                 </section>
                 <section class="settings-card signout-card"><div><h2>Security &amp; devices</h2><p>Review sign-in alerts, active sessions and trusted browsers.</p></div><a class="settings-security-link" href="/Security">Manage security</a></section>
-                <section class="settings-card signout-card" aria-labelledby="signOutHeading">
+                <section class="settings-card signout-card" aria-labelledby="deleteAccountHeading">
                     <div>
-                        <h2 id="signOutHeading">Sign out</h2>
-                        <p>End your authenticated session on this device.</p>
+                        <h2 id="deleteAccountHeading">Delete account</h2>
+                        <p>Request deletion with a 72-hour waiting period and admin review.</p>
                     </div>
-                    <form method="post" asp-page-handler="Logout"><button class="signout-button" type="submit">Sign out</button></form>
+                    <a class="signout-button settings-delete-link" href="/AccountDeletion">Delete account</a>
                 </section>
             </section>
         </main>

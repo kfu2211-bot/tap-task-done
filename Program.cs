@@ -62,6 +62,7 @@ builder.Services.AddRazorPages(options => options.Conventions.AuthorizePage("/Ad
 builder.Services.AddScoped<AccountStore>();
 builder.Services.AddHostedService<CompletionReminderWorker>();
 builder.Services.AddHostedService<IdentityRetentionWorker>();
+builder.Services.AddHostedService<AccountDeletionWorker>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
 {
     options.LoginPath = "/Login";
