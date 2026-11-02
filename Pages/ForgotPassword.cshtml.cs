@@ -55,7 +55,13 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
             stage = "email delivery";
-            await SmtpMailer.SendAsync(config, email, "Your Tap, Task, Done verification code", $"Your password reset code is {code}. It expires in 10 minutes. If you did not request this, ignore this message.", ct);
+            await SmtpMailer.SendAsync(
+                config,
+                email,
+                "Reset your Tap, Task, Done password",
+                $"Your password reset code is {code}. It expires in 10 minutes. If you did not request this, ignore this message.",
+                ct,
+                VerificationEmailTemplate.PasswordResetCode(code));
             return CodePage(challenge);
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or SmtpException or InvalidOperationException or OperationCanceledException or TimeoutException or FormatException or MimeKit.ParseException)

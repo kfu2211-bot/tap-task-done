@@ -30,6 +30,28 @@ public static class VerificationEmailTemplate
     public static string Render(string code) => CodeEmail(code, null);
     public static string SignInCode(string code, string device) => CodeEmail(code, device);
 
+    public static string PasswordResetCode(string code)
+    {
+        if (!RegistrationVerification.ValidCode(code)) throw new ArgumentException("A six-digit code is required.", nameof(code));
+
+        var content = $$"""
+<p style="margin:0 0 12px;font-size:11px;line-height:18px;letter-spacing:2px;font-weight:bold;color:#18785d;">ACCOUNT RECOVERY</p>
+<h1 style="margin:0 0 12px;font-size:30px;line-height:38px;font-weight:bold;color:#163e31;">Reset your password</h1>
+<p style="margin:0;font-size:15px;line-height:24px;color:#53685e;">We received a request to reset the password for your Tap, Task, Done account.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:24px;background-color:#eaf4ec;border-radius:12px;"><tr><td align="center" style="padding:24px 12px;">
+<p style="margin:0 0 12px;font-size:10px;line-height:18px;letter-spacing:1.5px;font-weight:bold;color:#426354;">YOUR PASSWORD RESET CODE</p>
+<p style="margin:0;font-family:'Courier New',Courier,monospace;font-size:42px;line-height:54px;letter-spacing:5px;font-weight:bold;color:#163e31;">{{code}}</p>
+<p style="margin:12px 0 0;font-size:13px;line-height:20px;color:#426354;">Expires in <strong>10 minutes</strong></p>
+</td></tr></table>
+<p style="margin:22px 0 12px;font-size:14px;line-height:23px;color:#53685e;">Return to the password reset page and enter this code to choose a new password.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0;background-color:#fff7e8;border:1px solid #eeddb9;border-radius:10px;"><tr><td align="left" style="padding:16px;">
+<p style="margin:0 0 6px;font-size:14px;line-height:22px;font-weight:bold;color:#725016;">Keep your account secure</p>
+<p style="margin:0;font-size:13px;line-height:22px;color:#725016;">Never share this code. If you did not request a password reset, you can safely ignore this email.</p>
+</td></tr></table>
+""";
+        return Frame("Reset your password", "Use this one-time code to reset your Tap, Task, Done password. Valid for 10 minutes.", content, "This is a password-reset security message for your Tap, Task, Done account.");
+    }
+
     private static string CodeEmail(string code, string? device)
     {
         if (!RegistrationVerification.ValidCode(code)) throw new ArgumentException("A six-digit code is required.", nameof(code));
