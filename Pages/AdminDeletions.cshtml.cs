@@ -17,8 +17,9 @@ public sealed class AdminDeletionsModel(ApplicationDbContext db, IConfiguration 
     public bool Unavailable { get; private set; }
     [TempData] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-    public async Task OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
+        if (Request.Query["embedded"] != "true") return Redirect("/Admin#deletions");
         Response.Headers.CacheControl = "no-store";
         try
         {
@@ -27,6 +28,7 @@ public sealed class AdminDeletionsModel(ApplicationDbContext db, IConfiguration 
             History = await db.Set<AccountDeletionEvent>().AsNoTracking().OrderByDescending(e => e.Id).Take(100).ToListAsync(ct);
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { Unavailable = true; logger.LogWarning("Admin deletion review unavailable ({Type}).", ex.GetType().Name); }
+        return Page();
     }
     public async Task<IActionResult> OnPostAsync(int userId, string decision, string? reason, bool evidenceReviewed, CancellationToken ct)
     {
@@ -40,6 +42,6 @@ public sealed class AdminDeletionsModel(ApplicationDbContext db, IConfiguration 
         }
         catch (DeletionFlowException ex) { Notice = ex.Message; }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException) { logger.LogWarning("Deletion review deferred ({Type}).", ex.GetType().Name); Notice = "Review could not be completed. Refresh the request before trying again."; }
-        return RedirectToPage();
+        return RedirectToPage(new { embedded = true });
     }
 }
