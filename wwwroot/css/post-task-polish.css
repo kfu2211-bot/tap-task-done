@@ -1,0 +1,38 @@
+/* Approved task form: compact, full-width work details. */
+html body #postTaskSection .post-task-panel{box-sizing:border-box;max-width:1060px;margin:0 auto;padding:24px;border:1px solid #d4e4d8;border-radius:14px;background:#fff;box-shadow:0 5px 22px #173e3005;display:grid;gap:18px;color:#173e30}
+html body #postTaskSection .post-task-heading{margin:0 0 3px;align-items:start}
+html body #postTaskSection .post-task-heading h2{font-size:25px;line-height:1.2;letter-spacing:-.025em;margin:0}
+html body #postTaskSection .post-task-heading p{font-size:13px;line-height:1.5;margin:7px 0 0;color:#5b7467}
+html body #postTaskSection .post-field{gap:7px;margin:0;min-width:0}
+html body #postTaskSection .post-field>span,html body #postTaskSection legend{font-size:13px;font-weight:650;color:#173e30}
+html body #postTaskSection input:not([type=radio]):not([type=hidden]),html body #postTaskSection textarea{background:#fff;color:#173e30;border:1px solid #c4d8cb;border-radius:8px;box-sizing:border-box;font:inherit;font-size:14px}
+html body #postTaskSection .post-field>input{height:44px;padding:10px 12px}
+html body #postTaskSection .post-field textarea{min-height:92px;padding:12px;resize:vertical}
+html body #postTaskSection .post-category-field{padding:0;border:0;margin:0;min-width:0}
+html body #postTaskSection legend{margin-bottom:9px}
+html body #postTaskSection .post-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+html body #postTaskSection .post-categories label{position:relative;display:block;margin:0;min-width:0}
+html body #postTaskSection .post-categories input{position:absolute;width:1px;height:1px;opacity:0}
+html body #postTaskSection .post-categories label>span{display:flex;align-items:center;justify-content:flex-start;gap:10px;min-height:44px;padding:9px 12px;box-sizing:border-box;border:1px solid #cbdcd0;border-radius:8px;background:#fff;color:#214d3a;font-size:13px;font-weight:500;cursor:pointer}
+html body #postTaskSection .post-categories svg{width:20px;height:20px;flex:none}
+html body #postTaskSection .post-categories i{margin-left:auto;width:16px;height:16px;display:grid;place-items:center;border-radius:50%;font-size:11px;font-style:normal;visibility:hidden}
+html body #postTaskSection .post-categories input:checked+span{background:#edf6ef;border-color:#19765b;box-shadow:inset 0 0 0 1px #19765b}
+html body #postTaskSection .post-categories input:checked+span i{visibility:visible;background:#19765b;color:#fff}
+html body #postTaskSection .post-categories input:focus-visible+span{outline:3px solid #9bcab0;outline-offset:2px}
+html body #postTaskSection .post-budget-control{display:flex;align-items:stretch;border:1px solid #c4d8cb;border-radius:8px;overflow:hidden}
+html body #postTaskSection .post-budget-control>span{display:grid;place-items:center;width:42px;flex:none;background:#eef5ef;border-right:1px solid #d5e4d9}
+html body #postTaskSection .post-budget-control input{width:100%;height:44px;border:0;border-radius:0;padding:10px 12px}
+html body #postTaskSection .post-field small{font-size:12px;line-height:1.5;color:#617a6d}
+html body #postTaskSection .task-location-picker{padding:16px;margin:0;background:#f9fbf8;border-radius:10px}
+html body #postTaskSection .task-location-picker label{font-size:13px;margin-bottom:8px}
+html body #postTaskSection .location-picker-map{height:230px}
+html body #postTaskSection .location-picker-actions{margin:9px 0;gap:8px}
+html body #postTaskSection .location-picker-actions button{min-height:40px;font-size:12px;border-radius:7px}
+html body #postTaskSection .task-location-picker p,html body #postTaskSection .task-location-picker small{font-size:12px;margin:8px 0;line-height:1.5}
+html body #postTaskSection .post-form-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;padding-top:18px;margin:0;border-top:1px solid #e0eae2}
+html body #postTaskSection .post-form-actions>small{margin-right:auto;color:#617a6d;font-size:12px}
+html body #postTaskSection .post-form-actions button{width:auto;min-height:44px;border-radius:8px;padding:10px 20px;font-size:13px}
+@media(max-width:700px){html body #postTaskSection .post-task-panel{padding:17px;gap:16px;border-radius:11px}html body #postTaskSection .post-categories{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}html body #postTaskSection .post-categories label>span{padding:9px;gap:7px;font-size:12px}html body #postTaskSection .task-location-picker{padding:11px}html body #postTaskSection .location-picker-map{height:250px}html body #postTaskSection .post-step{font-size:10px}html body #postTaskSection .post-form-actions>small{flex-basis:100%;margin:0 0 4px}html body #postTaskSection .post-form-actions button{flex:1}html body #postTaskSection .quick-schedule-picker{grid-template-columns:repeat(2,minmax(0,1fr))}html body #postTaskSection .quick-schedule-actions{gap:6px}}
+html body #postTaskSection .post-categories label>span>span{display:inline;min-height:0;height:auto;width:auto;padding:0;margin:0;border:0;border-radius:0;background:transparent!important;box-shadow:none;color:inherit;font-size:inherit;font-weight:inherit}
+html body #postTaskSection .post-categories label>span{background:#fff!important}
+html body #postTaskSection .post-categories input:checked+span{background:#edf6ef!important}

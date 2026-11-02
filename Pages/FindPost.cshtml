@@ -35,7 +35,7 @@
 <link rel="stylesheet" href="/css/findpost-light.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
-<link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-location-picker.css" asp-append-version="true" /><script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><script defer src="/js/task-location-picker.js" asp-append-version="true"></script></head>
+<link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-location-picker.css" asp-append-version="true" /><script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><script defer src="/js/task-location-picker.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/post-task-polish.css" asp-append-version="true" /></head>
 
 <body>
 
@@ -494,7 +494,7 @@
                         <div class="post-task-heading">
                             <div>
                                 <h2>Post a Task</h2>
-                                <p>Tell trusted local freelancers exactly what you need.</p>
+                                <p>Find trusted help in Bacolor, Pampanga.</p>
                             </div>
                             <span class="post-step">Task details</span>
                         </div>
@@ -507,15 +507,15 @@
                         <fieldset class="post-category-field">
                             <legend>Category</legend>
                             <div class="post-categories">
-                                <label><input type="radio" name="category" value="Cleaning" required /><span>Cleaning</span></label>
-                                <label><input type="radio" name="category" value="Repairs" /><span>Repairs</span></label>
-                                <label><input type="radio" name="category" value="Errands" /><span>Errands</span></label>
-                                <label><input type="radio" name="category" value="Moving" /><span>Moving</span></label>
-                                <label><input type="radio" name="category" value="Gardening" /><span>Gardening</span></label>
-                                <label><input type="radio" name="category" value="Painting" /><span>Painting</span></label>
-                                <label><input type="radio" name="category" value="Tutoring" /><span>Tutoring</span></label>
-                                <label><input type="radio" name="category" value="Pet Care" /><span>Pet Care</span></label>
-                                <label><input type="radio" name="category" value="Other / General" /><span>Other / General</span></label>
+                                <label><input type="radio" name="category" value="Cleaning" required /><span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m14 3 3 3-7 8-3-3zM7 11l-4 7c3 3 6 3 9 0l-2-4"/></svg><span>Cleaning</span><i aria-hidden="true">✓</i></span></label>
+                                <label><input type="radio" name="category" value="Repairs" /><span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6a5 5 0 0 0-6 6L3 17a3 3 0 0 0 4 4l5-5a5 5 0 0 0 6-6l-4 3-3-3z"/></svg><span>Repairs</span><i aria-hidden="true">✓</i></span></label>
+                                <label><input type="radio" name="category" value="Errands" /><span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h3l3 12h10l2-8H7M10 20h1M18 20h1"/></svg><span>Errands</span><i aria-hidden="true">✓</i></span></label>
+                                <label><input type="radio" name="category" value="Moving" /><span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h12v12H2zM14 10h4l4 4v3h-8"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg><span>Moving</span><i aria-hidden="true">✓</i></span></label>
+                                <label><input type="radio" name="category" value="Gardening" /><span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 3C8 3 3 8 5 15c5 5 14 1 15-12ZM3 21 15 9"/></svg><span>Gardening</span><i aria-hidden="true">✓</i></span></label>
+                                <label><input type="radio" name="category" value="Painting" /><span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h13v6H4zM17 5h4v8H11v3M9 16h4v6H9z"/></svg><span>Painting</span><i aria-hidden="true">✓</i></span></label>
+                                <label><input type="radio" name="category" value="Tutoring" /><span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5C8 2 4 3 2 4v16c4-2 7-1 10 1 3-2 6-3 10-1V4c-4-2-7-1-10 1Zm0 0v16"/></svg><span>Tutoring</span><i aria-hidden="true">✓</i></span></label>
+                                <label><input type="radio" name="category" value="Pet Care" /><span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="16" rx="6" ry="5"/><circle cx="4" cy="9" r="2"/><circle cx="9" cy="5" r="2"/><circle cx="16" cy="5" r="2"/><circle cx="21" cy="10" r="2"/></svg><span>Pet Care</span><i aria-hidden="true">✓</i></span></label>
+                                <label><input type="radio" name="category" value="Other / General" /><span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8M12 8v8"/></svg><span>Other / General</span><i aria-hidden="true">✓</i></span></label>
                             </div>
                         </fieldset>
 
@@ -527,7 +527,7 @@
                         <div class="post-work-details">
                             <label class="post-field">
                                 <span>Budget</span>
-                                <input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 600" />
+                                <span class="post-budget-control"><span aria-hidden="true">₱</span><input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 600" /></span><small>Your proposed budget for this task.</small>
                             </label>
                             <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
                         </div>
@@ -547,9 +547,9 @@
                             <small class="schedule-help">You can change this anytime before a freelancer accepts, or leave it empty to schedule later.</small>
                         </label>
 
-                        <div class="post-form-actions">
+                        <div class="post-form-actions"><small>You can edit your task before publishing.</small>
                             <button class="post-cancel-button" type="button" id="cancelPostTaskButton">Cancel</button>
-                            <button class="post-submit-button" type="submit">Post task</button>
+                            <button class="post-submit-button" type="submit">Review task</button>
                         </div>
                     </form>
 
