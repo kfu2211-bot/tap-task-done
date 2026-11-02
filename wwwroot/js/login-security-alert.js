@@ -1,6 +1,12 @@
 (() => {
     if (document.querySelector('[data-signin-alert]')) return;
-    let busy = false, lastId = null;
+    let busy = false, lastId = null, dismissTimer;
+    const dismissed = new Set();
+    try { JSON.parse(sessionStorage.getItem('tts.dismissedSignIns') || '[]').forEach(id => dismissed.add(String(id))); } catch { /* Storage may be unavailable. */ }
+    const remember = id => {
+        dismissed.add(String(id));
+        try { sessionStorage.setItem('tts.dismissedSignIns', JSON.stringify([...dismissed].slice(-100))); } catch { /* In-memory dismissal still works. */ }
+    };
     async function check() {
         if (busy || document.hidden) return;
         busy = true;
@@ -10,16 +16,25 @@
             if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return;
             const { alert } = await response.json();
             if (!alert) { document.querySelector('[data-signin-alert]')?.remove(); lastId = null; return; }
-            if (lastId === alert.id) return;
+            if (lastId === alert.id || dismissed.has(String(alert.id))) return;
             document.querySelector('[data-signin-alert]')?.remove();
             lastId = alert.id;
+            clearTimeout(dismissTimer);
             const banner = document.createElement('div');
             banner.dataset.signinAlert = 'true'; banner.setAttribute('role', 'alert');
-            Object.assign(banner.style, { position:'fixed', bottom:'20px', right:'20px', zIndex:'10000', maxWidth:'min(420px,calc(100vw - 32px))', background:'#fff8e9', color:'#163d30', border:'1px solid #d7b96c', borderRadius:'12px', padding:'16px', boxShadow:'0 6px 24px #163d3020', font:'14px/1.6 Arial,sans-serif' });
-            const title = document.createElement('strong'); title.textContent = 'New sign-in on your account';
-            const detail = document.createElement('p'); detail.textContent = alert.device + ' · ' + new Date(alert.createdUtc.endsWith('Z') ? alert.createdUtc : alert.createdUtc + 'Z').toLocaleString('en-PH', { timeZone:'Asia/Manila' }) + ' PHT';
-            const link = document.createElement('a'); link.href = '/Security'; link.textContent = 'Review sign-in / Secure my account'; link.style.color='#176b50';
-            banner.append(title, detail, link); document.body.append(banner);
+            Object.assign(banner.style, { position:'fixed', bottom:'20px', right:'20px', zIndex:'10000', width:'360px', maxWidth:'calc(100vw - 32px)', background:'#fff', color:'#163d30', border:'1px solid #cfe0d3', borderRadius:'14px', padding:'18px', boxShadow:'0 10px 36px #163d3026', font:'13px/1.6 Arial,sans-serif' });
+            const dismiss = () => { clearTimeout(dismissTimer); remember(alert.id); banner.remove(); };
+            const header = document.createElement('div'); Object.assign(header.style, {display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px'});
+            const title = document.createElement('strong'); title.textContent = 'New sign-in detected'; title.style.fontSize='14px';
+            const close = document.createElement('button'); close.type='button'; close.textContent='×'; close.setAttribute('aria-label','Dismiss sign-in notification');
+            Object.assign(close.style,{border:'0',background:'#edf5ef',color:'#18765b',borderRadius:'6px',width:'28px',height:'28px',padding:'0',font:'22px Arial,sans-serif',cursor:'pointer'});
+            close.addEventListener('click', dismiss); header.append(title,close);
+            const detail = document.createElement('p'); detail.textContent = alert.device; Object.assign(detail.style,{margin:'10px 0 2px',color:'#536d5e'});
+            const time = document.createElement('small'); time.textContent = new Date(alert.createdUtc.endsWith('Z') ? alert.createdUtc : alert.createdUtc + 'Z').toLocaleString('en-PH', { timeZone:'Asia/Manila' }) + ' PHT'; time.style.color='#718578';
+            const link = document.createElement('a'); link.href = '/Security'; link.textContent = 'Review account security';
+            Object.assign(link.style,{display:'block',marginTop:'12px',color:'#18765b',fontWeight:'600',textDecoration:'none'});
+            banner.append(header, detail, time, link); banner.addEventListener('click',dismiss);
+            document.body.append(banner); dismissTimer = setTimeout(dismiss,10000);
         } catch { /* A temporary outage must not interrupt unsaved work. */ }
         finally { busy = false; }
     }

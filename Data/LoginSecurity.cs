@@ -73,21 +73,34 @@ public static class LoginSecurity
         var hash = Hash(token!); var version = AccountStore.SessionFingerprint(user.PasswordHash); var now = DateTime.UtcNow;
         return await db.Set<TrustedLoginDevice>().AnyAsync(x => x.Id == hash && x.UserId == user.Id && x.PasswordVersion == version && x.ExpiresUtc > now, ct);
     }
-    public static async Task BeginAsync(ApplicationDbContext db, HttpContext context, AppUser user, IConfiguration config, CancellationToken ct)
+    public static int ResendCooldown(DateTime createdUtc, DateTime now) => Math.Max(0, (int)Math.Ceiling((createdUtc.AddSeconds(60) - now).TotalSeconds));
+    public static async Task BeginAsync(ApplicationDbContext db, HttpContext context, AppUser user, IConfiguration config, CancellationToken ct, string? previousToken = null)
     {
         var token = Token(); var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString(); var now = DateTime.UtcNow;
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
-            await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id={user.Id} FOR UPDATE").ToListAsync(ct);
+            var current = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id={user.Id} FOR UPDATE").AsNoTracking().ToListAsync(ct)).SingleOrDefault();
+            if (current is null || AccountStore.SessionFingerprint(current.PasswordHash) != AccountStore.SessionFingerprint(user.PasswordHash)) throw new InvalidOperationException("Your account changed. Return to login.");
+            if (previousToken is not null)
+            {
+                if (!ValidToken(previousToken)) throw new InvalidOperationException("Return to login to request a code.");
+                var previousHash = Hash(previousToken);
+                var previous = await db.Set<LoginChallenge>().SingleOrDefaultAsync(x => x.Id == previousHash, ct);
+                if (previous is null || previous.UserId != user.Id || previous.Consumed || previous.ExpiresUtc <= now || previous.PasswordVersion != AccountStore.SessionFingerprint(current.PasswordHash)) throw new InvalidOperationException("Your sign-in request expired. Return to login.");
+            }
             var cutoff = now.AddMinutes(-15);
+            var latest = await db.Set<LoginChallenge>().Where(x => x.UserId == user.Id).MaxAsync(x => (DateTime?)x.CreatedUtc, ct);
+            if (latest.HasValue && ResendCooldown(latest.Value, now) > 0) throw new InvalidOperationException("Wait 60 seconds before requesting another code.");
             if (await db.Set<LoginChallenge>().CountAsync(x => x.UserId == user.Id && x.CreatedUtc > cutoff, ct) >= 5)
                 throw new InvalidOperationException("Too many verification requests. Wait 15 minutes before trying again.");
+            await db.Set<LoginChallenge>().Where(x => x.UserId == user.Id && !x.Consumed).ExecuteUpdateAsync(s => s.SetProperty(x => x.Consumed, true), ct);
             db.Set<LoginChallenge>().Add(new() { Id = Hash(token), CodeHash = CodeHash(token, code), UserId = user.Id, PasswordVersion = AccountStore.SessionFingerprint(user.PasswordHash), CreatedUtc = now, ExpiresUtc = now.AddMinutes(10) });
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         }
-        // No authenticated cookie is issued until delivery succeeds and this code is verified.
-        await SmtpMailer.SendAsync(config, user.Username!, "Your Tap, Task, Done sign-in code", $"Your sign-in code is {code}. It expires in 10 minutes.\n\nRequested from {Device(context.Request.Headers.UserAgent.ToString())}.\nNever share this code. If this wasn't you, change your password using the website.", ct, VerificationEmailTemplate.SignInCode(code, Device(context.Request.Headers.UserAgent.ToString())));
+        // Keep the pending challenge on delivery failure so a bounded resend remains possible.
+        // This cookie never authenticates the user; the code must still be verified.
         context.Response.Cookies.Append(ChallengeCookie, token, Cookie(context, TimeSpan.FromMinutes(10)));
+        await SmtpMailer.SendAsync(config, user.Username!, "Your Tap, Task, Done sign-in code", $"Your sign-in code is {code}. It expires in 10 minutes.\n\nRequested from {Device(context.Request.Headers.UserAgent.ToString())}.\nNever share this code. If this wasn't you, change your password using the website.", ct, VerificationEmailTemplate.SignInCode(code, Device(context.Request.Headers.UserAgent.ToString())));
     }
     public static bool Usable(LoginChallenge challenge, DateTime now) => !challenge.Consumed && challenge.Attempts < 5 && challenge.ExpiresUtc > now;
     public record ChallengeProof(string Token, string Code);
