@@ -52,3 +52,29 @@ html body.has-header-account :is(.sidebar,.mytasks-sidebar):is(.sidebar,.mytasks
     .header-account-copy { display:none; }
     html body.has-header-account :is(.topbar,.top-header,.mytasks-topbar,.market-header,main > header) h1 { min-width:0; font-size:16px !important; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
+/* Notification inbox: compact rows and clear read states. */
+html body .notification-popover{width:440px;max-width:calc(100vw - 24px);border-radius:16px;box-shadow:0 18px 55px #173e3024;overflow:hidden;color:#173e30;background:#fff}
+html body .notification-popover-heading{display:flex;align-items:center;gap:12px;padding:18px 16px;border-bottom:1px solid #e1ebe3}
+.notification-heading-icon,.notification-type-icon{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:11px;background:#e7f2e9;color:#176b50}
+.notification-heading-icon svg,.notification-type-icon svg{width:23px;height:23px}
+html body .notification-popover-heading>div{flex:1;min-width:0}
+html body .notification-popover-heading strong{font-size:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+html body .notification-popover-heading small{font-size:12px;margin-top:5px;line-height:1.4}
+.notification-new-count{font-size:11px;font-weight:700;background:#e7f2e9;color:#176b50;padding:4px 7px;border-radius:20px}
+.notification-new-count[hidden]{display:none}
+html body .notification-popover-close{display:grid;place-items:center;flex:none;width:36px;height:36px;padding:8px;background:#edf5ee;color:#175d45;border:1px solid #d6e7da;border-radius:10px;cursor:pointer}
+.notification-popover-close svg{width:19px;height:19px}
+.notification-filters{display:flex;gap:20px;padding:0 18px;border-bottom:1px solid #e1ebe3}
+html body .notification-filters button{border:0;border-bottom:3px solid transparent;border-radius:0;background:transparent;color:#60786b;padding:13px 7px 11px;min-height:44px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+html body .notification-filters button[aria-pressed=true]{border-bottom-color:#19765b;color:#175d45}
+html body .notification-popover-list{max-height:min(480px,calc(100dvh - 255px));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#bfd4c4 transparent}
+.notification-group-title{margin:0;padding:12px 16px 9px;background:#fff;color:#60786b;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+html body .notification-popover-list .notification-item{position:relative;align-items:flex-start;gap:11px;padding:14px 16px;line-height:1.45}
+html body .notification-popover-list .notification-item-content{flex:1;min-width:0}
+html body .notification-popover-list .notification-item strong{font-size:13px;font-weight:650;line-height:1.45}
+html body .notification-popover-list .notification-item small{font-size:11px;line-height:1.5;margin-top:4px;color:#60786b}
+html body .notification-popover-list .notification-item-time{flex:0 0 62px;font-size:10px;line-height:1.5;color:#60786b;text-align:right;padding-top:2px}
+.notification-unread-indicator{position:absolute;right:15px;top:38px;width:6px;height:6px;border-radius:50%;background:#19765b}
+.notification-popover-footer{padding:12px;background:#fff;border-top:1px solid #e1ebe3}
+html body .notification-popover-all{padding:11px;border:1px solid #8dbba0;border-radius:9px;font-size:13px;background:#fff;color:#176b50}
+@media(max-width:480px){html body .notification-popover{right:12px;left:12px;width:auto}html body .notification-popover-heading{gap:9px;padding:14px 12px}html body .notification-popover-list .notification-item{padding:13px 12px;gap:9px}.notification-type-icon{width:34px;height:34px;border-radius:9px}.notification-type-icon svg{width:20px;height:20px}html body .notification-popover-list .notification-item-time{flex-basis:51px;font-size:9px}html body .notification-popover-heading strong{font-size:17px}.notification-unread-indicator{right:13px}}

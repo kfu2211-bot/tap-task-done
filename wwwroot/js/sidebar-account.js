@@ -176,15 +176,57 @@
         panel.id = "notificationPopover";
         panel.hidden = true;
         panel.setAttribute("aria-label", "Notifications");
-        panel.innerHTML = '<div class="notification-popover-heading"><div><strong>Notifications</strong><small>Your latest updates</small></div><button type="button" class="notification-popover-close" aria-label="Close notifications">×</button></div><div class="notification-popover-list" aria-live="polite"></div><a class="notification-popover-all" href="/Notifications">View all notifications</a>';
+        var bellIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-2 7-2 9h16c0-2-2-2-2-9M10 20h4"/></svg>';
+        panel.innerHTML = '<div class="notification-popover-heading"><span class="notification-heading-icon">'+bellIcon+'</span><div><strong>Notifications <span class="notification-new-count" hidden></span></strong><small>Updates on your work and account</small></div><button type="button" class="notification-popover-close" aria-label="Close notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><div class="notification-filters" role="group" aria-label="Filter notifications"><button type="button" data-filter="all" aria-pressed="true">All</button><button type="button" data-filter="unread" aria-pressed="false">Unread</button></div><div class="notification-popover-list" aria-live="polite"></div><div class="notification-popover-footer"><a class="notification-popover-all" href="/Notifications">View all notifications</a></div>';
         document.body.appendChild(panel);
         var notificationList = panel.querySelector(".notification-popover-list");
         var currentTrigger = null;
+        var notificationForms = [], notificationFilter = 'all';
+        var notificationIcons = {
+            security: '<path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7Z"/>',
+            message: '<path d="M21 11a9 9 0 0 1-9 9H7l-4 2 1-6a9 9 0 1 1 17-5Z"/>',
+            work: '<rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V3h8v4M3 12h18"/>',
+            done: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+            pin: '<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2"/>'
+        };
+        function notificationDay(date) { return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' }); }
+        function renderNotificationForms() {
+            notificationList.replaceChildren();
+            var selected = notificationForms.filter(form => notificationFilter !== 'unread' || form.querySelector('.notification-item').classList.contains('unread')).slice(0, 8);
+            var group = '';
+            if (!selected.length) { var empty = document.createElement('p'); empty.textContent = notificationFilter === 'unread' ? 'You’re all caught up. No unread updates.' : 'No notifications yet.'; notificationList.append(empty); }
+            selected.forEach(function (source) {
+                var form = document.importNode(source, true), button = form.querySelector('.notification-item');
+                var date = new Date(button.dataset.created), validDate = Number.isFinite(date.getTime());
+                var label = validDate && notificationDay(date) === notificationDay(new Date()) ? 'Today' : 'Earlier';
+                if (label !== group) { var heading = document.createElement('h3'); heading.className = 'notification-group-title'; heading.textContent = label; notificationList.append(heading); group = label; }
+                var kind = button.dataset.kind || '';
+                var iconKind = /security|identity|account/.test(kind) ? 'security' : kind === 'message' ? 'message' : /arrived|on-the-way/.test(kind) ? 'pin' : /finished|completed/.test(kind) ? 'done' : 'work';
+                var icon = document.createElement('span'); icon.className = 'notification-type-icon'; icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">'+notificationIcons[iconKind]+'</svg>';
+                button.querySelector('.notification-dot')?.replaceWith(icon);
+                var last = button.lastElementChild;
+                if (last?.getAttribute('aria-hidden') === 'true') last.remove();
+                var content = button.querySelector('span:nth-child(2)');
+                content?.classList.add('notification-item-content');
+                var stamp = document.createElement('span'); stamp.className = 'notification-item-time';
+                stamp.textContent = validDate ? date.toLocaleString('en-US', { timeZone:'Asia/Manila', hour:'numeric', minute:'2-digit', ...(label === 'Earlier' ? {month:'short',day:'numeric'} : {}) }) : '';
+                button.append(stamp);
+                if (button.classList.contains('unread')) { var dot = document.createElement('span'); dot.className='notification-unread-indicator'; dot.setAttribute('aria-hidden','true'); button.append(dot); }
+                notificationList.append(form);
+            });
+        }
+        panel.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', function () {
+            notificationFilter = button.dataset.filter;
+            panel.querySelectorAll('[data-filter]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+            renderNotificationForms();
+        }));
         function closeNotifications() {
             panel.hidden = true;
             if (currentTrigger) currentTrigger.setAttribute("aria-expanded", "false");
         }
         async function loadNotifications() {
+            notificationForms = [];
+            panel.querySelector('.notification-new-count').hidden = true;
             notificationList.textContent = "Loading notifications…";
             try {
                 var response = await fetch("/Notifications", { credentials: "same-origin", cache: "no-store" });
@@ -198,10 +240,13 @@
                     notificationList.appendChild(emptyMessage);
                     return;
                 }
-                Array.from(forms).slice(0, 8).forEach(function (form) {
+                notificationForms = forms.sort((a,b) => (Date.parse(b.querySelector('.notification-item').dataset.created)||0) - (Date.parse(a.querySelector('.notification-item').dataset.created)||0));
+                var unreadCount = forms.filter(form => form.querySelector('.notification-item').classList.contains('unread')).length;
+                var newCount = panel.querySelector('.notification-new-count'); newCount.textContent = unreadCount + ' new'; newCount.hidden = unreadCount === 0;
+                notificationForms.forEach(function (form) {
                     form.setAttribute("action", form.getAttribute('action') || "/Notifications?handler=Open");
-                    notificationList.appendChild(document.importNode(form, true));
                 });
+                renderNotificationForms();
             } catch (error) { notificationList.textContent = "Could not load notifications. Please try again."; }
         }
         panel.querySelector(".notification-popover-close").addEventListener("click", function () { closeNotifications(); if (currentTrigger) currentTrigger.focus(); });
