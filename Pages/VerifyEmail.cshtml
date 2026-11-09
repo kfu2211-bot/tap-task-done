@@ -41,12 +41,12 @@
             <form method="post" asp-page-handler="Resend" class="verification-resend" data-resend-seconds="@Model.ResendSeconds">
                 <button type="submit" disabled="@(Model.ResendSeconds > 0)" data-idle-label="Resend code">Resend code</button>
                 <span class="verification-resend-divider" aria-hidden="true"></span>
-                <small role="status" data-resend-label>@(Model.ResendSeconds > 0 ? $"Available in 00:{Model.ResendSeconds:D2}" : "You can request a new code.")</small>
+                <small role="status" data-resend-label>@(Model.ResendSeconds > 0 ? $"Available in {Model.ResendSeconds / 60:D2}:{Model.ResendSeconds % 60:D2}" : "You can request a new code.")</small>
             </form>
             <details class="verification-change">
                 <summary><span class="verification-change-question"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15Z"/></svg>Wrong email address?</span><span class="verification-change-action">Change email</span></summary>
                 <p>Enter the correct email and your registration password. Your login email changes only after you verify the new address.</p>
-                <form method="post" asp-page-handler="Change"><label>Correct email<input asp-for="NewEmail" type="email" autocomplete="email" maxlength="45" required /></label><label>Registration password<input asp-for="Password" type="password" autocomplete="current-password" maxlength="256" required /></label><button type="submit" class="verification-primary" data-idle-label="Send new code">Send new code</button></form>
+                <form method="post" asp-page-handler="Change" data-resend-seconds="@Model.ResendSeconds"><label>Correct email<input asp-for="NewEmail" type="email" autocomplete="email" maxlength="45" required /></label><label>Registration password<input asp-for="Password" type="password" autocomplete="current-password" maxlength="256" required /></label><button type="submit" class="verification-primary" disabled="@(Model.ResendSeconds > 0)" data-idle-label="Send code to corrected email">Send code to corrected email</button><small role="status" data-resend-label>@(Model.ResendSeconds > 0 ? $"Available in {Model.ResendSeconds / 60:D2}:{Model.ResendSeconds % 60:D2}" : "You can request a new code.")</small></form>
             </details>
         } else {
             <p class="verification-resume">Create an account, or log in with your email and password to resume a pending registration.</p><a class="verification-primary verification-login" href="/Index">Create account</a>

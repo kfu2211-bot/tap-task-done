@@ -1,0 +1,277 @@
+#headerAccountMenu .header-theme-toggle { min-height:44px; }
+.theme-switch-track { margin-inline-start:auto; width:34px; height:20px; border-radius:20px; background:#61766a; padding:3px; box-sizing:border-box; }
+.theme-switch-track::before { content:""; display:block; width:14px; height:14px; border-radius:50%; background:white; }
+[aria-checked="true"] .theme-switch-track { background:#17885c; }
+[aria-checked="true"] .theme-switch-track::before { transform:translateX(14px); }
+html[data-theme="dark"] {
+    color-scheme:dark;
+    --bg:#111614; --page:#111614; --panel:#202a25; --surface:#202a25; --surface-2:#20392e;
+    --line:#38483f; --text:#edf5ef; --muted:#aabdb3; --brand:#81dbb2; --teal:#81dbb2;
+    background:#111614 !important;
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] body :is(.app-shell,.settings-layout,.mytasks-app,.reviews-page,.messages-page,.tracking-page,.tracking-layout,.verification-page,.main-area,.main-content,.market-main,.mytasks-main) {
+    background:#111614 !important; color:#edf5ef !important;
+}
+html[data-theme="dark"] body :is(.sidebar,.mytasks-sidebar,main > header,.topbar,.top-header,.mytasks-topbar,.market-header,#headerAccountMenu,#headerAccountButton,#notificationPopup,.notification-button,.mobile-menu,.settings-card,.profile-summary,.filter-panel,.input-wrapper,.provider-search-intro,.post-task-panel,.provider-detail-panel,.freelancer-card,.job-card,.jobs-card,.my-task-card,.task-card,.review-card,.verification-card,.tracking-card,.tracking-panel,.db-tracking-card,.map-card,.report-guide,.identity-guide,.messages-grid,.messages-conversations,.messages-thread,.thread-heading,.thread-messages,.thread-form,.thread-agreement,.conversations-toolbar,.notification-card,.notification-item,.related-task-options,.related-task-options button,.related-task-picker summary,.report-evidence-field,.selfie-section,.hero-card,.category-card,.provider-card,.dashboard .section,.report-card,.report-form-card,.account-card,.security-card,.security-other-sessions) {
+    background:#202a25 !important; color:#edf5ef !important; border-color:#38483f !important;
+}
+html[data-theme="dark"] body :is(.profile-summary,.thread-agreement,.conversation-link.selected,.related-task-options button[aria-pressed="true"],.sidebar a.active) { background:#254537 !important; }
+html[data-theme="dark"] body :is(h1,h2,h3,h4,h5,legend,label,p,small,dt,dd,strong,.brand span,.sidebar a,.navigation a,#headerAccountMenu a,#headerAccountMenu button,#headerAccountButton span) { color:#edf5ef !important; }
+html[data-theme="dark"] body :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select,option) { color-scheme:dark; background:#171f1c !important; color:#edf5ef !important; border-color:#567264 !important; }
+html[data-theme="dark"] body :is(input,textarea)::placeholder { color:#aabdb3; }
+html[data-theme="dark"] body a:not([class]) { color:#a0ecc1; }
+html[data-theme="dark"] body :is(.safety-emergency,.status-card,.safety-notice,.account-status,.verification-change,.report-task-selection,.report-attach,.thread-message.theirs,.account-shortcuts a) { background:#20392e !important; color:#edf5ef !important; border-color:#567264 !important; }
+html[data-theme="dark"] body #headerAccountMenu .header-account-logout { color:#ffb4b4 !important; }
+
+html[data-theme="dark"] #headerAccountMenu :is(a,button):hover { background:#254537; }
+
+/* Home dashboard palette */
+html[data-theme="dark"] body:has(.dashboard) {
+    --home-bg: #111614;
+    --home-chrome: #171f1c;
+    --home-card: #202a25;
+    --home-border: #38483f;
+    --home-muted: #aabdb3;
+    --home-mint: #81dbb2;
+    background: var(--home-bg) !important;
+}
+
+html[data-theme="dark"] body .dashboard {
+    background: var(--home-bg) !important;
+}
+
+html[data-theme="dark"] body .dashboard :is(.sidebar, .topbar, .search-box, #headerAccountButton) {
+    background: var(--home-chrome) !important;
+    border-color: var(--home-border) !important;
+}
+
+html[data-theme="dark"] body .dashboard .sidebar-logo,
+html[data-theme="dark"] body .dashboard .sidebar.sidebar.sidebar .sidebar-logo span,
+html[data-theme="dark"] body .dashboard .navigation .nav-item .nav-icon,
+html[data-theme="dark"] body .dashboard :is(.hero-label, .search-icon, .provider-availability, .providers-heading a) {
+    color: var(--home-mint) !important;
+    border-color: var(--home-border) !important;
+}
+
+html[data-theme="dark"] body .dashboard .navigation .nav-item.active {
+    background: #19533e !important;
+}
+
+html[data-theme="dark"] body .dashboard .search-box input {
+    background: transparent !important;
+    color: #f1f5f2 !important;
+}
+
+html[data-theme="dark"] body .dashboard .search-box:focus-within {
+    border-color: var(--home-mint) !important;
+}
+
+html[data-theme="dark"] body .dashboard .search-box input::placeholder,
+html[data-theme="dark"] body .dashboard :is(.hero-text, .section-title, .providers-heading, .category-card) p,
+html[data-theme="dark"] body .dashboard .provider-grid :is(.provider-name span, .rating small) {
+    color: var(--home-muted) !important;
+}
+
+html[data-theme="dark"] body .dashboard :is(.hero-card, .section, .category-carousel .category-card, .provider-grid .provider-card) {
+    background: var(--home-card) !important;
+    border-color: var(--home-border) !important;
+}
+
+html[data-theme="dark"] body .dashboard .hero-card {
+    background: #192921 !important;
+}
+
+html[data-theme="dark"] body .dashboard :is(.category-carousel .category-card, .provider-grid .provider-card):hover {
+    border-color: var(--home-mint) !important;
+}
+
+html[data-theme="dark"] body .dashboard .category-carousel::before,
+html[data-theme="dark"] body .dashboard .category-carousel::after {
+    background: none !important;
+}
+
+html[data-theme="dark"] body .dashboard :is(.provider-grid .rating, .provider-grid .provider-bottom a, .category-card strong) {
+    color: var(--home-mint) !important;
+}
+
+html[data-theme="dark"] body .dashboard .provider-grid .provider-name strong {
+    color: #f1f5f2 !important;
+}
+
+html[data-theme="dark"] body .dashboard .hero-buttons .post-button {
+    background: var(--home-mint) !important;
+    border-color: var(--home-mint) !important;
+    color: #10241a !important;
+}
+
+html[data-theme="dark"] body .dashboard .hero-buttons .find-button {
+    background: var(--home-chrome) !important;
+    border-color: #52675b !important;
+    color: #f1f5f2 !important;
+}
+
+html[data-theme="dark"] body .dashboard :is(.topbar .notification, .provider-avatar, #headerAccountButton .header-account-avatar) {
+    background: #29473a !important;
+    border-color: var(--home-border) !important;
+    color: var(--home-mint) !important;
+}
+
+html[data-theme="dark"] body .dashboard .hero-buttons button:focus-visible {
+    outline: 2px solid var(--home-mint);
+    outline-offset: 3px;
+}
+
+/* Shared surfaces and controls across signed-in pages. */
+html[data-theme="dark"] body :is(
+    .task-details-card, .order-summary-card, .assigned-provider-card, .card,
+    .modal-panel, .confirm-task-dialog, .complete-task-dialog, .profile-panel,
+    .jobs-workspace, .jobs-empty, .market-empty, .reviews-empty, .empty-state,
+    .report-empty, .messages-empty-state, .db-tracking-empty, .tracking-summary-card,
+    .jobs-offer, .conversation-panel, .chat-panel, .upload-area, .notification-empty,
+    .message-popup, .mode-switcher, .user-menu, .mytasks-user-menu, .success-card,
+    .task-location-picker, .quick-schedule-field, .notification-popover,
+    .notification-popover-heading, .notification-popover-footer, .notification-filters
+) {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] body :is(.post-field, .post-category-field) {
+    background: transparent !important;
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .sidebar-logo, .mytasks-logo, .logo-area, .brand-name, .shared-sidebar-icon,
+    .eyebrow, .market-eyebrow, .jobs-overline, .reviews-eyebrow, .report-eyebrow,
+    .notification-popover-all, .mode-button, .arrow-button
+) {
+    color: var(--brand) !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] body :is(.sidebar.sidebar.sidebar, .mytasks-sidebar.mytasks-sidebar.mytasks-sidebar)
+    :is(.sidebar-logo, .mytasks-logo, .brand, .logo-area) :is(strong, span) {
+    color: var(--brand) !important;
+}
+
+html[data-theme="dark"] body :is(.logo-check, .mini-logo, .mytasks-logo-check, .brand-icon,
+    .notification, .notification-button, .mytasks-notification, .mobile-menu,
+    #headerAccountButton .header-account-avatar, .notification-type-icon, .notification-heading-icon
+) {
+    background: var(--surface-2) !important;
+    color: var(--brand) !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] body :is(.job-tabs, .reviews-tabs, .task-filters) :is(button, a),
+html[data-theme="dark"] body :is(.location-picker-actions button, .notification-filters button),
+html[data-theme="dark"] body input::file-selector-button {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] body :is(.mode-switcher .mode-button.active,
+    .job-tabs .active, .reviews-tabs .active, .task-filters .selected,
+    .notification-filters [aria-pressed="true"]
+) {
+    color: var(--brand) !important;
+    background: var(--surface-2) !important;
+    border-color: var(--brand) !important;
+}
+
+html[data-theme="dark"] body :is(input, textarea)::placeholder {
+    color: var(--muted) !important;
+}
+
+html[data-theme="dark"] body :is(#postTaskSection, #findJobsSection, #findFreelancerSection) :is(
+    .jobs-workspace, .jobs-empty, .jobs-offers, .sent-offer, .post-step,
+    .task-location-picker, .post-budget-control > span, .quick-schedule-field,
+    .post-categories label > span, .jobs-count, .jobs-tag, .sent-offer-status
+) {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] body #postTaskSection .post-categories label > span > span {
+    background: transparent !important;
+}
+
+html[data-theme="dark"] body #postTaskSection .post-categories :is(label:hover, label:has(input:checked)) > span {
+    background: #29473a !important;
+    color: var(--brand) !important;
+    border-color: var(--brand) !important;
+}
+
+html[data-theme="dark"] body :is(#postTaskSection, #findJobsSection, #findFreelancerSection) :is(
+    label, legend, .post-field > span, .quick-schedule-field > span, h2, h3, strong
+) {
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body :is(#postTaskSection, #findJobsSection, #findFreelancerSection) :is(
+    p, small, .schedule-help, .jobs-meta, .sent-offer div span
+) {
+    color: var(--muted) !important;
+}
+
+html[data-theme="dark"] body :is(#postTaskSection, #findJobsSection, #findFreelancerSection) :is(
+    .jobs-eyebrow, .jobs-empty a, .provider-search-intro span
+) {
+    color: var(--brand) !important;
+}
+
+html[data-theme="dark"] body .page-content .mode-switcher .mode-button {
+    background: transparent !important;
+    color: var(--muted) !important;
+}
+
+html[data-theme="dark"] body .page-content .mode-switcher .mode-button:is(.active, :hover) {
+    background: var(--surface-2) !important;
+    color: var(--brand) !important;
+    border-bottom-color: var(--brand) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .notification-group-title, .notification-popover-all, .app-notification-trigger,
+    .notification-popover-close, .related-task-picker, .report-history,
+    .report-form, .identity-form, .security-return, .security-secondary,
+    .security-badge, .security-count, .security-notice, .settings-shortcut,
+    .completion-photo-field, .task-progress, .job-location-panel
+) {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] body .app-notification-trigger .notification-count-badge {
+    border-color: var(--surface) !important;
+}
+
+html[data-theme="dark"] body .notification-popover-list .notification-item:is(:hover, .unread) {
+    background: var(--surface-2) !important;
+}
+
+html[data-theme="dark"] body :is(.notification-item, .notification-popover-heading) small {
+    color: var(--muted) !important;
+}
+
+html[data-theme="dark"] body :is(.primary-button, .post-submit-button, .confirm-task-submit,
+    .job-primary, .market-primary, .jobs-find-button, .reviews-action, .primary-action,
+    .submit-review-button, .complete-button
+) {
+    background: var(--brand) !important;
+    border-color: var(--brand) !important;
+    color: #10241a !important;
+}
+
+html[data-theme="dark"] body :is(.primary-button, .post-submit-button, .confirm-task-submit,
+    .job-primary, .market-primary, .jobs-find-button, .reviews-action, .primary-action,
+    .submit-review-button, .complete-button
+):not(:disabled):hover {
+    background: #a0ecc1 !important;
+}

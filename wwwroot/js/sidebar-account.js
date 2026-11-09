@@ -1,3 +1,10 @@
+const accountThemeStyles = document.createElement('link');
+accountThemeStyles.rel = 'stylesheet';
+accountThemeStyles.href = '/css/account-theme.css?v=2';
+document.head.append(accountThemeStyles);
+try {
+    if (localStorage.getItem("tts-theme") === "dark") document.documentElement.dataset.theme = "dark";
+} catch {}
 /* Keeps the signed-in account display identical on every authenticated page. */
 (function () {
     const warningStyle = document.createElement('link'); warningStyle.rel='stylesheet';warningStyle.href='/css/account-warning.css';document.head.append(warningStyle);
@@ -32,7 +39,14 @@
     async function loadSidebarAccount() {
         // Apply presentation before the preferences request, so slow networking
         // cannot leave each page with a different icon style.
-        document.querySelectorAll(".sidebar > nav a, .mytasks-sidebar > nav a").forEach(decorateSidebarLink);
+        document.querySelectorAll(".sidebar nav a, .mytasks-sidebar nav a").forEach(function (link) {
+            const path = new URL(link.href, window.location.href).pathname.replace(/\/$/, "").toLowerCase();
+            if (path === "/settings") {
+                link.remove();
+                return;
+            }
+            decorateSidebarLink(link);
+        });
         if (!document.getElementById("productPolish")) {
             var polish = document.createElement("link");
             polish.id = "productPolish";
@@ -112,8 +126,7 @@
             { href: "/Tracking", icon: "➤", label: "Tracking" },
             { href: "/Reviews", icon: "☆", label: "Reviews" },
             { href: "/IdentityVerification", icon: "✓", label: "Identity Verification" },
-            { href: "/Reports", icon: "⚑", label: "Safety & Reports" },
-            { href: "/Settings", icon: "⚙", label: "Settings" }
+            { href: "/Reports", icon: "⚑", label: "Safety & Reports" }
         ];
 
         // Keep the main action clear for the active role.
@@ -335,6 +348,20 @@
             accountMenu.id = "headerAccountMenu";
             accountMenu.hidden = true;
             accountMenu.innerHTML = '<a href="/Settings?view=profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3z"/></svg>View profile</a><a href="/Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16M8 4v4m8 2v4m-7 2v4"/></svg>Settings</a><button type="button" class="header-account-logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M10 3H4v18h6M9 12h12m-5-5 5 5-5 5"/></svg>Log out</button><p class="header-account-status" role="status"></p>';
+            const themeToggle = document.createElement("button");
+            themeToggle.type = "button";
+            themeToggle.className = "header-theme-toggle";
+            themeToggle.setAttribute("role", "switch");
+            themeToggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20 15a9 9 0 0 1-11-11 9 9 0 1 0 11 11Z"/></svg>Dark mode<span class="theme-switch-track" aria-hidden="true"></span>';
+            accountMenu.querySelector(".header-account-logout").before(themeToggle);
+            const syncTheme = () => themeToggle.setAttribute("aria-checked", String(document.documentElement.dataset.theme === "dark"));
+            syncTheme();
+            themeToggle.addEventListener("click", () => {
+                const dark = document.documentElement.dataset.theme !== "dark";
+                document.documentElement.dataset.theme = dark ? "dark" : "light";
+                try { localStorage.setItem("tts-theme", dark ? "dark" : "light"); } catch {}
+                syncTheme();
+            });
             document.body.appendChild(accountMenu);
             function closeAccountMenu() { accountMenu.hidden = true; accountButton.setAttribute("aria-expanded", "false"); }
             accountButton.addEventListener("click", function () {

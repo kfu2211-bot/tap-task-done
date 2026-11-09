@@ -113,6 +113,7 @@
                 @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
                 {
                     <p class="signup-demo-notice" role="alert">@Model.ErrorMessage</p>
+                    @if (Model.ShowExistingAccountLink) { <p class="signup-demo-notice"><a href="/Login">Log in to continue</a></p> }
                 }
 
 

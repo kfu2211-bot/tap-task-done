@@ -33,6 +33,14 @@ public static class RegistrationVerification
     public static bool ValidCode(string? code) => code is { Length: 6 } && code.All(char.IsAsciiDigit);
     public static bool CanVerify(RegistrationEmailCode row, DateTime now) => row.VerifiedUtc is null && row.Attempts < 5 && row.ExpiresUtc > now && row.SessionExpiresUtc > now;
     public static int Cooldown(RegistrationEmailCode row, DateTime now) => row.LastSentUtc.HasValue ? Math.Max(0, (int)Math.Ceiling((row.LastSentUtc.Value.AddSeconds(60) - now).TotalSeconds)) : 0;
+    public static int SendWaitSeconds(RegistrationEmailCode row, DateTime now)
+    {
+        var windowWait = row.SendCount >= 5
+            ? Math.Max(0, (int)Math.Ceiling((row.SendWindowUtc.AddMinutes(15) - now).TotalSeconds))
+            : 0;
+        return Math.Max(Cooldown(row, now), windowWait);
+    }
+
     public static bool CanSend(RegistrationEmailCode row, DateTime now) => Cooldown(row, now) == 0 && (row.SendWindowUtc <= now.AddMinutes(-15) || row.SendCount < 5);
     public static string? Token(HttpContext context) => LoginSecurity.ValidToken(context.Request.Cookies[CookieName]) ? context.Request.Cookies[CookieName] : null;
     public static async Task<RegistrationEmailCode?> PendingAsync(ApplicationDbContext db, HttpContext context, CancellationToken ct)
@@ -56,7 +64,7 @@ public static class RegistrationVerification
     // Only called after registration or after the account password has been checked.
     public static async Task StartAsync(ApplicationDbContext db, HttpContext context, AppUser user, IConfiguration config, CancellationToken ct)
     {
-        var now = DateTime.UtcNow; var code = NewCode(); var token = LoginSecurity.Token();
+        var now = DateTime.UtcNow; var code = NewCode(); var token = LoginSecurity.Token(); string destination;
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
             var current = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id={user.Id} FOR UPDATE").AsNoTracking().ToListAsync(ct)).SingleOrDefault();
@@ -69,14 +77,17 @@ public static class RegistrationVerification
             row ??= new RegistrationEmailCode { UserId = user.Id, SendWindowUtc = now };
             if (db.Entry(row).State == EntityState.Detached) db.Add(row);
             if (!CanSend(row, now)) throw new RegistrationFlowException("Wait before requesting another verification code.");
-            row.TokenHash = LoginSecurity.Hash(token); row.PasswordVersion = AccountStore.SessionFingerprint(current.PasswordHash);
-            row.Email = current.Username!; row.VerifiedUtc = null; row.SessionExpiresUtc = now.AddHours(24);
+            var passwordVersion = AccountStore.SessionFingerprint(current.PasswordHash);
+            if (row.VerifiedUtc.HasValue || row.PasswordVersion != passwordVersion || !ValidEmail(row.Email))
+                row.Email = current.Username!;
+            row.TokenHash = LoginSecurity.Hash(token); row.PasswordVersion = passwordVersion;
+            destination = row.Email; row.VerifiedUtc = null; row.SessionExpiresUtc = now.AddHours(24);
             Prepare(row, token, code, now);
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         }
         // Keep the pending cookie even on email delivery failure, so resend/change-email remains possible.
         context.Response.Cookies.Append(CookieName, token, LoginSecurity.Cookie(context, TimeSpan.FromHours(24)));
-        await DeliverAsync(config, user.Username!, code, ct);
+        await DeliverAsync(config, destination, code, ct);
     }
     public static async Task SendAsync(ApplicationDbContext db, HttpContext context, IConfiguration config, string? newEmail, string? password, CancellationToken ct)
     {

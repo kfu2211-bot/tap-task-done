@@ -274,6 +274,10 @@ document.addEventListener("DOMContentLoaded", function () {
         card.querySelector(".freelancer-info").append(reasons);
     });
 
+    const supportedAreas = Array.from(locationInput.options)
+        .filter(option => option.value)
+        .map(option => option.value.toLowerCase());
+
     function performSearch(keepProfile = false) {
         const openProfile = document.getElementById("providerDetailPanel");
         if (openProfile && keepProfile !== true) openProfile.classList.add("hidden");
@@ -292,31 +296,48 @@ document.addEventListener("DOMContentLoaded", function () {
             const name = card.querySelector(".freelancer-info strong").textContent.toLowerCase();
             const service = String(card.dataset.service || "").toLowerCase();
             const area = String(card.dataset.location || "").toLowerCase();
+            const normalizedArea = " " + area.replace(/[^a-z0-9]+/g, " ").trim() + " ";
+            const matchedAreas = supportedAreas.filter(place => normalizedArea.includes(" " + place + " "));
+            const matchesLocation = location ? matchedAreas.includes(location) : matchedAreas.length > 0;
             const rate = Number(card.dataset.rate);
             const status = String(card.dataset.availability || "").toLowerCase();
             const categorySearch = categoryFromHome && query === categoryFromHome.trim().toLowerCase();
             const matchesOther = !otherCategory || !Object.values(categoryTerms).some(words => words.some(word => service.includes(word)));
             const matches = matchesOther && (!query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
-                (!location || area.includes(location)) &&
+                matchesLocation &&
                 (maximum === null || (rate > 0 && rate <= maximum)) &&
                 (!availability || (availability === "busy" ? status.startsWith("busy") : status === availability));
             card.style.display = matches ? "flex" : "none";
             const reasons = [];
             if (query && (matchesService(service, query) || name.includes(query))) reasons.push("service or name");
-            if (location && area.includes(location)) reasons.push("location");
+            if (matchesLocation) reasons.push("service area: " + matchedAreas.map(place => Array.from(locationInput.options).find(option => option.value.toLowerCase() === place).text).join(", "));
             if (maximum !== null && rate > 0 && rate <= maximum) reasons.push("budget");
             if (availability && (availability === "busy" ? status.startsWith("busy") : status === availability)) reasons.push("availability");
             const match = card.querySelector(".search-match-reasons");
             if (match) match.textContent = matches && reasons.length ? "Matched: " + reasons.join(", ") : "";
             if (matches) count++;
         });
-        noResults.textContent = noResults.dataset.unavailable === "true" ? "The freelancer directory is temporarily unavailable. Please try again later." : "No freelancers match these filters. Try a different service, location, budget, or availability.";
+        noResults.textContent = noResults.dataset.unavailable === "true" ? "The freelancer directory is temporarily unavailable. Please try again later." : "No freelancers match these filters in the supported areas. Try adjusting your filters or post a task.";
+        if (count === 0 && location && noResults.dataset.unavailable !== "true") {
+            noResults.textContent = "No matching freelancers in " + locationInput.selectedOptions[0].text + ". ";
+            const expand = document.createElement("button");
+            expand.type = "button";
+            expand.textContent = "Search all 5 supported areas";
+            expand.style.minHeight = "44px";
+            expand.addEventListener("click", () => {
+                locationInput.value = "";
+                performSearch();
+                locationInput.focus();
+            });
+            noResults.append(expand);
+        }
         noResults.classList.toggle("show", count === 0);
     }
     searchButton.addEventListener("click", performSearch);
-    [serviceSearch, locationInput, budgetInput].forEach(function (input) {
+    [serviceSearch, budgetInput].forEach(function (input) {
         input.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); performSearch(); } });
     });
+    locationInput.addEventListener("change", performSearch);
     availabilityFilter.addEventListener("change", performSearch);
     const fromHome = searchParams.get("search") || (otherCategory ? "" : categoryFromHome);
     if (fromHome) serviceSearch.value = fromHome;

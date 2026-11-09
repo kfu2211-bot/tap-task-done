@@ -23,6 +23,7 @@ namespace tts.Pages
         [BindProperty] public int? BirthYear { get; set; }
 
         public string? ErrorMessage { get; set; }
+        public bool ShowExistingAccountLink { get; private set; }
 
         [TempData]
         public bool AccountCreated { get; set; }
@@ -69,7 +70,8 @@ namespace tts.Pages
                 var accounts = HttpContext.RequestServices.GetRequiredService<AccountStore>();
                 if (await accounts.UsernameExistsAsync(email, cancellationToken))
                 {
-                    ErrorMessage = "That email is already registered. Log in to continue or finish email verification.";
+                    ShowExistingAccountLink = true;
+                    ErrorMessage = "An account already exists for this email. Use your original password to sign in and resume verification if needed.";
                     return Page();
                 }
                 var user = new AppUser { FirstName = parts[0], LastName = string.Join(' ', parts.Skip(1)), Username = email, Role = "client", DateOfBirth = birthDate };

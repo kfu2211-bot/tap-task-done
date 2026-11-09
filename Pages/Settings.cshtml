@@ -61,6 +61,26 @@
                         </div>
                     </section>
                 </section>
+                <section class="settings-card profile-personal-details" aria-labelledby="personalDetailsTitle">
+                    <h2 id="personalDetailsTitle">Personal details</h2>
+                    <dl>
+                        <div><dt>Display name</dt><dd>@Model.DisplayName</dd></div>
+                        <div><dt>Login email</dt><dd>@Model.Email</dd></div>
+                        <div><dt>Date of birth</dt><dd>@(Model.DateOfBirth?.ToString("MMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture) ?? "Not provided")</dd></div>
+                    </dl>
+                </section>
+                @if (Model.WorkRole is "freelancer" or "both")
+                {
+                    <section class="settings-card profile-personal-details" aria-labelledby="workSummaryTitle">
+                        <h2 id="workSummaryTitle">Work summary</h2>
+                        <dl>
+                            <div><dt>Service</dt><dd>@(string.IsNullOrWhiteSpace(Model.Service) ? "Not set" : Model.Service)</dd></div>
+                            <div><dt>Service location</dt><dd>@(string.IsNullOrWhiteSpace(Model.Location) ? "Not set" : Model.Location)</dd></div>
+                            <div><dt>Rate per task</dt><dd>@(Model.Rate is int rate ? $"₱{rate:N0}" : "Not set")</dd></div>
+                        </dl>
+                        <a href="/Settings#work-preferences">Edit work preferences</a>
+                    </section>
+                }
                 <section class="settings-card signout-card profile-shortcuts" aria-labelledby="profileShortcutsTitle">
                     <div>
                         <h2 id="profileShortcutsTitle">Manage your account</h2>
@@ -78,27 +98,33 @@
                     <h2>Account settings</h2>
                     <p>Manage your work preferences, availability, and account security.</p>
                 </div>
+                <div class="account-settings-grid">
                 <form method="post" id="profileForm" class="settings-card account-card">
-                    <div class="account-role"><label>Work role<select asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select></label></div><div id="freelancerPreferences"><fieldset class="settings-group work-group">
-                        <legend>Work preferences</legend>
+                    <div class="account-role" id="work-preferences"><h3 id="workRoleTitle">Work role</h3><select aria-labelledby="workRoleTitle" aria-describedby="workRoleHelp" asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select><p id="workRoleHelp" class="form-message"></p></div><div id="freelancerPreferences"><fieldset class="settings-group work-group">
+                        <legend>Service details</legend>
                         <div class="field-grid work-field-grid">
                             <label>Service / profession<input asp-for="Service" maxlength="60" placeholder="e.g. Plumber or balloon artist" /><small>Describe your specific skill so clients can find it, including unique services.</small></label>
                             <label>Service location<input asp-for="Location" maxlength="80" placeholder="e.g. Bacolor, Pampanga" /><small>Provide your barangay or service area within Bacolor, Pampanga.</small></label>
                             <label>Rate per task (₱)<input asp-for="Rate" type="number" min="1" step="1" placeholder="e.g. 600" /></label>
                             
-                            <label>Availability preference<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label>
+                            
                         </div>
                     </fieldset>
-                    <p class="form-message">Current status <strong class="account-status">@Model.EffectiveAvailability</strong><br />Your availability preference resumes when work finishes or is cancelled. Waiting for client confirmation does not block new work.</p>
-                    <fieldset class="settings-group"><legend>Weekly availability</legend><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> }</div></fieldset>
+                    <fieldset class="settings-group"><legend>Availability</legend><div class="field-grid"><label>Availability preference<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label></div><p class="form-message">Current status <strong class="account-status">@Model.EffectiveAvailability</strong><br />Your availability preference resumes when work finishes or is cancelled. Waiting for client confirmation does not block new work.</p>
+                    <h4>Weekly availability</h4><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> }</div></fieldset>
                     </div><div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite">@Model.Message</p><button class="primary-button" type="submit">Save changes</button></div>
                 </form>
+                    <section class="settings-card account-shortcuts" aria-labelledby="accountShortcutsTitle">
+                        <h3 id="accountShortcutsTitle">Account shortcuts</h3>
+                        <a href="/Settings?view=profile"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2Z"/></svg>View profile</a>
+                        <a href="/Security"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M12 17v4m-5 0h10"/></svg>Security &amp; devices</a>
+                    </section>
+                </div>
                 <section class="settings-card demo-card" aria-labelledby="demoDataHeading" hidden>
                     <div class="demo-title"><h2 id="demoDataHeading">Saved data</h2><span>On this device</span></div>
                     <p>Clear tasks, offers, messages, reviews, reports, and notifications. Your profile stays saved.</p>
                     <div class="demo-actions"><button id="resetDemoButton" class="danger-button" type="button">⌫&nbsp; Clear saved data</button><span class="demo-hint">Use this only when you want to start over.</span></div>
                 </section>
-                <section class="settings-card signout-card"><div><h2>Security &amp; devices</h2><p>Review sign-in alerts, active sessions and trusted browsers.</p></div><a class="settings-security-link" href="/Security">Manage security</a></section>
                 <section class="settings-card signout-card" aria-labelledby="deleteAccountHeading">
                     <div>
                         <h2 id="deleteAccountHeading">Delete account</h2>

@@ -27,7 +27,7 @@ public sealed class VerifyEmailModel(ApplicationDbContext db, IConfiguration con
         var row = await RegistrationVerification.PendingAsync(db, HttpContext, ct);
         Pending = row is not null;
         DestinationEmail = row?.Email;
-        ResendSeconds = row is null ? 0 : RegistrationVerification.Cooldown(row, DateTime.UtcNow);
+        ResendSeconds = row is null ? 0 : RegistrationVerification.SendWaitSeconds(row, DateTime.UtcNow);
     }
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {

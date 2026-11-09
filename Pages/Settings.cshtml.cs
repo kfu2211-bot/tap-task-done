@@ -14,6 +14,7 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
     public string DisplayName { get; private set; } = "";
     public string EffectiveAvailability { get; private set; } = "Available";
     public string Email { get; private set; } = "";
+    public DateTime? DateOfBirth { get; private set; }
     [BindProperty] public string? Service { get; set; }
     [BindProperty] public string? Location { get; set; }
     [BindProperty] public int? Rate { get; set; }
@@ -26,7 +27,7 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
     {
         var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Id == UserId);
         if (user is null) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
-        DisplayName = $"{user.FirstName} {user.LastName}".Trim(); Email = user.Username ?? "";
+        DisplayName = $"{user.FirstName} {user.LastName}".Trim(); Email = user.Username ?? ""; DateOfBirth = user.DateOfBirth;
         var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId);
         if (profile != null) { Service = profile.Service; Location = profile.Location; Rate = profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
         EffectiveAvailability = await FreelancerAvailability.GetAsync(db, UserId, Availability, HttpContext.RequestAborted);
@@ -44,8 +45,15 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
         if (!await db.Users.AnyAsync(x => x.Id == UserId)) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
         var profile = await db.FreelancerProfiles.FindAsync(UserId);
         if (profile is null) { profile = new FreelancerProfile { UserId = UserId }; db.FreelancerProfiles.Add(profile); }
-        profile.Service = Service; profile.Location = Location; profile.Rate = Rate; profile.WorkRole = WorkRole;
-        profile.Availability = Availability; profile.AvailableDays = string.Join(',', validDays.Where(Days.Contains));
+        profile.WorkRole = WorkRole;
+        if (WorkRole is "freelancer" or "both")
+        {
+            profile.Service = Service;
+            profile.Location = Location;
+            profile.Rate = Rate;
+            profile.Availability = Availability;
+            profile.AvailableDays = string.Join(',', validDays.Where(Days.Contains));
+        }
         await db.SaveChangesAsync(); Message = "Work preferences saved to the database.";
         return RedirectToPage();
     }
