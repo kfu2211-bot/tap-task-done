@@ -334,7 +334,7 @@
             var accountMenu = document.createElement("div");
             accountMenu.id = "headerAccountMenu";
             accountMenu.hidden = true;
-            accountMenu.innerHTML = '<a href="/Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3z"/></svg>View profile</a><button type="button" class="header-account-logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M10 3H4v18h6M9 12h12m-5-5 5 5-5 5"/></svg>Log out</button><p class="header-account-status" role="status"></p>';
+            accountMenu.innerHTML = '<a href="/Settings?view=profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3z"/></svg>View profile</a><a href="/Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16M8 4v4m8 2v4m-7 2v4"/></svg>Settings</a><button type="button" class="header-account-logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M10 3H4v18h6M9 12h12m-5-5 5 5-5 5"/></svg>Log out</button><p class="header-account-status" role="status"></p>';
             document.body.appendChild(accountMenu);
             function closeAccountMenu() { accountMenu.hidden = true; accountButton.setAttribute("aria-expanded", "false"); }
             accountButton.addEventListener("click", function () {

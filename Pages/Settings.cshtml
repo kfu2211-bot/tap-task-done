@@ -1,12 +1,12 @@
 @page
 @model tts.Pages.SettingsModel
-@{ Layout = null; }
+@{ Layout = null; var showProfile = Request.Query["view"] == "profile"; var pageTitle = showProfile ? "Profile" : "Settings"; }
 <!DOCTYPE html>
 <html lang="en">
 <head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Settings - Tap, Task, Done</title>
+    <title>@pageTitle - Tap, Task, Done</title>
     <link rel="stylesheet" href="/css/settings.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" />
     <link rel="stylesheet" href="/css/readability.css" asp-append-version="true" />
@@ -32,13 +32,15 @@
             <div class="sidebar-account"><span class="account-avatar">U</span><div><strong id="sidebarName">User</strong><span id="sidebarEmail">user@email.com</span></div></div>
         </aside>
         <main>
-            <header><h1>Settings</h1></header>
+            <header><h1>@pageTitle</h1></header>
             <section class="settings-content">
+                @if (showProfile)
+                {
                 <div class="page-intro">
-                    <h2>Profile &amp; work preferences</h2>
-                    <p>Keep your profile information up to date and set your work preferences.</p>
+                    <h2>Your profile</h2>
+                    <p>View your account details and manage your profile photo.</p>
                 </div>
-                <form method="post" id="profileForm" class="settings-card account-card">
+                <section class="settings-card account-card">
                     <h2>Account profile</h2>
                     <div class="profile-summary" aria-label="Current profile">
                         <span id="profileAvatar" class="profile-avatar">@(Model.DisplayName.FirstOrDefault())</span>
@@ -63,6 +65,15 @@
                             <label>Email<input value="@Model.Email" readonly /></label>
                         </div>
                     </fieldset>
+                </section>
+                }
+                else
+                {
+                <div class="page-intro">
+                    <h2>Account settings</h2>
+                    <p>Manage your work preferences, availability, and account security.</p>
+                </div>
+                <form method="post" id="profileForm" class="settings-card account-card">
                     <fieldset class="settings-group work-group">
                         <legend>Work preferences</legend>
                         <div class="field-grid work-field-grid">
@@ -90,6 +101,7 @@
                     </div>
                     <a class="signout-button settings-delete-link" href="/AccountDeletion">Delete account</a>
                 </section>
+                }
             </section>
         </main>
     </div>
