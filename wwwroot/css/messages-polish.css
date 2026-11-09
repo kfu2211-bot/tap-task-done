@@ -53,3 +53,43 @@ html body.messages-current-view .thread-form button { height:44px; min-width:80p
     html body.messages-current-view .thread-message { max-width:90%; }
     .thread-task-link { padding:8px; font-size:11px; }
 }
+.messages-current .thread-agreement {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 10px 20px;
+    background: #eaf3ea;
+    border-bottom: 1px solid #d9e7da;
+    flex: none;
+}
+.thread-agreement p { margin: 3px 0 0; font-size: 13px; }
+.messages-current .thread-agreement a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 7px;
+    background: #155c44;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+}
+.thread-empty-state {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    color: #193e30;
+}
+.thread-empty-state svg { width: 42px; height: 42px; color: #176b50; }
+.thread-empty-state strong { font-size: 19px; }
+.thread-empty-state p { margin: 0; font-size: 14px; }
+@media (max-width: 700px) {
+    .messages-current .thread-agreement { padding: 10px 12px; }
+    html body.messages-current-view .thread-form textarea { font-size: 16px; }
+}

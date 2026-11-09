@@ -1,0 +1,26 @@
+html body main > .account-workspace {
+    max-width: 1020px;
+    width: 100%;
+    margin-inline: auto;
+    box-sizing: border-box;
+}
+.account-workspace .account-card:not(form) { padding-bottom: 20px; }
+.account-workspace .photo-settings { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+.account-workspace .account-role { max-width: 420px; margin-bottom: 22px; }
+.account-workspace .account-role label,
+.account-workspace .account-role select { display: block; width: 100%; }
+.account-workspace .account-role select { margin-top: 8px; }
+.account-workspace .account-status {
+    display: inline-block;
+    margin: 0 0 6px 5px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    background: #e4f0e6;
+    color: #15563f;
+}
+.account-workspace #freelancerPreferences[hidden] { display: none; }
+@media (max-width: 700px) {
+    .account-workspace .work-field-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.account-workspace .profile-shortcuts { flex-wrap: wrap; gap: 16px; }
+.profile-shortcut-links { display: flex; flex-wrap: wrap; gap: 8px; }

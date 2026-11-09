@@ -1,0 +1,16 @@
+body .security-page { width: min(100% - 48px, 1700px); max-width: none; box-sizing: border-box; }
+.security-workspace { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; }
+.security-workspace .security-card { min-width: 0; margin: 0; padding: 20px; }
+.security-workspace .security-row { padding-block: 14px; flex-wrap: wrap; }
+.security-workspace .security-row form { align-items: end; flex-wrap: wrap; }
+.security-workspace .security-device-details { position: relative; padding-left: 34px; min-width: 0; overflow-wrap: anywhere; }
+.security-device-icon { position: absolute; left: 0; top: 0; width: 24px; height: 24px; color: #17664c; }
+.security-alert-list { max-height: 420px; overflow-y: auto; padding-inline-end: 6px; }
+.security-alert-list:focus-visible { outline: 2px solid #17664c; outline-offset: 2px; }
+@media (max-width: 980px) {
+    .security-workspace { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+    body .security-page { width: calc(100% - 24px); }
+    .security-workspace .security-card { padding: 14px; }
+}

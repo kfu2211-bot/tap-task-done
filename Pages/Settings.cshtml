@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="/css/settings-polish.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/account-workspace.css" asp-append-version="true" />
+    <script defer src="/js/work-preferences.js" asp-append-version="true"></script>
 </head>
 <body>
     <div class="settings-layout">
@@ -33,7 +35,7 @@
         </aside>
         <main>
             <header><h1>@pageTitle</h1></header>
-            <section class="settings-content">
+            <section class="settings-content account-workspace">
                 @if (showProfile)
                 {
                 <div class="page-intro">
@@ -45,7 +47,7 @@
                     <div class="profile-summary" aria-label="Current profile">
                         <span id="profileAvatar" class="profile-avatar">@(Model.DisplayName.FirstOrDefault())</span>
                         <div><strong id="profileSummaryName" data-own-account-name>@Model.DisplayName</strong><span id="profileSummaryEmail">@Model.Email</span></div>
-                        <span class="local-profile-badge">Database profile</span>
+                        
                     </div>
                     <section class="photo-settings" aria-labelledby="photoHeading">
                         <div class="photo-settings-copy"><h3 id="photoHeading">Profile photo</h3><p>Use a clear photo so people can recognize you.</p></div>
@@ -58,13 +60,16 @@
                             <p id="photoMessage" class="photo-message" aria-live="polite"></p>
                         </div>
                     </section>
-                    <fieldset class="settings-group">
-                        <legend>Personal details</legend>
-                        <div class="field-grid">
-                            <label>Display name<input value="@Model.DisplayName" readonly /></label>
-                            <label>Email<input value="@Model.Email" readonly /></label>
-                        </div>
-                    </fieldset>
+                </section>
+                <section class="settings-card signout-card profile-shortcuts" aria-labelledby="profileShortcutsTitle">
+                    <div>
+                        <h2 id="profileShortcutsTitle">Manage your account</h2>
+                        <p>Update your work preferences or review where your account is signed in.</p>
+                    </div>
+                    <div class="profile-shortcut-links">
+                        <a class="settings-security-link" href="/Settings">Work preferences</a>
+                        <a class="settings-security-link" href="/Security">Security &amp; devices</a>
+                    </div>
                 </section>
                 }
                 else
@@ -74,19 +79,19 @@
                     <p>Manage your work preferences, availability, and account security.</p>
                 </div>
                 <form method="post" id="profileForm" class="settings-card account-card">
-                    <fieldset class="settings-group work-group">
+                    <div class="account-role"><label>Work role<select asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select></label></div><div id="freelancerPreferences"><fieldset class="settings-group work-group">
                         <legend>Work preferences</legend>
                         <div class="field-grid work-field-grid">
                             <label>Service / profession<input asp-for="Service" maxlength="60" placeholder="e.g. Plumber or balloon artist" /><small>Describe your specific skill so clients can find it, including unique services.</small></label>
                             <label>Service location<input asp-for="Location" maxlength="80" placeholder="e.g. Bacolor, Pampanga" /><small>Provide your barangay or service area within Bacolor, Pampanga.</small></label>
                             <label>Rate per task (₱)<input asp-for="Rate" type="number" min="1" step="1" placeholder="e.g. 600" /></label>
-                            <label>Work role<select asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select></label>
-                            <label>Availability<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label>
+                            
+                            <label>Availability preference<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label>
                         </div>
                     </fieldset>
-                    <p class="form-message">Current status: <strong>@Model.EffectiveAvailability</strong>. Your selected availability is restored after work is marked finished or cancelled. Pending client confirmation does not block new work.</p>
+                    <p class="form-message">Current status <strong class="account-status">@Model.EffectiveAvailability</strong><br />Your availability preference resumes when work finishes or is cancelled. Waiting for client confirmation does not block new work.</p>
                     <fieldset class="settings-group"><legend>Weekly availability</legend><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> }</div></fieldset>
-                    <div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite">@Model.Message</p><button class="primary-button" type="submit">Save changes</button></div>
+                    </div><div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite">@Model.Message</p><button class="primary-button" type="submit">Save changes</button></div>
                 </form>
                 <section class="settings-card demo-card" aria-labelledby="demoDataHeading" hidden>
                     <div class="demo-title"><h2 id="demoDataHeading">Saved data</h2><span>On this device</span></div>
