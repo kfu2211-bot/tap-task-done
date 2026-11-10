@@ -15,6 +15,12 @@ public static class BacolorServiceAreas
 
     public static string? Match(string? name) =>
         Names.FirstOrDefault(area => string.Equals(area, name?.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    public static IEnumerable<string> InLocation(string location)
+    {
+        var normalized = " " + System.Text.RegularExpressions.Regex.Replace(location.ToLowerInvariant(), "[^a-z0-9]+", " ").Trim() + " ";
+        return Names.Where(area => normalized.Contains(" " + area.ToLowerInvariant() + " ", StringComparison.Ordinal));
+    }
 }
 
 [Authorize]

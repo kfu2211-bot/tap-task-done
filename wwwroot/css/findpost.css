@@ -926,14 +926,16 @@ body {
 .no-results {
     display: none;
     width: 100%;
-    height: 60px;
     min-height: 60px;
-    max-height: 60px;
     margin-top: 8px;
-    border: 1px solid #292929;
+    border: 1px solid var(--line, #d5e5d7);
     border-radius: 10px;
-    background: #151515;
-    color: #777777;
+    background: var(--surface, #f2f7f0);
+    color: var(--text, #234739);
+    padding: 12px 16px;
+    text-align: center;
+    flex-wrap: wrap;
+    gap: 6px;
     align-items: center;
     justify-content: center;
     font-size: 12px;

@@ -17,11 +17,16 @@ namespace tts.Pages
             try
             {
                 var userId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-                var services = await (from profile in db.FreelancerProfiles.AsNoTracking()
+                var profiles = await (from profile in db.FreelancerProfiles.AsNoTracking()
                     join user in db.Users.AsNoTracking() on profile.UserId equals user.Id
                     where (profile.WorkRole == "freelancer" || profile.WorkRole == "both") && profile.UserId != userId
                         && profile.Service != "" && profile.Location != "" && profile.Availability == "Available"
-                    select profile.Service).ToListAsync(ct);
+                    select new { profile.UserId, profile.Service, profile.Location, profile.Availability }).ToListAsync(ct);
+                var supported = profiles.Where(p => BacolorServiceAreas.InLocation(p.Location).Any()).ToList();
+                var assignments = await FreelancerAvailability.AssignmentsAsync(db, supported.Select(p => p.UserId).ToArray(), ct);
+                var services = supported
+                    .Where(p => FreelancerAvailability.Effective(p.Availability, assignments.GetValueOrDefault(p.UserId) ?? []) == "Available")
+                    .Select(p => p.Service).ToList();
                 var terms = new Dictionary<string, string[]> {
                     ["Cleaning"] = ["clean"], ["Repairs"] = ["repair", "plumb", "electric"],
                     ["Errands"] = ["errand", "delivery"], ["Moving"] = ["moving", "mover", "hauling"],

@@ -274,10 +274,6 @@ document.addEventListener("DOMContentLoaded", function () {
         card.querySelector(".freelancer-info").append(reasons);
     });
 
-    const supportedAreas = Array.from(locationInput.options)
-        .filter(option => option.value)
-        .map(option => option.value.toLowerCase());
-
     function performSearch(keepProfile = false) {
         const openProfile = document.getElementById("providerDetailPanel");
         if (openProfile && keepProfile !== true) openProfile.classList.add("hidden");
@@ -295,9 +291,7 @@ document.addEventListener("DOMContentLoaded", function () {
         freelancerCards.forEach(function (card) {
             const name = card.querySelector(".freelancer-info strong").textContent.toLowerCase();
             const service = String(card.dataset.service || "").toLowerCase();
-            const area = String(card.dataset.location || "").toLowerCase();
-            const normalizedArea = " " + area.replace(/[^a-z0-9]+/g, " ").trim() + " ";
-            const matchedAreas = supportedAreas.filter(place => normalizedArea.includes(" " + place + " "));
+            const matchedAreas = (card.dataset.serviceAreas || "").toLowerCase().split("|").filter(Boolean);
             const matchesLocation = location ? matchedAreas.includes(location) : matchedAreas.length > 0;
             const rate = Number(card.dataset.rate);
             const status = String(card.dataset.availability || "").toLowerCase();
