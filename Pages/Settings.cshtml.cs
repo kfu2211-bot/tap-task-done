@@ -60,7 +60,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         { Message = "Please check your work preferences and try again."; return RedirectToPage(); }
         var serviceArea = SelectedServiceArea;
         if ((WorkRole is "freelancer" or "both") && serviceArea is null)
-        { Message = "Choose one of the five supported barangays in Bacolor before saving."; return RedirectToPage(); }
+        { ModelState.AddModelError(nameof(Location), "Choose one of the five supported barangays in Bacolor before saving."); return Page(); }
         if (!await db.Users.AnyAsync(x => x.Id == UserId)) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
         var profile = await db.FreelancerProfiles.FindAsync(UserId);
         if (profile is null) { profile = new FreelancerProfile { UserId = UserId }; db.FreelancerProfiles.Add(profile); }

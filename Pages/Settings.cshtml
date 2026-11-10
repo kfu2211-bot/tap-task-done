@@ -118,14 +118,14 @@
                         <div class="field-grid work-field-grid">
                             <label>Service / profession<input asp-for="Service" maxlength="60" placeholder="e.g. Plumber or balloon artist" /><small>Describe your specific skill so clients can find it, including unique services.</small></label>
                             <label for="Location">Service location
-                                <select id="Location" name="Location" aria-describedby="serviceLocationHelp">
+                                <select id="Location" name="Location" aria-describedby="serviceLocationHelp serviceLocationError">
                                     <option value="">Choose a barangay</option>
                                     @foreach (var area in tts.Pages.BacolorServiceAreas.Names)
                                     {
                                         <option value="@area" selected="@(area == Model.SelectedServiceArea)">@area</option>
                                     }
                                 </select>
-                                <small id="serviceLocationHelp">Choose where you offer services in Bacolor, Pampanga.</small>
+                                <span asp-validation-for="Location" id="serviceLocationError" class="text-danger"></span><small id="serviceLocationHelp">Choose where you offer services in Bacolor, Pampanga.</small>
                             </label>
                             <label>Rate per task (₱)<input asp-for="Rate" type="number" min="1" step="1" placeholder="e.g. 600" /></label>
                             

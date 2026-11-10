@@ -12,9 +12,11 @@ if (workRole && freelancerPreferences) {
     };
     const snapshot = () => JSON.stringify(Array.from(new FormData(form)));
     const initial = snapshot();
+    const location = document.getElementById("Location");
 
     function update() {
         freelancerPreferences.hidden = workRole.value === "client";
+        if (location) location.required = workRole.value !== "client";
         help.textContent = descriptions[workRole.value] || "";
         save.disabled = snapshot() === initial;
     }
