@@ -16,7 +16,7 @@ public class ProfilePhotoModel(ApplicationDbContext db, IDataProtectionProvider 
 {
     private const int MaxBytes = 5 * 1024 * 1024;
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-    private IDataProtector Protector => protection.CreateProtector("TapTaskDone.ProfilePicture.v1", UserId.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    private IDataProtector ProtectorFor(int ownerId) => protection.CreateProtector("TapTaskDone.ProfilePicture.v1", ownerId.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
     private void PrivateResponse()
     {
@@ -33,15 +33,19 @@ public class ProfilePhotoModel(ApplicationDbContext db, IDataProtectionProvider 
         return null;
     }
 
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(int? providerId, CancellationToken ct)
     {
         PrivateResponse();
         if (UserId <= 0) return Challenge();
-        var stored = await db.Users.AsNoTracking().Where(x => x.Id == UserId).Select(x => x.ProfilePicture).SingleOrDefaultAsync(ct);
+        var ownerId = providerId ?? UserId;
+        if (ownerId != UserId && !await db.FreelancerProfiles.AnyAsync(p => p.UserId == ownerId &&
+            (p.WorkRole == "freelancer" || p.WorkRole == "both") && p.Service != "" && p.Location != "", ct))
+            return NotFound();
+        var stored = await db.Users.AsNoTracking().Where(x => x.Id == ownerId && x.Role != "deleted").Select(x => x.ProfilePicture).SingleOrDefaultAsync(ct);
         if (stored is null || stored.Length == 0) return new NoContentResult();
         try
         {
-            var bytes = Protector.Unprotect(stored);
+            var bytes = ProtectorFor(ownerId).Unprotect(stored);
             var type = ImageType(bytes);
             if (type is null) return NotFound();
             return File(bytes, type);
@@ -63,7 +67,7 @@ public class ProfilePhotoModel(ApplicationDbContext db, IDataProtectionProvider 
         if (memory.Length > MaxBytes) return BadRequest();
         var bytes = memory.ToArray();
         if (ImageType(bytes) is null) return BadRequest(new { message = "The file is not a supported JPG, PNG or WEBP image." });
-        var encrypted = Protector.Protect(bytes);
+        var encrypted = ProtectorFor(UserId).Protect(bytes);
         var updated = await db.Users.Where(x => x.Id == UserId).ExecuteUpdateAsync(set => set.SetProperty(x => x.ProfilePicture, encrypted), ct);
         if (updated == 0) return NotFound();
         return new JsonResult(new { message = "Profile photo saved." });
