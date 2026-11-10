@@ -7,7 +7,10 @@ namespace tts.Pages
 {
     public class FindPostModel(ApplicationDbContext db, ILogger<FindPostModel> logger) : PageModel
     {
-        public record Provider(int Id, string Name, string Service, string Location, int? Rate, string Availability);
+        public record Provider(int Id, string Name, string Service, string Location, int? Rate, string SavedAvailability)
+        {
+            public string Availability { get; init; } = SavedAvailability;
+        }
         public record RatingSummary(double Average, int Count);
         public List<Provider> Providers { get; private set; } = [];
         public Dictionary<int, RatingSummary> Ratings { get; private set; } = [];

@@ -21,11 +21,10 @@ namespace tts.Pages
                     join user in db.Users.AsNoTracking() on profile.UserId equals user.Id
                     where (profile.WorkRole == "freelancer" || profile.WorkRole == "both") && profile.UserId != userId
                         && profile.Service != "" && profile.Location != "" && profile.Availability == "Available"
-                    select new { profile.UserId, profile.Service, profile.Location, profile.Availability }).ToListAsync(ct);
-                var supported = profiles.Where(p => BacolorServiceAreas.InLocation(p.Location).Any()).ToList();
-                var assignments = await FreelancerAvailability.AssignmentsAsync(db, supported.Select(p => p.UserId).ToArray(), ct);
-                var services = supported
-                    .Where(p => FreelancerAvailability.Effective(p.Availability, assignments.GetValueOrDefault(p.UserId) ?? []) == "Available")
+                    select new { profile.Service, profile.Location, profile.Availability }).ToListAsync(ct);
+                var services = profiles
+                    .Where(p => BacolorServiceAreas.InLocation(p.Location).Any() &&
+                        string.Equals(p.Availability, "Available", StringComparison.OrdinalIgnoreCase))
                     .Select(p => p.Service).ToList();
                 var terms = new Dictionary<string, string[]> {
                     ["Cleaning"] = ["clean"], ["Repairs"] = ["repair", "plumb", "electric"],

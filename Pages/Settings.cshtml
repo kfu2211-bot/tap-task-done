@@ -57,14 +57,14 @@
                             <div id="profilePhotoToken" hidden>@Html.AntiForgeryToken()</div>
                             <dialog id="profilePhotoCrop" aria-labelledby="profilePhotoCropTitle">
                                 <h2 id="profilePhotoCropTitle">Crop profile photo</h2>
-                                <canvas width="320" height="320" role="img" aria-label="Circular crop preview"
-                                        style="display:block;width:min(240px,100%);height:auto;margin:auto;border-radius:50%;background:#fff"></canvas>
+                                <p class="crop-hint">Adjust the image inside the circle before saving.</p>
+                                <canvas width="320" height="320" role="img" aria-label="Circular crop preview"></canvas>
                                 <p><label>Zoom <input type="range" min="1" max="3" step="0.01" value="1" /></label></p>
                                 <p><label>Horizontal position <input type="range" min="0" max="100" value="50" /></label></p>
                                 <p><label>Vertical position <input type="range" min="0" max="100" value="50" /></label></p>
                                 <form method="dialog">
                                     <button type="submit">Cancel</button>
-                                    <button type="button" class="photo-upload-button" data-save-crop>Save photo</button>
+                                    <button type="button" data-save-crop>Save photo</button>
                                 </form>
                             </dialog>
                             <button id="removePhotoButton" class="remove-photo-button" type="button">Remove photo</button>

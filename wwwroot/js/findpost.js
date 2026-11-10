@@ -295,18 +295,22 @@ document.addEventListener("DOMContentLoaded", function () {
             const matchesLocation = location ? matchedAreas.includes(location) : matchedAreas.length > 0;
             const rate = Number(card.dataset.rate);
             const status = String(card.dataset.availability || "").toLowerCase();
+            const savedStatus = (card.dataset.savedAvailability || "").toLowerCase();
+            const matchesAvailability = !availability || (availability === "available"
+                ? savedStatus === "available"
+                : availability === "busy" ? status.startsWith("busy") : status === availability);
             const categorySearch = categoryFromHome && query === categoryFromHome.trim().toLowerCase();
             const matchesOther = !otherCategory || !Object.values(categoryTerms).some(words => words.some(word => service.includes(word)));
             const matches = matchesOther && (!query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
                 matchesLocation &&
                 (maximum === null || (rate > 0 && rate <= maximum)) &&
-                (!availability || (availability === "busy" ? status.startsWith("busy") : status === availability));
+                matchesAvailability;
             card.style.display = matches ? "flex" : "none";
             const reasons = [];
             if (query && (matchesService(service, query) || name.includes(query))) reasons.push("service or name");
             if (matchesLocation) reasons.push("service area: " + matchedAreas.map(place => Array.from(locationInput.options).find(option => option.value.toLowerCase() === place).text).join(", "));
             if (maximum !== null && rate > 0 && rate <= maximum) reasons.push("budget");
-            if (availability && (availability === "busy" ? status.startsWith("busy") : status === availability)) reasons.push("availability");
+            if (availability && matchesAvailability) reasons.push("availability");
             const match = card.querySelector(".search-match-reasons");
             if (match) match.textContent = matches && reasons.length ? "Matched: " + reasons.join(", ") : "";
             if (matches) count++;
