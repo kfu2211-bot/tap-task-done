@@ -1,10 +1,3 @@
-const accountThemeStyles = document.createElement('link');
-accountThemeStyles.rel = 'stylesheet';
-accountThemeStyles.href = '/css/account-theme.css?v=2';
-document.head.append(accountThemeStyles);
-try {
-    if (localStorage.getItem("tts-theme") === "dark") document.documentElement.dataset.theme = "dark";
-} catch {}
 /* Keeps the signed-in account display identical on every authenticated page. */
 (function () {
     const warningStyle = document.createElement('link'); warningStyle.rel='stylesheet';warningStyle.href='/css/account-warning.css';document.head.append(warningStyle);
@@ -481,4 +474,4 @@ try {
 }());
 
 // Load account-security alerts on authenticated workspace screens.
-(() => { if (document.querySelector('script[src*="login-security-alert"]')) return; const script=document.createElement('script'); script.src='/js/login-security-alert.js?v=1'; script.defer=true; document.head.append(script); })();
+(() => { if (document.querySelector('script[src*="login-security-alert"]')) return; const script=document.createElement('script'); script.src='/js/login-security-alert.js?v=2'; script.defer=true; document.head.append(script); })();

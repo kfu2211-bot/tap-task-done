@@ -26,8 +26,8 @@ body:has(.page), body:has(.login-page) { background: #f6f7f3; color: #1c302b; }
 .page .signup-button:hover, .login-button:hover { background: #145d47; }
 .page .already a, .create-account-text a, .password-toggle { color: #19765a; }
 .login-page { background: #f6f7f3; color: #20372e; }
-.login-page::before { border-color: #d3e5d8; box-shadow: 0 0 0 42px rgba(37,118,79,.025), 0 0 0 84px rgba(37,118,79,.02); }
-.login-page::after { background: radial-gradient(circle, rgba(91,158,110,.1), transparent 68%); }
+.login-page::before,
+.login-page::after { content: none; }
 .login-logo { color: #183b2c; }
 .login-box { background: #fff; border-color: #e0e8e0; box-shadow: 0 20px 55px rgba(39,68,49,.09); }
 .create-account-text a:hover { color: #145d47; }

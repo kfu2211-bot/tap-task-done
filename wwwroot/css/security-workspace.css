@@ -14,3 +14,15 @@ body .security-page { width: min(100% - 48px, 1700px); max-width: none; box-sizi
     body .security-page { width: calc(100% - 24px); }
     .security-workspace .security-card { padding: 14px; }
 }
+
+.security-page .security-row form:has(input[type="password"]) {
+    align-items: flex-end;
+}
+
+.security-page .security-row form:has(input[type="password"]) > label {
+    margin-block: 0;
+}
+
+.security-page .security-row form:has(input[type="password"]) :is(input[type="password"], button) {
+    min-height: 44px;
+}

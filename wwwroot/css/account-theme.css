@@ -275,3 +275,216 @@ html[data-theme="dark"] body :is(.primary-button, .post-submit-button, .confirm-
 ):not(:disabled):hover {
     background: #a0ecc1 !important;
 }
+
+/* Standalone account, authentication, and admin pages share the saved theme. */
+html[data-theme="dark"] {
+    --signin-alert-surface: #202a25;
+    --signin-alert-text: #edf5ef;
+    --signin-alert-border: #52675b;
+    --signin-alert-control: #29473a;
+    --signin-alert-accent: #81dbb2;
+    --signin-alert-muted: #aabdb3;
+}
+
+html[data-theme="dark"] body :is(
+    .login-page, .email-verification-page, .admin-login-page, .admin-shell,
+    .admin-main, .identity-admin, .report-admin-body, .success-page,
+    .deletion-embedded, .right-side
+) {
+    background: var(--page) !important;
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .left-side, .login-box, .register-box, .signup-step, .password-popup,
+    .dropdown-menu, .dropdown-button, .email-verification-card, .verification-envelope,
+    .verification-success, .verification-status, .admin-login-card, .admin-sidebar,
+    .admin-topbar, .admin-card, .stat-card, .admin-report-card, .report-admin-sidebar,
+    .report-admin-header, .identity-topbar, .identity-guidance, .identity-empty,
+    .identity-request, .identity-review, .identity-reviewed, .security-recovery,
+    .deletion-steps li, .verification-resume, .security-checkbox, .work-agreement
+) {
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .verification-brand, .verification-back, .verification-change-action, .password-toggle,
+    .identity-eyebrow, .identity-back, .security-eyebrow, .admin-eyebrow,
+    .login-eyebrow, .signup-eyebrow, .return-link, .admin-sidebar nav a,
+    .report-admin-sidebar nav a, .security-row > a
+) {
+    color: var(--brand) !important;
+}
+
+html[data-theme="dark"] body :is(
+    .verification-steps, .verification-footer, .verification-expiry,
+    .verification-note, .security-device-note, .login-subtitle,
+    .signup-subtitle, .identity-footnote, .deletion-steps span, .copyright
+) {
+    color: var(--muted) !important;
+}
+
+html[data-theme="dark"] body :is(.dropdown-option, .security-row > a):hover {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body :is(.security-error, .verification-error, .admin-login-error, .deletion-danger-button) {
+    background: #362321 !important;
+    border-color: #97605a !important;
+    color: #ffc1b9 !important;
+}
+
+html[data-theme="dark"] body :is(.deletion-review, .identity-notice, .local-warning) {
+    background: #322c20 !important;
+    border-color: #79643d !important;
+    color: #f8dca4 !important;
+}
+
+/* Keep the shared brand readable and its divider subdued on every sidebar. */
+html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) {
+    border-block-end-color: var(--line) !important;
+}
+html[data-theme="dark"] body :is(.sidebar.sidebar.sidebar, .mytasks-sidebar.mytasks-sidebar.mytasks-sidebar)
+    :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) :is(span, strong):not(.brand-icon, .logo-check, .mytasks-logo-check) {
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body #findFreelancerSection .filter-group :is(select, option) {
+    color: var(--text) !important;
+    background-color: var(--surface) !important;
+    color-scheme: dark;
+}
+html[data-theme="dark"] body #findFreelancerSection .filter-group .input-wrapper > span {
+    color: var(--muted) !important;
+}
+html[data-theme="dark"] body #postTaskSection .post-categories label > span > span {
+    color: inherit !important;
+}
+
+html[data-theme="dark"] body .market-content .task-card :is(
+    .offer, .task-review, .task-review > summary, .task-review form,
+    .task-edit-form, .edit-task > summary, .task-chat-action
+),
+html[data-theme="dark"] body .db-tracking :is(
+    .tracking-intro, .tracking-picker summary, .tracking-picker-options,
+    .db-tracking-details > div, .tracking-location, .tracking-completion,
+    .completion-upload, .tracking-actions a, .tracking-actions button
+),
+html[data-theme="dark"] body .reviews-live :is(.reviews-overview, .reviews-tabs, .live-review) {
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body .db-tracking .tracking-intro .db-tracking-header {
+    background: transparent !important;
+}
+
+html[data-theme="dark"] body .market-content .task-card :is(.task-status strong, .offer-status, .task-review-icon, .task-chat-action),
+html[data-theme="dark"] body .db-tracking :is(.tracking-picker summary svg, .tracking-picker-check, .tracking-timeline li.done, .tracking-timeline li.current, .tracking-agreement summary),
+html[data-theme="dark"] body .reviews-live .reviews-overview-icon {
+    color: var(--brand) !important;
+}
+html[data-theme="dark"] body .market-content .task-card :is(.task-status strong, .offer-status, .task-review-icon),
+html[data-theme="dark"] body .reviews-live .reviews-overview-icon,
+html[data-theme="dark"] body .db-tracking .tracking-picker-options a:is(:hover, [aria-current="page"]) {
+    background: var(--surface-2) !important;
+}
+
+html[data-theme="dark"] body .market-content :is(.task-meta span, .task-status > span, .offer-label, .offer-details, .task-review-heading small),
+html[data-theme="dark"] body .db-tracking :is(.db-tracking-details span, .tracking-picker small, .tracking-timeline small, .job-location-status),
+html[data-theme="dark"] body .reviews-live :is(.reviews-overview-label, .reviews-overview-score span, .reviews-overview p, .reviews-section-heading > span, .review-top time, .review-task) {
+    color: var(--muted) !important;
+}
+html[data-theme="dark"] body .db-tracking :is(.tracking-picker-label, .tracking-person, .tracking-location > span),
+html[data-theme="dark"] body .market-content .task-card :is(.offer-heading strong, .offer-message),
+html[data-theme="dark"] body .reviews-live :is(.reviews-section-heading h3, .review-feedback) {
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body .db-tracking .tracking-timeline li::after {
+    background: var(--line);
+}
+html[data-theme="dark"] body .db-tracking .tracking-actions .tracking-primary {
+    background: var(--brand) !important;
+    border-color: var(--brand) !important;
+    color: #10241a !important;
+}
+
+
+html[data-theme="dark"] body :is(.sidebar.sidebar.sidebar, .mytasks-sidebar.mytasks-sidebar.mytasks-sidebar)
+    > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) {
+    border-bottom-color: var(--line) !important;
+}
+
+html[data-theme="dark"] body .db-tracking :is(.map-place-search button, .location-search-results button) {
+    background: var(--surface-2) !important;
+    border-color: var(--line) !important;
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body .db-tracking .agreement-history > summary {
+    color: var(--brand) !important;
+}
+
+html[data-theme="dark"] body .db-tracking .maplibregl-ctrl-attrib {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body .db-tracking .maplibregl-ctrl-attrib a {
+    color: var(--brand) !important;
+}
+
+html[data-theme="dark"] body .verification-page .identity-notice {
+    background: var(--surface-2) !important;
+    border-color: var(--line) !important;
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body .verification-page .status-card .status-icon {
+    background: #493b25 !important;
+    color: #f8dca4 !important;
+}
+
+html[data-theme="dark"] body .market-content .task-filter-empty {
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
+    color: var(--muted) !important;
+}
+
+html[data-theme="dark"] body #weeklyAvailability .weekly-day {
+    background: var(--page) !important;
+    border-color: var(--line) !important;
+    color: var(--text) !important;
+}
+
+html[data-theme="dark"] body #weeklyAvailability .weekly-day:has(input:checked) {
+    background: var(--surface-2) !important;
+    border-color: #52675b !important;
+}
+
+html[data-theme="dark"] body #weeklyAvailability .weekly-day input {
+    accent-color: var(--brand);
+}
+
+html[data-theme="dark"] body .security-page > .security-page-header {
+    background: transparent !important;
+    border-color: transparent !important;
+}
+
+html[data-theme="dark"] body .security-page :is(.security-row, .security-alert-list) {
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] body .security-page .security-device-icon {
+    color: var(--brand);
+}
+
+
+html[data-theme="dark"] body .login-logo {
+    color: var(--text);
+}

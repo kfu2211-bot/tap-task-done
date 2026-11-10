@@ -2,7 +2,7 @@
 @model tts.Pages.AccountDeletionModel
 @using tts.Data
 @{ Layout = null; }
-<!doctype html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" asp-append-version="true" /><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Delete account - Tap, Task, Done</title><link rel="stylesheet" href="~/css/login-security.css" asp-append-version="true"/><link rel="stylesheet" href="~/css/account-deletion.css" asp-append-version="true"/></head>
+<!doctype html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" asp-append-version="true" /><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Delete account - Tap, Task, Done</title><link rel="stylesheet" href="~/css/login-security.css" asp-append-version="true"/><link rel="stylesheet" href="~/css/account-deletion.css" asp-append-version="true"/><partial name="_AccountTheme" /></head>
 <body><main class="security-page deletion-page">
 <header class="security-page-header"><div><p class="security-eyebrow">ACCOUNT SETTINGS</p><h1>Delete account</h1><p>A reviewed process, with time to change your mind.</p></div><a class="security-return" href="/Settings">Back to Settings</a></header>
 @if(Model.Notice is not null){<p class="security-notice" role="status">@Model.Notice</p>}
