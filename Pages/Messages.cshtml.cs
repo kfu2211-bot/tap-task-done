@@ -37,7 +37,16 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
                 select new { c.Id, TaskId = t.Id, t.Title, t.ClientId, c.FreelancerId, t.Status, t.IsPrivate, Assigned = selected, Pending = pending, ClientName = (client.FirstName ?? "") + " " + (client.LastName ?? ""), FreelancerName = (freelancer.FirstName ?? "") + " " + (freelancer.LastName ?? "") }).ToListAsync(ct);
             Conversations = rows.Select(r => new Conversation(r.TaskId, r.Title, r.ClientId, r.FreelancerId, (r.ClientId == UserId ? r.FreelancerName : r.ClientName).Trim()) { Id = r.Id, Assigned = r.Assigned, CanSend = MaySend(r.Status, r.Assigned, r.Pending, r.IsPrivate) }).ToList();
             var ids = Conversations.Select(c => c.Id).ToArray();
-            LatestMessages = await db.MarketplaceMessages.AsNoTracking().Where(m => m.ConversationId != null && ids.Contains(m.ConversationId.Value) && !db.MarketplaceMessages.Any(later => later.ConversationId == m.ConversationId && later.Id > m.Id)).ToDictionaryAsync(m => m.ConversationId!.Value, ct);
+            if (ids.Length > 0)
+            {
+                var latestIds = db.MarketplaceMessages
+                    .Where(m => m.ConversationId.HasValue && ids.Contains(m.ConversationId.Value))
+                    .GroupBy(m => m.ConversationId)
+                    .Select(group => group.Max(m => m.Id));
+                LatestMessages = await db.MarketplaceMessages.AsNoTracking()
+                    .Where(m => latestIds.Contains(m.Id))
+                    .ToDictionaryAsync(m => m.ConversationId!.Value, ct);
+            }
             Conversations = Conversations.OrderByDescending(c => LatestMessages.TryGetValue(c.Id, out var m) ? m.CreatedAt : DateTime.MinValue).ThenByDescending(c => c.Id).ToList();
             Selected = conversationId.HasValue ? Conversations.FirstOrDefault(c => c.Id == conversationId) : taskId.HasValue ? Conversations.Where(c => c.TaskId == taskId && (!freelancerId.HasValue || c.FreelancerId == freelancerId)).OrderByDescending(c => c.Assigned).FirstOrDefault() : Conversations.FirstOrDefault();
             if ((conversationId.HasValue || taskId.HasValue) && Selected is null) return NotFound();

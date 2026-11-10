@@ -343,11 +343,10 @@
 
                                 <select id="locationInput" aria-label="Service area" style="width:100%;min-width:0">
                                     <option value="">All 5 supported areas</option>
-                                    <option>Solana Casa Real</option>
-                                    <option>Cabalantian</option>
-                                    <option>Parulog</option>
-                                    <option>Cabetican</option>
-                                    <option>Magliman</option>
+                                    @foreach (var area in tts.Pages.BacolorServiceAreas.Names)
+                                    {
+                                        <option value="@area">@area</option>
+                                    }
                                 </select>
 
                             </div>

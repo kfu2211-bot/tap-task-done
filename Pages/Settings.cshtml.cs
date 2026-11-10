@@ -8,6 +8,15 @@ using tts.Data;
 
 namespace tts.Pages;
 
+public static class BacolorServiceAreas
+{
+    public static IReadOnlyList<string> Names { get; } =
+        Array.AsReadOnly(new[] { "Solana Casa Real", "Cabalantian", "Parulog", "Cabetican", "Magliman" });
+
+    public static string? Match(string? name) =>
+        Names.FirstOrDefault(area => string.Equals(area, name?.Trim(), StringComparison.OrdinalIgnoreCase));
+}
+
 [Authorize]
 public class SettingsModel(ApplicationDbContext db) : PageModel
 {
@@ -17,6 +26,7 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
     public DateTime? DateOfBirth { get; private set; }
     [BindProperty] public string? Service { get; set; }
     [BindProperty] public string? Location { get; set; }
+    public string? SelectedServiceArea => BacolorServiceAreas.Match(Location?.Split(',')[0]);
     [BindProperty] public int? Rate { get; set; }
     [BindProperty] public string WorkRole { get; set; } = "client";
     [BindProperty] public string Availability { get; set; } = "Available";
@@ -42,6 +52,9 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
             !new[] { "client", "freelancer", "both" }.Contains(WorkRole) ||
             !new[] { "Available", "Busy", "Day off" }.Contains(Availability) || Days.Any(x => !validDays.Contains(x)))
         { Message = "Please check your work preferences and try again."; return RedirectToPage(); }
+        var serviceArea = BacolorServiceAreas.Match(Location);
+        if ((WorkRole is "freelancer" or "both") && serviceArea is null)
+        { Message = "Choose one of the five supported barangays in Bacolor before saving."; return RedirectToPage(); }
         if (!await db.Users.AnyAsync(x => x.Id == UserId)) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
         var profile = await db.FreelancerProfiles.FindAsync(UserId);
         if (profile is null) { profile = new FreelancerProfile { UserId = UserId }; db.FreelancerProfiles.Add(profile); }
@@ -49,7 +62,7 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
         if (WorkRole is "freelancer" or "both")
         {
             profile.Service = Service;
-            profile.Location = Location;
+            profile.Location = serviceArea!;
             profile.Rate = Rate;
             profile.Availability = Availability;
             profile.AvailableDays = string.Join(',', validDays.Where(Days.Contains));
