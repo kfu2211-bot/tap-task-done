@@ -188,3 +188,18 @@ html[data-theme="dark"] .admin-settings .review-button {
 @media (max-width: 850px) {
     .admin-settings-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+.admin-shell .admin-queue-notice {
+    border: 1px solid #a8cbb1;
+    border-radius: 10px;
+    padding: 14px 16px;
+}
+.admin-shell .admin-queue-notice + .admin-queue-notice { margin-top: 10px; }
+.admin-shell .admin-queue-notice strong { font-size: 15px; }
+.admin-shell .activity-field {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.admin-shell .activity-row[hidden] { display: none; }
