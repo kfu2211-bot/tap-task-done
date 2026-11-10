@@ -36,7 +36,7 @@
             message.textContent = handler === 'Upload' ? 'Uploading photo…' : 'Removing photo…';
             try {
                 const data = new FormData();
-                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = document.querySelector('#profilePhotoToken input[name="__RequestVerificationToken"]');
                 if (!token) throw new Error('Please refresh the page and try again.');
                 data.append('__RequestVerificationToken', token.value);
                 if (file) data.append('photo', file);
@@ -51,13 +51,61 @@
             } catch (error) { message.textContent = error.message; }
             finally { input.disabled = false; remove.disabled = false; input.value = ''; }
         }
-        input?.addEventListener('change', () => {
+        if (!input || !remove || !message) return;
+        const crop = document.getElementById('profilePhotoCrop');
+        const canvas = crop.querySelector('canvas');
+        const context = canvas.getContext('2d');
+        const sliders = [...crop.querySelectorAll('input[type="range"]')];
+        const [zoom, horizontal, vertical] = sliders;
+        const save = crop.querySelector('[data-save-crop]');
+        let source;
+        function draw() {
+            const size = canvas.width;
+            const scale = size / Math.min(source.naturalWidth, source.naturalHeight) * Number(zoom.value);
+            const width = source.naturalWidth * scale;
+            const height = source.naturalHeight * scale;
+            context.fillStyle = '#fff';
+            context.fillRect(0, 0, size, size);
+            context.drawImage(source, (size - width) * horizontal.value / 100,
+                (size - height) * vertical.value / 100, width, height);
+        }
+        sliders.forEach(slider => slider.addEventListener('input', draw));
+        crop.addEventListener('close', () => { input.value = ''; source = null; });
+        save.addEventListener('click', () => {
+            save.disabled = true;
+            canvas.toBlob(blob => {
+                save.disabled = false;
+                if (!crop.open) return;
+                if (!blob) { crop.close(); message.textContent = 'Could not crop this photo. Try another image.'; return; }
+                crop.close();
+                change('Upload', new File([blob], 'profile-photo.jpg', { type: 'image/jpeg' }));
+            }, 'image/jpeg', 0.9);
+        });
+        input.addEventListener('change', async () => {
             const file = input.files?.[0];
             if (!file) return;
             if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
                 message.textContent = 'Choose a JPG, PNG or WEBP image up to 5 MB.'; input.value = ''; return;
             }
-            change('Upload', file);
+            input.disabled = true;
+            remove.disabled = true;
+            const url = URL.createObjectURL(file);
+            try {
+                source = new Image();
+                source.src = url;
+                await source.decode();
+                sliders.forEach(slider => { slider.value = slider.defaultValue; });
+                draw();
+                message.textContent = '';
+                crop.showModal();
+            } catch {
+                input.value = '';
+                message.textContent = 'This image could not be opened. Try another JPG, PNG or WEBP.';
+            } finally {
+                URL.revokeObjectURL(url);
+                input.disabled = false;
+                remove.disabled = false;
+            }
         });
         remove?.addEventListener('click', () => change('Remove'));
     }
