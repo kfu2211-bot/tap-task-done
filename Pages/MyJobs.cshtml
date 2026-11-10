@@ -35,9 +35,20 @@ else if (visible.Count == 0 && (selected != "cancelled" || cancelledBookings.Cou
 @if (job.Offer.Status == "accepted") { <p class="job-card-link"><a href="/Messages?taskId=@job.Task.Id">Message client</a></p> }
 @if (selected == "active") { <div class="job-card-actions"><a class="job-progress-button" href="/Tracking?taskId=@job.Task.Id">View progress</a></div> }
 @if (selected == "active" && job.Task.Status == "assigned") { <form method="post" asp-page-handler="Advance" class="job-actions"><input type="hidden" name="id" value="@job.Task.Id" /><input type="hidden" name="action" value="travel" /><p class="job-meta">Travel opens Tracking and asks permission to share location until arrival.</p><button class="job-primary">Start travel</button></form> }
-@if (selected == "active" && job.Task.Status == "assigned") { <details class="job-withdraw"><summary>Withdraw from this job</summary><p>The client will be notified and the task will reopen for other freelancers. You cannot undo this or reapply to the same task.</p><form method="post" asp-page-handler="Withdraw" onsubmit="return confirm('Withdraw from this job? This cannot be undone.');"><input type="hidden" name="id" value="@job.Task.Id" /><label>Reason for withdrawing<textarea name="reason" maxlength="500" required></textarea></label><button type="submit">Confirm withdrawal</button></form></details> }
+@if (selected == "active" && job.Task.Status == "assigned") { <details class="job-withdraw"><summary>Withdraw from this job</summary><p>The client will be notified. You cannot reapply to this task.</p><form method="post" asp-page-handler="Withdraw" data-withdraw-job="@job.Task.Title"><input type="hidden" name="id" value="@job.Task.Id" /><label>Reason for withdrawing<textarea name="reason" maxlength="500" required></textarea></label><button type="submit">Review withdrawal</button></form></details> }
 @if (selected == "active" && job.Task.Status is "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation") { <p>If you cannot continue, contact the client to discuss the work and any payment already agreed upon.</p> }
 
 @if (job.Task.Status == "awaiting-confirmation" && job.Offer.Status == "accepted") { <p>Waiting for the client to confirm completion.</p> }</article> }
 </div>
-}</section></main></div></body></html>
+}</section></main></div>
+<dialog id="withdrawJobDialog" aria-labelledby="withdrawJobTitle" aria-describedby="withdrawJobDescription">
+    <h2 id="withdrawJobTitle">Withdraw from this job?</h2>
+    <strong data-job-title></strong>
+    <p id="withdrawJobDescription">The client will be notified, and the task will reopen for other freelancers. You cannot undo this or reapply to the same task.</p>
+    <form method="dialog">
+        <button value="cancel" autofocus>Keep job</button>
+        <button value="withdraw">Confirm withdrawal</button>
+    </form>
+</dialog>
+<script defer src="/js/withdraw-job.js" asp-append-version="true"></script>
+</body></html>

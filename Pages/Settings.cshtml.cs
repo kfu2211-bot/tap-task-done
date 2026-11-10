@@ -24,7 +24,7 @@ public static class BacolorServiceAreas
 }
 
 [Authorize]
-public class SettingsModel(ApplicationDbContext db) : PageModel
+public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logger) : PageModel
 {
     public string DisplayName { get; private set; } = "";
     public string EffectiveAvailability { get; private set; } = "Available";
@@ -58,7 +58,7 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
             !new[] { "client", "freelancer", "both" }.Contains(WorkRole) ||
             !new[] { "Available", "Busy", "Day off" }.Contains(Availability) || Days.Any(x => !validDays.Contains(x)))
         { Message = "Please check your work preferences and try again."; return RedirectToPage(); }
-        var serviceArea = BacolorServiceAreas.Match(Location);
+        var serviceArea = SelectedServiceArea;
         if ((WorkRole is "freelancer" or "both") && serviceArea is null)
         { Message = "Choose one of the five supported barangays in Bacolor before saving."; return RedirectToPage(); }
         if (!await db.Users.AnyAsync(x => x.Id == UserId)) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
@@ -73,7 +73,17 @@ public class SettingsModel(ApplicationDbContext db) : PageModel
             profile.Availability = Availability;
             profile.AvailableDays = string.Join(',', validDays.Where(Days.Contains));
         }
-        await db.SaveChangesAsync(); Message = "Work preferences saved to the database.";
+        try
+        {
+            await db.SaveChangesAsync(HttpContext.RequestAborted);
+        }
+        catch (DbUpdateException ex)
+        {
+            logger.LogError(ex, "Could not save work preferences for user {UserId}.", UserId);
+            Message = "Your changes could not be saved. Your previous work role is still active.";
+            return RedirectToPage();
+        }
+        Message = "Work preferences saved to the database.";
         return RedirectToPage();
     }
     public async Task<IActionResult> OnPostLogoutAsync() { if (LoginSecurity.Enabled(HttpContext.RequestServices.GetRequiredService<IConfiguration>())) await LoginSecurity.LogoutAsync(db, HttpContext, HttpContext.RequestAborted); await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
