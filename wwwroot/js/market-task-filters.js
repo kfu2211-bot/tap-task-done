@@ -38,3 +38,32 @@
         if (noTasks) noTasks.hidden = selected !== 'all';
     });
 })();
+const cancelTaskDialog = document.getElementById("cancelTaskDialog");
+if (cancelTaskDialog) {
+    let pendingTaskForm;
+    let confirmedTaskForm;
+
+    document.querySelectorAll("form[data-cancel-task]").forEach(form => {
+        form.addEventListener("submit", event => {
+            if (confirmedTaskForm === form) return;
+            event.preventDefault();
+            pendingTaskForm = form;
+            cancelTaskDialog.querySelector("[data-task-title]").textContent = form.dataset.cancelTask;
+            cancelTaskDialog.returnValue = "";
+            cancelTaskDialog.showModal();
+        });
+    });
+
+    cancelTaskDialog.addEventListener("close", () => {
+        const form = pendingTaskForm;
+        pendingTaskForm = null;
+        if (!form || cancelTaskDialog.returnValue !== "cancel-task") return;
+
+        confirmedTaskForm = form;
+        try {
+            form.requestSubmit();
+        } finally {
+            confirmedTaskForm = null;
+        }
+    });
+}

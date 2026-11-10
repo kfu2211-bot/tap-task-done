@@ -65,6 +65,28 @@ html body .notification-popover-heading small{font-size:12px;margin-top:5px;line
 html body .notification-popover-close{display:grid;place-items:center;flex:none;width:36px;height:36px;padding:8px;background:#edf5ee;color:#175d45;border:1px solid #d6e7da;border-radius:10px;cursor:pointer}
 .notification-popover-close svg{width:19px;height:19px}
 .notification-filters{display:flex;gap:20px;padding:0 18px;border-bottom:1px solid #e1ebe3}
+.notification-read-all {
+    display: block;
+    margin: 6px 16px 6px auto;
+    min-height: 44px;
+    padding: 6px 12px;
+    border: 1px solid #c6dfcf;
+    border-radius: 8px;
+    background: #edf6ef;
+    color: #175d45;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.notification-read-all:disabled { opacity: .65; cursor: default; }
+.notification-read-all-status { display: block; padding: 0 16px 8px; font-size: 12px; }
+.notification-read-all-status:empty { padding: 0; }
+html[data-theme="dark"] .notification-read-all {
+    background: #20392e;
+    color: #b9f0d4;
+    border-color: #526c5f;
+}
 html body .notification-filters button{border:0;border-bottom:3px solid transparent;border-radius:0;background:transparent;color:#60786b;padding:13px 7px 11px;min-height:44px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 html body .notification-filters button[aria-pressed=true]{border-bottom-color:#19765b;color:#175d45}
 html body .notification-popover-list{max-height:min(480px,calc(100dvh - 255px));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#bfd4c4 transparent}

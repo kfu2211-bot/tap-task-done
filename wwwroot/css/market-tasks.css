@@ -101,3 +101,31 @@ html body .market-content .task-card .task-actions > form > button { width:100%;
     html body .market-content .task-meta { grid-template-columns:repeat(2,minmax(0,1fr)); }
     html body .market-content .task-actions { flex-direction:column; }
 }
+
+#cancelTaskDialog {
+    box-sizing: border-box;
+    width: min(440px, calc(100% - 32px));
+    padding: 24px;
+    border: 1px solid var(--line, #cbded0);
+    border-radius: 16px;
+    background: var(--surface, #fff);
+    color: var(--text, #17382c);
+    box-shadow: 0 20px 60px #091b1650;
+    overflow-wrap: anywhere;
+}
+#cancelTaskDialog::backdrop { background: #091b1680; }
+#cancelTaskDialog h2 { margin: 0 0 12px; font-size: 1.3rem; }
+#cancelTaskDialog p { color: var(--muted, #49675a); line-height: 1.5; }
+#cancelTaskDialog form { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+#cancelTaskDialog button {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--line, #cbded0);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+#cancelTaskDialog button[value="cancel-task"] { background: #a32932; border-color: #a32932; color: #fff; }

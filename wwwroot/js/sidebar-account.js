@@ -186,6 +186,17 @@
         panel.innerHTML = '<div class="notification-popover-heading"><span class="notification-heading-icon">'+bellIcon+'</span><div><strong>Notifications <span class="notification-new-count" hidden></span></strong><small>Updates on your work and account</small></div><button type="button" class="notification-popover-close" aria-label="Close notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><div class="notification-filters" role="group" aria-label="Filter notifications"><button type="button" data-filter="all" aria-pressed="true">All</button><button type="button" data-filter="unread" aria-pressed="false">Unread</button></div><div class="notification-popover-list" aria-live="polite"></div><div class="notification-popover-footer"><a class="notification-popover-all" href="/Notifications">View all notifications</a></div>';
         document.body.appendChild(panel);
         var notificationList = panel.querySelector(".notification-popover-list");
+        var readAll = document.createElement("button");
+        readAll.type = "button";
+        readAll.className = "notification-read-all";
+        readAll.textContent = "Mark all as read";
+        readAll.disabled = true;
+        panel.querySelector(".notification-filters").after(readAll);
+        var readAllStatus = document.createElement("span");
+        readAllStatus.className = "notification-read-all-status";
+        readAllStatus.setAttribute("role", "status");
+        readAll.after(readAllStatus);
+        var markingAll = false;
         var currentTrigger = null;
         var notificationForms = [], notificationFilter = 'all';
         var notificationIcons = {
@@ -232,6 +243,7 @@
         }
         async function loadNotifications() {
             notificationForms = [];
+            readAll.disabled = true;
             panel.querySelector('.notification-new-count').hidden = true;
             notificationList.textContent = "Loading notifications…";
             try {
@@ -247,14 +259,38 @@
                     return;
                 }
                 notificationForms = forms.sort((a,b) => (Date.parse(b.querySelector('.notification-item').dataset.created)||0) - (Date.parse(a.querySelector('.notification-item').dataset.created)||0));
-                var unreadCount = forms.filter(form => form.querySelector('.notification-item').classList.contains('unread')).length;
+                var unreadCount = await updateNotificationCount() ?? forms.filter(form => form.querySelector('.notification-item').classList.contains('unread')).length;
                 var newCount = panel.querySelector('.notification-new-count'); newCount.textContent = unreadCount + ' new'; newCount.hidden = unreadCount === 0;
+                readAll.disabled = markingAll || unreadCount === 0;
                 notificationForms.forEach(function (form) {
                     form.setAttribute("action", form.getAttribute('action') || "/Notifications?handler=Open");
                 });
                 renderNotificationForms();
             } catch (error) { notificationList.textContent = "Could not load notifications. Please try again."; }
         }
+        readAll.addEventListener("click", async function () {
+            var token = notificationForms[0]?.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            if (!token || markingAll) return;
+            markingAll = true;
+            readAll.disabled = true;
+            readAllStatus.textContent = "Marking notifications as read…";
+            try {
+                var response = await fetch("/Notifications?handler=ReadAll", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    body: new URLSearchParams({ __RequestVerificationToken: token })
+                });
+                if (response.status !== 204 || response.redirected) throw new Error("Mark all failed");
+                markingAll = false;
+                await loadNotifications();
+                readAllStatus.textContent = "All previous notifications marked as read.";
+            } catch {
+                readAll.disabled = false;
+                readAllStatus.textContent = "Could not mark notifications as read. Try again.";
+            } finally {
+                markingAll = false;
+            }
+        });
         panel.querySelector(".notification-popover-close").addEventListener("click", function () { closeNotifications(); if (currentTrigger) currentTrigger.focus(); });
         document.addEventListener("click", function (event) { if (!panel.hidden && !panel.contains(event.target) && !(currentTrigger && currentTrigger.contains(event.target))) closeNotifications(); });
         document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !panel.hidden) { closeNotifications(); if (currentTrigger) currentTrigger.focus(); } });
@@ -280,7 +316,7 @@
                 var accountPopover = document.getElementById("headerAccountMenu");
                 if (accountPopover) { accountPopover.hidden = true; document.getElementById("headerAccountButton").setAttribute("aria-expanded", "false"); }
                 closeNotifications();
-                if (!wasOpen) { currentTrigger = button; panel.hidden = false; button.setAttribute("aria-expanded", "true"); loadNotifications(); }
+                if (!wasOpen) { currentTrigger = button; panel.hidden = false; button.setAttribute("aria-expanded", "true"); readAllStatus.textContent = ""; loadNotifications(); }
             }, true);
         });
 
@@ -296,6 +332,7 @@
                     var badge = button.querySelector(".notification-count-badge");
                     if (badge) { badge.textContent = count > 99 ? "99+" : String(count); badge.hidden = count <= 0; }
                 });
+                return count;
             } catch (error) { console.warn("Notifications could not be refreshed.", error); }
         }
         updateNotificationCount();

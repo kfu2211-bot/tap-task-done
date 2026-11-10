@@ -36,6 +36,28 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
         return Page();
     }
 
+    public async Task<IActionResult> OnPostReadAllAsync(CancellationToken ct)
+    {
+        var userId = UserId;
+        if (userId <= 0) return Challenge();
+
+        var now = DateTime.UtcNow;
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await db.MarketplaceNotifications.Where(n => n.UserId == userId && !n.IsRead && n.Kind != "dispute")
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true), ct);
+        await db.IdentityRequests.Where(r => r.UserId == userId && r.ReviewedAt != null && r.ReviewReadAt == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(r => r.ReviewReadAt, now), ct);
+        await db.AccountModerationActions.Where(a => a.UserId == userId && a.ReadAt == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(a => a.ReadAt, now), ct);
+        if (LoginSecurity.Enabled(HttpContext.RequestServices.GetRequiredService<IConfiguration>()))
+        {
+            await db.Set<LoginAlert>().Where(a => a.UserId == userId && a.ReadUtc == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.ReadUtc, now), ct);
+        }
+        await transaction.CommitAsync(ct);
+        return new NoContentResult();
+    }
+
     public async Task<IActionResult> OnPostReadAccountAsync(long id, CancellationToken ct)
     {
         if (UserId <= 0) return Challenge();

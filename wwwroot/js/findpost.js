@@ -317,17 +317,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         noResults.textContent = noResults.dataset.unavailable === "true" ? "The freelancer directory is temporarily unavailable. Please try again later." : "No freelancers match these filters in the supported areas. Try adjusting your filters or post a task.";
         if (count === 0 && location && noResults.dataset.unavailable !== "true") {
-            noResults.textContent = "No matching freelancers in " + locationInput.selectedOptions[0].text + ". ";
+            const heading = document.createElement("strong");
+            heading.textContent = "No matching freelancers in " + locationInput.selectedOptions[0].text;
+            const hint = document.createElement("span");
+            hint.textContent = "Try the same filters across all supported barangays.";
             const expand = document.createElement("button");
             expand.type = "button";
+            expand.className = "expand-area-search";
             expand.textContent = "Search all 5 supported areas";
-            expand.style.minHeight = "44px";
             expand.addEventListener("click", () => {
                 locationInput.value = "";
                 performSearch();
                 locationInput.focus();
             });
-            noResults.append(expand);
+            noResults.replaceChildren(heading, hint, expand);
         }
         noResults.classList.toggle("show", count === 0);
     }

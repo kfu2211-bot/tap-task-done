@@ -40,7 +40,7 @@
                 {
                 <div class="page-intro">
                     <h2>Your profile</h2>
-                    <p>View your account details and manage your profile photo.</p>
+                    <p>Manage your display name and profile photo.</p>
                 </div>
                 <section class="settings-card account-card">
                     <h2>Account profile</h2>
@@ -81,6 +81,24 @@
                         <div><dt>Login email</dt><dd>@Model.Email</dd></div>
                         <div><dt>Date of birth</dt><dd>@(Model.DateOfBirth?.ToString("MMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture) ?? "Not provided")</dd></div>
                     </dl>
+                    @if (!string.IsNullOrWhiteSpace(Model.Message))
+                    {
+                        <p role="status">@Model.Message</p>
+                    }
+                    <details class="profile-name-editor" open="@(Request.Query["editName"] == "True" ? "open" : null)">
+                        <summary>Edit display name</summary>
+                        <form method="post" asp-page-handler="DisplayName">
+                            <div class="profile-name-fields">
+                                <label for="profileFirstName">First name
+                                    <input id="profileFirstName" name="firstName" value="@Model.FirstName" autocomplete="given-name" maxlength="45" required />
+                                </label>
+                                <label for="profileLastName">Last name (optional)
+                                    <input id="profileLastName" name="lastName" value="@Model.LastName" autocomplete="family-name" maxlength="45" />
+                                </label>
+                            </div>
+                            <button class="settings-security-link" type="submit">Save display name</button>
+                        </form>
+                    </details>
                 </section>
                 @if (Model.WorkRole is "freelancer" or "both")
                 {
@@ -91,7 +109,6 @@
                             <div><dt>Service location</dt><dd>@(string.IsNullOrWhiteSpace(Model.Location) ? "Not set" : Model.Location)</dd></div>
                             <div><dt>Rate per task</dt><dd>@(Model.Rate is int rate ? $"₱{rate:N0}" : "Not set")</dd></div>
                         </dl>
-                        <a href="/Settings#work-preferences">Edit work preferences</a>
                     </section>
                 }
                 <section class="settings-card signout-card profile-shortcuts" aria-labelledby="profileShortcutsTitle">

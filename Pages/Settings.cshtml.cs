@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -27,6 +28,8 @@ public static class BacolorServiceAreas
 public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logger) : PageModel
 {
     public string DisplayName { get; private set; } = "";
+    public string? FirstName { get; private set; }
+    public string? LastName { get; private set; }
     public string EffectiveAvailability { get; private set; } = "Available";
     public string Email { get; private set; } = "";
     public DateTime? DateOfBirth { get; private set; }
@@ -44,11 +47,56 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Id == UserId);
         if (user is null) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
         DisplayName = $"{user.FirstName} {user.LastName}".Trim(); Email = user.Username ?? ""; DateOfBirth = user.DateOfBirth;
+        FirstName = user.FirstName;
+        LastName = user.LastName;
         var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId);
         if (profile != null) { Service = profile.Service; Location = profile.Location; Rate = profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
         EffectiveAvailability = await FreelancerAvailability.GetAsync(db, UserId, Availability, HttpContext.RequestAborted);
         return Page();
     }
+    public async Task<IActionResult> OnPostDisplayNameAsync(string? firstName, string? lastName, CancellationToken ct)
+    {
+        firstName = firstName?.Trim();
+        lastName = lastName?.Trim();
+        if (string.IsNullOrEmpty(firstName) || firstName.Length > 45 || lastName?.Length > 45)
+        {
+            Message = "Enter a first name and use up to 45 characters per name.";
+            return RedirectToPage(new { view = "profile", editName = true });
+        }
+
+        var scheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        var ticket = await HttpContext.AuthenticateAsync(scheme);
+        if (ticket.Principal?.Identity is not ClaimsIdentity identity || UserId == 0)
+            return Challenge(scheme);
+
+        var user = await db.Users.SingleOrDefaultAsync(x => x.Id == UserId, ct);
+        if (user is null)
+        {
+            await HttpContext.SignOutAsync(scheme);
+            return RedirectToPage("/Login");
+        }
+
+        user.FirstName = firstName;
+        user.LastName = lastName ?? "";
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex)
+        {
+            logger.LogError(ex, "Could not save display name for user {UserId}.", UserId);
+            Message = "Your display name could not be saved. Please try again.";
+            return RedirectToPage(new { view = "profile", editName = true });
+        }
+
+        foreach (var claim in identity.FindAll(identity.NameClaimType).ToArray())
+            identity.RemoveClaim(claim);
+        identity.AddClaim(new Claim(identity.NameClaimType, $"{user.FirstName} {user.LastName}".Trim()));
+        await HttpContext.SignInAsync(scheme, ticket.Principal, ticket.Properties);
+        Message = "Display name updated.";
+        return RedirectToPage(new { view = "profile" });
+    }
+
     public async Task<IActionResult> OnPostAsync()
     {
         var validDays = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
