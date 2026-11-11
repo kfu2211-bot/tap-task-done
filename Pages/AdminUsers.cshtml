@@ -26,7 +26,7 @@
                     <p><strong>Confirmed offenses: @user.Moderation.Offenses</strong> · Next: @tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)</p>
                     @if(user.Moderation.Target > 0 && !user.Moderation.Permanent) { <p>Recovery progress: @user.Moderation.Completed / @user.Moderation.Target completed tasks. Temporary suspension ends automatically; completion credit starts after it ends.</p> }
                     @if(user.Moderation.Legacy) { <p>Previous actions remain in history; they are not automatically counted as new offenses.</p> }
-                    <form method="post" onsubmit="return confirm(event.submitter?.value === 'offense' ? 'Record this confirmed incident and apply the displayed next penalty? The same incident must not be counted twice.' : 'Lift the current penalty after admin review? Offense history will remain.')">
+                    <form method="post" data-moderation-account="@user.Name" data-next-penalty="@tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)">
                         <input type="hidden" name="userId" value="@user.Id" /><input type="hidden" name="expectedNumber" value="@(user.Moderation.Offenses + 1)" /><input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
                         <label class="reason-label" for="case-@user.Id">Incident reference <span>(required for a new offense; e.g. report:123)</span></label><input id="case-@user.Id" name="incidentKey" maxlength="100" placeholder="report:123 or unique case reference" />
                         <label class="reason-label" for="reason-@user.Id">Reason for this decision <span>(required)</span></label>
@@ -44,7 +44,55 @@
         <p class="empty" id="noMatches" hidden>No accounts match your search.</p>
     }
 </main>
+<dialog id="moderationDecision" aria-labelledby="moderationTitle" aria-describedby="moderationDescription">
+    <h2 id="moderationTitle"></h2>
+    <p id="moderationDescription"></p>
+    <p class="moderation-summary"></p>
+    <form method="dialog" class="actions">
+        <button value="back" autofocus>Back to review</button>
+        <button class="primary" value="confirm"></button>
+    </form>
+</dialog>
 <script>
+    const decision = document.getElementById('moderationDecision');
+    let pendingSubmitter;
+    let confirmedSubmitter;
+    document.querySelectorAll('form[data-moderation-account]').forEach(form => {
+        form.addEventListener('submit', event => {
+            const submitter = event.submitter;
+            if (!submitter || submitter === confirmedSubmitter) return;
+            event.preventDefault();
+            pendingSubmitter = submitter;
+            const offense = submitter.value === 'offense';
+            decision.querySelector('h2').textContent = offense ? submitter.textContent.trim() + '?' : 'Lift this penalty?';
+            decision.querySelector('#moderationDescription').textContent = offense
+                ? 'This records the incident and applies the penalty shown below. Count each incident only once.'
+                : 'This lifts the current penalty. The decision stays in the admin history.';
+            decision.querySelector('.moderation-summary').textContent = offense
+                ? [form.dataset.moderationAccount, form.elements.incidentKey.value.trim(), form.dataset.nextPenalty].filter(Boolean).join(' · ')
+                : form.dataset.moderationAccount;
+            decision.querySelector('[value="confirm"]').textContent = offense ? 'Record offense' : 'Lift penalty';
+            decision.returnValue = '';
+            if (window.frameElement) {
+                const frameTop = window.frameElement.getBoundingClientRect().top;
+                decision.style.top = Math.max(16, window.parent.innerHeight / 2 - frameTop) + 'px';
+                decision.classList.add('moderation-embedded');
+            }
+            decision.showModal();
+        });
+    });
+    decision.addEventListener('close', () => {
+        const submitter = pendingSubmitter;
+        pendingSubmitter = null;
+        if (!submitter || decision.returnValue !== 'confirm') return;
+        confirmedSubmitter = submitter;
+        try {
+            submitter.form.requestSubmit(submitter);
+        } finally {
+            confirmedSubmitter = null;
+        }
+    });
+
     const search = document.getElementById('search');
     search?.addEventListener('input', () => {
         const query = search.value.trim().toLowerCase();
