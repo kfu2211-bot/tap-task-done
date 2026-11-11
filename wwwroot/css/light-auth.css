@@ -85,3 +85,45 @@ body:has(.page), body:has(.login-page) { background: #f6f7f3; color: #1c302b; }
 #loginForm .login-status:empty { display: none; }
 @keyframes login-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { #loginForm .login-spinner { animation: none; } }
+
+/* Keep signup content in normal flow when browser zoom reduces the viewport. */
+html:has(.page), body:has(.page) {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.page {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    align-items: stretch;
+}
+.page .left-side {
+    height: auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.page .left-content {
+    position: static;
+    transform: none;
+    margin: auto 0;
+    padding: 48px 0;
+}
+.page .copyright {
+    position: static;
+    margin-top: auto;
+}
+.page .right-side {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+    padding: 32px;
+}
+.page .register-box { box-sizing: border-box; max-width: 100%; margin: auto; }
+@media (max-width: 1000px) {
+    .page .left-side { min-height: 0; }
+    .page .left-content { margin: 0; padding: 36px 0 0; }
+    .page .right-side { min-height: 0; }
+}
