@@ -304,12 +304,12 @@ app.MapGet("/api/places/search", async (string? q, PlaceSearch search, Cancellat
     catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or InvalidOperationException)
     { return Results.Json(new { message = "Location search is unavailable. Use the map pin or current location instead." }, statusCode: 503); }
 }).RequireAuthorization().RequireRateLimiting("PlaceSearchLimit");
-app.MapGet("/api/places/reverse", async (double lat, double lon, PlaceSearch search, CancellationToken ct) =>
+app.MapGet("/api/places/reverse", async (double lat, double lon, PlaceSearch search, ILogger<PlaceSearch> logger, CancellationToken ct) =>
 {
     if (!TaskLocationRules.Valid(lat, lon)) return Results.BadRequest();
     try { return Results.Json(await search.ReverseAsync(lat, lon, ct)); }
     catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or InvalidOperationException)
-    { return Results.Json(new { message = "Address lookup is unavailable." }, statusCode: 503); }
+    { logger.LogWarning("Reverse address lookup failed: {FailureType}, HTTP status {StatusCode}.", ex.GetType().Name, (ex as HttpRequestException)?.StatusCode); return Results.Json(new { message = "Address lookup is unavailable." }, statusCode: 503); }
 }).RequireAuthorization().RequireRateLimiting("PlaceSearchLimit");
 app.MapRazorPages();
 
