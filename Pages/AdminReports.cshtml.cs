@@ -34,21 +34,24 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         try
         {
         var query = from r in db.SafetyReports.AsNoTracking() join u in db.Users.AsNoTracking() on r.ReporterId equals u.Id
-            select new ReportItem(r, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim());
+            select new { Report = r, u.FirstName, u.LastName };
         if (StatusFilter is "open" or "reviewing" or "resolved" or "dismissed") query = query.Where(x => x.Report.Status == StatusFilter);
         else StatusFilter = "all";
         if (int.TryParse(PriorityFilter, out var priority) && priority is >= 0 and <= 3) query = query.Where(x => x.Report.Priority == priority);
         else PriorityFilter = "all";
         Sort = Sort is "oldest" or "priority" ? Sort : "recent";
-        Reports = await (Sort == "oldest" ? query.OrderBy(x => x.Report.CreatedAt).ThenBy(x => x.Report.Id)
+        var rows = await (Sort == "oldest" ? query.OrderBy(x => x.Report.CreatedAt).ThenBy(x => x.Report.Id)
             : Sort == "priority" ? query.OrderByDescending(x => x.Report.Priority).ThenByDescending(x => x.Report.CreatedAt).ThenByDescending(x => x.Report.Id)
             : query.OrderByDescending(x => x.Report.CreatedAt).ThenByDescending(x => x.Report.Id)).Take(100).ToListAsync(ct);
+        Reports = rows.Select(x => new ReportItem(x.Report, ((x.FirstName ?? "") + " " + (x.LastName ?? "")).Trim())).ToList();
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         {
             logger.LogError(ex, "Unable to load safety reports.");
             DatabaseUnavailable = true;
-            Notice = "Safety reports could not be loaded. Please check the report database setup and try again.";
+            Notice = ex is MySqlConnector.MySqlException { Number: 1054 } mysql && mysql.Message.Contains("Priority", StringComparison.OrdinalIgnoreCase)
+                ? "Safety reports need a database update before they can be displayed. Contact the administrator to apply the report priority setup."
+                : "Safety reports could not be loaded. Please try again or contact the administrator.";
             return Page();
         }
         var ids = Reports.Select(x => x.Report.Id).ToList();

@@ -37,6 +37,21 @@
 .report-total, .report-status { flex-shrink: 0; padding: 8px 13px; border: 1px solid #365548; border-radius: 999px; background: #152b22; color: #a6f1d0; font-size: 13px; font-weight: 700; }
 .report-guidance, .report-empty { margin: 25px 0; padding: 20px; border: 1px solid #29463a; border-radius: 12px; background: #102019; }
 .report-guidance p { margin: 7px 0 0; }
+.admin-report-page .report-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:14px; align-items:end; margin:20px 0; padding:18px; border:1px solid #cfe2d2; border-radius:12px; background:#f4f9f4; }
+.report-filter-field { display:grid; gap:7px; min-width:0; }
+.report-filter-field label { font-size:13px; font-weight:700; color:#285344; }
+.report-filter-field select { width:100%; min-height:44px; padding:9px 12px; border:1px solid #bad4c0; border-radius:8px; color:#163d30; background:#fff; font:inherit; }
+.report-filters button { min-height:44px; padding:10px 18px; border:1px solid #176b50; border-radius:8px; background:#176b50; color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+.admin-report-page .report-notice { margin:20px 0; padding:18px 20px; border:1px solid #cfe2d2; border-radius:12px; background:#f3f9f3; color:#163d30; }
+.admin-report-page .report-notice-error { border-color:#e9cc96; background:#fff8e9; color:#754d13; }
+.report-notice p { margin:6px 0; line-height:1.5; }
+.admin-report-page .report-notice a { color:#176b50; font-weight:700; text-decoration:underline; }
+html[data-theme="dark"] .admin-report-page .report-filters, html[data-theme="dark"] .admin-report-page .report-notice { background:#1c3028; border-color:#426252; color:#ecf7ef; }
+html[data-theme="dark"] .report-filter-field label { color:#d8eadc; }
+html[data-theme="dark"] .report-filter-field select { background:#14251e; border-color:#577469; color:#ecf7ef; }
+html[data-theme="dark"] .admin-report-page .report-notice-error { background:#49371d; border-color:#c99544; color:#ffe4ad; }
+html[data-theme="dark"] .admin-report-page .report-notice a { color:#a1e5c2; }
+@media(max-width:700px) { .admin-report-page .report-filters { grid-template-columns:1fr; } .report-filters button { width:100%; } }
 .admin-report-card { padding: 26px; border-color: #2b4038; }
 .report-card-heading h2 { margin: 6px 0; font-size: 22px; }
 .status-open { background: #302a16; border-color: #66582e; color: #f6d785; }
