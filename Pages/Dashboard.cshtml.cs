@@ -12,8 +12,23 @@ namespace tts.Pages
         public bool ReviewsUnavailable { get; private set; }
         public Dictionary<string, int> CategoryCounts { get; private set; } = new();
         public bool CategoriesUnavailable { get; private set; }
+        public List<MarketplaceTask> AvailableTasks { get; private set; } = [];
+        public bool ShowAvailableTasks { get; private set; }
+        public bool TasksUnavailable { get; private set; }
         public async Task OnGetAsync(CancellationToken ct)
         {
+            try
+            {
+                var viewerId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+                var role = await db.FreelancerProfiles.AsNoTracking().Where(p => p.UserId == viewerId).Select(p => p.WorkRole).SingleOrDefaultAsync(ct);
+                ShowAvailableTasks = role is "freelancer" or "both";
+                if (ShowAvailableTasks)
+                    AvailableTasks = await db.MarketplaceTasks.AsNoTracking()
+                        .Where(t => t.ClientId != viewerId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow))
+                        .OrderByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id).Take(4).ToListAsync(ct);
+            }
+            catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+            { logger.LogError(ex, "Unable to load available tasks on the dashboard"); TasksUnavailable = true; }
             try
             {
                 var userId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;

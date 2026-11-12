@@ -27,6 +27,8 @@ html body .notification-popover-list .notification-item > span:nth-child(2) { fl
 html body .header-account-actions .app-notification-trigger { margin:0 !important; position:relative !important; overflow:visible !important; }
 html body .app-notification-trigger .notification-count-badge { position:absolute; top:-7px; right:-7px; display:grid; place-items:center; min-width:20px; height:20px; padding:0 5px; border:2px solid #fff; border-radius:999px; background:#c83f48; color:#fff; font:700 11px/1 system-ui,sans-serif; box-sizing:border-box; }
 html body .app-notification-trigger .notification-count-badge[hidden] { display:none !important; }
+html body .app-notification-trigger .notification-message-badge { left:-7px; right:auto; background:#256a9b; }
+html body .app-notification-trigger .notification-other-badge { top:auto; bottom:-7px; right:-7px; background:#8a601c; }
 html body #headerAccountButton { display:flex; align-items:center; gap:10px; height:46px; max-width:260px; padding:4px 10px 4px 7px; border:1px solid #d9e7da; border-radius:4px; background:#f8faf4; color:#193e30; font:600 14px/1.2 system-ui,sans-serif; cursor:pointer; }
 html body #headerAccountButton:is(:hover,[aria-expanded="true"]) { background:#edf5ed; border-color:#b6d6bd; }
 .header-account-copy { display:flex; flex-direction:column; align-items:flex-start; gap:3px; min-width:0; }
@@ -100,3 +102,7 @@ html body .notification-popover-list .notification-item-time{flex:0 0 62px;font-
 .notification-popover-footer{padding:12px;background:#fff;border-top:1px solid #e1ebe3}
 html body .notification-popover-all{padding:11px;border:1px solid #8dbba0;border-radius:9px;font-size:13px;background:#fff;color:#176b50}
 @media(max-width:480px){html body .notification-popover{right:12px;left:12px;width:auto}html body .notification-popover-heading{gap:9px;padding:14px 12px}html body .notification-popover-list .notification-item{padding:13px 12px;gap:9px}.notification-type-icon{width:34px;height:34px;border-radius:9px}.notification-type-icon svg{width:20px;height:20px}html body .notification-popover-list .notification-item-time{flex-basis:51px;font-size:9px}html body .notification-popover-heading strong{font-size:17px}.notification-unread-indicator{right:13px}}
+.live-update-toast{position:fixed;right:20px;bottom:20px;z-index:10001;box-sizing:border-box;width:360px;max-width:calc(100vw - 32px);padding:18px;border:1px solid var(--signin-alert-border,#cfe0d3);border-radius:14px;background:var(--signin-alert-surface,#fff);color:var(--signin-alert-text,#163d30);box-shadow:0 10px 36px #163d3026;font:14px/1.5 Arial,sans-serif}
+.live-update-toast strong{display:block;padding-right:36px;color:inherit}.live-update-toast p{margin:10px 0;color:var(--signin-alert-muted,#536d5e)}
+.live-update-close{position:absolute;right:14px;top:14px;width:30px;height:30px;border:0;border-radius:6px;background:var(--signin-alert-control,#edf5ef);color:var(--signin-alert-accent,#18765b);font-size:20px;cursor:pointer}
+.live-update-open{padding:0;border:0;background:transparent;color:var(--signin-alert-accent,#18765b);font:inherit;font-weight:700;cursor:pointer;text-align:left}

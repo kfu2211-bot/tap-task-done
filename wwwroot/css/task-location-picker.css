@@ -3,6 +3,18 @@
 .task-location-picker input:not([type=hidden]), .map-place-search input { box-sizing:border-box; width:100%; padding:11px; border:1px solid #b9d1c0; border-radius:7px; background:white; color:#163d30; font:inherit; }
 .location-picker-actions { display:flex; gap:9px; flex-wrap:wrap; margin:10px 0; }
 .location-picker-actions button, .map-place-search button, .location-search-results button { font:inherit; color:#176b50; background:white; border:1px solid #9dc7ab; border-radius:7px; padding:9px 12px; cursor:pointer; }
+.task-location-picker .location-confirmation { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:12px; padding:12px 14px; border:1px solid #a7cfb5; border-radius:9px; background:#e8f4e9; color:#174e39; }
+.location-confirmation div { display:grid; gap:3px; }
+.location-confirmation span { font-size:13px; }
+.task-location-picker .location-confirmation button { flex-shrink:0; min-height:44px; padding:9px 16px; border:1px solid #176b50; border-radius:8px; background:#176b50; color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+.task-location-picker .location-confirmation button:focus-visible { outline:3px solid #e0a02b; outline-offset:3px; }
+.task-location-picker.location-confirmed .location-confirmation { background:#edf7ef; }
+.task-location-picker.location-needs-confirmation .location-confirmation { border:2px solid #cc8729; background:#fff5e3; color:#694006; }
+.task-location-picker .location-confirmation-alert { margin:9px 0; padding:10px 12px; border-radius:7px; background:#fff1db; color:#7a4104; font-weight:600; }
+.task-location-picker .location-confirmation-alert[hidden] { display:none; }
+html[data-theme="dark"] .task-location-picker .location-confirmation { background:#203d30; border-color:#4f8568; color:#e2f4e6; }
+html[data-theme="dark"] .task-location-picker.location-needs-confirmation .location-confirmation, html[data-theme="dark"] .task-location-picker .location-confirmation-alert { background:#49371d; color:#ffe4ad; border-color:#c99544; }
+@media(max-width:600px) { .task-location-picker .location-confirmation { align-items:stretch; flex-direction:column; } .task-location-picker .location-confirmation button { width:100%; } }
 .location-picker-map { height:280px; width:100%; border:1px solid #c8ddcd; border-radius:8px; overflow:hidden; }
 .task-location-picker p, .task-location-picker small { color:#526d5c; line-height:1.5; font-size:13px; }
 .location-search-results { display:grid; gap:7px; margin:8px 0; }
@@ -55,6 +67,11 @@
 .post-work-details{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0}
 .post-work-details>.post-field{width:100%;min-width:0}
 .post-work-details>.task-location-picker{box-sizing:border-box;width:100%;margin:0;min-width:0}
+.post-duration { display:grid; gap:8px; }
+.post-duration select { width:100%; min-height:46px; padding:10px 14px; border:1px solid #b9d1c0; border-radius:8px; background:#fff; color:#163d30; font:inherit; }
+.task-location-picker .location-search-results button { min-height:44px; line-height:1.4; }
+.task-location-picker .location-search-results button:hover { background:#dceee1; }
+html[data-theme="dark"] .post-duration select { background:#1d3028; color:#eaf5ed; border-color:#577469; }
 @media(max-width:700px){
  .task-location-picker{box-sizing:border-box;width:100%;padding:12px}
  .location-picker-map{height:260px;min-width:0}

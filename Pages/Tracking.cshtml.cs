@@ -135,6 +135,7 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
     public record TrackingItem(MarketplaceTask Task, string Client, string Freelancer, bool IsClient) { public int FreelancerId { get; init; } }
     public List<TrackingItem> Tasks { get; private set; } = [];
     public bool Unavailable { get; private set; }
+    public Dictionary<int, string> SharedPhones { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -157,6 +158,10 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
             logger.LogError(ex, "Unable to load task tracking"); Unavailable = true;
         }
         if (!Unavailable) {
+            try {
+                var otherIds = Tasks.Select(x => x.IsClient ? x.FreelancerId : x.Task.ClientId).Distinct().ToList();
+                SharedPhones = await db.Set<UserContact>().AsNoTracking().Where(x => otherIds.Contains(x.UserId) && x.ShareWithAssignedUser && x.PhoneNumber != "").ToDictionaryAsync(x => x.UserId, x => x.PhoneNumber, ct);
+            } catch (MySqlConnector.MySqlException ex) { logger.LogWarning(ex, "Shared contact details unavailable"); }
             try {
                 var ids = Tasks.Select(x => x.Task.Id).ToList();
                 var terms = await db.Set<WorkAgreement>().AsNoTracking().Where(a => ids.Contains(a.TaskId)).OrderByDescending(a => a.Version).ToListAsync(ct);

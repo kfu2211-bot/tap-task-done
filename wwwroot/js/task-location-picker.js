@@ -11,17 +11,25 @@
     }
     document.querySelectorAll('[data-location-picker]').forEach(root => {
         const address=root.querySelector('[data-location-address]'), lat=root.querySelector('[data-location-latitude]'), lon=root.querySelector('[data-location-longitude]');
-        const status=root.querySelector('[data-location-status]'), results=root.querySelector('[data-location-results]'), confirm=root.querySelector('[data-location-confirm]');
+        const status=root.querySelector('[data-location-status]'), results=root.querySelector('[data-location-results]'), confirm=root.querySelector('[data-location-confirm]'), notice=root.querySelector('[data-location-alert]');
         let map, marker, candidate=lat.value&&lon.value&&valid(Number(lat.value),Number(lon.value)) ? [Number(lon.value),Number(lat.value)] : null;
-        let searching=false, generation=0, mapFailed=false;
-        if(candidate) status.textContent='Saved work destination. Change it only if needed, then confirm the new pin.';
-        function invalidate() { lat.value='';lon.value=''; }
+        let searching=false, generation=0, mapFailed=false, searchTimer, reverseGeneration=0;
+        const areas=['Solana Casa Real','Cabalantian','Parulog','Cabetican','Magliman'];
+        if(candidate) { root.classList.add('location-confirmed');confirm.textContent='Pin confirmed';status.textContent='Saved work destination. Change it only if needed, then confirm the new pin.'; }
+        function invalidate() { lat.value='';lon.value='';root.classList.remove('location-confirmed');confirm.textContent='Confirm this pin'; }
+        function warn(message) { notice.textContent=message;notice.hidden=false;root.classList.add('location-needs-confirmation'); }
         function pick(point, label) {
             invalidate();
             if(!valid(point[1],point[0])) { status.textContent='Choose a work location in the Bacolor service area.';return; }
             candidate=point;
-            if(label) address.value=label;
-            if(!address.value.trim())address.value='Pinned location, Bacolor, Pampanga';
+            if(label) { reverseGeneration++; address.value=label; }
+            else {
+                const current=++reverseGeneration; address.value='';
+                fetch('/api/places/reverse?lat='+encodeURIComponent(point[1])+'&lon='+encodeURIComponent(point[0]),{credentials:'same-origin',cache:'no-store'})
+                    .then(r=>{if(!r.ok)throw new Error();return r.json();})
+                    .then(place=>{if(current!==reverseGeneration)return; if(place?.label){address.value=place.label;status.textContent='Approximate address found. Check it and confirm the pin.';}else status.textContent='Address unavailable. Enter the address and confirm the pin.';})
+                    .catch(()=>{if(current===reverseGeneration)status.textContent='Address lookup unavailable. Enter the address and confirm the pin.';});
+            }
             if(map) {
                 if(!marker) { marker=new maplibregl.Marker({color:'#dc3838',draggable:true}).setLngLat(point).addTo(map);marker.on('dragend',()=>{const p=marker.getLngLat();pick([p.lng,p.lat]);}); }
                 else marker.setLngLat(point);
@@ -29,7 +37,7 @@
             }
             status.textContent='Check the marker and address, then press Confirm this pin.';
         }
-        address.addEventListener('input',()=>{generation++;candidate=null;invalidate();results.replaceChildren();status.textContent='Address changed. Search again or select its exact pin on the map.';});
+        address.addEventListener('input',()=>{generation++;reverseGeneration++;invalidate();candidate=null;marker?.remove();marker=null;results.replaceChildren();clearTimeout(searchTimer);const query=address.value.trim();if(!query)return;for(const name of areas.filter(x=>x.toLowerCase().includes(query.toLowerCase()))){const b=document.createElement('button');b.type='button';b.textContent=name+', Bacolor, Pampanga';b.addEventListener('click',()=>{address.value=b.textContent;results.replaceChildren();root.querySelector('[data-location-search]').click();});results.append(b);}if(query.length>=3)searchTimer=setTimeout(()=>root.querySelector('[data-location-search]').click(),700);});
         root.querySelector('[data-location-search]').addEventListener('click',async event=>{
             const query=address.value.trim();if(query.length<3){status.textContent='Enter an address or landmark with at least 3 characters.';return;}
             if(searching)return;searching=true;event.currentTarget.disabled=true;const request=++generation;
@@ -44,16 +52,18 @@
         root.querySelector('[data-location-current]').addEventListener('click',event=>{
             if(!navigator.geolocation){status.textContent='Current location is unavailable. Search or place the pin manually.';return;}
             const button=event.currentTarget;button.disabled=true;status.textContent='Requesting your current location. Allow access if this is the work site.';
-            navigator.geolocation.getCurrentPosition(position=>{button.disabled=false;pick([position.coords.longitude,position.coords.latitude],'Current-location pin, Bacolor, Pampanga');},()=>{button.disabled=false;status.textContent='Location access was denied or unavailable. You can still search or select a pin manually.';},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+            navigator.geolocation.getCurrentPosition(position=>{button.disabled=false;pick([position.coords.longitude,position.coords.latitude]);},()=>{button.disabled=false;status.textContent='Location access was denied or unavailable. You can still search or select a pin manually.';},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
         });
         confirm.addEventListener('click',()=>{
-            if(!candidate||!valid(candidate[1],candidate[0])||!address.value.trim()){status.textContent='Choose a valid work destination and address first.';return;}
+            if(!candidate||!valid(candidate[1],candidate[0])||!address.value.trim()){warn('Choose a location on the map or search for an address first, then confirm the pin.');return;}
             lat.value=candidate[1].toFixed(6);lon.value=candidate[0].toFixed(6);
+            notice.hidden=true;root.classList.remove('location-needs-confirmation');root.classList.add('location-confirmed');confirm.textContent='Pin confirmed';
             status.textContent='Work destination confirmed. This pin will be saved with your task or proposal.';
         });
         root.closest('form')?.addEventListener('submit',event=>{
-            if(!lat.value||!lon.value||!valid(Number(lat.value),Number(lon.value))){event.preventDefault();status.textContent='Confirm the exact work destination before submitting.';root.scrollIntoView({behavior:'smooth',block:'center'});confirm.focus();}
+            if(!lat.value||!lon.value||!valid(Number(lat.value),Number(lon.value))){event.preventDefault();warn('Please select your work location and confirm the pin before continuing.');root.scrollIntoView({behavior:'smooth',block:'center'});confirm.focus({preventScroll:true});}
         });
+        address.addEventListener('invalid',()=>warn('Enter the work address, select its location and confirm the pin before continuing.'));
         function init() {
             if(map||mapFailed||!root.getBoundingClientRect().width)return;
             if(!window.maplibregl){mapFailed=true;status.textContent='Map could not load. You can still search or use current location and confirm the result.';return;}

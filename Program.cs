@@ -61,6 +61,7 @@ if (lanPreview)
 builder.Services.AddRazorPages(options => options.Conventions.AuthorizePage("/Admin", "AdminOnly"));
 builder.Services.AddScoped<AccountStore>();
 builder.Services.AddHostedService<CompletionReminderWorker>();
+builder.Services.AddHostedService<TaskExpiryWorker>();
 builder.Services.AddHostedService<IdentityRetentionWorker>();
 builder.Services.AddHostedService<AccountDeletionWorker>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
@@ -273,11 +274,14 @@ app.MapGet("/api/notifications/unread-count", async (HttpContext context, Applic
 {
     if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0)
         return Results.Unauthorized();
+    var messageCount = await db.MarketplaceNotifications.CountAsync(n => n.UserId == userId && !n.IsRead && n.Kind == "message", ct);
+    var taskKinds = new[] { "offer", "accepted", "booking_request", "booking_declined", "booking_accepted", "cancelled", "withdrawn", "agreement", "completion_reminder", "task_expired", "assigned", "on-the-way", "arrived", "in-progress", "awaiting-confirmation", "started", "finished", "completed" };
+    var taskCount = await db.MarketplaceNotifications.CountAsync(n => n.UserId == userId && !n.IsRead && taskKinds.Contains(n.Kind), ct);
     var count = await db.MarketplaceNotifications.CountAsync(n => n.UserId == userId && !n.IsRead && n.Kind != "dispute", ct);
     count += await db.IdentityRequests.CountAsync(r => r.UserId == userId && r.ReviewedAt != null && r.ReviewReadAt == null, ct);
     count += await db.AccountModerationActions.CountAsync(a => a.UserId == userId && a.ReadAt == null, ct);
     if (LoginSecurity.Enabled(app.Configuration)) count += await db.Set<LoginAlert>().CountAsync(a => a.UserId == userId && a.ReadUtc == null, ct);
-    return Results.Json(new { count });
+    return Results.Json(new { count, messageCount, taskCount, otherCount = count - messageCount - taskCount });
 }).RequireAuthorization();
 
 app.MapGet("/api/security/status", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
@@ -299,6 +303,13 @@ app.MapGet("/api/places/search", async (string? q, PlaceSearch search, Cancellat
     try { return Results.Json(await search.SearchAsync(q, ct)); }
     catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or InvalidOperationException)
     { return Results.Json(new { message = "Location search is unavailable. Use the map pin or current location instead." }, statusCode: 503); }
+}).RequireAuthorization().RequireRateLimiting("PlaceSearchLimit");
+app.MapGet("/api/places/reverse", async (double lat, double lon, PlaceSearch search, CancellationToken ct) =>
+{
+    if (!TaskLocationRules.Valid(lat, lon)) return Results.BadRequest();
+    try { return Results.Json(await search.ReverseAsync(lat, lon, ct)); }
+    catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or InvalidOperationException)
+    { return Results.Json(new { message = "Address lookup is unavailable." }, statusCode: 503); }
 }).RequireAuthorization().RequireRateLimiting("PlaceSearchLimit");
 app.MapRazorPages();
 

@@ -16,6 +16,15 @@
         <div class="admin-report-page">
             <div class="report-page-heading"><div><p class="report-eyebrow">COMMUNITY SAFETY</p><h1>Safety reports</h1><p>Review reports submitted by users and keep track of your decisions.</p></div><span class="report-total">@(Model.DatabaseUnavailable ? "Unable to load reports" : $"{Model.Reports.Count} reports")</span></div>
             <div class="report-guidance"><strong>Review carefully</strong><p>Reported names are entered by users and are not automatically verified. Treat attachments as untrusted files. No account is suspended automatically.</p></div>
+            <form method="get" class="report-guidance" aria-label="Filter and sort reports">
+                @if (Model.Embedded) { <input type="hidden" name="embedded" value="true" /> }
+                <label for="reportStatusFilter">Status</label>
+                <select id="reportStatusFilter" name="statusFilter" asp-for="StatusFilter"><option value="all">All statuses</option><option value="open">Open</option><option value="reviewing">Under review</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select>
+                <label for="reportPriorityFilter">Priority</label><select id="reportPriorityFilter" name="priorityFilter" asp-for="PriorityFilter"><option value="all">All priorities</option><option value="0">Not assessed</option><option value="1">Low</option><option value="2">Normal</option><option value="3">High</option></select>
+                <label for="reportSort">Sort by</label>
+                <select id="reportSort" name="sort" asp-for="Sort"><option value="recent">Most recent</option><option value="oldest">Oldest</option><option value="priority">Highest priority</option></select>
+                <button type="submit">Apply filters</button>
+            </form>
             @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="safety-notice" role="status">@Model.Notice</p> }
             @if (!Model.DatabaseUnavailable && Model.Reports.Count == 0) { <section class="report-empty"><h2>No reports yet</h2><p>Reports submitted by users will appear here for review.</p></section> }
             @foreach (var item in Model.Reports) {
@@ -23,6 +32,7 @@
                 var statusLabel = report.Status switch { "open" => "Open", "reviewing" => "Under review", "resolved" => "Resolved", "dismissed" => "Dismissed", _ => report.Status };
                 <article class="admin-report-card">
                     <div class="report-card-heading"><div><p class="report-eyebrow">REPORT #@report.Id</p><h2>@report.Reason</h2></div><span class="report-status status-@report.Status">@statusLabel</span></div>
+                    <form method="post" asp-page-handler="Priority" class="report-guidance"><input type="hidden" name="id" value="@report.Id" /><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" /><label>Review priority <select name="priority"><option value="0" selected="@(report.Priority == 0)">Not assessed</option><option value="1" selected="@(report.Priority == 1)">Low</option><option value="2" selected="@(report.Priority == 2)">Normal</option><option value="3" selected="@(report.Priority == 3)">High</option></select></label> <button type="submit">Save priority</button><p>New reports receive a preliminary priority based only on the selected reason: harassment is high; other categories are normal. Review the details and adjust it. This is not a finding or an automatic penalty.</p></form>
                     <dl class="report-details"><div><dt>Reported person</dt><dd>@report.Target</dd></div><div><dt>Submitted by</dt><dd>@item.Reporter</dd></div><div><dt>Related task</dt><dd>@(report.TaskId.HasValue ? (Model.TaskTitles.TryGetValue(report.TaskId.Value, out var taskTitle) ? taskTitle : "Task unavailable") : "Not provided")</dd></div><div><dt>Submitted</dt><dd>@tts.Data.DisplayTime.Philippine(report.CreatedAt)</dd></div></dl>
                     <div class="report-message"><h3>What happened</h3><p class="admin-report-description">@report.Description</p></div>
                     <div class="report-message"><h3>Next steps</h3><p>Review attachments and the related task. Obtain explanations through your established support channel. If an offense is confirmed, open <a href="/Admin#users" target="_top">Users: offense review</a>, verify the account, and use incident reference <strong>report:@report.Id</strong>. Saving this review does not apply a penalty or issue a refund.</p></div><div class="report-message"><h3>Supporting evidence</h3>@if (Model.EvidenceUnavailable) { <p>Attachments could not be loaded.</p> } else if (!Model.Evidence.Any(e => e.ReportId == report.Id)) { <p>No files attached.</p> } else { <ul>@foreach (var file in Model.Evidence.Where(e => e.ReportId == report.Id)) { <li><a asp-page="/AdminReports" asp-page-handler="Evidence" asp-route-id="@file.Id">Download evidence #@file.Id (@(file.ContentType == "application/pdf" ? "PDF" : "Image"))</a></li> }</ul> }</div>
@@ -35,7 +45,7 @@
                     <details class="report-history"><summary>Admin action history <span>View decisions and notes</span></summary>@if(Model.HistoryUnavailable) { <p>Action history could not be loaded.</p> } else if(!Model.Actions.Any(a => a.Action.ReportId == report.Id)) { <p>No actions recorded yet.</p> } <div class="report-history-list">@foreach(var entry in Model.Actions.Where(a => a.Action.ReportId == report.Id)) { <div class="report-history-entry"><div class="report-history-marker" aria-hidden="true"></div><div><strong>@(entry.Action.Status == "reviewing" ? "Under review" : entry.Action.Status == "resolved" ? "Resolved" : entry.Action.Status == "dismissed" ? "Dismissed" : entry.Action.Status)</strong><span class="report-history-meta">@entry.AdminName · @tts.Data.DisplayTime.Philippine(entry.Action.CreatedAt)</span>@if(!string.IsNullOrWhiteSpace(entry.Action.PublicMessage)){<p><strong>Reporter update:</strong> @entry.Action.PublicMessage</p>}@if(!string.IsNullOrWhiteSpace(entry.Action.Note)) { <p>@entry.Action.Note</p> }</div></div> }</div></details>
                 </article>
             }
-            <p class="report-footnote">Showing up to 100 most recent reports.</p>
+            <p class="report-footnote">Showing up to 100 reports for the selected filters.</p>
         </div>
     </main>
 </div>

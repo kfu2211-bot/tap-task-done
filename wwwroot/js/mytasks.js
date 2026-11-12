@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (task.status !== "open") {
             title.textContent = "Provider assignment";
-            message.textContent = "Confirm the details first so freelancers can send an offer.";
+            message.textContent = "Confirm the details first so freelancers can make an offer.";
             return;
         }
         const bookingRequests = Array.isArray(task.bookingRequests) ? task.bookingRequests.filter(function (request) { return request.status === "pending"; }) : [];
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!bookingRequests.length) title.textContent = "Freelancer offers";
         const offersForTask = Array.isArray(task.offers) ? task.offers : [];
         if (!offersForTask.length) {
-            if (!bookingRequests.length) message.textContent = "Your task is open. Waiting for a freelancer to send an offer.";
+            if (!bookingRequests.length) message.textContent = "Your task is open. Waiting for a freelancer to make an offer.";
             return;
         }
         if (bookingRequests.length) message.textContent += " You may also review the offers below.";

@@ -9,6 +9,11 @@ public sealed class MarketplaceTask
     public string Category { get; set; } = "";
     public string Location { get; set; } = "";
     public decimal Budget { get; set; }
+    public decimal? BudgetMaximum { get; set; }
+    public int? PostDurationDays { get; set; }
+    public DateTime? PostExpiresUtc { get; set; }
+    public string BudgetDisplay => BudgetMaximum.HasValue && BudgetMaximum.Value != Budget
+        ? $"₱{Budget:N2} – ₱{BudgetMaximum.Value:N2}" : $"₱{Budget:N2}";
     public string ScheduleText { get; set; } = "";
     public string Status { get; set; } = "pending-confirmation";
     public bool IsPrivate { get; set; }

@@ -11,7 +11,7 @@
         open: ['open'],
         active: ['booking-pending', 'assigned', 'on-the-way', 'arrived', 'in-progress', 'awaiting-confirmation', 'disputed'],
         completed: ['completed'],
-        cancelled: ['cancelled']
+        cancelled: ['cancelled', 'expired']
     };
 
     section.querySelectorAll('.edit-task').forEach(editor => {

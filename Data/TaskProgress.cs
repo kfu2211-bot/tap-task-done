@@ -18,7 +18,7 @@ public static class TaskProgress
 {
     public static readonly string[] States = ["assigned", "on-the-way", "arrived", "in-progress", "awaiting-confirmation", "completed"];
     public static readonly string[] Labels = ["Booking accepted", "On the way", "Arrived", "Work in progress", "Awaiting client confirmation", "Completed"];
-    public static string Label(string status) => Array.IndexOf(States, status) is var i && i >= 0 ? Labels[i] : status == "disputed" ? "Paused" : status == "cancelled" ? "Cancelled" : status;
+    public static string Label(string status) => Array.IndexOf(States, status) is var i && i >= 0 ? Labels[i] : status == "disputed" ? "Paused" : status == "cancelled" ? "Cancelled" : status == "expired" ? "Expired" : status;
     public static (string From, string To) Transition(string? action) => action switch
     {
         "travel" => ("assigned", "on-the-way"), "arrive" => ("on-the-way", "arrived"),
@@ -53,11 +53,6 @@ public static class TaskProgress
             return new(false, "This action is unavailable or the task has already changed. Refresh and check its progress.");
         if (action == "travel" && !await db.Set<TaskDestination>().AnyAsync(x => x.TaskId == id, ct))
             return new(false, "Ask the client to save the exact destination pin before starting travel.");
-        if (action is "travel" or "arrive" or "start")
-        {
-            var agreement = await AgreementRules.LatestAsync(db, id, ct);
-            if (!AgreementRules.CanProceed(agreement)) return new(false, "Both participants must confirm the latest work agreement in Tracking before continuing.");
-        }
         if (action is "travel" or "start" && await FreelancerAvailability.ActiveTasks(db, freelancer.Value).AnyAsync(t => t.Id != id, ct))
             return new(false, "Finish your current travel/work before starting another job.");
         note = note?.Trim();

@@ -112,7 +112,7 @@
         var isClient = role === "client" || role === "both";
         var sidebarFlow = [
             { href: "/Dashboard", icon: "⌂", label: "Home" },
-            { href: "/FindPost", icon: "⌕", label: "Find & Post" },
+            { href: isClient && !isFreelancer ? "/FindPost?mode=post" : isFreelancer && !isClient ? "/FindPost?mode=jobs" : "/FindPost", icon: "⌕", label: isClient && !isFreelancer ? "Post a Task" : isFreelancer && !isClient ? "Find Jobs" : "Find & Post" },
             ...(isClient ? [{ href: "/MarketTasks?view=mine", icon: "▤", label: "My Tasks" }] : []),
             ...(isFreelancer ? [{ href: "/MyJobs", icon: "▤", label: "My Jobs" }] : []),
             { href: "/Messages", icon: "□", label: "Messages" },
@@ -152,6 +152,13 @@
                     }
                 }
 
+                var labelSpan = link.querySelector("span:last-child");
+                if (labelSpan && labelSpan !== link.querySelector("span:first-child")) labelSpan.textContent = item.label;
+                else if (link.classList.contains("mytasks-nav-item")) {
+                    Array.from(link.childNodes).filter(function (node) { return node.nodeType === Node.TEXT_NODE; }).forEach(function (node) { node.remove(); });
+                    link.appendChild(document.createTextNode(item.label));
+                }
+
                 link.classList.toggle("active", window.location.pathname.toLowerCase() === item.href.split("?")[0].toLowerCase());
                 decorateSidebarLink(link);
                 // appendChild moves an existing link instead of copying it, preventing duplicates.
@@ -162,6 +169,9 @@
             nav.querySelectorAll('a[href="/MyTasks"]').forEach(function (link) { link.remove(); });
             nav.querySelectorAll('a[href="/Notifications"]').forEach(function (link) { link.remove(); });
             nav.querySelectorAll('a[href="/MyJobs"]').forEach(function (link) { if (!isFreelancer) link.remove(); });
+            nav.querySelectorAll('a[href="/FindPost"]').forEach(function (link) { if (isClient !== isFreelancer) link.remove(); });
+            nav.querySelectorAll('a[href="/FindPost?mode=post"]').forEach(function (link) { if (!isClient || isFreelancer) link.remove(); });
+            nav.querySelectorAll('a[href="/FindPost?mode=jobs"]').forEach(function (link) { if (!isFreelancer || isClient) link.remove(); });
         });
 
         var popupStyle = document.createElement("link");
@@ -304,6 +314,16 @@
             badge.hidden = true;
             badge.setAttribute("aria-hidden", "true");
             button.appendChild(badge);
+            var messageBadge = document.createElement("span");
+            messageBadge.className = "notification-count-badge notification-message-badge";
+            messageBadge.hidden = true;
+            messageBadge.setAttribute("aria-hidden", "true");
+            button.appendChild(messageBadge);
+            var otherBadge = document.createElement("span");
+            otherBadge.className = "notification-count-badge notification-other-badge";
+            otherBadge.hidden = true;
+            otherBadge.setAttribute("aria-hidden", "true");
+            button.appendChild(otherBadge);
             button.title = "View notifications";
             button.setAttribute("aria-haspopup", "true");
             button.setAttribute("aria-controls", "notificationPopover");
@@ -326,11 +346,18 @@
                 if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) return;
                 const data = await response.json();
                 const count = Number(data.count) || 0;
+                const messageCount = Number(data.messageCount) || 0;
+                const taskCount = Number(data.taskCount) || 0;
+                const otherCount = Number(data.otherCount) || 0;
                 document.querySelectorAll(".notification, .notification-button, #notificationButton, .mytasks-notification").forEach(function (button) {
-                    button.title = count ? count + " unread notifications" : "View notifications";
+                    button.title = count ? messageCount + " unread messages, " + taskCount + " task updates, " + otherCount + " other unread updates" : "View notifications";
                     button.setAttribute("aria-label", button.title);
-                    var badge = button.querySelector(".notification-count-badge");
-                    if (badge) { badge.textContent = count > 99 ? "99+" : String(count); badge.hidden = count <= 0; }
+                    var badge = button.querySelector(".notification-count-badge:not(.notification-message-badge):not(.notification-other-badge)");
+                    if (badge) { badge.textContent = taskCount > 99 ? "99+" : String(taskCount); badge.hidden = taskCount <= 0; }
+                    var otherBadge = button.querySelector(".notification-other-badge");
+                    if (otherBadge) { otherBadge.textContent = otherCount > 99 ? "99+" : String(otherCount); otherBadge.hidden = otherCount <= 0; }
+                    var messageBadge = button.querySelector(".notification-message-badge");
+                    if (messageBadge) { messageBadge.textContent = messageCount > 99 ? "99+" : String(messageCount); messageBadge.hidden = messageCount <= 0; }
                 });
                 return count;
             } catch (error) { console.warn("Notifications could not be refreshed.", error); }
@@ -340,6 +367,48 @@
         window.addEventListener("pageshow", updateNotificationCount);
         window.addEventListener("focus", updateNotificationCount);
         document.addEventListener("visibilitychange", function () { if (!document.hidden) updateNotificationCount(); });
+
+        // Only newly observed task and message notifications produce a toast.
+        var toastKey = 'tts.notificationSeen:' + email.toLowerCase();
+        var seenUpdates = new Set(), toastInitialized = false, toastBusy = false;
+        try { var savedSeen = sessionStorage.getItem(toastKey); if (savedSeen !== null) { seenUpdates = new Set(JSON.parse(savedSeen)); toastInitialized = true; } } catch (_) { /* Use the in-memory set. */ }
+        function saveSeenUpdates() { try { sessionStorage.setItem(toastKey, JSON.stringify(Array.from(seenUpdates).slice(-300))); } catch (_) { /* Storage can be unavailable. */ } }
+        function showUpdateToast(source) {
+            var button = source.querySelector('.notification-item');
+            var toast = document.createElement('div');
+            toast.className = 'live-update-toast'; toast.setAttribute('role', 'status');
+            var heading = document.createElement('strong'); heading.textContent = button.dataset.kind === 'message' ? 'New message' : 'Task update';
+            var close = document.createElement('button'); close.type = 'button'; close.className = 'live-update-close'; close.setAttribute('aria-label', 'Dismiss notification'); close.textContent = '×';
+            var text = document.createElement('p'); text.textContent = button.querySelector('strong')?.textContent || 'You have a new update.';
+            var form = document.importNode(source, true); form.className = 'live-update-action';
+            var openButton = form.querySelector('.notification-item'); openButton.className = 'live-update-open'; openButton.textContent = 'View update';
+            var dismiss = function () { toast.remove(); };
+            close.addEventListener('click', dismiss); toast.append(heading, close, text, form); document.body.append(toast);
+            setTimeout(dismiss, 10000);
+        }
+        async function checkLiveUpdates() {
+            if (toastBusy || document.hidden) return;
+            toastBusy = true;
+            try {
+                var response = await fetch('/Notifications', { credentials: 'same-origin', cache: 'no-store' });
+                if (!response.ok || response.redirected) return;
+                var doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+                var forms = Array.from(doc.querySelectorAll('form')).filter(function (form) {
+                    var button = form.querySelector('.notification-item.unread');
+                    return button && !['security', 'identity', 'account', 'safety_report'].includes(button.dataset.kind) && form.querySelector('input[name="id"]');
+                });
+                forms.reverse().forEach(function (form) {
+                    var id = form.querySelector('input[name="id"]').value;
+                    if (toastInitialized && !seenUpdates.has(id)) showUpdateToast(form);
+                    seenUpdates.add(id);
+                });
+                toastInitialized = true; saveSeenUpdates();
+            } catch (_) { /* Keep the current page usable if the network is unavailable. */ }
+            finally { toastBusy = false; }
+        }
+        checkLiveUpdates(); setInterval(checkLiveUpdates, 30000);
+        window.addEventListener('focus', checkLiveUpdates);
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) checkLiveUpdates(); });
 
         if (header && !document.getElementById("headerAccountButton")) {
             var headerActions = document.createElement("div");

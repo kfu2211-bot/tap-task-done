@@ -5,7 +5,7 @@
     const video = el('selfieVideo'), preview = el('selfiePreview'), file = el('selfieFile');
     const review = el('identityReview'), message = el('selfieMessage');
     let stream, selfieUrl, idUrl, reviewed = false, opening = false;
-    function stop() { stream?.getTracks().forEach(t => t.stop()); stream = null; video.srcObject = null; video.hidden = true; el('captureSelfie').hidden = true; }
+    function stop() { stream?.getTracks().forEach(t => t.stop()); stream = null; video.srcObject = null; video.hidden = true; el('captureSelfie').hidden = true; el('selfieCamera').hidden = preview.hidden; }
     function invalidate() { reviewed = false; review.hidden = true; el('reviewIdentity').hidden = false; }
     async function open() {
         if (opening) return;
@@ -16,7 +16,7 @@
             if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
             const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 720 } }, audio: false });
             if (!el('selfieConsent').checked || document.hidden) { next.getTracks().forEach(t => t.stop()); return; }
-            stream = next; video.srcObject = stream; video.hidden = false; await video.play();
+            stream = next; video.srcObject = stream; video.hidden = false; el('selfieCamera').hidden = false; await video.play();
             preview.hidden = true; file.value = ''; invalidate();
             el('captureSelfie').hidden = false; el('openCamera').hidden = true; el('retakeSelfie').hidden = true;
             message.textContent = 'Keep your full face in frame, then capture your selfie.';
@@ -41,7 +41,7 @@
     });
     form.addEventListener('input', invalidate);
     el('selfieConsent').addEventListener('change', () => {
-        if (!el('selfieConsent').checked) { stop(); file.value = ''; preview.hidden = true; el('openCamera').hidden = false; el('retakeSelfie').hidden = true; }
+        if (!el('selfieConsent').checked) { preview.hidden = true; stop(); file.value = ''; el('openCamera').hidden = false; el('retakeSelfie').hidden = true; }
     });
     el('reviewIdentity').addEventListener('click', () => {
         if (!form.reportValidity()) return;

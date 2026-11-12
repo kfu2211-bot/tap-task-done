@@ -28,6 +28,11 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var contact = modelBuilder.Entity<UserContact>();
+        contact.ToTable("user_contacts");
+        contact.HasKey(x => x.UserId);
+        contact.Property(x => x.PhoneNumber).HasMaxLength(25);
+        contact.HasOne<AppUser>().WithOne().HasForeignKey<UserContact>(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         var deletion = modelBuilder.Entity<AccountDeletionRequest>();
         deletion.ToTable("account_deletion_requests"); deletion.HasKey(x => x.UserId);
         deletion.Property(x => x.Status).HasMaxLength(16); deletion.Property(x => x.ReviewReason).HasMaxLength(1000);
@@ -205,6 +210,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         task.ToTable("marketplace_tasks");
         task.HasKey(x => x.Id);
         task.Property(x => x.Budget).HasPrecision(12, 2);
+        task.Property(x => x.BudgetMaximum).HasPrecision(12, 2);
+        task.Ignore(x => x.BudgetDisplay);
         task.Property(x => x.CancellationReason).HasMaxLength(500);
         task.HasOne<AppUser>().WithMany().HasForeignKey(x => x.ClientId);
         var offer = modelBuilder.Entity<MarketplaceOffer>();

@@ -21,6 +21,9 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     public bool EvidenceUnavailable { get; private set; }
     public bool HistoryUnavailable { get; private set; }
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
+    [BindProperty(SupportsGet = true)] public string Sort { get; set; } = "recent";
+    [BindProperty(SupportsGet = true)] public string StatusFilter { get; set; } = "all";
+    [BindProperty(SupportsGet = true)] public string PriorityFilter { get; set; } = "all";
     [TempData(Key = "AdminReports.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
@@ -30,8 +33,16 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         Response.Headers.CacheControl = "no-store";
         try
         {
-        Reports = await (from r in db.SafetyReports.AsNoTracking() join u in db.Users.AsNoTracking() on r.ReporterId equals u.Id
-            orderby r.Id descending select new ReportItem(r, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).Take(100).ToListAsync(ct);
+        var query = from r in db.SafetyReports.AsNoTracking() join u in db.Users.AsNoTracking() on r.ReporterId equals u.Id
+            select new ReportItem(r, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim());
+        if (StatusFilter is "open" or "reviewing" or "resolved" or "dismissed") query = query.Where(x => x.Report.Status == StatusFilter);
+        else StatusFilter = "all";
+        if (int.TryParse(PriorityFilter, out var priority) && priority is >= 0 and <= 3) query = query.Where(x => x.Report.Priority == priority);
+        else PriorityFilter = "all";
+        Sort = Sort is "oldest" or "priority" ? Sort : "recent";
+        Reports = await (Sort == "oldest" ? query.OrderBy(x => x.Report.CreatedAt).ThenBy(x => x.Report.Id)
+            : Sort == "priority" ? query.OrderByDescending(x => x.Report.Priority).ThenByDescending(x => x.Report.CreatedAt).ThenByDescending(x => x.Report.Id)
+            : query.OrderByDescending(x => x.Report.CreatedAt).ThenByDescending(x => x.Report.Id)).Take(100).ToListAsync(ct);
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         {
@@ -67,6 +78,22 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
             Notice = (Notice is null ? "" : Notice + " ") + "Some task details or action history could not be loaded. Please check the database setup.";
         }
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostPriorityAsync(long id, int priority, CancellationToken ct)
+    {
+        if (AdminId <= 0) return Challenge();
+        if (priority is < 0 or > 3) return BadRequest();
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var count = await db.SafetyReports.Where(r => r.Id == id).ExecuteUpdateAsync(s => s.SetProperty(r => r.Priority, priority), ct);
+        if (count == 1) {
+            var label = priority switch { 1 => "Low", 2 => "Normal", 3 => "High", _ => "Not assessed" };
+            db.SafetyReportActions.Add(new SafetyReportAction { ReportId = id, AdminId = AdminId, Status = "priority", Note = $"Priority set to {label}.", CreatedAt = DateTime.UtcNow });
+            await db.SaveChangesAsync(ct);
+        }
+        await transaction.CommitAsync(ct);
+        Notice = count == 1 ? "Report priority updated." : "Report not found.";
+        return RedirectToPage(new { embedded = Embedded, sort = Sort, statusFilter = StatusFilter, priorityFilter = PriorityFilter });
     }
 
     public async Task<IActionResult> OnGetEvidenceAsync(long id, CancellationToken ct)

@@ -13,6 +13,11 @@ if (workRole && freelancerPreferences) {
     const snapshot = () => JSON.stringify(Array.from(new FormData(form)));
     const initial = snapshot();
     const location = document.getElementById("Location");
+    const selectAllDays = document.getElementById("selectAllDays");
+    if (selectAllDays) selectAllDays.addEventListener("click", function () {
+        form.querySelectorAll('#weeklyAvailability input[name="Days"]').forEach(function (day) { day.checked = true; });
+        update();
+    });
 
     function update() {
         freelancerPreferences.hidden = workRole.value === "client";

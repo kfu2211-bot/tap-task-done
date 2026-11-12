@@ -7,7 +7,7 @@ namespace tts.Pages
 {
     public class FindPostModel(ApplicationDbContext db, ILogger<FindPostModel> logger) : PageModel
     {
-        public record Provider(int Id, string Name, string Service, string Location, int? Rate, string SavedAvailability)
+        public record Provider(int Id, string Name, string Service, string Location, int? Rate, int? RateMaximum, string SavedAvailability)
         {
             public string Availability { get; init; } = SavedAvailability;
         }
@@ -21,17 +21,19 @@ namespace tts.Pages
         public string WorkRole { get; private set; } = "client";
         [Microsoft.AspNetCore.Mvc.TempData] public string? Notice { get; set; }
         public bool DirectoryUnavailable { get; private set; }
+        public bool IdentityApproved { get; private set; }
         public async Task OnGetAsync(CancellationToken cancellationToken)
         {
             try
             {
                 var userId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+                IdentityApproved = await IdentityWorkGate.IsApprovedAsync(db, userId, cancellationToken);
                 WorkRole = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken))?.WorkRole ?? "client";
                 if (userId != 0 && WorkRole is "freelancer" or "both")
                 {
                     OpenTasks = await (from t in db.MarketplaceTasks.AsNoTracking()
                         join u in db.Users.AsNoTracking() on t.ClientId equals u.Id
-                        where t.ClientId != userId && t.Status == "open" && !t.IsPrivate orderby t.Id descending
+                        where t.ClientId != userId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow) orderby t.Id descending
                         select new MarketTasksModel.TaskItem(t, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).ToListAsync(cancellationToken);
                     Offers = await (from o in db.MarketplaceOffers.AsNoTracking()
                         join u in db.Users.AsNoTracking() on o.FreelancerId equals u.Id
@@ -47,7 +49,7 @@ namespace tts.Pages
                         && profile.Service != "" && profile.Location != ""
                     orderby user.FirstName, user.Id
                     select new Provider(user.Id, ((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim(),
-                        profile.Service, profile.Location, profile.Rate, profile.Availability)).ToListAsync(cancellationToken);
+                        profile.Service, profile.Location, profile.Rate, profile.RateMaximum, profile.Availability)).ToListAsync(cancellationToken);
                 var active = await FreelancerAvailability.AssignmentsAsync(db, Providers.Select(p => p.Id).ToArray(), cancellationToken);
                 Providers = Providers.Select(p => p with { Availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.Id) ?? []) }).ToList();
                 try

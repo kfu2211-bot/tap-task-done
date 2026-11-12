@@ -80,6 +80,7 @@
                         <div><dt>Display name</dt><dd>@Model.DisplayName</dd></div>
                         <div><dt>Login email</dt><dd>@Model.Email</dd></div>
                         <div><dt>Date of birth</dt><dd>@(Model.DateOfBirth?.ToString("MMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture) ?? "Not provided")</dd></div>
+                        <div><dt>Phone number</dt><dd>@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</dd></div>
                     </dl>
                     @if (!string.IsNullOrWhiteSpace(Model.Message))
                     {
@@ -99,6 +100,11 @@
                             <button class="settings-security-link" type="submit">Save display name</button>
                         </form>
                     </details>
+                    <details class="profile-name-editor">
+                        <summary>Edit phone number</summary>
+                        @if (Model.ContactUnavailable) { <p>Contact settings are temporarily unavailable.</p> }
+                        else { <form method="post" asp-page-handler="Contact" class="profile-contact-form"><label>Phone number (optional)<input name="phoneNumber" type="tel" maxlength="25" autocomplete="tel" value="@Model.PhoneNumber" /></label><label class="profile-contact-sharing"><input type="checkbox" name="sharePhone" value="true" checked="@Model.SharePhone" /><span>Share my number with the other participant after a task is accepted</span></label><button class="settings-security-link" type="submit">Save contact details</button></form> }
+                    </details>
                 </section>
                 @if (Model.WorkRole is "freelancer" or "both")
                 {
@@ -107,7 +113,7 @@
                         <dl>
                             <div><dt>Service</dt><dd>@(string.IsNullOrWhiteSpace(Model.Service) ? "Not set" : Model.Service)</dd></div>
                             <div><dt>Service location</dt><dd>@(string.IsNullOrWhiteSpace(Model.Location) ? "Not set" : Model.Location)</dd></div>
-                            <div><dt>Rate per task</dt><dd>@(Model.Rate is int rate ? $"₱{rate:N0}" : "Not set")</dd></div>
+                            <div><dt>Rate range</dt><dd>@(Model.Rate is int rate ? $"₱{rate:N0} – ₱{(Model.RateMaximum ?? rate):N0}" : "Not set")</dd></div>
                         </dl>
                     </section>
                 }
@@ -133,7 +139,7 @@
                     <div class="account-role" id="work-preferences"><h3 id="workRoleTitle">Work role</h3><select aria-labelledby="workRoleTitle" aria-describedby="workRoleHelp" asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select><p id="workRoleHelp" class="form-message"></p></div><div id="freelancerPreferences"><fieldset class="settings-group work-group">
                         <legend>Service details</legend>
                         <div class="field-grid work-field-grid">
-                            <label>Service / profession<input asp-for="Service" maxlength="60" placeholder="e.g. Plumber or balloon artist" /><small>Describe your specific skill so clients can find it, including unique services.</small></label>
+                            <label>Service / profession<select asp-for="Service"><option value="">Choose a service</option>@foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other/General" }) { <option value="@category">@category</option> } @if (!string.IsNullOrWhiteSpace(Model.Service) && !new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other/General" }.Contains(Model.Service, StringComparer.OrdinalIgnoreCase)) { <option value="@Model.Service">@Model.Service (previous selection)</option> }</select><small>Choose the category that best describes your service.</small></label>
                             <label for="Location">Service location
                                 <select id="Location" name="Location" aria-describedby="serviceLocationHelp serviceLocationError">
                                     <option value="">Choose a barangay</option>
@@ -144,13 +150,14 @@
                                 </select>
                                 <span asp-validation-for="Location" id="serviceLocationError" class="text-danger"></span><small id="serviceLocationHelp">Choose where you offer services in Bacolor, Pampanga.</small>
                             </label>
-                            <label>Rate per task (₱)<input asp-for="Rate" type="number" min="1" step="1" placeholder="e.g. 600" /></label>
+                            <label>Minimum rate (₱)<input asp-for="Rate" type="number" min="1" step="1" placeholder="e.g. 500" /></label>
+                            <label>Maximum rate (₱)<input asp-for="RateMaximum" type="number" min="1" step="1" placeholder="e.g. 1000" /></label>
                             
                             
                         </div>
                     </fieldset>
                     <fieldset class="settings-group"><legend>Availability</legend><div class="field-grid"><label>Availability preference<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label></div><p class="form-message">Current status <strong class="account-status">@Model.EffectiveAvailability</strong><br />Your availability preference resumes when work finishes or is cancelled. Waiting for client confirmation does not block new work.</p>
-                    <h4>Weekly availability</h4><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> }</div></fieldset>
+                    <h4>Weekly availability</h4><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> } <button type="button" id="selectAllDays" class="weekly-day">All</button></div></fieldset>
                     </div><div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite">@Model.Message</p><button class="primary-button" type="submit">Save changes</button></div>
                 </form>
                     <section class="settings-card account-shortcuts" aria-labelledby="accountShortcutsTitle">

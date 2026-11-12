@@ -14,7 +14,7 @@
 <h3 id="selfieHeading">Selfie verification <span class="required">Required</span></h3>
 <p>Face the camera in good light. Keep your full face visible without a mask or sunglasses. An admin will compare this selfie with your ID; this is not an automated face or liveness check.</p>
 <label class="selfie-consent"><input type="checkbox" name="consent" value="true" id="selfieConsent" required /> I agree to the encrypted storage of my ID and selfie for identity review by authorized admins. Documents are removed 30 days after review while the service is running; the decision and consent record are retained.</label>
-<div class="selfie-camera"><video id="selfieVideo" autoplay muted playsinline hidden></video><img id="selfiePreview" alt="Your captured selfie" hidden /></div>
+<div class="selfie-camera" id="selfieCamera" hidden><div class="selfie-frame"><video id="selfieVideo" autoplay muted playsinline hidden></video><img id="selfiePreview" alt="Your captured selfie" hidden /><div class="selfie-guide" aria-hidden="true"></div></div><p class="selfie-frame-hint">Center your face in the circle</p></div>
 <input type="file" name="selfie" id="selfieFile" accept="image/jpeg,image/png" hidden />
 <div class="selfie-actions"><button type="button" id="openCamera">Open camera</button><button type="button" id="captureSelfie" hidden>Capture selfie</button><button type="button" id="retakeSelfie" hidden>Retake</button></div>
 <p id="selfieMessage" role="status" aria-live="polite">Allow camera access when prompted. HTTPS or localhost is required.</p>

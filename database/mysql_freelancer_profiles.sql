@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS freelancer_profiles (
     Service VARCHAR(60) NOT NULL DEFAULT '',
     Location VARCHAR(80) NOT NULL DEFAULT '',
     Rate INT NULL,
+    RateMaximum INT NULL,
     WorkRole VARCHAR(16) NOT NULL DEFAULT 'client',
     Availability VARCHAR(16) NOT NULL DEFAULT 'Available',
     AvailableDays VARCHAR(40) NOT NULL DEFAULT '',

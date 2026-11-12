@@ -72,7 +72,9 @@ public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger)
                 uploads.Add((type, bytes));
             }
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
-            var report = new SafetyReport { ReporterId = UserId, TaskId = taskId, Target = target, Reason = reason, Description = description, Status = "open", CreatedAt = DateTime.UtcNow };
+            // Preliminary triage only: admins review the evidence and can change this priority.
+            var initialPriority = reason == "Harassment or inappropriate behavior" ? 3 : 2;
+            var report = new SafetyReport { ReporterId = UserId, TaskId = taskId, Target = target, Reason = reason, Description = description, Status = "open", Priority = initialPriority, CreatedAt = DateTime.UtcNow };
             db.SafetyReports.Add(report);
             await db.SaveChangesAsync(ct);
             foreach (var upload in uploads) db.SafetyReportEvidence.Add(new SafetyReportEvidence { ReportId = report.Id, ContentType = upload.Type, Data = upload.Data });

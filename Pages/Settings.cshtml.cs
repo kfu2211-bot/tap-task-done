@@ -33,10 +33,14 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
     public string EffectiveAvailability { get; private set; } = "Available";
     public string Email { get; private set; } = "";
     public DateTime? DateOfBirth { get; private set; }
+    public string PhoneNumber { get; private set; } = "";
+    public bool SharePhone { get; private set; }
+    public bool ContactUnavailable { get; private set; }
     [BindProperty] public string? Service { get; set; }
     [BindProperty] public string? Location { get; set; }
     public string? SelectedServiceArea => BacolorServiceAreas.Match(Location?.Split(',')[0]);
     [BindProperty] public int? Rate { get; set; }
+    [BindProperty] public int? RateMaximum { get; set; }
     [BindProperty] public string WorkRole { get; set; } = "client";
     [BindProperty] public string Availability { get; set; } = "Available";
     [BindProperty] public string[] Days { get; set; } = [];
@@ -49,10 +53,30 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         DisplayName = $"{user.FirstName} {user.LastName}".Trim(); Email = user.Username ?? ""; DateOfBirth = user.DateOfBirth;
         FirstName = user.FirstName;
         LastName = user.LastName;
+        try {
+            var contact = await db.Set<UserContact>().AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId);
+            PhoneNumber = contact?.PhoneNumber ?? ""; SharePhone = contact?.ShareWithAssignedUser ?? false;
+        } catch (MySqlConnector.MySqlException ex) { logger.LogWarning(ex, "Contact storage unavailable"); ContactUnavailable = true; }
         var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId);
-        if (profile != null) { Service = profile.Service; Location = profile.Location; Rate = profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
+        if (profile != null) { Service = profile.Service; Location = profile.Location; Rate = profile.Rate; RateMaximum = profile.RateMaximum ?? profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
         EffectiveAvailability = await FreelancerAvailability.GetAsync(db, UserId, Availability, HttpContext.RequestAborted);
         return Page();
+    }
+    public async Task<IActionResult> OnPostContactAsync(string? phoneNumber, bool sharePhone, CancellationToken ct)
+    {
+        if (UserId <= 0) return Challenge();
+        phoneNumber = (phoneNumber ?? "").Trim();
+        if (phoneNumber.Length > 25 || (phoneNumber.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, @"^\+?[0-9 ()-]{7,24}$")))
+        { Message = "Enter a valid phone number, or leave it blank to remove it."; return RedirectToPage(new { view = "profile" }); }
+        try {
+            var contact = await db.Set<UserContact>().SingleOrDefaultAsync(x => x.UserId == UserId, ct);
+            if (contact is null) { contact = new UserContact { UserId = UserId }; db.Set<UserContact>().Add(contact); }
+            contact.PhoneNumber = phoneNumber; contact.ShareWithAssignedUser = phoneNumber.Length > 0 && sharePhone;
+            await db.SaveChangesAsync(ct); Message = "Contact details saved.";
+        } catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException) {
+            logger.LogError(ex, "Could not save contact details"); Message = "Contact details could not be saved. Please try again.";
+        }
+        return RedirectToPage(new { view = "profile" });
     }
     public async Task<IActionResult> OnPostDisplayNameAsync(string? firstName, string? lastName, CancellationToken ct)
     {
@@ -102,7 +126,8 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         var validDays = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
         Service = (Service ?? "").Trim(); Location = (Location ?? "").Trim();
         Days ??= [];
-        if (!ModelState.IsValid || UserId == 0 || Service.Length > 60 || Location.Length > 80 || Rate is <= 0 ||
+        if (!ModelState.IsValid || UserId == 0 || Service.Length > 60 || Location.Length > 80 || Rate is <= 0 || RateMaximum is <= 0 ||
+            ((WorkRole is "freelancer" or "both") && (Rate.HasValue != RateMaximum.HasValue || RateMaximum < Rate)) ||
             !new[] { "client", "freelancer", "both" }.Contains(WorkRole) ||
             !new[] { "Available", "Busy", "Day off" }.Contains(Availability) || Days.Any(x => !validDays.Contains(x)))
         { Message = "Please check your work preferences and try again."; return RedirectToPage(); }
@@ -118,6 +143,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
             profile.Service = Service;
             profile.Location = serviceArea!;
             profile.Rate = Rate;
+            profile.RateMaximum = RateMaximum;
             profile.Availability = Availability;
             profile.AvailableDays = string.Join(',', validDays.Where(Days.Contains));
         }

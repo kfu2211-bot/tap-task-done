@@ -156,6 +156,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function showFindFreelancer() {
 
+        if (findFreelancerButton.hidden) return;
+
         setActiveMode(
             findFreelancerButton
         );
@@ -177,6 +179,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function showPostTask() {
 
+        if (postTaskButton.hidden) return;
+
         setActiveMode(
             postTaskButton
         );
@@ -197,6 +201,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     function showFindJobs() {
+
+        if (findJobsButton.hidden) return;
 
         setActiveMode(
             findJobsButton
@@ -279,8 +285,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (openProfile && keepProfile !== true) openProfile.classList.add("hidden");
         const query = serviceSearch.value.trim().toLowerCase();
         const location = locationInput.value.trim().toLowerCase();
-        const budgetText = budgetInput.value.trim().replace(/[₱,\s]/g, "");
-        const maximum = budgetText === "" ? null : Number(budgetText);
+        const maximum = null;
         const availability = availabilityFilter.value.toLowerCase();
         if (maximum !== null && (!Number.isFinite(maximum) || maximum <= 0)) {
             noResults.textContent = "Enter a valid maximum budget, for example 1500.";
@@ -300,8 +305,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 ? savedStatus === "available"
                 : availability === "busy" ? status.startsWith("busy") : status === availability);
             const categorySearch = categoryFromHome && query === categoryFromHome.trim().toLowerCase();
-            const matchesOther = !otherCategory || !Object.values(categoryTerms).some(words => words.some(word => service.includes(word)));
-            const matches = matchesOther && (!query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
+            const isOther = query === "other/general" || (otherCategory && !query);
+            const matchesOther = !isOther || !Object.values(categoryTerms).some(words => words.some(word => service.includes(word)));
+            const matches = matchesOther && (isOther || !query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
                 matchesLocation &&
                 (maximum === null || (rate > 0 && rate <= maximum)) &&
                 matchesAvailability;
@@ -339,9 +345,14 @@ document.addEventListener("DOMContentLoaded", function () {
         input.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); performSearch(); } });
     });
     locationInput.addEventListener("change", performSearch);
+    serviceSearch.addEventListener("change", performSearch);
     availabilityFilter.addEventListener("change", performSearch);
     const fromHome = searchParams.get("search") || (otherCategory ? "" : categoryFromHome);
-    if (fromHome) serviceSearch.value = fromHome;
+    if (fromHome) {
+        const option = Array.from(serviceSearch.options).find(item => item.value.toLowerCase() === fromHome.toLowerCase());
+        if (!option) serviceSearch.add(new Option(fromHome, fromHome));
+        serviceSearch.value = option ? option.value : fromHome;
+    }
     if (categoryFromHome) availabilityFilter.value = "Available";
     if (otherCategory) {
         const notice = document.getElementById("otherCategoryNotice");
@@ -450,12 +461,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById("selectedProviderName").dataset.accountId = card.dataset.id;
                     document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set") + " · Database profile";
                     document.getElementById("selectedProviderRating").textContent = rating;
-                    document.getElementById("selectedProviderPrice").textContent = card.dataset.rate ? price + " per task" : price;
+                    document.getElementById("selectedProviderPrice").textContent = price;
                     document.getElementById("selectedProviderAvailability").textContent = selectedProvider.availability || "Availability not set";
                     const bookingFreelancerId = document.getElementById("bookingFreelancerId");
                     if (bookingFreelancerId) bookingFreelancerId.value = card.dataset.id || "";
                     const bookingBudget = document.getElementById("bookingBudget");
                     if (bookingBudget) bookingBudget.value = card.dataset.rate || "";
+                    const bookingBudgetMaximum = document.getElementById("bookingBudgetMaximum");
+                    if (bookingBudgetMaximum) bookingBudgetMaximum.value = card.dataset.rateMaximum || card.dataset.rate || "";
                     if (sendBookingRequestButton) sendBookingRequestButton.disabled = selectedProvider.availability !== "Available" || !card.dataset.id;
                     if (sendBookingRequestButton) sendBookingRequestButton.textContent = "Send booking request to " + name;
                     const bookingPrivacyNotice = document.getElementById("bookingPrivacyNotice");
@@ -544,7 +557,7 @@ document.addEventListener("DOMContentLoaded", function () {
             databasePostTaskForm.classList.remove("hidden");
         });
         cancelPostTaskButton.addEventListener("click", function () {
-            showFindFreelancer();
+            if (findFreelancerButton.hidden) showPostTask(); else showFindFreelancer();
         });
         databasePostTaskForm.addEventListener("submit", function (event) {
             const schedule = selectedSchedule();
@@ -724,7 +737,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const requestedMode = new URLSearchParams(window.location.search).get("mode");
 
-    if (requestedMode === "post") {
+    if (findFreelancerButton.hidden) {
+        showPostTask();
+    }
+    else if (requestedMode === "post") {
         showPostTask();
     }
     else if (requestedMode === "jobs") {
@@ -737,7 +753,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Home's provider cards keep the selected freelancer through to the real
     // server-backed booking form, rather than opening a generic search page.
     const requestedProviderId = searchParams.get("providerId");
-    if (requestedProviderId && /^[1-9]\d*$/.test(requestedProviderId)) {
+    if (!findFreelancerButton.hidden && requestedProviderId && /^[1-9]\d*$/.test(requestedProviderId)) {
         showFindFreelancer();
         const providerCard = Array.from(freelancerList.querySelectorAll(".freelancer-card[data-id]"))
             .find(function (card) { return card.dataset.id === requestedProviderId; });
@@ -889,4 +905,29 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     );
 
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const filter = document.getElementById('jobsCategoryFilter');
+    if (!filter) return;
+    const cards = [...document.querySelectorAll('#findJobsSection [data-job-category]')];
+    const count = document.getElementById('jobsFilterCount');
+    const empty = document.getElementById('jobsFilterEmpty');
+    const normalize = value => value.toLowerCase().replace(/\s*\/\s*/g, '/').trim();
+    function updateJobs() {
+        const selected = normalize(filter.value);
+        let visible = 0;
+        for (const card of cards) {
+            const matches = !selected || normalize(card.dataset.jobCategory || '') === selected;
+            card.hidden = !matches;
+            if (matches) visible++;
+        }
+        count.textContent = `${visible} open ${visible === 1 ? 'task' : 'tasks'}`;
+        empty.hidden = !selected || visible !== 0 || cards.length === 0;
+    }
+    filter.addEventListener('change', updateJobs);
+    document.getElementById('jobsFilterReset').addEventListener('click', () => {
+        filter.value = '';
+        updateJobs();
+        filter.focus();
+    });
 });

@@ -9,6 +9,7 @@ public sealed class SafetyReport
     public string Reason { get; set; } = "";
     public string Description { get; set; } = "";
     public string Status { get; set; } = "open";
+    public int Priority { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

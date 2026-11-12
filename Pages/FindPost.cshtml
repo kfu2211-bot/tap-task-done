@@ -10,6 +10,8 @@
     {
         mode = "freelancer";
     }
+    if (mode == "jobs" && Model.WorkRole == "client") { mode = "freelancer"; }
+    if (mode == "post" && Model.WorkRole == "freelancer") { mode = "jobs"; }
 }
 
 <!DOCTYPE html>
@@ -272,6 +274,7 @@
 
                     <button class="mode-button @(mode == "post" ? "active" : "")"
                             id="postTaskButton"
+                            hidden="@(Model.WorkRole == "freelancer")"
                             type="button">
 
                         Post a Task
@@ -281,6 +284,7 @@
 
                     <button class="mode-button @(mode == "jobs" ? "active" : "")"
                             id="findJobsButton"
+                            hidden="@(Model.WorkRole == "client")"
                             type="button">
 
                         Find Jobs
@@ -319,9 +323,7 @@
                                     ⌕
                                 </span>
 
-                                <input type="text"
-                                       id="serviceSearch"
-                                       placeholder="Search service..." />
+                                <select id="serviceSearch" aria-label="Service category"><option value="">All services</option>@foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other/General" }) { <option value="@category">@category</option> }</select>
 
                             </div>
 
@@ -355,7 +357,7 @@
 
 
 
-                        <div class="filter-group">
+                        <div class="filter-group" hidden>
 
                             <label for="budgetInput">
                                 Budget
@@ -401,6 +403,7 @@
 
 
                         <section class="provider-search-intro">
+                            @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
                             <span>Find a trusted provider</span>
                             <h2>Compare freelancers before you send a request.</h2>
                             <p>Search profiles by service, location, budget, and availability.</p>
@@ -428,9 +431,9 @@
                                  id="freelancerList">
                                 @foreach (var provider in Model.Providers)
                                 {
-                                    <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-location="@provider.Location" data-service-areas="@string.Join("|", tts.Pages.BacolorServiceAreas.InLocation(provider.Location))" data-rate="@provider.Rate" data-availability="@provider.Availability" data-saved-availability="@provider.SavedAvailability">
+                                    <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-location="@provider.Location" data-service-areas="@string.Join("|", tts.Pages.BacolorServiceAreas.InLocation(provider.Location))" data-rate="@provider.Rate" data-rate-maximum="@(provider.RateMaximum ?? provider.Rate)" data-availability="@provider.Availability" data-saved-availability="@provider.SavedAvailability">
                                         <div class="freelancer-left"><div class="freelancer-avatar" style="position:relative;overflow:hidden"><img src="@Url.Page("/ProfilePhoto", new { providerId = provider.Id })" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.hidden=true" />@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong><span>@provider.Service</span><span class="provider-availability">@provider.Availability</span></div></div>
-                                        <div class="freelancer-right"><div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count})" : "No ratings yet")</strong></div><div class="freelancer-price">@(provider.Rate.HasValue ? $"₱{provider.Rate}" : "Rate not set")</div><button class="arrow-button" type="button" data-name="@provider.Name">View profile</button></div>
+                                        <div class="freelancer-right"><div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count})" : "No ratings yet")</strong></div><div class="freelancer-price">@(provider.Rate.HasValue ? $"₱{provider.Rate:N0} – ₱{(provider.RateMaximum ?? provider.Rate):N0}" : "Rate not set")</div><button class="arrow-button" type="button" data-name="@provider.Name">View profile</button></div>
                                     </article>
                                 }
 
@@ -450,7 +453,6 @@
                                 <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
                                 <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span id="selectedProviderAvailability" class="available-now">Availability —</span></div>
                                 @if (tts.Pages.BookingRequestsModel.CanBook(Model.WorkRole)) {
-                                @if (Model.WorkRole == "freelancer") { <p class="provider-detail-help">You can hire another freelancer. Sending this request enables Client &amp; Freelancer mode so you can track it in My Tasks.</p> }
                                 <p class="provider-detail-help">Request work directly from this freelancer. Your request is private and will appear in their My Jobs → Booking requests.</p>
                                 <form method="post" asp-page="/BookingRequests" asp-page-handler="Direct" class="direct-booking-form">
                                     <input type="hidden" name="freelancerId" id="bookingFreelancerId" />
@@ -460,8 +462,9 @@
                                     <label for="bookingSchedule">Preferred date and time (Philippine time)</label>
                                     <input id="bookingSchedule" name="schedule" type="datetime-local" step="60" min="@DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required aria-describedby="bookingScheduleHelp" />
                                     <small id="bookingScheduleHelp">Choose a date from the calendar and select a time. Schedule uses Philippine time (UTC+8).</small>
-                                    <label for="bookingBudget">Proposed budget (₱)</label><input id="bookingBudget" name="budget" type="number" min="1" max="9999999999" step="0.01" required />
-                                    <p>The displayed rate is a guide. The freelancer can accept or decline your proposed work and budget.</p>
+                                    <label for="bookingBudget">Minimum proposed budget (₱)</label><input id="bookingBudget" name="budget" type="number" min="1" max="9999999999" step="0.01" required />
+                                    <label for="bookingBudgetMaximum">Maximum proposed budget (₱)</label><input id="bookingBudgetMaximum" name="budgetMaximum" type="number" min="1" max="9999999999" step="0.01" required />
+                                    <p>The freelancer’s rate is a guide. Discuss and confirm the final price together before travel.</p>
                                     </div>
                                     <div class="booking-location">
                                         <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
@@ -508,6 +511,7 @@
                             </div>
                             <span class="post-step">Task details</span>
                         </div>
+                        @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
 
                         <label class="post-field">
                             <span>Task title</span>
@@ -536,9 +540,11 @@
 
                         <div class="post-work-details">
                             <label class="post-field">
-                                <span>Budget</span>
-                                <span class="post-budget-control"><span aria-hidden="true">₱</span><input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 600" /></span><small>Your proposed budget for this task.</small>
+                                <span>Minimum budget (₱)</span>
+                                <span class="post-budget-control"><span aria-hidden="true">₱</span><input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 600" /></span><small>Your proposed minimum budget.</small>
                             </label>
+                            <label class="post-field"><span>Maximum budget (₱)</span><span class="post-budget-control"><span aria-hidden="true">₱</span><input name="budgetMaximum" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 1000" /></span><small>Must be at least the minimum budget.</small></label>
+                            <label class="post-field post-duration"><span>Post duration</span><select name="postDurationDays"><option value="3">3 days</option><option value="7" selected>7 days</option></select><small>Starts when you confirm and publish the task.</small></label>
                             <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
                         </div>
 
@@ -569,7 +575,7 @@
                             <div>
                                 <span class="success-eyebrow">YOUR TASK IS LIVE</span>
                                 <h2>Task posted successfully</h2>
-                                <p>Trusted freelancers can now view and send an offer for your task.</p>
+                                <p>Trusted freelancers can now view and make an offer for your task.</p>
                             </div>
                         </div>
                         <div class="posted-task-summary">
@@ -606,17 +612,22 @@
 
                     @if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
                     <div class="jobs-workspace">
-                        <div class="jobs-heading"><div><span class="jobs-eyebrow">FREELANCER OPPORTUNITIES</span><h2>Find your next job</h2><p>Explore tasks posted by clients and send an offer that works for you.</p></div><span class="jobs-count">@Model.OpenTasks.Count open @(Model.OpenTasks.Count == 1 ? "task" : "tasks")</span></div>
+                        <div class="jobs-heading"><div><span class="jobs-eyebrow">FREELANCER OPPORTUNITIES</span><h2>Find your next job</h2><p>Explore tasks posted by clients and make an offer that works for you.</p></div><span class="jobs-count" id="jobsFilterCount">@Model.OpenTasks.Count open @(Model.OpenTasks.Count == 1 ? "task" : "tasks")</span></div>
+                        @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
+                        @if (!Model.DirectoryUnavailable && (Model.WorkRole is "freelancer" or "both")) {
+                            <div class="jobs-category-filter"><label for="jobsCategoryFilter">Filter by service / profession</label><select id="jobsCategoryFilter"><option value="">All categories</option>@foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other / General" }) { <option value="@category">@category</option> }</select></div>
+                        }
                         @if (Model.DirectoryUnavailable) { <div class="jobs-empty"><h3>Jobs are unavailable right now</h3><p>Please try again later.</p></div> }
                         else if (Model.WorkRole is not ("freelancer" or "both")) { <div class="jobs-empty"><h3>Ready to find work?</h3><p>Set your work role to Freelancer or Client &amp; Freelancer to find jobs and send offers.</p><a href="/Settings">Open settings</a></div> }
                         else if (Model.OpenTasks.Count == 0) { <div class="jobs-empty"><span class="jobs-empty-icon" aria-hidden="true">⌕</span><h3>No open jobs yet</h3><p>When another client confirms a task, it will appear here. Check back later for new opportunities.</p></div> }
                         @foreach (var item in Model.OpenTasks) {
                             var task = item.Task;
                             var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
-                            <article class="jobs-card"><div class="jobs-card-top"><span class="jobs-tag">@task.Category</span><strong>₱@task.Budget</strong></div><h3>@task.Title</h3><p>@task.Description</p><form method="post" asp-page="/Messages" asp-page-handler="Start"><input type="hidden" name="taskId" value="@task.Id" /><button type="submit" class="task-chat-action"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z"/></svg>Ask about this task</button></form><div class="jobs-meta"><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: <span data-account-id="@task.ClientId">@item.ClientName</span></span></div>
+                            <article class="jobs-card" data-job-category="@task.Category"><div class="jobs-card-top"><span class="jobs-tag">@task.Category</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><form method="post" asp-page="/Messages" asp-page-handler="Start"><input type="hidden" name="taskId" value="@task.Id" /><button type="submit" class="task-chat-action"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z"/></svg>Ask about this task</button></form><div class="jobs-meta"><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: <span data-account-id="@task.ClientId">@item.ClientName</span></span></div>
                             @if (existing != null) { <p class="jobs-offer-status">Offer sent · @existing.Offer.Status</p> }
-                            else { <details class="jobs-offer"><summary>Send an offer</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Offer"><input type="hidden" name="id" value="@task.Id" /><label class="post-field">Your price (₱)<input type="number" name="price" min="1" max="9999999999" step="0.01" required /></label><label class="post-field">Message (optional)<textarea name="message" maxlength="500"></textarea></label><button class="post-submit-button">Send offer</button></form></details> }</article>
+                            else { <details class="jobs-offer"><summary>Make an offer</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Offer"><input type="hidden" name="id" value="@task.Id" /><label class="post-field">Your price (₱)<input type="number" name="price" min="1" max="9999999999" step="0.01" required /></label><label class="post-field">Message (optional)<textarea name="message" maxlength="500"></textarea></label><button class="post-submit-button">Make an offer</button></form></details> }</article>
                         }
+                        <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs in this category yet</h3><p>Choose another category or view all jobs.</p><button type="button" id="jobsFilterReset" class="task-chat-action">View all jobs</button></div>
                         <section class="jobs-offers"><h3>My offers</h3>
                         @if (Model.Offers.Count == 0) { <p>Your sent offers will appear here so you can check their status.</p> }
                         @foreach (var sent in Model.Offers) { <div class="sent-offer"><div><strong>@(Model.OfferTaskTitles.TryGetValue(sent.Offer.TaskId, out var offerTitle) ? offerTitle : "Task details unavailable")</strong><span>Offer: ₱@sent.Offer.Price</span></div><span class="sent-offer-status">@sent.Offer.Status.Replace("-", " ")</span></div> }</section>

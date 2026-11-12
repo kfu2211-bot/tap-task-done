@@ -66,6 +66,7 @@ UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Availability' AS column_n
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'AvailableDays' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Location' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Rate' AS column_name
+UNION ALL SELECT 'freelancer_profiles' AS table_name, 'RateMaximum' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Service' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'UserId' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'WorkRole' AS column_name

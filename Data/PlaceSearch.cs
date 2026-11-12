@@ -10,6 +10,31 @@ public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
     private static readonly SemaphoreSlim Gate = new(1, 1);
     private static readonly MemoryCache Cache = new(new MemoryCacheOptions { SizeLimit = 256 });
     private static DateTime lastRequest;
+    public async Task<Place?> ReverseAsync(double lat, double lon, CancellationToken ct)
+    {
+        await Gate.WaitAsync(ct);
+        try
+        {
+            var wait = lastRequest.AddSeconds(1) - DateTime.UtcNow;
+            if (wait > TimeSpan.Zero) await Task.Delay(wait, ct);
+            var baseUrl = configuration["Geocoding:BaseUrl"] ?? "https://photon.komoot.io";
+            if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var endpoint) || endpoint.Scheme != "https") throw new InvalidOperationException("Invalid geocoding endpoint.");
+            var url = endpoint.ToString().TrimEnd('/') + "/reverse?lat=" + lat.ToString(System.Globalization.CultureInfo.InvariantCulture) + "&lon=" + lon.ToString(System.Globalization.CultureInfo.InvariantCulture) + "&limit=1&lang=en";
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.UserAgent.ParseAdd("TapTaskDone/1.0 (Bacolor task address search)");
+            lastRequest = DateTime.UtcNow;
+            using var response = await http.SendAsync(request, ct); response.EnsureSuccessStatusCode();
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+            var features = json.RootElement.GetProperty("features");
+            if (features.GetArrayLength() == 0) return null;
+            var properties = features[0].GetProperty("properties");
+            var parts = new[] { "name", "housenumber", "street", "district", "city", "state" }.Select(k => properties.TryGetProperty(k, out var v) ? v.GetString() : null).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToArray();
+            if (parts.Length == 0) return null;
+            var label = string.Join(", ", parts);
+            return new Place(label.Length > 120 ? label[..120] : label, lat, lon);
+        }
+        finally { Gate.Release(); }
+    }
     public async Task<Place[]> SearchAsync(string query, CancellationToken ct)
     {
         var key = query.Trim().ToLowerInvariant();

@@ -65,7 +65,7 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
         if (item is null) return NotFound();
         item.ReadAt ??= DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
-        return RedirectToPage();
+        return RedirectToPage("/Settings", new { view = "profile" });
     }
 
     public async Task<IActionResult> OnPostOpenAsync(long id, CancellationToken ct)
@@ -82,6 +82,7 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
         if (item == null) return NotFound();
         item.IsRead = true;
         await db.SaveChangesAsync(ct);
+        var isTaskOwner = await db.MarketplaceTasks.AsNoTracking().AnyAsync(t => t.Id == item.TaskId && t.ClientId == UserId, ct);
         return item.Kind switch
         {
             "safety_report" => RedirectToPage("/Reports"),
@@ -91,6 +92,8 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
             "accepted" => RedirectToPage("/MyJobs", new { view = "active" }),
             "completed" or "on-the-way" or "arrived" or "started" or "finished" or "booking_accepted" or "completion_reminder" or "agreement" => RedirectToPage("/Tracking", new { taskId = item.TaskId }),
             "cancelled" => RedirectToPage("/MyJobs", new { view = "cancelled" }),
+            "offer" or "withdrawn" or "booking_declined" => RedirectToPage("/MarketTasks", new { view = "mine" }),
+            "task_expired" => isTaskOwner ? RedirectToPage("/MarketTasks", new { view = "mine" }) : RedirectToPage("/MyJobs", new { view = "offers" }),
             _ => RedirectToPage("/MarketTasks", new { view = "mine" })
         };
     }
