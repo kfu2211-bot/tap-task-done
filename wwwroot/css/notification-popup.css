@@ -106,3 +106,6 @@ html body .notification-popover-all{padding:11px;border:1px solid #8dbba0;border
 .live-update-toast strong{display:block;padding-right:36px;color:inherit}.live-update-toast p{margin:10px 0;color:var(--signin-alert-muted,#536d5e)}
 .live-update-close{position:absolute;right:14px;top:14px;width:30px;height:30px;border:0;border-radius:6px;background:var(--signin-alert-control,#edf5ef);color:var(--signin-alert-accent,#18765b);font-size:20px;cursor:pointer}
 .live-update-open{padding:0;border:0;background:transparent;color:var(--signin-alert-accent,#18765b);font:inherit;font-weight:700;cursor:pointer;text-align:left}
+
+.sidebar-unread-badge:not([hidden]) { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; min-width: 1.35rem; height: 1.35rem; padding: 0 .3rem; border-radius: 999px; background: #b73542; color: #fff; font-size: .7rem; font-weight: 700; line-height: 1; flex-shrink: 0; }
+.sidebar-unread-badge[hidden] { display: none !important; }

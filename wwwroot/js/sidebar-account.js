@@ -161,6 +161,15 @@
 
                 link.classList.toggle("active", window.location.pathname.toLowerCase() === item.href.split("?")[0].toLowerCase());
                 decorateSidebarLink(link);
+                if (item.href === "/Messages" || item.href === "/MyJobs" || item.href.indexOf("/MarketTasks") === 0) {
+                    var navBadge = document.createElement("span");
+                    navBadge.className = "sidebar-unread-badge";
+                    navBadge.dataset.notificationKind = item.href === "/Messages" ? "message" : "task";
+                    navBadge.hidden = true;
+                    navBadge.setAttribute("aria-hidden", "true");
+                    link.appendChild(navBadge);
+                    link.dataset.notificationLabel = item.label;
+                }
                 // appendChild moves an existing link instead of copying it, preventing duplicates.
                 nav.appendChild(link);
             });
@@ -309,16 +318,6 @@
             button.dataset.notificationsReady = "true";
             button.classList.add("app-notification-trigger");
             button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-2 7-2 9h16c0-2-2-2-2-9M10 20h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-            var badge = document.createElement("span");
-            badge.className = "notification-count-badge";
-            badge.hidden = true;
-            badge.setAttribute("aria-hidden", "true");
-            button.appendChild(badge);
-            var messageBadge = document.createElement("span");
-            messageBadge.className = "notification-count-badge notification-message-badge";
-            messageBadge.hidden = true;
-            messageBadge.setAttribute("aria-hidden", "true");
-            button.appendChild(messageBadge);
             var otherBadge = document.createElement("span");
             otherBadge.className = "notification-count-badge notification-other-badge";
             otherBadge.hidden = true;
@@ -352,12 +351,15 @@
                 document.querySelectorAll(".notification, .notification-button, #notificationButton, .mytasks-notification").forEach(function (button) {
                     button.title = count ? messageCount + " unread messages, " + taskCount + " task updates, " + otherCount + " other unread updates" : "View notifications";
                     button.setAttribute("aria-label", button.title);
-                    var badge = button.querySelector(".notification-count-badge:not(.notification-message-badge):not(.notification-other-badge)");
-                    if (badge) { badge.textContent = taskCount > 99 ? "99+" : String(taskCount); badge.hidden = taskCount <= 0; }
                     var otherBadge = button.querySelector(".notification-other-badge");
                     if (otherBadge) { otherBadge.textContent = otherCount > 99 ? "99+" : String(otherCount); otherBadge.hidden = otherCount <= 0; }
-                    var messageBadge = button.querySelector(".notification-message-badge");
-                    if (messageBadge) { messageBadge.textContent = messageCount > 99 ? "99+" : String(messageCount); messageBadge.hidden = messageCount <= 0; }
+                });
+                document.querySelectorAll(".sidebar-unread-badge").forEach(function (badge) {
+                    var unread = badge.dataset.notificationKind === "message" ? messageCount : taskCount;
+                    badge.textContent = unread > 99 ? "99+" : String(unread);
+                    badge.hidden = unread <= 0;
+                    var link = badge.parentElement;
+                    link.setAttribute("aria-label", link.dataset.notificationLabel + (unread ? ", " + unread + " unread " + (badge.dataset.notificationKind === "message" ? "messages" : "task updates") : ""));
                 });
                 return count;
             } catch (error) { console.warn("Notifications could not be refreshed.", error); }
