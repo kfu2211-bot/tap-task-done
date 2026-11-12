@@ -12,17 +12,23 @@ public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
     private static DateTime lastRequest;
     public async Task<Place?> ReverseAsync(double lat, double lon, CancellationToken ct)
     {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(8));
+        ct = timeout.Token;
         await Gate.WaitAsync(ct);
         try
         {
             var wait = lastRequest.AddSeconds(1) - DateTime.UtcNow;
             if (wait > TimeSpan.Zero) await Task.Delay(wait, ct);
+            lastRequest = DateTime.UtcNow;
+        }
+        finally { Gate.Release(); }
+        {
             var baseUrl = configuration["Geocoding:BaseUrl"] ?? "https://photon.komoot.io";
             if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var endpoint) || endpoint.Scheme != "https") throw new InvalidOperationException("Invalid geocoding endpoint.");
             var url = endpoint.ToString().TrimEnd('/') + "/reverse?lat=" + lat.ToString(System.Globalization.CultureInfo.InvariantCulture) + "&lon=" + lon.ToString(System.Globalization.CultureInfo.InvariantCulture) + "&limit=1&lang=en";
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.UserAgent.ParseAdd("TapTaskDone/1.0 (Bacolor task address search)");
-            lastRequest = DateTime.UtcNow;
             using var response = await http.SendAsync(request, ct); response.EnsureSuccessStatusCode();
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
             var features = json.RootElement.GetProperty("features");
@@ -33,7 +39,6 @@ public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
             var label = string.Join(", ", parts);
             return new Place(label.Length > 120 ? label[..120] : label, lat, lon);
         }
-        finally { Gate.Release(); }
     }
     public async Task<Place[]> SearchAsync(string query, CancellationToken ct)
     {
