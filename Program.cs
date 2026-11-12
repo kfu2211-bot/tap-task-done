@@ -309,7 +309,13 @@ app.MapGet("/api/places/reverse", async (double lat, double lon, PlaceSearch sea
     if (!TaskLocationRules.Valid(lat, lon)) return Results.BadRequest();
     try { return Results.Json(await search.ReverseAsync(lat, lon, ct)); }
     catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or InvalidOperationException)
-    { logger.LogWarning("Reverse address lookup failed: {FailureType}, HTTP status {StatusCode}.", ex.GetType().Name, (ex as HttpRequestException)?.StatusCode); return Results.Json(new { message = "Address lookup is unavailable." }, statusCode: 503); }
+    {
+        var httpError = ex as HttpRequestException;
+        var socketError = ex.InnerException as System.Net.Sockets.SocketException;
+        logger.LogWarning("Reverse address lookup failed: {FailureType}, HTTP status {StatusCode}, network error {NetworkError}, socket error {SocketError}.",
+            ex.GetType().Name, httpError?.StatusCode, httpError?.HttpRequestError, socketError?.SocketErrorCode);
+        return Results.Json(new { message = "Address lookup is unavailable." }, statusCode: 503);
+    }
 }).RequireAuthorization().RequireRateLimiting("PlaceSearchLimit");
 app.MapRazorPages();
 
