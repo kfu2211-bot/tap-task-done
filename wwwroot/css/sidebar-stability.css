@@ -705,11 +705,14 @@
 
 /* Keep the mobile title aligned with the fixed menu button. */
 @media (max-width: 700px) {
+    /* overflow-x:hidden creates a scrolling ancestor that stops sticky headers
+       from following the page. Clip horizontal overflow without creating one. */
+    html, body { overflow-x: clip; }
     html body :is(.topbar, .top-header, .mytasks-topbar, .market-header, .settings-layout > main > header) {
         box-sizing: border-box;
         position: sticky !important;
-        top: 0;
-        z-index: 100;
+        top: 0 !important;
+        z-index: 1000 !important;
         height: auto !important;
         min-height: 52px !important;
         max-height: none !important;
@@ -717,6 +720,7 @@
     }
 
     html body #mobileMenuToggle {
+        position: fixed !important;
         top: 8px !important;
         left: 8px !important;
         width: 36px !important;

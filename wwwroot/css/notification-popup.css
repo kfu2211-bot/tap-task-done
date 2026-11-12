@@ -107,5 +107,26 @@ html body .notification-popover-all{padding:11px;border:1px solid #8dbba0;border
 .live-update-close{position:absolute;right:14px;top:14px;width:30px;height:30px;border:0;border-radius:6px;background:var(--signin-alert-control,#edf5ef);color:var(--signin-alert-accent,#18765b);font-size:20px;cursor:pointer}
 .live-update-open{padding:0;border:0;background:transparent;color:var(--signin-alert-accent,#18765b);font:inherit;font-weight:700;cursor:pointer;text-align:left}
 
-.sidebar-unread-badge:not([hidden]) { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; min-width: 1.35rem; height: 1.35rem; padding: 0 .3rem; border-radius: 999px; background: #b73542; color: #fff; font-size: .7rem; font-weight: 700; line-height: 1; flex-shrink: 0; }
+.sidebar-unread-badge:not([hidden]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    padding: 0 .35rem;
+    border-radius: 999px;
+    background: #c63342 !important;
+    color: #fff !important;
+    font-size: .72rem;
+    font-weight: 700;
+    line-height: 1;
+    flex-shrink: 0;
+}
+/* Keep the count readable on both active and inactive navigation items. */
+html body :is(.sidebar, .mytasks-sidebar) a .sidebar-unread-badge:not([hidden]),
+html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) a .sidebar-unread-badge:not([hidden]) {
+    background: #c63342 !important;
+    color: #fff !important;
+}
 .sidebar-unread-badge[hidden] { display: none !important; }

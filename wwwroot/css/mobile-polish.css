@@ -1,6 +1,7 @@
 /* Phone-first finishing touches shared by every signed-in user page. */
 @media (max-width:700px) {
-    html, body { max-width:100%; overflow-x:hidden; }
+    /* `hidden` makes the page a scrolling container and breaks sticky headers. */
+    html, body { max-width:100%; overflow-x:clip; overflow-y:visible; }
 
     #mobileMenuToggle {
         width:46px !important;

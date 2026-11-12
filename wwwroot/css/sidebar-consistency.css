@@ -109,7 +109,7 @@ html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sid
     transform: none !important;
 }
 
-html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a > span {
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a > span:not(.sidebar-unread-badge) {
     color: inherit !important;
     font-size: inherit !important;
     line-height: inherit !important;
