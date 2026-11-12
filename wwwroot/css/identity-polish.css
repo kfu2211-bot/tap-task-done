@@ -28,3 +28,7 @@ html body .verification-page .document-title strong,.verification-page .id-numbe
 .identity-admin { margin:0; font:14px Arial,sans-serif; }.identity-admin main { padding:24px; }.identity-admin article { padding:20px; margin:15px 0; border:1px solid #d9e7da; border-radius:12px; background:#fff; }.identity-admin textarea { display:block; width:100%; max-width:500px; min-height:65px; margin:8px 0; }.identity-admin button { padding:10px 15px; margin-right:8px; border:0; border-radius:7px; background:#19765a; color:#fff; cursor:pointer; }.identity-admin a { color:#176b50; }
 @media(max-width:900px){.verification-page .upload-area { width:100%; min-width:0; text-align:left; }.verification-page .document-row { gap:14px; }}
 @media(max-width:650px){.verification-page .content { width:calc(100% - 30px); margin:28px auto 50px; }}
+.verification-page .status-card.status-approved { background:#e8f6eb !important; border-color:#b9dec1 !important; color:#185c42; }
+.verification-page .status-approved .status-icon { background:#ccebd4 !important; color:#176c4d !important; font-size:22px; font-weight:700; }
+html[data-theme="dark"] body .verification-page .status-card.status-approved { background:#1b392c !important; border-color:#3d7253 !important; color:#e3f6e8 !important; }
+html[data-theme="dark"] body .verification-page .status-approved .status-icon { background:#2c6245 !important; color:#d7f8df !important; }

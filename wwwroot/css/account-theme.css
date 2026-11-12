@@ -680,6 +680,24 @@ html[data-theme="dark"] :is(.dashboard-task-category,.dashboard-task-budget) { c
 html[data-theme="dark"] .dashboard-open-task:hover { background:#243d33; }
 @media (max-width: 800px) { .dashboard-open-tasks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .dashboard-task-heading { align-items:flex-start; } .dashboard-task-heading a { font-size:13px; } .dashboard-open-tasks { grid-template-columns: 1fr; } .dashboard-open-task { min-height: 120px; } }
+
+/* Home lists share the same horizontal browsing behaviour as categories. */
+html body .dashboard :is(.dashboard-open-tasks, .provider-grid) {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: calc((100% - 36px) / 4);
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    padding: 2px 0 8px;
+}
+html body .dashboard :is(.dashboard-open-task, .provider-card) { min-width: 0; scroll-snap-align: start; }
+html body .dashboard :is(.dashboard-open-tasks, .provider-grid):focus-visible { outline: 2px solid #19765a; outline-offset: 3px; }
+@media (max-width: 800px) { html body .dashboard :is(.dashboard-open-tasks, .provider-grid) { grid-auto-columns: minmax(175px, 44%); } }
+@media (max-width: 480px) { html body .dashboard :is(.dashboard-open-tasks, .provider-grid) { grid-auto-columns: 82%; } }
 /* Profile editing controls stay compact and readable in both themes. */
 .profile-personal-details .profile-name-editor { margin-top: 12px; padding: 14px 16px; border: 1px solid #cde1d1; border-radius: 10px; background: #f6faf6; }
 .profile-personal-details .profile-name-editor summary { cursor: pointer; color: #176b52; font-weight: 700; }
@@ -717,3 +735,15 @@ html[data-theme="dark"] body.my-jobs-page :is(.job-card .job-card-link a, .job-c
 html[data-theme="dark"] body.my-jobs-page :is(.job-card .job-withdraw, .job-card .job-withdraw summary) { color: #c5ead3 !important; }
 html[data-theme="dark"] body.my-jobs-page :is(.job-notice, .jobs-data-note) { background: #203c30 !important; border-color: #436a52 !important; color: #e3f5e8 !important; }
 html[data-theme="dark"] body.my-jobs-page .jobs-data-note :is(p, a) { color: #d4f4df !important; }
+
+/* Shared finishing touches for account and dashboard cards. */
+.availability-summary { margin-top:14px; padding:13px 16px; border:1px solid #d3e8d6; border-radius:10px; background:#f1f8f1; color:#315b49; }
+.availability-summary > span { display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-weight:600; }
+.availability-summary p { margin:6px 0 0; font-size:13px; line-height:1.5; }
+html[data-theme="dark"] .availability-summary { background:#20352a; border-color:#39584a; color:#d9ece0; }
+.dashboard .providers-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.dashboard .dashboard-view-all, .dashboard .dashboard-task-heading a { color:#086749; font-size:14px; font-weight:700; text-decoration:none; white-space:nowrap; }
+.dashboard .dashboard-view-all:hover { text-decoration:underline; }
+.dashboard .dashboard-open-task { min-height:0; padding:14px 18px; gap:4px; border-radius:12px; }
+html[data-theme="dark"] .dashboard .dashboard-view-all { color:#90dfba; }
+@media(max-width:600px) { .dashboard .dashboard-open-task { min-height:0; } .dashboard .providers-heading { align-items:flex-start; } }

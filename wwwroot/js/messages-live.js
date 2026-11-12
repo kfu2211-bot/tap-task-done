@@ -12,6 +12,15 @@
     }
     search?.addEventListener('input', filterConversations);
 
+    section.addEventListener('keydown', event => {
+        const input = event.target;
+        if (!(input instanceof HTMLTextAreaElement) || !input.closest('.thread-form')) return;
+        if (event.key !== 'Enter' || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) return;
+        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+        event.preventDefault();
+        if (input.value.trim()) input.form?.requestSubmit();
+    });
+
     async function updateConversation() {
         if (document.hidden || updating) return;
         updating = true;

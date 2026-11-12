@@ -93,3 +93,42 @@ html body.messages-current-view .thread-form button { height:44px; min-width:80p
     .messages-current .thread-agreement { padding: 10px 12px; }
     html body.messages-current-view .thread-form textarea { font-size: 16px; }
 }
+html body.messages-current-view .messages-grid { border:1px solid #d5e5d7; box-shadow:0 8px 24px rgba(21,65,44,.05); }
+html body.messages-current-view .messages-conversations { border-right:1px solid #d9e7da !important; }
+html body.messages-current-view .thread-heading { background:#fff; border-bottom:1px solid #e1ece1; }
+html body.messages-current-view .thread-message { border-radius:14px; }
+html body.messages-current-view .thread-form textarea { border-radius:10px; }
+html[data-theme="dark"] body.messages-current-view .messages-grid { border-color:#385047; }
+html[data-theme="dark"] body.messages-current-view .messages-conversations { border-right-color:#385047 !important; }
+html[data-theme="dark"] body.messages-current-view .thread-heading { background:#1b2b23; border-bottom-color:#385047; }
+@media(max-width:700px) { html body.messages-current-view .messages-conversations { border-right:0 !important; } }
+
+/* Inbox surfaces and readable conversation states. */
+html body.messages-current-view .messages-grid { border-radius:16px; background:#fff; box-shadow:0 12px 32px rgba(19,62,43,.07); }
+html body.messages-current-view .messages-conversations { background:#fbfdfb !important; border-right:1px solid #dbe9dd !important; }
+html body.messages-current-view .messages-thread { border:0 !important; background:#f6f9f5; }
+html body.messages-current-view .conversations-toolbar { background:#fff; padding:20px 18px 16px; }
+html body.messages-current-view .conversation-link { padding:15px 16px; transition:background-color .15s ease; }
+html body.messages-current-view .conversation-link:hover { background:#eef6ee; }
+html body.messages-current-view .conversation-link.selected { background:#e5f1e6; }
+html body.messages-current-view .thread-heading { min-height:80px; padding:16px 22px; }
+html body.messages-current-view .thread-task-link { border-radius:9px; }
+html body.messages-current-view .thread-messages { background:#f6f9f5; padding:22px; }
+html body.messages-current-view .thread-message { border-radius:15px; padding:11px 15px 8px; box-shadow:0 2px 6px rgba(20,60,40,.04); overflow-wrap:anywhere; }
+html body.messages-current-view .thread-form { background:#fff; border-top:1px solid #dbe9dd; padding:14px 20px; }
+html body.messages-current-view .thread-form textarea { border-radius:10px; }
+html[data-theme="dark"] body.messages-current-view .messages-grid { background:#17251f; border-color:#385047; }
+html[data-theme="dark"] body.messages-current-view .messages-conversations,
+html[data-theme="dark"] body.messages-current-view .conversations-toolbar,
+html[data-theme="dark"] body.messages-current-view .thread-heading,
+html[data-theme="dark"] body.messages-current-view .thread-form { background:#1b2b23 !important; border-color:#385047 !important; }
+html[data-theme="dark"] body.messages-current-view .messages-thread,
+html[data-theme="dark"] body.messages-current-view .thread-messages { background:#14221c !important; }
+html[data-theme="dark"] body.messages-current-view .conversation-link:hover { background:#283e32; }
+html[data-theme="dark"] body.messages-current-view .conversation-link.selected { background:#294637; }
+@media(max-width:700px) {
+    html body.messages-current-view .messages-conversations { border-right:0 !important; border-bottom:1px solid #dbe9dd !important; }
+    html body.messages-current-view .thread-heading { min-height:68px; padding:12px; }
+    html body.messages-current-view .thread-messages { padding:14px 12px; }
+    html body.messages-current-view .thread-form { padding:12px; }
+}

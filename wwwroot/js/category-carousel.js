@@ -1,4 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".dashboard-open-tasks, .provider-grid").forEach((row) => {
+        row.addEventListener("wheel", (event) => {
+            if (event.ctrlKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+            const max = row.scrollWidth - row.clientWidth;
+            if (max <= 1 || (event.deltaY > 0 ? row.scrollLeft >= max - 1 : row.scrollLeft <= 1)) return;
+            event.preventDefault();
+            const multiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? row.clientWidth : 1;
+            row.scrollLeft += event.deltaY * multiplier;
+        }, { passive: false });
+        row.addEventListener("keydown", (event) => {
+            if (event.target !== row || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+            event.preventDefault();
+            row.scrollBy({ left: (event.key === "ArrowRight" ? 1 : -1) * row.clientWidth * 0.7, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+        });
+    });
     const list = document.getElementById("categoryList");
     if (!list) return;
     const carousel = list.closest(".category-carousel");
