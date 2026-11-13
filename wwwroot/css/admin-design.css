@@ -1,0 +1,34 @@
+.admin-ui-icon { width: 21px; height: 21px; flex: none; }
+.admin-shell .admin-sidebar { background: linear-gradient(155deg, #edf5ec, #dfeee3); }
+.admin-shell .admin-sidebar nav a { gap: 12px; font-weight: 550; }
+.admin-shell .admin-sidebar nav a.active { background: #07543e; color: #fff; }
+.admin-shell .admin-topbar { box-shadow: 0 1px 0 #c8dbce; }
+.admin-shell .admin-alerts { display: inline-flex; align-items: center; gap: 7px; }
+.admin-shell .admin-alerts .admin-ui-icon { width: 17px; height: 17px; }
+.admin-shell #overview .admin-intro {
+    background: radial-gradient(ellipse at 100% 135%, #218060 0%, transparent 58%), linear-gradient(115deg, #064533, #0c634a);
+    box-shadow: 0 8px 24px #154b3622;
+}
+.admin-shell #overview .stat-card > span { background: #07543e; color: #e0f3e7; }
+.admin-shell #overview .stat-card.amber > span { background: #53401f; color: #ffdf91; }
+.admin-shell #overview .stat-card .admin-ui-icon { width: 24px; height: 24px; }
+.admin-shell .admin-card,
+.admin-shell .stat-card,
+.report-admin-body .admin-report-card,
+.identity-admin .identity-request,
+.users-page .user-card,
+.deletion-embedded .security-card {
+    border-radius: 14px;
+    box-shadow: 0 6px 18px #123e2d0b;
+}
+.admin-shell .admin-sidebar nav a:focus-visible,
+.admin-shell a:focus-visible {
+    outline: 2px solid #2b936e;
+    outline-offset: 3px;
+}
+html[data-theme="dark"] .admin-shell .admin-sidebar { background: #192e25; }
+html[data-theme="dark"] .admin-shell .admin-topbar { box-shadow: 0 1px 0 #385448; }
+@media (max-width: 760px) {
+    .admin-shell .admin-sidebar nav a { min-height: 44px; }
+    .admin-shell #overview .stat-card .admin-ui-icon { width: 21px; height: 21px; }
+}

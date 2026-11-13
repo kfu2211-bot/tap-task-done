@@ -17,32 +17,32 @@
 <link rel="stylesheet" href="/css/admin-polish.css" asp-append-version="true" />
 <script>window.adminSummary = { verifications: @(Model.PendingVerifications?.ToString() ?? "null"), verificationAvailable: @(Model.VerificationAvailable ? "true" : "false"), reports: @(Model.OpenReports?.ToString() ?? "null") };</script>
 <script>window.databaseAdminActivity = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Activities, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase })); window.adminActivityIncomplete = @(Model.ActivityIncomplete ? "true" : "false");</script>
-<partial name="_AccountTheme" /></head>
+<link rel="stylesheet" href="/css/admin-design.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
 <body>
     <form id="adminLogoutForm" method="post" asp-page="/Admin" asp-page-handler="Logout"></form>
     <div class="admin-shell">
         <aside class="admin-sidebar" aria-label="Admin navigation">
             <a class="admin-brand" href="/Admin"><span>✓</span><strong>Tap, Task, Done</strong></a>
             <nav id="adminNavigation">
-                <a class="active" href="#overview" data-admin-view="overview"><span>Overview</span></a>
-                <a href="#verifications" data-admin-view="verifications"><span>Verification requests</span></a>
-                <a href="#reports" data-admin-view="reports"><span>Safety Reports</span></a>
-                <a href="#deletions" data-admin-view="deletions"><span>Deletion requests</span></a>
-                <a href="#users" data-admin-view="users"><span>Users</span></a>
-                <a href="#activity" data-admin-view="activity"><span>Activity Log</span></a><a href="#notifications" data-admin-view="notifications"><span>Notifications</span></a>
-                <a href="#settings" data-admin-view="settings"><span>Settings</span></a>
+                <a class="active" href="#overview" data-admin-view="overview"><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-7 9 7v10h-6v-6H9v6H3z"/></svg><span>Overview</span></a>
+                <a href="#verifications" data-admin-view="verifications"><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6z M8 12l3 3 5-6"/></svg><span>Verification requests</span></a>
+                <a href="#reports" data-admin-view="reports"><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4c5-3 9 3 14 0v10c-5 3-9-3-14 0"/></svg><span>Safety Reports</span></a>
+                <a href="#deletions" data-admin-view="deletions"><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16 M9 6V3h6v3 M6 6l1 15h10l1-15 M10 10v7 M14 10v7"/></svg><span>Deletion requests</span></a>
+                <a href="#users" data-admin-view="users"><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2 M20 21v-2a4 4 0 0 0-2-3.5 M17 4a4 4 0 0 1 0 8 M9.5 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg><span>Users</span></a>
+                <a href="#activity" data-admin-view="activity"><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h5l3-8 4 16 3-8h5"/></svg><span>Activity Log</span></a><a href="#notifications" data-admin-view="notifications"><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 6-1 7-3 9h18c-2-2-3-3-3-9 M10 21h4"/></svg><span>Notifications</span></a>
+                <a href="#settings" data-admin-view="settings"><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3h4l1 3 3 1 3 3-2 2v2l2 2-3 3-3-1-1 3h-4l-1-3-3 1-3-3 2-2v-2l-2-2 3-3 3-1z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg><span>Settings</span></a>
             </nav>
         </aside>
         <main class="admin-main">
             <header class="admin-topbar">
                 <button id="mobileMenu" class="mobile-menu" type="button" aria-label="Open navigation">☰</button>
                 <h1 id="adminPageTitle">Admin Center</h1>
-                <div class="admin-top-actions"><button id="adminAlerts" class="admin-alerts" type="button" title="Open admin notifications">Alerts <b id="adminAlertCount">0</b></button><button id="adminLogout" class="admin-user" type="button" title="Sign out from Admin Center"><span>AD</span><strong>Admin</strong><em>Sign out</em></button></div>
+                <div class="admin-top-actions"><button id="adminAlerts" class="admin-alerts" type="button" title="Open admin notifications"><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 6-1 7-3 9h18c-2-2-3-3-3-9 M10 21h4"/></svg><span>Alerts</span> <b id="adminAlertCount">0</b></button><button id="adminLogout" class="admin-user" type="button" title="Sign out from Admin Center"><span>AD</span><strong>Admin</strong><em>Sign out</em></button></div>
             </header>
             <div class="admin-content">
                 <section class="admin-view" data-view="overview" id="overview">
                     <section class="admin-intro"><div><h2>Welcome, <span id="adminGreeting">Admin</span></h2><p>Review identity checks, safety reports, and recent admin decisions.</p></div></section>
-                    <section class="stat-grid"><button class="stat-card teal" type="button" data-go-to="verifications"><span>♢</span><div><strong id="verificationCount">—</strong><small>Pending verification</small></div><b>›</b></button><button class="stat-card amber" type="button" data-go-to="reports"><span>⚑</span><div><strong id="reportCount">—</strong><small>Open reports</small></div><b>›</b></button><button class="stat-card teal" type="button" data-go-to="users"><span>♧</span><div><strong id="verifiedCount">—</strong><small>Registered users</small></div><b>›</b></button></section>
+                    <section class="stat-grid"><button class="stat-card teal" type="button" data-go-to="verifications"><span><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6z M8 12l3 3 5-6"/></svg></span><div><strong id="verificationCount">—</strong><small>Pending verification</small></div><b>›</b></button><button class="stat-card amber" type="button" data-go-to="reports"><span><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4c5-3 9 3 14 0v10c-5 3-9-3-14 0"/></svg></span><div><strong id="reportCount">—</strong><small>Open reports</small></div><b>›</b></button><button class="stat-card teal" type="button" data-go-to="users"><span><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2 M20 21v-2a4 4 0 0 0-2-3.5 M17 4a4 4 0 0 1 0 8 M9.5 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg></span><div><strong id="verifiedCount">—</strong><small>Registered users</small></div><b>›</b></button></section>
                     <div class="overview-panels">
                         <section class="admin-card overview-card" aria-labelledby="reviewQueueTitle">
                             <div class="card-heading"><h2 id="reviewQueueTitle">Review queue</h2></div>

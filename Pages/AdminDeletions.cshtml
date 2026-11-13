@@ -2,7 +2,7 @@
 @model tts.Pages.AdminDeletionsModel
 @using tts.Data
 @{ Layout = null; }
-<!doctype html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" asp-append-version="true" /><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Account deletion requests - Admin</title><link rel="stylesheet" href="~/css/login-security.css" asp-append-version="true"/><link rel="stylesheet" href="~/css/account-deletion.css" asp-append-version="true"/><partial name="_AccountTheme" /></head><body class="deletion-embedded">@if (Request.Query.ContainsKey("recordId"))
+<!doctype html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" asp-append-version="true" /><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Account deletion requests - Admin</title><link rel="stylesheet" href="~/css/login-security.css" asp-append-version="true"/><link rel="stylesheet" href="~/css/account-deletion.css" asp-append-version="true"/><link rel="stylesheet" href="/css/admin-design.css" asp-append-version="true" /><partial name="_AccountTheme" /></head><body class="deletion-embedded">@if (Request.Query.ContainsKey("recordId"))
 {
     <p><a href="/Admin#notifications">← Back to notifications</a></p>
 }<main class="security-page">
