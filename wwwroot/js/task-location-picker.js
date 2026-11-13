@@ -28,12 +28,22 @@
             else {
                 const current=++reverseGeneration; address.value='';
                 reverseController=new AbortController();
-                const controller=reverseController, timeout=setTimeout(()=>controller.abort(),10000);
+                const controller=reverseController, timeout=setTimeout(()=>controller.abort(),12000);
                 status.textContent='Finding the address for this pin…';
                 fetch('/api/places/reverse?lat='+encodeURIComponent(point[1])+'&lon='+encodeURIComponent(point[0]),{credentials:'same-origin',cache:'no-store',signal:controller.signal})
-                    .then(r=>{if(!r.ok)throw new Error();return r.json();})
+                    .then(r=>{
+                        if(r.redirected || r.status===401) throw new Error('Sign in again to look up the address.');
+                        if(r.status===429) throw new Error('Too many lookups. Wait a moment, then select the pin again.');
+                        if(!r.ok) return null;
+                        return r.json();
+                    })
                     .then(place=>{if(current!==reverseGeneration)return; if(place?.label){address.value=place.label;status.textContent='Approximate address found. Check it and confirm the pin.';}else status.textContent='Address unavailable. Enter the address and confirm the pin.';})
-                    .catch(()=>{if(current===reverseGeneration)status.textContent='Address lookup unavailable. Enter the address and confirm the pin.';})
+                    .catch(error=>{
+                        if(current!==reverseGeneration)return;
+                        status.textContent=error instanceof Error && !controller.signal.aborted &&
+                            (error.message.startsWith('Sign in') || error.message.startsWith('Too many'))
+                            ? error.message : 'Address lookup unavailable. Try the pin again or enter the address manually.';
+                    })
                     .finally(()=>clearTimeout(timeout));
             }
             if(map) {

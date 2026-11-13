@@ -12,8 +12,24 @@ public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
     private static DateTime lastRequest;
     public async Task<Place?> ReverseAsync(double lat, double lon, CancellationToken ct)
     {
+        var key = (lat, lon);
+        if (Cache.TryGetValue(key, out Place? cached)) return cached;
+        Place? place;
+        try { place = await LookupPinAsync(lat, lon, ct); }
+        catch (HttpRequestException ex) when (!ct.IsCancellationRequested &&
+            (ex.StatusCode is null or System.Net.HttpStatusCode.BadGateway or System.Net.HttpStatusCode.ServiceUnavailable or System.Net.HttpStatusCode.GatewayTimeout))
+        {
+            place = await LookupPinAsync(lat, lon, ct);
+        }
+        if (place is not null)
+            Cache.Set(key, place, new MemoryCacheEntryOptions().SetSize(1).SetAbsoluteExpiration(TimeSpan.FromHours(12)));
+        return place;
+    }
+
+    private async Task<Place?> LookupPinAsync(double lat, double lon, CancellationToken ct)
+    {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(TimeSpan.FromSeconds(8));
+        timeout.CancelAfter(TimeSpan.FromSeconds(5));
         ct = timeout.Token;
         await Gate.WaitAsync(ct);
         try
@@ -31,10 +47,12 @@ public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
             request.Headers.UserAgent.ParseAdd("TapTaskDone/1.0 (Bacolor task address search)");
             using var response = await http.SendAsync(request, ct); response.EnsureSuccessStatusCode();
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
-            var features = json.RootElement.GetProperty("features");
-            if (features.GetArrayLength() == 0) return null;
-            var properties = features[0].GetProperty("properties");
-            var parts = new[] { "name", "housenumber", "street", "district", "city", "state" }.Select(k => properties.TryGetProperty(k, out var v) ? v.GetString() : null).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToArray();
+            if (!json.RootElement.TryGetProperty("features", out var features) || features.ValueKind != JsonValueKind.Array)
+                throw new JsonException("Missing geocoder features.");
+            if (features.GetArrayLength() == 0 || !features[0].TryGetProperty("properties", out var properties)) return null;
+            var parts = new[] { "name", "housenumber", "street", "district", "locality", "city", "county", "state" }
+                .Select(k => properties.TryGetProperty(k, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null)
+                .Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToArray();
             if (parts.Length == 0) return null;
             var label = string.Join(", ", parts);
             return new Place(label.Length > 120 ? label[..120] : label, lat, lon);
