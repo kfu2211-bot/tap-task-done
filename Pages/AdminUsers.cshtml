@@ -134,6 +134,27 @@
         }
     });
 
+    document.querySelectorAll('.unverified-delete form').forEach(form => {
+        const button = form.querySelector('button[type="submit"]');
+        const label = button.textContent;
+        form.addEventListener('submit', event => {
+            if (button.disabled) {
+                event.preventDefault();
+                return;
+            }
+            form.setAttribute('aria-busy', 'true');
+            button.textContent = 'Deleting account…';
+            button.classList.add('moderation-loading');
+            button.disabled = true;
+        });
+        window.addEventListener('pageshow', () => {
+            form.removeAttribute('aria-busy');
+            button.textContent = label;
+            button.classList.remove('moderation-loading');
+            button.disabled = false;
+        });
+    });
+
     const search = document.getElementById('search');
     search?.addEventListener('input', () => {
         const query = search.value.trim().toLowerCase();
