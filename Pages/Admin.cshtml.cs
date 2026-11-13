@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,41 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
     public List<StaffAccount> Staff { get; private set; } = [];
     public bool StaffUnavailable { get; private set; }
     public bool StaffHistoryUnavailable { get; private set; }
+    [TempData] public string? StaffNotice { get; set; }
+
+    public async Task<IActionResult> OnPostStaffRoleAsync(string? email, string? role, CancellationToken ct)
+    {
+        if (!User.IsInRole("admin") || !int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var adminId))
+            return Forbid("AdminCookie");
+
+        IActionResult Settings() => RedirectToPage("/Admin", null, null, "settings");
+        email = email?.Trim();
+        if (!ModelState.IsValid || string.IsNullOrWhiteSpace(email) || email.Length > 254 || role is not ("admin" or "moderator" or "client"))
+        {
+            StaffNotice = "Enter an existing account email and choose a role.";
+            return Settings();
+        }
+
+        try
+        {
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            var actor = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {adminId} FOR UPDATE")
+                .AsNoTracking().ToListAsync(ct)).SingleOrDefault();
+            if (actor?.Role != "admin") return Forbid("AdminCookie");
+
+            var changed = await db.Users.Where(u => u.Username == email && u.Id != adminId &&
+                    (u.Role == "admin" || u.Role == "moderator" || u.Role == "client" || u.Role == null))
+                .ExecuteUpdateAsync(update => update.SetProperty(u => u.Role, role), ct);
+            await transaction.CommitAsync(ct);
+            StaffNotice = changed == 1 ? "Staff role saved." : "No eligible account was updated. Check the email and choose an account other than your own.";
+        }
+        catch (MySqlConnector.MySqlException ex)
+        {
+            logger.LogWarning(ex, "Unable to update staff access");
+            StaffNotice = "Staff access could not be saved. Please try again.";
+        }
+        return Settings();
+    }
 
     private async Task LoadStaffAsync(CancellationToken ct)
     {

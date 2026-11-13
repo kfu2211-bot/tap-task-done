@@ -121,7 +121,18 @@
                         {
                             <article class="admin-card settings-wide">
                                 <h3>Staff access</h3>
-                                <p>Review staff roles and the latest activity recorded for their sign-in sessions.</p>
+                                <p>Choose an existing account and save its access level. Admins can manage staff. Moderators can review cases.</p>
+                                <form method="post" asp-page-handler="StaffRole" class="admin-staff-form">
+                                    <label>Account email<input type="email" name="email" required maxlength="254" /></label>
+                                    <label>Access level<select name="role" required>
+                                        <option value="">Choose access</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="moderator">Moderator</option>
+                                        <option value="client">Regular user</option>
+                                    </select></label>
+                                    <button type="submit" class="primary-action">Save access</button>
+                                </form>
+                                @if (Model.StaffNotice is not null) { <p role="status">@Model.StaffNotice</p> }
                                 @if (Model.StaffUnavailable) { <p>Staff accounts are temporarily unavailable.</p> }
                                 else if (Model.Staff.Count == 0) { <p>No staff accounts found.</p> }
                                 else

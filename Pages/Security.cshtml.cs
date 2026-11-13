@@ -16,6 +16,7 @@ public sealed class SecurityModel(ApplicationDbContext db, AccountStore accounts
     public List<LoginSession> Sessions { get; private set; } = [];
     public List<LoginAlert> Alerts { get; private set; } = [];
     public List<TrustedLoginDevice> Devices { get; private set; } = [];
+    public string SettingsUrl => User.Identity?.AuthenticationType == "AdminCookie" ? "/Admin#settings" : "/Settings";
     public string CurrentId => LoginSecurity.ValidToken(User.FindFirstValue("login_session")) ? LoginSecurity.Hash(User.FindFirstValue("login_session")!) : "";
     [TempData] public string? Notice { get; set; }
     [BindProperty] public string CurrentPassword { get; set; } = "";

@@ -283,3 +283,15 @@ html[data-theme="dark"] .overview-activity li { border-color:#385047; }
     .admin-staff-list li { grid-template-columns: minmax(0, 1fr) auto; }
     .admin-staff-list li > div:last-child { grid-column: 1 / -1; }
 }
+.admin-staff-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 12px;
+    margin-block: 16px 24px;
+}
+.admin-staff-form label { display: grid; flex: 1 1 200px; gap: 6px; font-weight: 600; }
+.admin-staff-form :is(input, select, button) { min-height: 44px; padding: 8px 12px; border-radius: 8px; }
+.admin-staff-form :is(input, select) { width: 100%; border: 1px solid #91b4a1; background: transparent; color: inherit; font: inherit; }
+.admin-settings-grid .admin-security-link { margin-top: 12px; padding-inline: 16px; }
+.admin-settings-grid .admin-account-details { padding: 14px; border: 1px solid #bcd4c5; border-radius: 10px; }
