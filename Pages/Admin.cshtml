@@ -95,15 +95,10 @@
     </article>
 </section>
                 <section class="admin-view admin-settings" data-view="settings" id="settings" hidden>
-                    <div class="section-title">
-                        <div>
-                            <h2>Admin settings</h2>
-                        </div>
-                    </div>
                     <div class="admin-settings-grid">
                         <article class="admin-card">
                             <h3>My account</h3>
-                            <dl>
+                            <dl class="admin-account-details">
                                 <dt>Name</dt><dd>@(User.Identity?.Name ?? "Admin")</dd>
                                 <dt>Email</dt><dd>@(User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "Unavailable")</dd>
                                 <dt>Role</dt><dd>@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Unavailable")</dd>
@@ -112,9 +107,9 @@
                         <article class="admin-card">
                             <h3>Security &amp; devices</h3>
                             <p>Review sign-in alerts and active sessions for your admin account.</p>
-                            <a class="primary-action admin-security-link" href="/Security">Manage security</a>
+                            <a class="review-button admin-security-link" href="/Security">Manage security</a>
                         </article>
-                        <article class="admin-card settings-card" style="grid-column: 1 / -1">
+                        <article class="admin-card settings-card settings-wide">
                             <h3>Workspace preferences</h3>
                             <p>Preferences are saved in this browser.</p>
                             <label class="admin-setting-switch"><input id="urgentNotifications" type="checkbox" role="switch" /> Show notification alerts in the header</label>
@@ -122,6 +117,28 @@
                             <button id="saveAdminSettings" class="primary-action" type="button">Save preferences</button>
                             <span id="settingsSaved" role="status"></span>
                         </article>
+                        @if (User.IsInRole("admin"))
+                        {
+                            <article class="admin-card settings-wide">
+                                <h3>Staff access</h3>
+                                <p>Review staff roles and the latest activity recorded for their sign-in sessions.</p>
+                                @if (Model.StaffUnavailable) { <p>Staff accounts are temporarily unavailable.</p> }
+                                else if (Model.Staff.Count == 0) { <p>No staff accounts found.</p> }
+                                else
+                                {
+                                    <ul class="admin-staff-list">
+                                        @foreach (var staff in Model.Staff)
+                                        {
+                                            <li>
+                                                <div><strong>@(string.IsNullOrWhiteSpace(staff.Name) ? staff.Email : staff.Name)</strong><small>@staff.Email</small></div>
+                                                <span class="admin-staff-role">@(staff.Role == "admin" ? "Admin" : "Moderator")</span>
+                                                <div><small>Last activity</small><span>@(staff.LastSeen is DateTime seen ? tts.Data.DisplayTime.Philippine(seen) + " PHT" : Model.StaffHistoryUnavailable ? "Unavailable" : "No session recorded")</span></div>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            </article>
+                        }
                     </div>
                 </section>
             </div>

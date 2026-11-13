@@ -127,3 +127,14 @@ html:has(.page), body:has(.page) {
     .page .left-content { margin: 0; padding: 36px 0 0; }
     .page .right-side { min-height: 0; }
 }
+.page .birth-date-error {
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fff1ef;
+    color: #952b29;
+    font-size: 14px;
+}
+.page .birth-date-error:empty { display: none; }
+.page .date-row .dropdown-button[aria-invalid="true"] { border-color: #b94440; }
+html[data-theme="dark"] .page .birth-date-error { background: #462727; color: #ffd2ce; }

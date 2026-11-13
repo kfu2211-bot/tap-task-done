@@ -33,3 +33,25 @@
 html[data-theme="dark"] .report-admin-body .report-next-steps, html[data-theme="dark"] .report-admin-body .report-action-form { background: #1c3027 !important; border-color: #405b4a !important; }
 html[data-theme="dark"] .report-admin-body .report-action-form :is(textarea, select), html[data-theme="dark"] .report-admin-body .report-action-form .report-review-confirm { background: #14231c !important; color: #edf7ef !important; border-color: #496454 !important; }
 html[data-theme="dark"] .report-admin-body .report-action-form p, html[data-theme="dark"] .report-admin-body .report-action-form label span { color: #bdcfc1 !important; }
+.report-account-panel {
+    margin-block: 24px;
+    padding: clamp(16px, 3vw, 24px);
+    border-inline-start: 4px solid #28795e;
+    scroll-margin-top: 16px;
+}
+.report-account-panel h3 { margin-top: 0; }
+.report-account-panel a { color: inherit; text-underline-offset: .2em; }
+.report-account-matches {
+    display: grid;
+    gap: 8px;
+    padding: 0;
+    list-style: none;
+}
+.report-account-matches a {
+    display: block;
+    padding: 12px;
+    border: 1px solid #a0bda9;
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+}
+.report-account-matches a:hover { border-color: currentColor; }

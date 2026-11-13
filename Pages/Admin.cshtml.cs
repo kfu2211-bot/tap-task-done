@@ -33,9 +33,45 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
         }
     }
 
+    public record StaffAccount(string Name, string Email, string Role, DateTime? LastSeen);
+    public List<StaffAccount> Staff { get; private set; } = [];
+    public bool StaffUnavailable { get; private set; }
+    public bool StaffHistoryUnavailable { get; private set; }
+
+    private async Task LoadStaffAsync(CancellationToken ct)
+    {
+        if (!User.IsInRole("admin")) return;
+        try
+        {
+            var staff = await db.Users.AsNoTracking().Where(u => u.Role == "admin" || u.Role == "moderator")
+                .OrderBy(u => u.FirstName).ThenBy(u => u.LastName)
+                .Select(u => new { u.Id, u.FirstName, u.LastName, u.Username, u.Role }).ToListAsync(ct);
+            Staff = staff.Select(u => new StaffAccount($"{u.FirstName} {u.LastName}".Trim(), u.Username ?? "", u.Role!, null)).ToList();
+            try
+            {
+                var ids = staff.Select(u => u.Id).ToArray();
+                var lastSeen = await db.Set<LoginSession>().AsNoTracking().Where(s => ids.Contains(s.UserId))
+                    .GroupBy(s => s.UserId).Select(g => new { Id = g.Key, Time = g.Max(s => s.LastSeenUtc) })
+                    .ToDictionaryAsync(s => s.Id, s => s.Time, ct);
+                Staff = staff.Select((u, index) => Staff[index] with { LastSeen = lastSeen.TryGetValue(u.Id, out var time) ? time : null }).ToList();
+            }
+            catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+            {
+                StaffHistoryUnavailable = true;
+                logger.LogWarning(ex, "Staff session history is unavailable");
+            }
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+        {
+            StaffUnavailable = true;
+            logger.LogWarning(ex, "Staff accounts are unavailable");
+        }
+    }
+
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
         Response.Headers.CacheControl = "no-store";
+        await LoadStaffAsync(cancellationToken);
         await LoadInboxAsync(db.SafetyReports.AsNoTracking().Select(r => new InboxItem("report", r.Id, r.Status, r.CreatedAt, r.Priority)), cancellationToken);
         await LoadInboxAsync(db.IdentityRequests.AsNoTracking().Select(r => new InboxItem("verification", r.Id, r.Status, r.CreatedAt, 0)), cancellationToken);
         await LoadInboxAsync(db.Set<AccountDeletionRequest>().AsNoTracking().Where(r => r.RequestedUtc.HasValue)

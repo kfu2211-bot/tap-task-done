@@ -270,3 +270,16 @@ html[data-theme="dark"] .overview-activity li { border-color:#385047; }
     font-size:11px;
 }
 .admin-inbox-unread[hidden] { display:none; }
+.admin-settings-grid .settings-wide { grid-column: 1 / -1; }
+.admin-settings-grid .admin-account-details { margin: 16px 0 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 20px; }
+.admin-account-details dt, .admin-staff-list small { font-size: .85rem; }
+.admin-account-details dd { margin: 0; overflow-wrap: anywhere; font-weight: 600; }
+.admin-settings-grid .admin-security-link { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+.admin-staff-list { margin: 0; padding: 0; list-style: none; }
+.admin-staff-list li { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(85px, .5fr) minmax(0, 1fr); gap: 12px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.admin-staff-list small { display: block; margin-top: 3px; }
+.admin-staff-role { font-weight: 600; }
+@media (max-width: 600px) {
+    .admin-staff-list li { grid-template-columns: minmax(0, 1fr) auto; }
+    .admin-staff-list li > div:last-child { grid-column: 1 / -1; }
+}

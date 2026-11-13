@@ -610,12 +610,41 @@
     if (selectedDay) dayDropdown.querySelector(".dropdown-button span").textContent = selectedDay;
     if (selectedYear) yearDropdown.querySelector(".dropdown-button span").textContent = selectedYear;
 
-    document.getElementById("registerForm")?.addEventListener("submit", function (event) {
-        if (!selectedMonth || !selectedDay || !selectedYear) {
-            event.preventDefault();
-            alert("Please select your complete date of birth.");
+    const birthDateError = document.getElementById("birthDateError");
+    const birthDateFields = [
+        [monthDropdown, () => selectedMonth],
+        [dayDropdown, () => selectedDay],
+        [yearDropdown, () => selectedYear]
+    ];
+    function updateBirthDateError() {
+        const missing = [];
+        for (const [dropdown, value] of birthDateFields) {
+            const button = dropdown.querySelector(".dropdown-button");
+            if (!value()) {
+                missing.push(button);
+                button.setAttribute("aria-invalid", "true");
+                button.setAttribute("aria-describedby", birthDateError.id);
+            } else {
+                button.removeAttribute("aria-invalid");
+                button.removeAttribute("aria-describedby");
+            }
         }
-    });
+        birthDateError.textContent = missing.length ? "Select your birth month, day, and year." : "";
+        return missing[0];
+    }
+    if (birthDateError) {
+        const form = document.getElementById("registerForm");
+        form?.addEventListener("submit", function (event) {
+            const firstMissing = updateBirthDateError();
+            if (!firstMissing) return;
+            event.preventDefault();
+            firstMissing.focus();
+        });
+        form?.addEventListener("click", function (event) {
+            if (birthDateError.textContent && event.target.closest(".date-row .dropdown-option"))
+                updateBirthDateError();
+        });
+    }
 
 
     /* =========================================

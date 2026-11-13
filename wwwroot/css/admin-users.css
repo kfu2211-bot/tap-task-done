@@ -11,7 +11,23 @@
     box-shadow: 0 20px 60px #091b1650;
     overflow-wrap: anywhere;
 }
-#moderationDecision::backdrop { background: #091b1680; }
+#moderationDecision::backdrop { background: transparent; }
+#moderationDecision { box-shadow: 0 12px 40px #18382b38; }
+.moderation-loading::before {
+    content: "";
+    display: inline-block;
+    width: .8em;
+    height: .8em;
+    margin-inline-end: .5em;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+    animation: moderation-spin .75s linear infinite;
+}
+@keyframes moderation-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .moderation-loading::before { animation: none; }
+}
 #moderationDecision.moderation-embedded { margin: 0 auto; transform: translateY(-50%); }
 #moderationDecision h2 { margin: 0 0 8px; font-size: 22px; }
 #moderationDecision p { margin: 0 0 16px; }

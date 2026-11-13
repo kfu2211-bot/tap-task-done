@@ -17,20 +17,15 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
     public bool Unavailable { get; private set; }
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     [BindProperty(SupportsGet = true)] public long? ReportId { get; set; }
-    public SafetyReport? RelatedReport { get; private set; }
     [TempData(Key = "AdminUsersNotice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
+        if (ReportId.HasValue) return RedirectToPage("/AdminReports", null, new { embedded = Embedded, recordId = ReportId }, "reported-account");
         Response.Headers.CacheControl = "no-store";
         try
         {
-            if (ReportId.HasValue)
-            {
-                RelatedReport = await db.SafetyReports.AsNoTracking().SingleOrDefaultAsync(r => r.Id == ReportId, ct);
-                if (RelatedReport is null) return NotFound();
-            }
             var users = await db.Users.AsNoTracking().OrderByDescending(u => u.Id).Select(u => new { u.Id, u.FirstName, u.LastName, u.Username, u.Role }).ToListAsync(ct);
             foreach (var u in users)
             {
@@ -46,6 +41,12 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
 
     public async Task<IActionResult> OnPostAsync(int userId, string? action, string? reason, string? incidentKey, int expectedNumber, bool reviewConfirmed, CancellationToken ct)
     {
+        IActionResult ReturnToReview()
+        {
+            if (!ReportId.HasValue) return RedirectToPage(new { embedded = Embedded });
+            TempData["AdminReports.Notice"] = Notice;
+            return RedirectToPage("/AdminReports", null, new { embedded = Embedded, recordId = ReportId, accountId = userId }, "reported-account");
+        }
         if (AdminId <= 0) return Challenge();
         if (action == "offense" && !ReportId.HasValue)
         {
@@ -53,7 +54,7 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
             return RedirectToPage(new { embedded = Embedded });
         }
         if (action is not ("offense" or "restore") || !AccountModerationRules.IsValidReason(reason) || userId == AdminId)
-        { Notice = "Choose an action and provide a reason of up to 500 characters."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
+        { Notice = "Choose an action and provide a reason of up to 500 characters."; return ReturnToReview(); }
         if (ReportId.HasValue)
         {
             var report = await db.SafetyReports.AsNoTracking().SingleOrDefaultAsync(r => r.Id == ReportId, ct);
@@ -62,7 +63,7 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
         }
         incidentKey = (incidentKey ?? "").Trim().ToLowerInvariant();
         if (action == "offense" && (!reviewConfirmed || !System.Text.RegularExpressions.Regex.IsMatch(incidentKey, @"^[a-z0-9][a-z0-9:._/-]{2,99}$")))
-        { Notice = "Confirm your evidence review and enter a unique incident reference, such as report:123. Reuse the same reference for the same incident."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
+        { Notice = "Confirm your evidence review and enter a unique incident reference, such as report:123. Reuse the same reference for the same incident."; return ReturnToReview(); }
         try
         {
             await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
@@ -73,21 +74,21 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
                     return BadRequest();
             }
             var target = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {userId} FOR UPDATE").AsNoTracking().ToListAsync(ct)).SingleOrDefault();
-            if (target is null || AccountModerationRules.IsStaff(target.Role)) { Notice = "Staff accounts cannot be moderated here."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
+            if (target is null || AccountModerationRules.IsStaff(target.Role)) { Notice = "Staff accounts cannot be moderated here."; return ReturnToReview(); }
             if (ReportId.HasValue && await db.Set<AccountOffense>().AnyAsync(o => o.IncidentKey == incidentKey, ct))
-            { Notice = "An offense was already recorded for this report."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
+            { Notice = "An offense was already recorded for this report."; return ReturnToReview(); }
             var latest = await db.Set<AccountOffense>().Where(o => o.UserId == userId).OrderByDescending(o => o.Id).FirstOrDefaultAsync(ct);
             var current = await OffensePolicy.GetAsync(db, userId, ct);
             var oldRestriction = await db.AccountRestrictions.SingleOrDefaultAsync(r => r.UserId == userId, ct);
             string audit;
             if (action == "offense")
             {
-                if (current.Legacy && current.Suspended) { Notice = "Review and lift the previous suspension before starting the new numbered offense policy."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
+                if (current.Legacy && current.Suspended) { Notice = "Review and lift the previous suspension before starting the new numbered offense policy."; return ReturnToReview(); }
                 if (await db.Set<AccountOffense>().AnyAsync(o => o.UserId == userId && o.IncidentKey == incidentKey, ct))
-                { Notice = "This incident is already recorded. It has not been counted again."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
+                { Notice = "This incident is already recorded. It has not been counted again."; return ReturnToReview(); }
                 int number = (latest?.Number ?? 0) + 1;
-                if (number > 5 || current.Permanent) { Notice = "This account already reached the final offense level. Review its history instead."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
-                if (expectedNumber != number) { Notice = "The offense history changed. Check the updated next penalty before confirming again."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
+                if (number > 5 || current.Permanent) { Notice = "This account already reached the final offense level. Review its history instead."; return ReturnToReview(); }
+                if (expectedNumber != number) { Notice = "The offense history changed. Check the updated next penalty before confirming again."; return ReturnToReview(); }
                 var now = DateTime.UtcNow;
                 var until = OffensePolicy.Days(number) > 0 ? now.AddDays(OffensePolicy.Days(number)) : (DateTime?)null;
                 // A new offense cannot shorten an already active temporary suspension.
@@ -98,8 +99,8 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
             }
             else
             {
-                if (expectedNumber != (latest?.Number ?? 0) + 1) { Notice = "The penalty changed. Review the updated account before lifting it."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
-                if (!current.Warning && !current.Suspended) { Notice = "No active penalty needs lifting."; return RedirectToPage(new { embedded = Embedded, reportId = ReportId }); }
+                if (expectedNumber != (latest?.Number ?? 0) + 1) { Notice = "The penalty changed. Review the updated account before lifting it."; return ReturnToReview(); }
+                if (!current.Warning && !current.Suspended) { Notice = "No active penalty needs lifting."; return ReturnToReview(); }
                 if (latest is not null) latest.LiftedAtUtc = DateTime.UtcNow;
                 audit = "Admin review lifted the current penalty; offense history remains. " + reason!.Trim();
             }
@@ -110,6 +111,6 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException)
         { logger.LogWarning(ex, "Unable to save offense decision"); Notice = "Decision could not be saved. Check the offense database setup."; }
-        return RedirectToPage(new { embedded = Embedded, reportId = ReportId });
+        return ReturnToReview();
     }
 }

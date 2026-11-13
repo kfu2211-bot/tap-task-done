@@ -12,16 +12,7 @@
 <body>
 <main class="users-page">
     @if (!Model.Embedded) { <h1>Users</h1> }
-    @if (Model.RelatedReport is { } report)
-    {
-        <p><a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-fragment="@($"report-{report.Id}")">← Back to Safety Reports</a></p>
-        <h2>Account review for report #@report.Id</h2>
-        <p>Reported name: <strong>@report.Target</strong>. Verify the account using the evidence before recording an offense.</p>
-    }
-    else
-    {
-        <p class="intro">Look up an account to check its status and moderation history. Start new offense reviews from Safety Reports.</p>
-    }
+    <p class="intro">Look up an account to check its status and moderation history. Review new offenses in Safety Reports.</p>
     @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="notice" role="status">@Model.Notice</p> }
     @if (Model.Unavailable) { <div class="empty" role="alert">Account moderation is unavailable. Check the account moderation database setup.</div> }
     else {
@@ -35,16 +26,13 @@
                     <p><strong>Confirmed offenses: @user.Moderation.Offenses</strong> · Next: @tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)</p>
                     @if(user.Moderation.Target > 0 && !user.Moderation.Permanent) { <p>Recovery progress: @user.Moderation.Completed / @user.Moderation.Target completed tasks. Temporary suspension ends automatically; completion credit starts after it ends.</p> }
                     @if(user.Moderation.Legacy) { <p>Previous actions remain in history; they are not automatically counted as new offenses.</p> }
-                    @if (Model.RelatedReport is { } linkedReport ? user.Id != linkedReport.ReporterId && user.Moderation.Offenses < 5 && !user.Moderation.Permanent : user.Suspended || user.Restricted)
+                    @if (user.Suspended || user.Restricted)
                     {
                     <form method="post" data-moderation-account="@user.Name" data-next-penalty="@tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)">
                         <input type="hidden" name="userId" value="@user.Id" /><input type="hidden" name="expectedNumber" value="@(user.Moderation.Offenses + 1)" /><input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
-                        <input type="hidden" name="ReportId" value="@Model.ReportId" />
-                        <input type="hidden" name="incidentKey" value="@(Model.ReportId.HasValue ? $"report:{Model.ReportId}" : "")" />
                         <label class="reason-label" for="reason-@user.Id">Reason for this decision <span>(required)</span></label>
                         <textarea id="reason-@user.Id" name="reason" required maxlength="500" rows="2" placeholder="Describe the reviewed evidence and decision"></textarea>
-                        @if (Model.RelatedReport is not null) { <label class="offense-confirm"><input type="checkbox" name="reviewConfirmed" value="true" /> I reviewed the evidence and confirmed this is a distinct incident.</label> }
-                        <div class="actions">@if(Model.RelatedReport is not null) { <button type="submit" class="primary" name="action" value="offense">Confirm offense #@(user.Moderation.Offenses + 1)</button> } @if(Model.RelatedReport is null) { <button type="submit" name="action" value="restore">Lift penalty after review</button> }</div>
+                        <div class="actions"><button type="submit" name="action" value="restore">Lift penalty after review</button></div>
                     </form>
                     }
                 }
@@ -73,7 +61,33 @@
     document.querySelectorAll('form[data-moderation-account]').forEach(form => {
         form.addEventListener('submit', event => {
             const submitter = event.submitter;
-            if (!submitter || submitter === confirmedSubmitter) return;
+            if (form.getAttribute('aria-busy') === 'true') {
+                event.preventDefault();
+                return;
+            }
+            if (!submitter) return;
+            if (submitter === confirmedSubmitter) {
+                if (submitter.value === 'restore') {
+                    const action = document.createElement('input');
+                    action.type = 'hidden';
+                    action.name = submitter.name;
+                    action.value = submitter.value;
+                    form.append(action);
+                    form.setAttribute('aria-busy', 'true');
+                    submitter.textContent = 'Lifting penalty…';
+                    submitter.classList.add('moderation-loading');
+                    submitter.disabled = true;
+                    window.addEventListener('pageshow', event => {
+                        if (!event.persisted) return;
+                        action.remove();
+                        form.removeAttribute('aria-busy');
+                        submitter.textContent = 'Lift penalty after review';
+                        submitter.classList.remove('moderation-loading');
+                        submitter.disabled = false;
+                    }, { once: true });
+                }
+                return;
+            }
             event.preventDefault();
             pendingSubmitter = submitter;
             const offense = submitter.value === 'offense';
