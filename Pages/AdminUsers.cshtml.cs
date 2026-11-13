@@ -8,9 +8,9 @@ using tts.Data;
 namespace tts.Pages;
 
 [Authorize(Policy = "AdminOnly")]
-public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersModel> logger) : PageModel
+public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersModel> logger, IConfiguration config) : PageModel
 {
-    public record UserRow(int Id, string Name, string Email, string Role, bool Restricted, bool Suspended) { public OffensePolicy.Summary Moderation { get; init; } = OffensePolicy.Evaluate(null, 0, DateTime.UtcNow); }
+    public record UserRow(int Id, string Name, string Email, string Role, bool Restricted, bool Suspended) { public bool CanDelete { get; init; } public OffensePolicy.Summary Moderation { get; init; } = OffensePolicy.Evaluate(null, 0, DateTime.UtcNow); }
     public record ActionRow(int UserId, string Action, string Reason, DateTime CreatedAt, string Admin);
     public List<UserRow> Users { get; private set; } = [];
     public List<ActionRow> History { get; private set; } = [];
@@ -26,17 +26,39 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
         Response.Headers.CacheControl = "no-store";
         try
         {
-            var users = await db.Users.AsNoTracking().OrderByDescending(u => u.Id).Select(u => new { u.Id, u.FirstName, u.LastName, u.Username, u.Role }).ToListAsync(ct);
+            var canDelete = User.IsInRole("admin") && VerificationMailer.Enabled(config);
+            var users = await db.Users.AsNoTracking().Where(u => u.Role != "deleted").OrderByDescending(u => u.Id).Select(u => new { u.Id, u.FirstName, u.LastName, u.Username, u.Role, CanDelete = canDelete && u.Username != null && u.Username != "" &&
+                !db.VerifiedEmails.Any(v => v.UserId == u.Id && v.Email == u.Username) }).ToListAsync(ct);
             foreach (var u in users)
             {
                 var moderation = AccountModerationRules.IsStaff(u.Role) ? OffensePolicy.Evaluate(null, 0, DateTime.UtcNow) : await OffensePolicy.GetAsync(db, u.Id, ct);
-                Users.Add(new UserRow(u.Id, ($"{u.FirstName} {u.LastName}").Trim(), u.Username ?? "", u.Role ?? "client", moderation.Warning, moderation.Suspended) { Moderation = moderation });
+                Users.Add(new UserRow(u.Id, ($"{u.FirstName} {u.LastName}").Trim(), u.Username ?? "", u.Role ?? "client", moderation.Warning, moderation.Suspended) { Moderation = moderation, CanDelete = u.CanDelete && u.Id != AdminId && !AccountModerationRules.IsStaff(u.Role) });
             }
             History = await (from a in db.AccountModerationActions.AsNoTracking() join u in db.Users.AsNoTracking() on a.AdminId equals u.Id orderby a.Id descending select new ActionRow(a.UserId, a.Action, a.Reason, a.CreatedAt, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).Take(500).ToListAsync(ct);
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         { logger.LogWarning(ex, "Account moderation unavailable"); Unavailable = true; }
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostDeleteUnverifiedAsync(int userId, bool confirmDeletion, CancellationToken ct)
+    {
+        if (!User.IsInRole("admin") || AdminId <= 0) return Forbid("AdminCookie");
+        if (!VerificationMailer.Enabled(config) || !confirmDeletion || !ModelState.IsValid || userId <= 0)
+            return BadRequest();
+
+        try
+        {
+            await AccountDeletion.DeleteUnverifiedAsync(db, AdminId, userId, ct);
+            Notice = "Unverified account deleted.";
+        }
+        catch (DeletionFlowException ex) { Notice = ex.Message; }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException)
+        {
+            logger.LogWarning(ex, "Unable to delete unverified account");
+            Notice = "The account could not be deleted. Please try again.";
+        }
+        return RedirectToPage(new { embedded = Embedded });
     }
 
     public async Task<IActionResult> OnPostAsync(int userId, string? action, string? reason, string? incidentKey, int expectedNumber, bool reviewConfirmed, CancellationToken ct)

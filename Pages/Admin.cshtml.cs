@@ -114,7 +114,7 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
             .Select(r => new InboxItem("deletion", r.UserId, r.Status, r.RequestedUtc!.Value, 0)), cancellationToken);
         try
         {
-            var users = await db.Users.AsNoTracking().OrderByDescending(u => u.Id)
+            var users = await db.Users.AsNoTracking().Where(u => u.Role != "deleted").OrderByDescending(u => u.Id)
                 .Select(u => new { u.FirstName, u.LastName, u.Username, u.Role })
                 .ToListAsync(cancellationToken);
             RegisteredUsers = users.Select(u => new RegisteredUser(

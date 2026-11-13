@@ -37,6 +37,19 @@
                     </form>
                     }
                 }
+                @if (user.CanDelete)
+                {
+                    <details class="unverified-delete">
+                        <summary>Delete account</summary>
+                        <form method="post" asp-page-handler="DeleteUnverified">
+                            <input type="hidden" name="userId" value="@user.Id" />
+                            <input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
+                            <p>Email verification is incomplete for <strong>@user.Email</strong>.</p>
+                            <label><input type="checkbox" name="confirmDeletion" value="true" required /> Permanently delete the personal data, posted tasks and submitted safety reports for this account.</label>
+                            <div class="actions"><button type="submit">Delete unverified account</button></div>
+                        </form>
+                    </details>
+                }
                 <details class="history"><summary><span><strong>Admin action history</strong><small>View decisions and notes</small></span><span class="chevron" aria-hidden="true">⌄</span></summary>
                     <div class="history-content">@if (history.Count == 0) { <p class="history-empty">No decisions recorded for this account yet.</p> } else { @foreach (var item in history) { <div class="history-entry"><div><strong>@(item.Action == "warn" ? "Warning" : item.Action == "restrict" ? "Restricted" : item.Action == "suspend" ? "Suspended (legacy)" : item.Action == "offense" ? "Confirmed offense" : "Penalty lifted")</strong><small>@item.Admin · @tts.Data.DisplayTime.Philippine(item.CreatedAt)</small></div><p>@item.Reason</p></div> } }</div>
                 </details>

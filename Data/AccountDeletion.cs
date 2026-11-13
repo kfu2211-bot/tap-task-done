@@ -139,6 +139,63 @@ public static class AccountDeletion
         if (!await db.Users.AnyAsync(u => u.Id == r.ReviewedById && (u.Role == "admin" || u.Role == "moderator"), ct)) blockers.Add("The approving administrator's access must be reviewed again.");
         if (Staff(user.Role)) blockers.Add("Staff accounts require a separate administrator process.");
         if (blockers.Count > 0) { r.Status = "held"; r.UpdatedUtc = now; r.ReviewReason = "Final check: " + string.Join(" ", blockers); r.ReviewedById = null; Event(db, userId, null, "held", r.ReviewReason, now); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return "held"; }
+        await RemovePersonalDataAsync(db, user, ct);
+        r.Status = "deleted"; r.DeletedUtc = r.UpdatedUtc = now; ClearCode(r); Event(db, userId, null, "deleted", "Personal profile and identity uploads removed; historical work/safety records retained under Deleted user.", now);
+        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return "deleted";
+    }
+
+    public static async Task DeleteUnverifiedAsync(ApplicationDbContext db, int adminId, int userId, CancellationToken ct)
+    {
+        if (adminId == userId) throw new DeletionFlowException("Choose another account.");
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        foreach (var id in new[] { adminId, userId }.Order()) await LockAsync(db, id, ct);
+        var admin = await db.Users.SingleAsync(u => u.Id == adminId, ct);
+        var user = await db.Users.SingleAsync(u => u.Id == userId, ct);
+        if (admin.Role != "admin" || Staff(user.Role) || user.Role == "deleted" || string.IsNullOrWhiteSpace(user.Username) ||
+            await VerificationMailer.IsVerifiedAsync(db, user, ct))
+            throw new DeletionFlowException("Only unverified non-staff accounts can be deleted here.");
+
+        var request = await db.Set<AccountDeletionRequest>().SingleOrDefaultAsync(r => r.UserId == userId, ct);
+        if (request is not null && Pending(request.Status))
+            throw new DeletionFlowException("Use Deletion requests to review the existing request.");
+        var reports = db.SafetyReports.Where(r => r.ReporterId == userId);
+        await db.SafetyReportEvidence.Where(e => reports.Any(r => r.Id == e.ReportId)).ExecuteDeleteAsync(ct);
+        await db.SafetyReportActions.Where(a => reports.Any(r => r.Id == a.ReportId)).ExecuteDeleteAsync(ct);
+        await reports.ExecuteDeleteAsync(ct);
+
+        var tasks = db.MarketplaceTasks.Where(t => t.ClientId == userId);
+        await db.SafetyReports.Where(r => tasks.Any(t => t.Id == r.TaskId))
+            .ExecuteUpdateAsync(s => s.SetProperty(r => r.TaskId, (long?)null), ct);
+        await db.MarketplaceNotifications.Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.MarketplaceMessages.Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.Set<TaskConversation>().Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.Set<WorkAgreement>().Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.Set<TaskProgressEvent>().Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.Set<TaskDestination>().Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.Set<FreelancerLocation>().Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.MarketplaceBookings.Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.MarketplaceOffers.Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.MarketplaceReviews.Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await db.MarketplaceDisputes.Where(x => tasks.Any(t => t.Id == x.TaskId)).ExecuteDeleteAsync(ct);
+        await tasks.ExecuteDeleteAsync(ct);
+
+        await RemovePersonalDataAsync(db, user, ct);
+        var now = DateTime.UtcNow;
+        if (request is not null)
+        {
+            request.Status = "deleted";
+            request.DeletedUtc = request.UpdatedUtc = now;
+            ClearCode(request);
+        }
+        Event(db, userId, adminId, "deleted", "Administrator removed an account with an unverified email.", now);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+    }
+
+    private static async Task RemovePersonalDataAsync(ApplicationDbContext db, AppUser user, CancellationToken ct)
+    {
+        var userId = user.Id;
+
         // Keep the surrogate user ID for other participants' transaction and safety history.
         user.FirstName = "Deleted"; user.LastName = "user"; user.Username = null; user.PasswordHash = null; user.DateOfBirth = null; user.ProfilePicture = null; user.Role = "deleted";
         await LoginSecurity.RevokeAllAsync(db, userId, ct);
@@ -152,8 +209,6 @@ public static class AccountDeletion
         await db.PasswordResetRequests.Where(x => x.UserId == userId).ExecuteDeleteAsync(ct);
         await db.PasswordResetCodes.Where(x => x.UserId == userId).ExecuteDeleteAsync(ct);
         await db.Set<RegistrationEmailCode>().Where(x => x.UserId == userId).ExecuteDeleteAsync(ct);
-        r.Status = "deleted"; r.DeletedUtc = r.UpdatedUtc = now; ClearCode(r); Event(db, userId, null, "deleted", "Personal profile and identity uploads removed; historical work/safety records retained under Deleted user.", now);
-        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return "deleted";
     }
 }
 

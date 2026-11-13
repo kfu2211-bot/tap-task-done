@@ -44,3 +44,8 @@
 .users-total strong { margin-inline-end:4px; font-size:1.15rem; }
 .user-card .history:not([open]) { background:transparent; }
 .user-card .history summary { padding-block:10px; }
+.unverified-delete { margin-block: 12px; }
+.unverified-delete summary { color: #a12836; cursor: pointer; width: fit-content; padding-block: 8px; font-weight: 650; }
+.unverified-delete .actions { margin-top: 12px; }
+.unverified-delete button { color: #a12836; border-color: #a12836; }
+html[data-theme="dark"] .unverified-delete summary { color: #ffb4ba; }
