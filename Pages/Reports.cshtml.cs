@@ -48,7 +48,7 @@ public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger)
         });
         return Page();
     }
-    public async Task<IActionResult> OnPostAsync(string? target, string? reason, string? description, long? taskId, List<IFormFile>? evidence, CancellationToken ct)
+    public async Task<IActionResult> OnPostAsync(string? target, string? reason, string? description, long? taskId, List<IFormFile>? evidence, CancellationToken ct, bool immediateDanger = false)
     {
         if (UserId <= 0) return Challenge();
         target = (target ?? "").Trim(); reason = (reason ?? "").Trim(); description = (description ?? "").Trim();
@@ -73,7 +73,7 @@ public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger)
             }
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
             // Preliminary triage only: admins review the evidence and can change this priority.
-            var initialPriority = reason == "Harassment or inappropriate behavior" ? 3 : 2;
+            var initialPriority = immediateDanger || reason is "Harassment or inappropriate behavior" or "Scam or fake account" ? 3 : reason == "Work quality or service issue" ? 1 : 2;
             var report = new SafetyReport { ReporterId = UserId, TaskId = taskId, Target = target, Reason = reason, Description = description, Status = "open", Priority = initialPriority, CreatedAt = DateTime.UtcNow };
             db.SafetyReports.Add(report);
             await db.SaveChangesAsync(ct);

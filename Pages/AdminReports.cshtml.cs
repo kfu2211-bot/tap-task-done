@@ -26,7 +26,11 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     public bool EvidenceUnavailable { get; private set; }
     public bool HistoryUnavailable { get; private set; }
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
-    [BindProperty(SupportsGet = true)] public string Sort { get; set; } = "recent";
+    [BindProperty(SupportsGet = true)] public string Sort { get; set; } = "";
+    public string ReviewNote { get; private set; } = "";
+    public string ReviewMessage { get; private set; } = "";
+    public string? ReviewStatus { get; private set; }
+    public bool ReviewConfirmed { get; private set; }
     [BindProperty(SupportsGet = true)] public string StatusFilter { get; set; } = "open";
     [BindProperty(SupportsGet = true)] public string PriorityFilter { get; set; } = "all";
     [TempData(Key = "AdminReports.Notice")] public string? Notice { get; set; }
@@ -48,9 +52,9 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         else StatusFilter = "all";
         if (!recordId.HasValue && int.TryParse(PriorityFilter, out var priority) && priority is >= 0 and <= 3) query = query.Where(x => x.Report.Priority == priority);
         else PriorityFilter = "all";
-        Sort = Sort is "oldest" or "priority" ? Sort : "recent";
+        Sort = Sort is "oldest" or "priority" or "recent" ? Sort : StatusFilter == "open" ? "priority" : "recent";
         var rows = await (Sort == "oldest" ? query.OrderBy(x => x.Report.CreatedAt).ThenBy(x => x.Report.Id)
-            : Sort == "priority" ? query.OrderByDescending(x => x.Report.Priority).ThenByDescending(x => x.Report.CreatedAt).ThenByDescending(x => x.Report.Id)
+            : Sort == "priority" ? query.OrderByDescending(x => x.Report.Priority).ThenBy(x => x.Report.CreatedAt).ThenBy(x => x.Report.Id)
             : query.OrderByDescending(x => x.Report.CreatedAt).ThenByDescending(x => x.Report.Id)).Take(100).ToListAsync(ct);
         Reports = rows.Select(x => new ReportItem(x.Report, ((x.FirstName ?? "") + " " + (x.LastName ?? "")).Trim())).ToList();
         }
@@ -156,7 +160,21 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         note = (note ?? "").Trim();
         publicMessage = (publicMessage ?? "").Trim();
         if (!ModelState.IsValid || !ReportReviewRules.Valid(status, note, publicMessage, reviewConfirmed))
-        { Notice = "Provide a reporter update (10–1000 characters). Closing a report also requires a completed evidence review and an internal decision reason."; return RedirectToPage(new { embedded = Embedded, recordId = RecordId }); }
+        {
+            RecordId = id;
+            ReviewNote = note;
+            ReviewMessage = publicMessage;
+            ReviewStatus = status;
+            ReviewConfirmed = reviewConfirmed;
+            if (publicMessage.Length is < 10 or > 1000) ModelState.AddModelError("publicMessage", "Enter a reporter update of 10–1000 characters.");
+            if (note.Length > 1000 || (status is "resolved" or "dismissed" && note.Length < 10))
+                ModelState.AddModelError("note", "Enter an internal decision reason of 10–1000 characters.");
+            if (status is "resolved" or "dismissed" && !reviewConfirmed)
+                ModelState.AddModelError("reviewConfirmed", "Confirm that you reviewed the evidence.");
+            if (status is not ("reviewing" or "resolved" or "dismissed"))
+                ModelState.AddModelError("status", "Choose a valid review status.");
+            return await OnGetAsync(ct, id);
+        }
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var report = await db.SafetyReports.AsNoTracking().SingleOrDefaultAsync(r => r.Id == id, ct);
         if (report is null) return NotFound();

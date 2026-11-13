@@ -84,3 +84,4 @@ html[data-theme="dark"] .report-admin-body .report-action-form p, html[data-them
 @media (max-width: 650px) {
     .admin-report-page .report-filters { grid-template-columns: minmax(0, 1fr); }
 }
+.review-error { color: #9d2639; font-size: .875rem; } .review-error:empty { display: none; } html[data-theme="dark"] .review-error { color: #ffb4ba; }
