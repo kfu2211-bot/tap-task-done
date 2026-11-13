@@ -4,7 +4,7 @@
 <!DOCTYPE html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" /><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Verification requests - Admin</title><link rel="stylesheet" href="/css/admin-polish.css" asp-append-version="true" /><link rel="stylesheet" href="/css/identity-selfie.css" asp-append-version="true" /><link rel="stylesheet" href="/css/admin-design.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
 <body class="identity-admin @(Model.Embedded ? "identity-embedded" : "")">@if (Request.Query.ContainsKey("recordId"))
 {
-    <p><a href="/Admin#notifications">← Back to notifications</a></p>
+    <p><a href="/Admin#notifications" target="_top">← Back to notifications</a></p>
 }
 @if (!Model.Embedded) { <header class="identity-topbar"><a href="/Admin" class="identity-back">← Admin Center</a><span>Admin workspace</span></header> }
 <main class="identity-workspace">

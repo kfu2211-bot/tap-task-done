@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="/css/admin-report-review.css" asp-append-version="true" /><link rel="stylesheet" href="/css/admin-design.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
 <body class="report-admin-body @(Model.Embedded ? "report-embedded" : "")">@if (Request.Query.ContainsKey("recordId"))
 {
-    @if (!Model.Embedded) { <p><a href="/Admin#notifications">← Back to notifications</a></p> }
+    <p><a href="/Admin#notifications" target="_top">← Back to notifications</a></p>
 }<div class="report-admin-layout">
     <aside class="report-admin-sidebar" aria-label="Admin navigation">
         <a class="report-brand" href="/Admin"><span>✓</span><strong>Tap, Task, Done</strong></a>

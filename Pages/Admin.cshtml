@@ -1,6 +1,13 @@
 @page
 @model tts.Pages.AdminModel
 @{ Layout = null; }
+@{
+    var inboxKind = Request.Query["inboxKind"].ToString();
+    var inboxRecord = long.TryParse(Request.Query["inboxRecord"], out var recordId) && recordId > 0;
+    string QueueUrl(string page, string kind) => inboxRecord && inboxKind == kind
+        ? Url.Page(page, new { embedded = true, recordId })!
+        : Url.Page(page, new { embedded = true })!;
+}
 <!DOCTYPE html>
 <html lang="en">
 <head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" />
@@ -66,12 +73,12 @@
                         </section>
                     </div>
                 </section>
-                <section class="admin-view" data-view="verifications" id="verifications" hidden><iframe src="/AdminIdentity?embedded=true" title="Verification requests" id="adminIdentityFrame" class="admin-reports-frame admin-auto-frame" scrolling="no" loading="lazy"></iframe><div hidden aria-hidden="true"><input id="verificationSearch" type="search" /><select id="verificationFilter"><option value="Pending">Pending</option><option value="All">All</option></select><div id="verificationQueue"></div><p id="verificationEmpty" hidden></p></div></section>
+                <section class="admin-view" data-view="verifications" id="verifications" hidden><iframe src="@QueueUrl("/AdminIdentity", "verification")" title="Verification requests" id="adminIdentityFrame" class="admin-reports-frame admin-auto-frame" scrolling="no" loading="lazy"></iframe><div hidden aria-hidden="true"><input id="verificationSearch" type="search" /><select id="verificationFilter"><option value="Pending">Pending</option><option value="All">All</option></select><div id="verificationQueue"></div><p id="verificationEmpty" hidden></p></div></section>
                 <section class="admin-view" data-view="reports" id="reports" hidden>
-                    <iframe src="/AdminReports?embedded=true" title="Safety reports" id="adminReportsFrame" class="admin-reports-frame admin-auto-frame" scrolling="no"></iframe>
+                    <iframe src="@QueueUrl("/AdminReports", "report")" title="Safety reports" id="adminReportsFrame" class="admin-reports-frame admin-auto-frame" scrolling="no"></iframe>
                     <div hidden aria-hidden="true"><input id="reportSearch" type="search" /><select id="reportFilter"><option value="Open">Open</option><option value="All">All</option><option value="Urgent">Urgent</option><option value="Resolved">Resolved</option><option value="Dismissed">Dismissed</option></select><div id="reportQueue"></div><p id="reportEmpty" hidden></p></div>
                 </section>
-                <section class="admin-view" data-view="deletions" id="deletions" hidden><iframe src="/AdminDeletions?embedded=true" title="Account deletion requests" id="adminDeletionsFrame" class="admin-reports-frame admin-auto-frame" scrolling="no" loading="lazy"></iframe></section><section class="admin-view" data-view="users" id="users" hidden><iframe src="/AdminUsers?embedded=true" title="Account management" class="admin-reports-frame admin-users-frame" id="adminUsersFrame" scrolling="no" loading="lazy"></iframe><div hidden><input id="userSearch"/><div id="userList"></div></div></section>
+                <section class="admin-view" data-view="deletions" id="deletions" hidden><iframe src="@QueueUrl("/AdminDeletions", "deletion")" title="Account deletion requests" id="adminDeletionsFrame" class="admin-reports-frame admin-auto-frame" scrolling="no" loading="lazy"></iframe></section><section class="admin-view" data-view="users" id="users" hidden><iframe src="/AdminUsers?embedded=true" title="Account management" class="admin-reports-frame admin-users-frame" id="adminUsersFrame" scrolling="no" loading="lazy"></iframe><div hidden><input id="userSearch"/><div id="userList"></div></div></section>
                 <section class="admin-view" data-view="activity" id="activity" hidden><article class="admin-card activity-card"><div class="card-tools"><input id="activitySearch" type="search" placeholder="Search by admin, action, or record" aria-label="Search activity" /><button id="exportActivity" class="review-button" type="button">Export CSV</button></div><div class="activity-row activity-columns" aria-hidden="true"><strong>Date and time</strong><strong>Recorded by</strong><strong>Action</strong><strong>Related record</strong></div><div id="activityList"></div><p id="activityEmpty" class="empty-state" hidden>No activity recorded yet.</p></article></section><section class="admin-view" data-view="notifications" id="notifications" data-admin-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" hidden>
     <article class="admin-card">
         <div class="admin-inbox-toolbar">
@@ -84,9 +91,9 @@
         @if (Model.InboxIncomplete) { <p class="admin-inbox-warning" role="status">Some notifications could not be loaded. <a href="/Admin#notifications" data-inbox-retry>Retry</a></p> }
         @foreach (var item in Model.Inbox.OrderByDescending(i => i.Time))
         {
-            var destination = item.Kind == "report" ? "/AdminReports" : item.Kind == "verification" ? "/AdminIdentity" : "/AdminDeletions";
+            var sectionName = item.Kind == "report" ? "reports" : item.Kind == "verification" ? "verifications" : "deletions";
             var label = item.Kind == "report" ? "Safety report" : item.Kind == "verification" ? "Verification request" : "Deletion request for account";
-            <a class="admin-inbox-entry" data-inbox-key="@($"{item.Kind}:{item.Id}:{item.Time.Ticks}")" asp-page="@destination" asp-route-recordId="@item.Id">
+            <a class="admin-inbox-entry" data-inbox-key="@($"{item.Kind}:{item.Id}:{item.Time.Ticks}")" asp-page="/Admin" asp-route-inboxKind="@item.Kind" asp-route-inboxRecord="@item.Id" asp-fragment="@sectionName">
                 <strong><span class="admin-inbox-unread" hidden>Unread</span> @label #@item.Id</strong>
                 <span>@item.Status.Replace("-", " ") · @tts.Data.DisplayTime.Philippine(item.Time) @if(item.Priority == 3) { <text> · High priority</text> }</span>
             </a>
