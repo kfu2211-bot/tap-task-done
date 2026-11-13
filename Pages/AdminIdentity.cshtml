@@ -2,10 +2,7 @@
 @model tts.Pages.AdminIdentityModel
 @{ Layout = null; }
 <!DOCTYPE html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" /><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Verification requests - Admin</title><link rel="stylesheet" href="/css/admin-polish.css" asp-append-version="true" /><link rel="stylesheet" href="/css/identity-selfie.css" asp-append-version="true" /><link rel="stylesheet" href="/css/admin-design.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
-<body class="identity-admin @(Model.Embedded ? "identity-embedded" : "")">@if (Request.Query.ContainsKey("recordId"))
-{
-    <p><a href="/Admin#notifications" target="_top">← Back to notifications</a></p>
-}
+<body class="identity-admin @(Model.Embedded ? "identity-embedded" : "")">
 @if (!Model.Embedded) { <header class="identity-topbar"><a href="/Admin" class="identity-back">← Admin Center</a><span>Admin workspace</span></header> }
 <main class="identity-workspace">
     <div class="identity-heading"><div><p class="identity-eyebrow">IDENTITY CHECKS</p><h1>Verification requests</h1><p>Review submitted documents and record your decision.</p></div><span class="identity-count">@(Model.DatabaseUnavailable ? "Unavailable" : $"{Model.Items.Count} requests")</span></div>
@@ -22,7 +19,7 @@
     @foreach (var item in Model.Items) {
         <article class="identity-request">
             <div class="identity-request-heading"><div><p class="identity-eyebrow">REQUEST #@item.Id</p><h2>@(string.IsNullOrWhiteSpace(item.Name) ? "User" : item.Name)</h2></div><span class="identity-status identity-status-@item.Status">@item.Status</span></div>
-            <dl class="identity-details"><div><dt>ID number</dt><dd>•••• @item.IdLast4</dd></div><div><dt>Submitted</dt><dd>@item.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC</dd></div></dl>
+            <dl class="identity-details"><div><dt>ID number</dt><dd>•••• @item.IdLast4</dd></div><div><dt>Submitted</dt><dd>@tts.Data.DisplayTime.Philippine(item.CreatedAt) PHT</dd></div></dl>
             @if (Model.ReviewEnabled) {
                 <p><strong>Declared ID type:</strong> @(Model.DocumentTypes.TryGetValue(item.Id, out var declaredType) ? declaredType : "Not provided (older submission)")</p><div class="identity-comparison"><div><h3>Government ID</h3><a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="id" target="_blank" rel="noopener">Open ID (image or PDF)</a>@if (item.GovernmentType is "image/jpeg" or "image/png") { <img src="@Url.Page("/AdminIdentity", "Document", new { id = item.Id, kind = "id" })" alt="Government ID for manual comparison" loading="lazy" /> } else { <p>Use Open ID to inspect PDF or legacy documents.</p> }</div><div><h3>Camera selfie</h3>@if (item.HasSelfie) { <img src="@Url.Page("/AdminIdentity", "Document", new { id = item.Id, kind = "selfie" })" alt="Submitted selfie for manual comparison" loading="lazy" /> } else { <p>No selfie available (older request or retention period ended). Pending requests need a new submission before approval.</p> }</div></div>
 <div class="identity-documents"><h3>Submitted documents</h3><p>Documents open in a new tab. Close it to return to your review.</p><div class="identity-document-links"><a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="id" target="_blank" rel="noopener">View Government ID</a>@if(item.HasCertification) { <a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="certification" target="_blank" rel="noopener">View Certification</a> } @if(item.HasSupporting) { <a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="supporting" target="_blank" rel="noopener">View Supporting document</a> }</div></div>
