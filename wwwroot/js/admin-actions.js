@@ -24,6 +24,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const activity = function (action, detail) { const entries = read("tapTaskDoneAdminActivity", []); entries.unshift({ time: "Just now", action: action, detail: detail }); save("tapTaskDoneAdminActivity", entries.slice(0, 50)); };
 
     const inbox = document.getElementById("notifications");
+    inbox.querySelector("[data-inbox-retry]")?.addEventListener("click", event => {
+        event.preventDefault();
+        location.reload();
+    });
     const entries = [...inbox.querySelectorAll("[data-inbox-key]")];
     const storageKey = "tapTaskDoneAdminInboxRead:" + inbox.dataset.adminId;
     const stored = read(storageKey, []);
@@ -46,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("adminAlertCount").textContent = unreadCount;
         markAll.disabled = unreadCount === 0;
         const empty = document.getElementById("adminInboxEmpty");
-        empty.hidden = visibleCount > 0;
+        empty.hidden = visibleCount > 0 || !!inbox.querySelector(".admin-inbox-warning");
         empty.textContent = unreadOnly ? "No unread notifications." : "No notifications yet.";
     }
 

@@ -71,8 +71,8 @@
                     <iframe src="/AdminReports?embedded=true" title="Safety reports" id="adminReportsFrame" class="admin-reports-frame admin-auto-frame" scrolling="no"></iframe>
                     <div hidden aria-hidden="true"><input id="reportSearch" type="search" /><select id="reportFilter"><option value="Open">Open</option><option value="All">All</option><option value="Urgent">Urgent</option><option value="Resolved">Resolved</option><option value="Dismissed">Dismissed</option></select><div id="reportQueue"></div><p id="reportEmpty" hidden></p></div>
                 </section>
-                <section class="admin-view" data-view="deletions" id="deletions" hidden><iframe src="/AdminDeletions?embedded=true" title="Account deletion requests" class="admin-reports-frame" loading="lazy"></iframe></section><section class="admin-view" data-view="users" id="users" hidden><iframe src="/AdminUsers?embedded=true" title="Account management" class="admin-reports-frame admin-users-frame" id="adminUsersFrame" scrolling="no" loading="lazy"></iframe><div hidden><input id="userSearch"/><div id="userList"></div></div></section>
-                <section class="admin-view" data-view="activity" id="activity" hidden><div class="section-title"><div><p class="eyebrow">ADMIN ACTIVITY</p><h2>Activity log</h2><p>See who recorded recent moderation, safety report, and identity verification decisions.</p></div></div><article class="admin-card activity-card"><div class="card-tools"><input id="activitySearch" type="search" placeholder="Search by admin, action, or record" aria-label="Search activity" /><button id="exportActivity" class="review-button" type="button">Export CSV</button></div><div id="activityList"></div><p id="activityEmpty" class="empty-state" hidden>No activity recorded yet.</p></article></section><section class="admin-view" data-view="notifications" id="notifications" data-admin-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" hidden>
+                <section class="admin-view" data-view="deletions" id="deletions" hidden><iframe src="/AdminDeletions?embedded=true" title="Account deletion requests" id="adminDeletionsFrame" class="admin-reports-frame admin-auto-frame" scrolling="no" loading="lazy"></iframe></section><section class="admin-view" data-view="users" id="users" hidden><iframe src="/AdminUsers?embedded=true" title="Account management" class="admin-reports-frame admin-users-frame" id="adminUsersFrame" scrolling="no" loading="lazy"></iframe><div hidden><input id="userSearch"/><div id="userList"></div></div></section>
+                <section class="admin-view" data-view="activity" id="activity" hidden><article class="admin-card activity-card"><div class="card-tools"><input id="activitySearch" type="search" placeholder="Search by admin, action, or record" aria-label="Search activity" /><button id="exportActivity" class="review-button" type="button">Export CSV</button></div><div class="activity-row activity-columns" aria-hidden="true"><strong>Date and time</strong><strong>Recorded by</strong><strong>Action</strong><strong>Related record</strong></div><div id="activityList"></div><p id="activityEmpty" class="empty-state" hidden>No activity recorded yet.</p></article></section><section class="admin-view" data-view="notifications" id="notifications" data-admin-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" hidden>
     <article class="admin-card">
         <div class="admin-inbox-toolbar">
             <div role="group" aria-label="Filter notifications">
@@ -81,7 +81,7 @@
             </div>
             <button class="review-button" type="button" id="adminInboxReadAll">Mark all as read</button>
         </div>
-        @if (Model.InboxIncomplete) { <p>Some notifications could not be loaded.</p> }
+        @if (Model.InboxIncomplete) { <p class="admin-inbox-warning" role="status">Some notifications could not be loaded. <a href="/Admin#notifications" data-inbox-retry>Retry</a></p> }
         @foreach (var item in Model.Inbox.OrderByDescending(i => i.Time))
         {
             var destination = item.Kind == "report" ? "/AdminReports" : item.Kind == "verification" ? "/AdminIdentity" : "/AdminDeletions";
@@ -159,7 +159,7 @@
     <script src="/js/login-security-alert.js" asp-append-version="true" defer></script><script src="/js/admin.js" asp-append-version="true"></script><script src="/js/admin-actions.js" asp-append-version="true"></script><script src="/js/admin-account-link.js" asp-append-version="true"></script>
     <script>
         window.addEventListener('message', event => {
-            const frames = new Map([['admin-reports-height', 'adminReportsFrame'], ['admin-users-height', 'adminUsersFrame'], ['admin-identity-height', 'adminIdentityFrame']]);
+            const frames = new Map([['admin-reports-height', 'adminReportsFrame'], ['admin-users-height', 'adminUsersFrame'], ['admin-identity-height', 'adminIdentityFrame'], ['admin-deletions-height', 'adminDeletionsFrame']]);
             const frame = document.getElementById(frames.get(event.data?.type));
             if (!frame || event.origin !== window.location.origin || event.source !== frame.contentWindow) return;
             const height = Number(event.data.height);

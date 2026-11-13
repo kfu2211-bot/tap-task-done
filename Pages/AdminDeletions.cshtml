@@ -16,4 +16,16 @@ else if(Model.Requests.Count==0){<section class="security-card"><h2>No deletion 
 @if(AccountDeletion.Pending(r.Status)){<form method="post" asp-route-embedded="true"><input type="hidden" name="userId" value="@r.UserId"/><label>Decision reason<textarea name="reason" rows="3" minlength="5" maxlength="1000" required></textarea></label><label class="deletion-check"><input type="checkbox" name="evidenceReviewed" value="true" required/><span>I reviewed the records, safety evidence and documented outstanding obligations for this account.</span></label><div class="deletion-actions"><button name="decision" value="approved" disabled="@(item.Blockers.Count>0)" type="submit">Approve deletion</button><button name="decision" value="held" class="security-secondary" type="submit">Put on hold</button><button name="decision" value="rejected" class="deletion-danger-button" type="submit">Reject request</button></div></form>}
 </section>}
 @if(Model.History.Count>0){<section class="security-card"><h2>Decision history</h2>@foreach(var e in Model.History){<div class="security-row"><div><strong>Account #@e.UserId · @e.Action</strong><small>@DisplayTime.Philippine(e.CreatedUtc) PHT · @(e.ActorId.HasValue ? $"Actor #{e.ActorId}" : "System final check")</small><p>@e.Reason</p></div></div>}</section>}
-</main></body></html>
+</main>
+<script>
+    if (window.parent !== window) {
+        const content = document.querySelector('main');
+        const resize = () => window.parent.postMessage({
+            type: 'admin-deletions-height',
+            height: Math.ceil(content.getBoundingClientRect().bottom + window.scrollY)
+        }, location.origin);
+        new ResizeObserver(resize).observe(content);
+        resize();
+    }
+</script>
+</body></html>

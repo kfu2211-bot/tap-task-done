@@ -26,7 +26,7 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     public bool EvidenceUnavailable { get; private set; }
     public bool HistoryUnavailable { get; private set; }
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
-    [BindProperty(SupportsGet = true)] public string Sort { get; set; } = "";
+    [BindProperty(SupportsGet = true)] public string? Sort { get; set; }
     public string ReviewNote { get; private set; } = "";
     public string ReviewMessage { get; private set; } = "";
     public string? ReviewStatus { get; private set; }
@@ -173,6 +173,8 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
                 ModelState.AddModelError("reviewConfirmed", "Confirm that you reviewed the evidence.");
             if (status is not ("reviewing" or "resolved" or "dismissed"))
                 ModelState.AddModelError("status", "Choose a valid review status.");
+            if (!ModelState.Values.Any(v => v.Errors.Count > 0))
+                ModelState.AddModelError("review", "Check the review details and try again.");
             return await OnGetAsync(ct, id);
         }
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
@@ -192,6 +194,6 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
             try { await SmtpMailer.SendAsync(config, email, $"Tap, Task, Done — report #{id} update", $"Your report #{id} is now {status}.\n\n{publicMessage}\n\nOpen Safety & Reports on the website to review your report history. If you have new evidence, submit a follow-up report referencing #{id}.", ct); }
             catch (System.Net.Mail.SmtpException ex) { logger.LogWarning("Report update email failed ({Reason}).", SmtpMailer.Diagnostic(ex)); Notice += " Email could not be delivered; the update remains available on the website."; }
         }
-        return RedirectToPage(new { embedded = Embedded, statusFilter = status == "reviewing" ? "open" : report.Status });
+        return RedirectToPage(new { embedded = Embedded, statusFilter = report.Status == "reviewing" ? "reviewing" : "open" });
     }
 }

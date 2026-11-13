@@ -336,3 +336,15 @@ html[data-theme="dark"] .overview-activity li { border-color:#385047; }
 }
 html[data-theme="dark"] .admin-staff-form { background: #172a22; border-color: #466356; }
 html[data-theme="dark"] .admin-staff-form :is(input, select) { background: #20342b; }
+.admin-shell #notifications .admin-inbox-toolbar { padding-bottom: 12px; border-bottom: 1px solid #bdd4c5; }
+.admin-shell #notifications .admin-inbox-toolbar button[aria-pressed="true"] { background: #185843 !important; color: #fff !important; }
+.admin-inbox-warning { padding: 12px; border-inline-start: 3px solid #ad7b31; }
+.admin-inbox-warning a { color: inherit; text-decoration: underline; }
+.admin-shell #activity .activity-columns { font-size: .8rem; border-bottom: 1px solid #bdd4c5; }
+.admin-shell #activity .activity-row { padding-block: 12px; }
+@media (min-width: 761px) {
+    .admin-shell #activity .activity-field { display: none; }
+}
+@media (max-width: 760px) {
+    .admin-shell #activity .activity-columns { display: none; }
+}
