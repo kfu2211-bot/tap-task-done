@@ -20,7 +20,14 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
     public int? PendingVerifications { get; private set; }
     public int? OpenReports { get; private set; }
 
-    public record InboxItem(string Kind, long Id, string Status, DateTime Time, int Priority);
+    public sealed class InboxItem
+    {
+        public required string Kind { get; init; }
+        public long Id { get; init; }
+        public required string Status { get; init; }
+        public DateTime Time { get; init; }
+        public int Priority { get; init; }
+    }
     public List<InboxItem> Inbox { get; } = [];
     public bool InboxIncomplete { get; private set; }
 
@@ -108,10 +115,10 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
     {
         Response.Headers.CacheControl = "no-store";
         await LoadStaffAsync(cancellationToken);
-        await LoadInboxAsync(SafetyReportPriority.Rank(db.SafetyReports.AsNoTracking()).Select(r => new InboxItem("report", r.Report.Id, r.Report.Status, r.Report.CreatedAt, r.Priority)), cancellationToken);
-        await LoadInboxAsync(db.IdentityRequests.AsNoTracking().Select(r => new InboxItem("verification", r.Id, r.Status, r.CreatedAt, 0)), cancellationToken);
+        await LoadInboxAsync(SafetyReportPriority.Rank(db.SafetyReports.AsNoTracking()).Select(r => new InboxItem { Kind = "report", Id = r.Report.Id, Status = r.Report.Status, Time = r.Report.CreatedAt, Priority = r.Priority }), cancellationToken);
+        await LoadInboxAsync(db.IdentityRequests.AsNoTracking().Select(r => new InboxItem { Kind = "verification", Id = r.Id, Status = r.Status, Time = r.CreatedAt }), cancellationToken);
         await LoadInboxAsync(db.Set<AccountDeletionRequest>().AsNoTracking().Where(r => r.RequestedUtc.HasValue)
-            .Select(r => new InboxItem("deletion", r.UserId, r.Status, r.RequestedUtc!.Value, 0)), cancellationToken);
+            .Select(r => new InboxItem { Kind = "deletion", Id = r.UserId, Status = r.Status, Time = r.RequestedUtc!.Value }), cancellationToken);
         try
         {
             var users = await db.Users.AsNoTracking().Where(u => u.Role != "deleted").OrderByDescending(u => u.Id)
