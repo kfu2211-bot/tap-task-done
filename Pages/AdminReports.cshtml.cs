@@ -174,6 +174,6 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
             try { await SmtpMailer.SendAsync(config, email, $"Tap, Task, Done — report #{id} update", $"Your report #{id} is now {status}.\n\n{publicMessage}\n\nOpen Safety & Reports on the website to review your report history. If you have new evidence, submit a follow-up report referencing #{id}.", ct); }
             catch (System.Net.Mail.SmtpException ex) { logger.LogWarning("Report update email failed ({Reason}).", SmtpMailer.Diagnostic(ex)); Notice += " Email could not be delivered; the update remains available on the website."; }
         }
-        return RedirectToPage(new { embedded = Embedded, recordId = RecordId });
+        return RedirectToPage(new { embedded = Embedded, statusFilter = status == "reviewing" ? "open" : report.Status });
     }
 }

@@ -17,8 +17,8 @@
     <main class="report-admin-main">
         <header class="report-admin-header"><a href="/Admin">← Admin Center</a><span>Admin workspace</span></header>
         <div class="admin-report-page">
-            <div class="report-page-heading"><div><p class="report-eyebrow">COMMUNITY SAFETY</p><h1>Safety reports</h1><p>Review reports submitted by users and keep track of your decisions.</p></div><span class="report-total">@(Model.DatabaseUnavailable ? "Unable to load reports" : $"{Model.Reports.Count} reports")</span></div>
-            <div class="report-guidance"><strong>Review carefully</strong><p>Reported names are entered by users and are not automatically verified. Treat attachments as untrusted files. No account is suspended automatically.</p></div>
+            <div class="report-page-heading"><div>@if (!Model.Embedded) { <h1>Safety reports</h1> }</div><span class="report-total">@(Model.DatabaseUnavailable ? "Unable to load reports" : $"{Model.Reports.Count} reports")</span></div>
+            @if (Model.RecordId.HasValue) { <div class="report-guidance"><strong>Review carefully</strong><p>Reported names are entered by users and are not automatically verified. Treat attachments as untrusted files. No account is suspended automatically.</p></div> }
             <nav class="report-queue-tabs" aria-label="Report queues">
                 @foreach (var tab in new[] { (Key: "open", Label: "New"), (Key: "reviewing", Label: "Under review"), (Key: "history", Label: "History") })
                 {
@@ -42,7 +42,7 @@
                 var report = item.Report;
                 var statusLabel = report.Status switch { "open" => "Open", "reviewing" => "Under review", "resolved" => "Resolved", "dismissed" => "Dismissed", _ => report.Status };
                 var priorityLabel = report.Priority switch { 1 => "Low", 2 => "Normal", 3 => "High", _ => "Not assessed" };
-                <article class="admin-report-card" id="report-@report.Id">
+                <article class="admin-report-card @(!Model.RecordId.HasValue ? "report-summary-card" : "")" id="report-@report.Id">
                     <div class="report-card-heading"><div><p class="report-eyebrow">REPORT #@report.Id</p><h2>@report.Reason</h2></div><div class="report-badges"><span class="report-priority priority-@report.Priority">Priority: @priorityLabel</span><span class="report-status status-@report.Status">@statusLabel</span></div></div>
                     @if (!Model.RecordId.HasValue)
                     {
@@ -110,7 +110,7 @@
                         </section>
                     }
                     @if (report.Status is "open" or "reviewing") {
-                        <form method="post" asp-page-handler="Update" class="safety-form report-action-form"><h3>Review this report</h3><p class="report-review-intro">Record your decision and keep the reporter informed.</p><input type="hidden" name="id" value="@report.Id" /><input type="hidden" name="recordId" value="@Model.RecordId" /><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
+                        <form method="post" asp-page-handler="Update" data-review-save class="safety-form report-action-form"><h3>Review this report</h3><p class="report-review-intro">Record your decision and keep the reporter informed.</p><input type="hidden" name="id" value="@report.Id" /><input type="hidden" name="recordId" value="@Model.RecordId" /><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
                         <label>Internal note <span>(private; required when closing a report)</span><textarea name="note" maxlength="1000" rows="3" placeholder="Add context for other admins"></textarea></label>
                         <label>Update status<select name="status">@if(report.Status == "open") { <option value="reviewing">Under review</option> }<option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></label>
                         <label>Message to the reporter <span>(required; visible to the reporter and sent by email)</span><textarea name="publicMessage" minlength="10" maxlength="1000" required rows="3" placeholder="Explain the findings, action taken, and next steps. Avoid private information about another person."></textarea></label><label class="report-review-confirm"><input type="checkbox" name="reviewConfirmed" value="true" /> I reviewed the evidence, considered explanations from both parties where available, and documented missing information before closing.</label><p>Closing requires an internal decision reason of at least 10 characters. Resolve after the concern has been addressed; dismiss with a clear evidence-based reason. New evidence can be submitted in a follow-up report.</p><button type="submit">Save review and notify reporter</button></form>
@@ -137,4 +137,34 @@
     reportHeight();
 </script>
 }
+<script>
+    document.querySelectorAll('[data-review-save]').forEach(form => {
+        const button = form.querySelector('button[type="submit"]');
+        const label = button.textContent;
+        form.addEventListener('submit', event => {
+            if (button.disabled) {
+                event.preventDefault();
+                return;
+            }
+            const closing = form.elements.status.value !== 'reviewing';
+            const note = form.elements.note;
+            if (closing && (note.value.trim().length < 10 || !form.elements.reviewConfirmed.checked)) {
+                event.preventDefault();
+                const field = note.value.trim().length < 10 ? note : form.elements.reviewConfirmed;
+                field.setCustomValidity(field === note ? 'Enter an internal note of at least 10 characters.' : 'Confirm that you reviewed the evidence.');
+                field.reportValidity();
+                field.setCustomValidity('');
+                return;
+            }
+            button.disabled = true;
+            button.textContent = 'Saving review…';
+            form.setAttribute('aria-busy', 'true');
+        });
+        window.addEventListener('pageshow', () => {
+            button.disabled = false;
+            button.textContent = label;
+            form.removeAttribute('aria-busy');
+        });
+    });
+</script>
 </body></html>
