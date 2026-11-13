@@ -18,6 +18,24 @@
         if(candidate) { root.classList.add('location-confirmed');confirm.textContent='Pin confirmed';status.textContent='Saved work destination. Change it only if needed, then confirm the new pin.'; }
         function invalidate() { lat.value='';lon.value='';root.classList.remove('location-confirmed');confirm.textContent='Confirm this pin'; }
         function warn(message) { notice.textContent=message;notice.hidden=false;root.classList.add('location-needs-confirmation'); }
+        function useMapAddress(point, message) {
+            const center = map?.project(point);
+            if (center && map.loaded()) {
+                const features = map.queryRenderedFeatures([
+                    [center.x - 28, center.y - 28],
+                    [center.x + 28, center.y + 28]
+                ]);
+                const nearby = features.find(feature =>
+                    ['transportation_name', 'poi'].includes(feature.sourceLayer) &&
+                    typeof feature.properties?.name === 'string' && feature.properties.name.trim());
+                if (nearby) {
+                    address.value = ('Near ' + nearby.properties.name + ', Bacolor, Pampanga').slice(0, 120);
+                    status.textContent = 'Nearby map label suggested. Check or edit the address before confirming.';
+                    return;
+                }
+            }
+            status.textContent = message;
+        }
         function pick(point, label) {
             invalidate();
             reverseController?.abort();
@@ -37,12 +55,15 @@
                         if(!r.ok) throw new Error('Reverse lookup failed: ' + r.status);
                         return r.json();
                     })
-                    .then(place=>{if(current!==reverseGeneration)return; if(place?.label){address.value=place.label;status.textContent='Approximate address found. Check it and confirm the pin.';}else status.textContent='No address found for this pin. Enter a nearby landmark or the work address, then confirm.';})
+                    .then(place=>{if(current!==reverseGeneration)return; if(place?.label){address.value=place.label;status.textContent='Approximate address found. Check it and confirm the pin.';}else useMapAddress(point, 'No address found for this pin. Enter a nearby landmark or the work address, then confirm.');})
                     .catch(error=>{
                         if(current!==reverseGeneration)return;
-                        status.textContent=error instanceof Error && !controller.signal.aborted &&
-                            (error.message.startsWith('Sign in') || error.message.startsWith('Too many'))
-                            ? error.message : 'Address lookup unavailable. Try the pin again or enter the address manually.';
+                        if(error instanceof Error && !controller.signal.aborted &&
+                            (error.message.startsWith('Sign in') || error.message.startsWith('Too many'))) {
+                            status.textContent=error.message;
+                            return;
+                        }
+                        useMapAddress(point, 'Address lookup unavailable. Enter the work address or a nearby landmark, then confirm.');
                     })
                     .finally(()=>clearTimeout(timeout));
             }
