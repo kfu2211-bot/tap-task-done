@@ -18,6 +18,8 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
     public bool IsDevelopment => environment.IsDevelopment();
     public bool VerificationAvailable => verification.Enabled;
     public int? PendingVerifications { get; private set; }
+    public List<SafetyReportPriority.RankedReport> QueueReports { get; private set; } = [];
+    public bool QueueReportsUnavailable { get; private set; }
     public int? OpenReports { get; private set; }
 
     public sealed class InboxItem
@@ -135,6 +137,18 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
             try { PendingVerifications = await db.IdentityRequests.AsNoTracking().CountAsync(x => x.Status == "pending", cancellationToken); }
             catch (MySqlConnector.MySqlException ex) when (ex.Number == 1146 && !verification.Enabled) { PendingVerifications = 0; }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load verification count."); }
+        try
+        {
+            QueueReports = await SafetyReportPriority.Rank(db.SafetyReports.AsNoTracking()
+                .Where(r => r.Status == "open" || r.Status == "reviewing"))
+                .OrderByDescending(r => r.Priority).ThenBy(r => r.Report.CreatedAt)
+                .ThenBy(r => r.Report.Id).Take(4).ToListAsync(cancellationToken);
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+        {
+            QueueReportsUnavailable = true;
+            logger.LogWarning(ex, "Could not load the safety review queue");
+        }
         try { OpenReports = await db.SafetyReports.AsNoTracking().CountAsync(x => x.Status == "open" || x.Status == "reviewing", cancellationToken); }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load report count."); }
         try

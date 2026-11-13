@@ -52,8 +52,24 @@
                     <section class="stat-grid"><button class="stat-card teal" type="button" data-go-to="verifications"><span><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6z M8 12l3 3 5-6"/></svg></span><div><strong id="verificationCount">—</strong><small>Pending verification</small></div><b>›</b></button><button class="stat-card amber" type="button" data-go-to="reports"><span><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4c5-3 9 3 14 0v10c-5 3-9-3-14 0"/></svg></span><div><strong id="reportCount">—</strong><small>Open reports</small></div><b>›</b></button><button class="stat-card teal" type="button" data-go-to="users"><span><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2 M20 21v-2a4 4 0 0 0-2-3.5 M17 4a4 4 0 0 1 0 8 M9.5 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg></span><div><strong id="verifiedCount">—</strong><small>Registered users</small></div><b>›</b></button></section>
                     <div class="overview-panels">
                         <section class="admin-card overview-card" aria-labelledby="reviewQueueTitle">
-                            <div class="card-heading"><h2 id="reviewQueueTitle">Review queue</h2></div>
-                            <div id="overviewHighlights"></div>
+                            <div class="card-heading"><h2 id="reviewQueueTitle">Review queue</h2><a href="#reports" data-go-to="reports">View queue</a></div>
+                            <ul class="overview-activity overview-review-list">
+                                @foreach (var entry in Model.QueueReports)
+                                {
+                                    var priority = entry.Priority == 3 ? "High" : entry.Priority == 1 ? "Low" : "Normal";
+                                    <li>
+                                        <div><strong>Report #@entry.Report.Id · @entry.Report.Reason</strong><small>@(entry.Report.Status == "reviewing" ? "Under review" : "New")</small></div>
+                                        <span class="overview-priority priority-@entry.Priority">@priority</span>
+                                        <a class="review-button" asp-page="/Admin" asp-route-inboxKind="report" asp-route-inboxRecord="@entry.Report.Id" asp-fragment="reports">Review</a>
+                                    </li>
+                                }
+                            </ul>
+                            @if (Model.QueueReportsUnavailable) { <p>Safety reports could not be loaded.</p> }
+                            else if (Model.QueueReports.Count == 0 && Model.PendingVerifications == 0) { <p class="empty-state">No pending items.</p> }
+                            @if (Model.PendingVerifications > 0)
+                            {
+                                <a href="#verifications" data-go-to="verifications">Review pending verifications (@Model.PendingVerifications)</a>
+                            }
                         </section>
                         <section class="admin-card overview-card" aria-labelledby="recentAdminTitle">
                             <div class="card-heading"><h2 id="recentAdminTitle">Recent activity</h2><a href="#activity" data-go-to="activity">View log</a></div>
@@ -62,7 +78,7 @@
                                 <ul class="overview-activity">
                                     @foreach (var entry in Model.Activities.Take(4))
                                     {
-                                        <li><strong>@entry.Action</strong><small>@entry.Admin</small></li>
+                                        <li><strong>@entry.Action</strong><small>@entry.Detail · @(string.IsNullOrWhiteSpace(entry.Admin) ? "Unknown admin" : entry.Admin) · @tts.Data.DisplayTime.Philippine(entry.Time) PHT</small></li>
                                     }
                                 </ul>
                             }
@@ -93,7 +109,7 @@
         {
             var sectionName = item.Kind == "report" ? "reports" : item.Kind == "verification" ? "verifications" : "deletions";
             var label = item.Kind == "report" ? "Safety report" : item.Kind == "verification" ? "Verification request" : "Deletion request for account";
-            <a class="admin-inbox-entry" data-inbox-key="@($"{item.Kind}:{item.Id}:{item.Time.Ticks}")" asp-page="/Admin" asp-route-inboxKind="@item.Kind" asp-route-inboxRecord="@item.Id" asp-fragment="@sectionName">
+            <a class="admin-inbox-entry" data-inbox-key="@($"{item.Kind}:{item.Id}:{item.Time.Ticks}")" data-high-report="@(item.Kind == "report" && item.Priority == 3 && item.Status == "open" ? item.Id : null)" asp-page="/Admin" asp-route-inboxKind="@item.Kind" asp-route-inboxRecord="@item.Id" asp-fragment="@sectionName">
                 <strong><span class="admin-inbox-unread" hidden>Unread</span> @label #@item.Id</strong>
                 <span>@item.Status.Replace("-", " ") · @tts.Data.DisplayTime.Philippine(item.Time) @if(item.Priority == 3) { <text> · High priority</text> }</span>
             </a>

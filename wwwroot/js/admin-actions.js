@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
         location.reload();
     });
-    const entries = [...inbox.querySelectorAll("[data-inbox-key]")];
+    let entries = [...inbox.querySelectorAll("[data-inbox-key]")];
     const storageKey = "tapTaskDoneAdminInboxRead:" + inbox.dataset.adminId;
     const stored = read(storageKey, []);
     const seen = new Set(Array.isArray(stored) ? stored : []);
@@ -66,12 +66,95 @@ document.addEventListener("DOMContentLoaded", function () {
         filters.forEach(filter => filter.setAttribute("aria-pressed", String(filter === button)));
         refreshAlertCount();
     }));
-    entries.forEach(entry => entry.addEventListener("click", () => markRead([entry])));
+    inbox.addEventListener("click", event => {
+        const entry = event.target.closest("[data-inbox-key]");
+        if (entry) markRead([entry]);
+    });
     markAll.addEventListener("click", () => markRead(entries));
     document.getElementById("adminAlerts").addEventListener("click", () =>
         document.querySelector('[data-admin-view="notifications"]').click());
     refreshAlertCount();
     window.addEventListener("pageshow", refreshAlertCount);
+
+    const known = new Set(entries.map(entry => entry.dataset.inboxKey));
+    let inboxReady = !inbox.querySelector(".admin-inbox-warning");
+    let checkingInbox = false;
+    const toastQueue = [];
+    let activeToast;
+
+    function showNextReport() {
+        if (activeToast || !toastQueue.length || document.hidden) return;
+        const entry = toastQueue.shift();
+        const toast = document.createElement("aside");
+        toast.className = "admin-report-toast";
+        const title = document.createElement("strong");
+        title.setAttribute("role", "status");
+        title.textContent = "New high-priority safety report #" + entry.dataset.highReport;
+        const link = document.createElement("a");
+        link.href = entry.href;
+        link.textContent = "Open report";
+        link.addEventListener("click", () => markRead([entry]));
+        const close = document.createElement("button");
+        close.type = "button";
+        close.textContent = "×";
+        close.setAttribute("aria-label", "Dismiss report alert");
+        const dismiss = () => {
+            clearTimeout(timer);
+            toast.remove();
+            activeToast = null;
+            showNextReport();
+        };
+        const timer = setTimeout(dismiss, 10000);
+        close.addEventListener("click", dismiss);
+        toast.append(title, close, link);
+        activeToast = toast;
+        document.body.append(toast);
+    }
+
+    async function checkInbox() {
+        if (checkingInbox || document.hidden) return;
+        checkingInbox = true;
+        try {
+            const response = await fetch("/Admin", { cache: "no-store", credentials: "same-origin" });
+            if (!response.ok || response.redirected) return;
+            const page = new DOMParser().parseFromString(await response.text(), "text/html");
+            const updated = page.getElementById("notifications");
+            if (!updated || updated.dataset.adminId !== inbox.dataset.adminId || updated.querySelector(".admin-inbox-warning")) return;
+            const fresh = [...updated.querySelectorAll("[data-inbox-key]")];
+            const existing = new Map(entries.map(entry => [entry.dataset.inboxKey, entry]));
+            entries = fresh.map(entry => {
+                const key = entry.dataset.inboxKey;
+                if (inboxReady && !known.has(key) && entry.dataset.highReport && !seen.has(key)) toastQueue.push(entry);
+                known.add(key);
+                const current = existing.get(key);
+                if (current && current.textContent === entry.textContent) return current;
+                current?.remove();
+                return entry;
+            });
+            const currentEntries = new Set(entries);
+            existing.forEach(entry => { if (!currentEntries.has(entry)) entry.remove(); });
+            let anchor = document.getElementById("adminInboxStatus");
+            for (const entry of [...entries].reverse()) {
+                if (entry.nextElementSibling !== anchor) anchor.before(entry);
+                anchor = entry;
+            }
+            inbox.querySelector(".admin-inbox-warning")?.remove();
+            inboxReady = true;
+            refreshAlertCount();
+            showNextReport();
+        } catch {
+            // Keep the current inbox when a background refresh fails.
+        } finally {
+            checkingInbox = false;
+        }
+    }
+    setInterval(checkInbox, 15000);
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            showNextReport();
+            checkInbox();
+        }
+    });
 
     // Prevent accidental high-impact review actions and notify the normal user view.
     ["approveAction", "rejectAction"].forEach(function (id) {

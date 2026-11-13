@@ -1,6 +1,6 @@
 /* Extra spacing and tap targets for the local Admin Center on phones. */
 @media (max-width:760px) {
-    html, body { max-width:100%; overflow-x:hidden; }
+    html, body { max-width:100%; overflow-x:clip; }
 
     .admin-sidebar { padding:14px 12px calc(18px + env(safe-area-inset-bottom)); }
     .admin-sidebar nav { gap:7px; margin-top:22px; }

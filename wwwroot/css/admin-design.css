@@ -2,7 +2,12 @@
 .admin-shell .admin-sidebar { background: linear-gradient(155deg, #edf5ec, #dfeee3); }
 .admin-shell .admin-sidebar nav a { gap: 12px; font-weight: 550; }
 .admin-shell .admin-sidebar nav a.active { background: #07543e; color: #fff; }
-.admin-shell .admin-topbar { box-shadow: 0 1px 0 #c8dbce; }
+.admin-shell .admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    box-shadow: 0 1px 0 #c8dbce;
+}
 .admin-shell .admin-alerts { display: inline-flex; align-items: center; gap: 7px; }
 .admin-shell .admin-alerts .admin-ui-icon { width: 17px; height: 17px; }
 .admin-shell #overview .admin-intro {
@@ -36,3 +41,34 @@ html[data-theme="dark"] .admin-shell .admin-topbar { box-shadow: 0 1px 0 #385448
 .identity-queues a { display:inline-flex; align-items:center; min-height:44px; padding:8px 14px; border:1px solid #abc5b3; border-radius:8px; color:inherit; text-decoration:none; font-weight:650; }
 .identity-queues a[aria-current="page"] { background:#175d45; color:#fff; border-color:#175d45; }
 .identity-queues a:focus-visible { outline:2px solid #2b936e; outline-offset:2px; }
+.admin-report-toast {
+    position: fixed;
+    inset: auto 20px 20px auto;
+    z-index: 10000;
+    width: min(360px, calc(100vw - 40px));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 14px 16px;
+    border: 1px solid #cfe0d3;
+    border-inline-start: 4px solid #a96b22;
+    border-radius: 12px;
+    background: var(--signin-alert-surface, #fff);
+    color: var(--signin-alert-text, #163d30);
+    box-shadow: 0 10px 36px #163d3026;
+    font-size: 14px;
+}
+.admin-report-toast a { color: inherit; }
+.admin-report-toast button {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--signin-alert-control, #edf5ef);
+    color: inherit;
+    cursor: pointer;
+    font-size: 22px;
+}
+html[data-theme="dark"] .admin-report-toast { background: #20342b; color: #eaf5ed; border-color: #526c5f; }
+html[data-theme="dark"] .admin-report-toast button { background: #30483c; }

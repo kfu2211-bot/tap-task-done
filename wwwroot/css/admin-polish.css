@@ -348,3 +348,12 @@ html[data-theme="dark"] .admin-staff-form :is(input, select) { background: #2034
 @media (max-width: 760px) {
     .admin-shell #activity .activity-columns { display: none; }
 }
+.overview-panels { align-items:stretch; }
+.overview-panels .overview-review-list li {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+}
+.overview-review-list .review-button { display:inline-flex; align-items:center; text-decoration:none; }
+.overview-priority { padding:4px 9px; border-radius:999px; background:#e4efe7; color:#184b35; font-size:.8rem; font-weight:700; }
+.overview-priority.priority-3 { background:#fee7e2; color:#842e23; }
