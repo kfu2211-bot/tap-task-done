@@ -368,6 +368,7 @@
         setInterval(updateNotificationCount, 30000);
         window.addEventListener("pageshow", updateNotificationCount);
         window.addEventListener("focus", updateNotificationCount);
+        window.addEventListener("message-read-state-changed", updateNotificationCount);
         document.addEventListener("visibilitychange", function () { if (!document.hidden) updateNotificationCount(); });
 
         // Only newly observed task and message notifications produce a toast.

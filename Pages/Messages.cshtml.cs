@@ -9,9 +9,11 @@ namespace tts.Pages;
 public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logger) : PageModel
 {
     public record Conversation(long TaskId, string Title, int ClientId, int FreelancerId, string OtherName)
-    { public long Id { get; init; } public bool CanSend { get; init; } public bool Assigned { get; init; } }
+    { public long Id { get; init; } public int OtherId { get; init; } public bool CanSend { get; init; } public bool Assigned { get; init; } }
     public List<Conversation> Conversations { get; private set; } = [];
-    public Dictionary<long, MarketplaceMessage> LatestMessages { get; private set; } = [];
+    public List<Conversation> SelectedTasks { get; private set; } = [];
+    public Dictionary<int, int> UnreadCounts { get; private set; } = [];
+    public Dictionary<int, MarketplaceMessage> LatestMessages { get; private set; } = [];
     public static string Initials(string? name) => string.Concat((name ?? "User").Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0])).ToUpperInvariant();
     public Conversation? Selected { get; private set; }
     public List<MarketplaceMessage> Messages { get; private set; } = [];
@@ -19,7 +21,7 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
     public bool Unavailable { get; private set; }
     [TempData] public string? Notice { get; set; }
     public static bool MaySend(string status, bool assigned, bool pendingBooking, bool isPrivate = false) => status == "open" && !isPrivate || assigned || status == "booking-pending" && pendingBooking;
-    public async Task<IActionResult> OnGetAsync(long? taskId, CancellationToken ct, long? conversationId = null, int? freelancerId = null)
+    public async Task<IActionResult> OnGetAsync(long? taskId, CancellationToken ct, long? conversationId = null, int? freelancerId = null, int? accountId = null)
     {
         Response.Headers.CacheControl = "no-store";
         if (UserId <= 0) return Challenge();
@@ -33,24 +35,49 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
                 where t.ClientId == UserId || c.FreelancerId == UserId
                 let selected = db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == c.FreelancerId && o.Status == "accepted")
                 let pending = db.MarketplaceBookings.Any(b => b.TaskId == t.Id && b.FreelancerId == c.FreelancerId && b.Status == "pending")
-                orderby c.Id descending
-                select new { c.Id, TaskId = t.Id, t.Title, t.ClientId, c.FreelancerId, t.Status, t.IsPrivate, Assigned = selected, Pending = pending, ClientName = (client.FirstName ?? "") + " " + (client.LastName ?? ""), FreelancerName = (freelancer.FirstName ?? "") + " " + (freelancer.LastName ?? "") }).ToListAsync(ct);
-            Conversations = rows.Select(r => new Conversation(r.TaskId, r.Title, r.ClientId, r.FreelancerId, (r.ClientId == UserId ? r.FreelancerName : r.ClientName).Trim()) { Id = r.Id, Assigned = r.Assigned, CanSend = MaySend(r.Status, r.Assigned, r.Pending, r.IsPrivate) }).ToList();
-            var ids = Conversations.Select(c => c.Id).ToArray();
+                orderby t.CreatedAt descending, c.CreatedAtUtc descending, c.Id descending
+                select new { c.Id, c.CreatedAtUtc, TaskId = t.Id, t.Title, t.ClientId, c.FreelancerId, t.Status, t.IsPrivate, Assigned = selected, Pending = pending, ClientName = (client.FirstName ?? "") + " " + (client.LastName ?? ""), FreelancerName = (freelancer.FirstName ?? "") + " " + (freelancer.LastName ?? "") }).ToListAsync(ct);
+            var rowsByCreation = rows.ToDictionary(r => r.Id, r => r.CreatedAtUtc);
+            var tasks = rows.Select(r => new Conversation(r.TaskId, r.Title, r.ClientId, r.FreelancerId, (r.ClientId == UserId ? r.FreelancerName : r.ClientName).Trim()) { Id = r.Id, OtherId = r.ClientId == UserId ? r.FreelancerId : r.ClientId, Assigned = r.Assigned, CanSend = MaySend(r.Status, r.Assigned, r.Pending, r.IsPrivate) }).ToList();
+            var ids = tasks.Select(c => c.Id).ToArray();
+            var unread = db.MarketplaceNotifications.Where(n => n.UserId == UserId && !n.IsRead && n.Kind == "message" && n.ConversationId.HasValue && ids.Contains(n.ConversationId.Value));
+            var groups = tasks.GroupBy(c => c.OtherId).ToDictionary(g => g.Key, g => g.ToList());
+            Conversations = groups.Values.Select(g => g[0]).ToList();
+            Selected = conversationId.HasValue ? tasks.FirstOrDefault(c => c.Id == conversationId)
+                : taskId.HasValue ? tasks.Where(c => c.TaskId == taskId && (!freelancerId.HasValue || c.FreelancerId == freelancerId)).OrderByDescending(c => c.Assigned).FirstOrDefault()
+                : accountId.HasValue ? Conversations.FirstOrDefault(c => c.OtherId == accountId) : null;
+            if ((conversationId.HasValue || taskId.HasValue || accountId.HasValue) && Selected is null) return NotFound();
+            if (Selected is not null)
+            {
+                SelectedTasks = groups[Selected.OtherId];
+                var selectedIds = SelectedTasks.Select(c => c.Id).ToArray();
+                var openedNotices = unread.Where(n => selectedIds.Contains(n.ConversationId!.Value));
+                var lastNoticeId = await openedNotices.MaxAsync(n => (long?)n.Id, ct);
+                Messages = await db.MarketplaceMessages.AsNoTracking().Where(m => m.ConversationId.HasValue && selectedIds.Contains(m.ConversationId.Value)).OrderBy(m => m.Id).ToListAsync(ct);
+                if (lastNoticeId.HasValue)
+                    await openedNotices.Where(n => n.Id <= lastNoticeId.Value).ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true), ct);
+            }
             if (ids.Length > 0)
             {
                 var latestIds = db.MarketplaceMessages
                     .Where(m => m.ConversationId.HasValue && ids.Contains(m.ConversationId.Value))
                     .GroupBy(m => m.ConversationId)
                     .Select(group => group.Max(m => m.Id));
-                LatestMessages = await db.MarketplaceMessages.AsNoTracking()
+                var latestByTask = await db.MarketplaceMessages.AsNoTracking()
                     .Where(m => latestIds.Contains(m.Id))
                     .ToDictionaryAsync(m => m.ConversationId!.Value, ct);
+                var unreadByTask = await unread.GroupBy(n => n.ConversationId!.Value)
+                    .Select(g => new { ConversationId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(g => g.ConversationId, g => g.Count, ct);
+                foreach (var (otherId, accountTasks) in groups)
+                {
+                    var latest = accountTasks.Select(c => latestByTask.GetValueOrDefault(c.Id))
+                        .OfType<MarketplaceMessage>().MaxBy(m => m.Id);
+                    if (latest is not null) LatestMessages[otherId] = latest;
+                    UnreadCounts[otherId] = accountTasks.Sum(c => unreadByTask.GetValueOrDefault(c.Id));
+                }
             }
-            Conversations = Conversations.OrderByDescending(c => LatestMessages.TryGetValue(c.Id, out var m) ? m.CreatedAt : DateTime.MinValue).ThenByDescending(c => c.Id).ToList();
-            Selected = conversationId.HasValue ? Conversations.FirstOrDefault(c => c.Id == conversationId) : taskId.HasValue ? Conversations.Where(c => c.TaskId == taskId && (!freelancerId.HasValue || c.FreelancerId == freelancerId)).OrderByDescending(c => c.Assigned).FirstOrDefault() : Conversations.FirstOrDefault();
-            if ((conversationId.HasValue || taskId.HasValue) && Selected is null) return NotFound();
-            if (Selected is not null) Messages = await db.MarketplaceMessages.AsNoTracking().Where(m => m.ConversationId == Selected.Id).OrderBy(m => m.Id).ToListAsync(ct);
+            Conversations = Conversations.OrderByDescending(c => LatestMessages.TryGetValue(c.OtherId, out var m) && m.CreatedAt > rowsByCreation[c.Id] ? m.CreatedAt : rowsByCreation[c.Id]).ThenByDescending(c => c.Id).ToList();
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load private conversations"); Unavailable = true; }
         return Page();

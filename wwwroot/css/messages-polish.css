@@ -2,6 +2,10 @@
 html body.messages-current-view .messages-current { width:auto; max-width:none; margin:0; padding:22px 24px; }
 html body.messages-current-view .messages-grid { display:grid; grid-template-columns:290px minmax(0,1fr); height:calc(100dvh - 112px); min-height:440px; margin:0; overflow:hidden; border-radius:10px; box-shadow:none; }
 html body.messages-current-view .messages-conversations { min-width:0; min-height:0; padding:0; overflow-y:auto; border-right:1px solid #d9e7da; }
+html body.messages-current-view :is(.messages-conversations,.thread-messages) {
+    scrollbar-width:thin;
+    scrollbar-color:#9bb8a4 transparent;
+}
 .conversations-toolbar { position:sticky; top:0; z-index:1; padding:18px 16px 14px; border-bottom:1px solid #e1ece1; background:#fff; }
 .conversations-title { display:flex; align-items:center; gap:9px; margin-bottom:14px; }
 .conversations-title h2 { margin:0; font-size:18px; color:#193e30; }
@@ -19,6 +23,42 @@ html body.messages-current-view .conversation-copy { display:block; flex:1; min-
 html body.messages-current-view .conversation-row-heading { display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:0; }
 .conversation-row-heading strong { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; }
 .conversation-row-heading time { flex:none; color:#637c6c; font-size:10px; }
+.conversation-unread {
+    align-self:center;
+    min-width:24px;
+    padding:4px 6px;
+    border-radius:999px;
+    background:#a1263b;
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
+    text-align:center;
+}
+html body.messages-current-view .conversation-link.has-unread .conversation-preview { font-weight:700; }
+.thread-task-picker {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:clamp(240px,32%,360px);
+    min-width:0;
+    font-size:13px;
+}
+.thread-task-picker label { font-weight:600; }
+.thread-task-picker select {
+    flex:1;
+    min-width:0;
+    max-width:100%;
+}
+.thread-task-picker :is(select,button) {
+    min-height:44px;
+    padding:6px 10px;
+    border:1px solid #bfd3c3;
+    border-radius:6px;
+    background:inherit;
+    color:inherit;
+    font:inherit;
+}
+.thread-task-picker button:hover, .thread-task-link:hover { background:#e4f0e8; color:#124831; }
 html body.messages-current-view .conversation-task,html body.messages-current-view .conversation-preview { display:block; margin:4px 0 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; line-height:1.35; }
 .conversation-list-empty { padding:16px; color:#526c5d; font-size:13px; line-height:1.5; }
 html body.messages-current-view .messages-thread { display:flex; flex-direction:column; min-height:0; min-width:0; }
@@ -131,4 +171,88 @@ html[data-theme="dark"] body.messages-current-view .conversation-link.selected {
     html body.messages-current-view .thread-heading { min-height:68px; padding:12px; }
     html body.messages-current-view .thread-messages { padding:14px 12px; }
     html body.messages-current-view .thread-form { padding:12px; }
+}
+
+.messages-current .inbox-welcome {
+    flex:1;
+    min-height:320px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    padding:36px 24px;
+    text-align:center;
+    background:radial-gradient(ellipse at center, #eaf4eb, transparent 68%);
+}
+.inbox-welcome-icon {
+    display:grid;
+    place-items:center;
+    width:76px;
+    height:76px;
+    margin-bottom:6px;
+    border:1px solid #c9e1d0;
+    border-radius:24px;
+    background:#dceee2;
+    color:#176b50;
+}
+.inbox-welcome-icon svg { width:36px; height:36px; }
+.inbox-welcome h3 { margin:0; font-size:clamp(22px,3vw,28px); letter-spacing:-.025em; }
+.inbox-welcome p { max-width:32ch; margin:0; font-size:15px; line-height:1.55; }
+.inbox-welcome .thread-task-link { margin-top:6px; }
+html body.messages-current-view .conversation-row-heading strong { font-size:14px; }
+html body.messages-current-view .conversation-preview { font-size:13px; }
+html body.messages-current-view .conversation-link:focus-visible {
+    outline:2px solid #19765a;
+    outline-offset:-3px;
+}
+html body.messages-current-view .thread-message p { font-size:14px; }
+.thread-context { display:flex; justify-content:center; margin:6px 0 16px; text-align:center; }
+.thread-context span {
+    max-width:100%;
+    padding:5px 12px;
+    border-radius:999px;
+    background:#e4eee6;
+    color:#284e3d;
+    font-size:12px;
+    overflow-wrap:anywhere;
+}
+.thread-archived {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:14px 16px;
+    border-top:1px solid #dbe9dd;
+    background:#fff;
+    color:#435e51;
+    font-size:13px;
+}
+.thread-archived svg { width:18px; height:18px; flex:none; }
+.thread-back { display:none; }
+html[data-theme="dark"] .messages-current .inbox-welcome { background:radial-gradient(ellipse at center,#20382c,transparent 68%); }
+html[data-theme="dark"] .inbox-welcome-icon,
+html[data-theme="dark"] .thread-context span,
+html[data-theme="dark"] .thread-archived,
+html[data-theme="dark"] .thread-task-picker :is(select,button) {
+    background:#23392e;
+    color:#deeee3;
+    border-color:#385047;
+}
+@media (max-width:700px) {
+    html body.messages-current-view .messages-conversations { max-height:none; }
+    .messages-grid.has-open-thread .messages-conversations { display:none; }
+    .messages-grid:not(.has-open-thread):has(.conversation-link) .messages-thread { display:none; }
+    html body.messages-current-view .thread-heading { flex-wrap:wrap; gap:8px; }
+    .thread-task-picker { order:1; width:100%; }
+    .thread-task-picker select { font-size:16px; }
+    .thread-back {
+        display:grid;
+        place-items:center;
+        min-width:44px;
+        min-height:44px;
+        color:inherit;
+        font-size:32px;
+        text-decoration:none;
+    }
 }

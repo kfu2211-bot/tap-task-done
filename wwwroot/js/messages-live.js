@@ -42,13 +42,16 @@
 
             const messages = section.querySelector('.thread-messages');
             const updatedMessages = page.querySelector('.thread-messages');
-            const task = section.querySelector('.thread-form input[name="taskId"]');
-            const updatedTask = page.querySelector('.thread-form input[name="taskId"]');
-            if (!messages || !updatedMessages || !task || !updatedTask || task.value !== updatedTask.value) return;
+            if (!messages || !updatedMessages || messages.dataset.account !== updatedMessages.dataset.account) return;
+            if (messages.dataset.taskContext !== updatedMessages.dataset.taskContext && !section.querySelector('#messageBody')?.value) {
+                window.location.reload();
+                return;
+            }
             if (messages.innerHTML !== updatedMessages.innerHTML) {
                 const stayAtBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80;
                 messages.replaceChildren(...Array.from(updatedMessages.childNodes, node => document.importNode(node, true)));
                 if (stayAtBottom) messages.scrollTop = messages.scrollHeight;
+                window.dispatchEvent(new Event('message-read-state-changed'));
             }
         } catch (error) {
             // Keep the current conversation and draft if the connection is temporarily unavailable.
