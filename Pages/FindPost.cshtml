@@ -544,7 +544,7 @@
                                 <span class="post-budget-control"><span aria-hidden="true">₱</span><input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 600" /></span><small>Your proposed minimum budget.</small>
                             </label>
                             <label class="post-field"><span>Maximum budget (₱)</span><span class="post-budget-control"><span aria-hidden="true">₱</span><input name="budgetMaximum" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 1000" /></span><small>Must be at least the minimum budget.</small></label>
-                            <label class="post-field post-duration"><span>Post duration</span><select name="postDurationDays"><option value="3">3 days</option><option value="7" selected>7 days</option></select><small>Starts when you confirm and publish the task.</small></label>
+                            <label class="post-field post-duration"><span>Post closing date</span><input type="date" name="postEndDate" min="@MarketTasksModel.TodayInPhilippines.ToString("yyyy-MM-dd")" max="9999-12-30" required /><small>After publishing, your post stays open through this date (Philippine time).</small></label>
                             <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
                         </div>
 

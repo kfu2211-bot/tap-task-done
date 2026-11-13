@@ -19,9 +19,27 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
     public int? PendingVerifications { get; private set; }
     public int? OpenReports { get; private set; }
 
+    public record InboxItem(string Kind, long Id, string Status, DateTime Time, int Priority);
+    public List<InboxItem> Inbox { get; } = [];
+    public bool InboxIncomplete { get; private set; }
+
+    private async Task LoadInboxAsync(IQueryable<InboxItem> query, CancellationToken ct)
+    {
+        try { Inbox.AddRange(await query.OrderByDescending(x => x.Time).ThenByDescending(x => x.Id).Take(50).ToListAsync(ct)); }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+        {
+            InboxIncomplete = true;
+            logger.LogWarning(ex, "Could not load an admin inbox source");
+        }
+    }
+
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
         Response.Headers.CacheControl = "no-store";
+        await LoadInboxAsync(db.SafetyReports.AsNoTracking().Select(r => new InboxItem("report", r.Id, r.Status, r.CreatedAt, r.Priority)), cancellationToken);
+        await LoadInboxAsync(db.IdentityRequests.AsNoTracking().Select(r => new InboxItem("verification", r.Id, r.Status, r.CreatedAt, 0)), cancellationToken);
+        await LoadInboxAsync(db.Set<AccountDeletionRequest>().AsNoTracking().Where(r => r.RequestedUtc.HasValue)
+            .Select(r => new InboxItem("deletion", r.UserId, r.Status, r.RequestedUtc!.Value, 0)), cancellationToken);
         try
         {
             var users = await db.Users.AsNoTracking().OrderByDescending(u => u.Id)

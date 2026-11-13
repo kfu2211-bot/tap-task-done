@@ -210,11 +210,15 @@
         readAll.className = "notification-read-all";
         readAll.textContent = "Mark all as read";
         readAll.disabled = true;
-        panel.querySelector(".notification-filters").after(readAll);
+        const filters = panel.querySelector(".notification-filters");
+        const toolbar = document.createElement("div");
+        toolbar.className = "notification-toolbar";
+        filters.before(toolbar);
+        toolbar.append(filters, readAll);
         var readAllStatus = document.createElement("span");
         readAllStatus.className = "notification-read-all-status";
         readAllStatus.setAttribute("role", "status");
-        readAll.after(readAllStatus);
+        toolbar.after(readAllStatus);
         var markingAll = false;
         var currentTrigger = null;
         var notificationForms = [], notificationFilter = 'all';

@@ -12,6 +12,12 @@
     }
     search?.addEventListener('input', filterConversations);
 
+    const taskPicker = section.querySelector('#messageTask');
+    if (taskPicker?.form) {
+        taskPicker.form.querySelector('[data-task-submit]').hidden = true;
+        taskPicker.addEventListener('change', () => taskPicker.form.requestSubmit());
+    }
+
     section.addEventListener('keydown', event => {
         const input = event.target;
         if (!(input instanceof HTMLTextAreaElement) || !input.closest('.thread-form')) return;

@@ -1,0 +1,33 @@
+@page
+@model tts.Pages.TaskDetailsModel
+@{
+    ViewData["Title"] = Model.Work.Title;
+    var task = Model.Work;
+}
+
+<div class="py-4">
+    <a asp-page="/Messages" asp-route-conversationId="@Model.ConversationId">← Back to conversation</a>
+    <article class="card mt-3">
+        <div class="card-body">
+            <p class="small mb-2">Task #@task.Id · @task.Status.Replace("-", " ")</p>
+            <h1 class="h3">@task.Title</h1>
+            <p style="white-space: pre-wrap; overflow-wrap: anywhere">@task.Description</p>
+            <dl class="row">
+                <dt class="col-sm-3">Category</dt><dd class="col-sm-9">@task.Category</dd>
+                <dt class="col-sm-3">Budget</dt><dd class="col-sm-9">@task.BudgetDisplay</dd>
+                @if (!string.IsNullOrWhiteSpace(task.ScheduleText))
+                {
+                    <dt class="col-sm-3">Preferred schedule</dt><dd class="col-sm-9">@task.ScheduleText</dd>
+                }
+                @if (Model.IsOwner || Model.IsAssigned)
+                {
+                    <dt class="col-sm-3">Location</dt><dd class="col-sm-9">@task.Location</dd>
+                }
+            </dl>
+            @if (Model.IsAssigned)
+            {
+                <a asp-page="/Tracking" asp-route-taskId="@task.Id">View progress</a>
+            }
+        </div>
+    </article>
+</div>

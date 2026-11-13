@@ -37,13 +37,34 @@
             <header class="admin-topbar">
                 <button id="mobileMenu" class="mobile-menu" type="button" aria-label="Open navigation">☰</button>
                 <h1 id="adminPageTitle">Admin Center</h1>
-                <div class="admin-top-actions"><button id="adminAlerts" class="admin-alerts" type="button" title="Open urgent reports">Alerts <b id="adminAlertCount">0</b></button><button id="adminLogout" class="admin-user" type="button" title="Sign out from Admin Center"><span>AD</span><strong>Admin</strong><em>Sign out</em></button></div>
+                <div class="admin-top-actions"><button id="adminAlerts" class="admin-alerts" type="button" title="Open admin notifications">Alerts <b id="adminAlertCount">0</b></button><button id="adminLogout" class="admin-user" type="button" title="Sign out from Admin Center"><span>AD</span><strong>Admin</strong><em>Sign out</em></button></div>
             </header>
             <div class="admin-content">
                 <section class="admin-view" data-view="overview" id="overview">
-                    <section class="admin-intro"><div><p class="eyebrow">COMMUNITY OPERATIONS</p><h2>Welcome, <span id="adminGreeting">Admin</span></h2><p>Review pending identity checks and safety reports, or open Activity Log to see recent decisions.</p></div></section>
+                    <section class="admin-intro"><div><h2>Welcome, <span id="adminGreeting">Admin</span></h2><p>Review identity checks, safety reports, and recent admin decisions.</p></div></section>
                     <section class="stat-grid"><button class="stat-card teal" type="button" data-go-to="verifications"><span>♢</span><div><strong id="verificationCount">—</strong><small>Pending verification</small></div><b>›</b></button><button class="stat-card amber" type="button" data-go-to="reports"><span>⚑</span><div><strong id="reportCount">—</strong><small>Open reports</small></div><b>›</b></button><button class="stat-card teal" type="button" data-go-to="users"><span>♧</span><div><strong id="verifiedCount">—</strong><small>Registered users</small></div><b>›</b></button></section>
-                    <section class="admin-card overview-card"><div class="card-heading"><div><h2>What needs attention</h2><p>Open a section to review the complete details.</p></div></div><div id="overviewHighlights"></div></section>
+                    <div class="overview-panels">
+                        <section class="admin-card overview-card" aria-labelledby="reviewQueueTitle">
+                            <div class="card-heading"><h2 id="reviewQueueTitle">Review queue</h2></div>
+                            <div id="overviewHighlights"></div>
+                        </section>
+                        <section class="admin-card overview-card" aria-labelledby="recentAdminTitle">
+                            <div class="card-heading"><h2 id="recentAdminTitle">Recent activity</h2><a href="#activity" data-go-to="activity">View log</a></div>
+                            @if (Model.Activities.Any())
+                            {
+                                <ul class="overview-activity">
+                                    @foreach (var entry in Model.Activities.Take(4))
+                                    {
+                                        <li><strong>@entry.Action</strong><small>@entry.Admin</small></li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="empty-state">@(Model.ActivityIncomplete ? "Activity is unavailable." : "No admin decisions recorded yet.")</p>
+                            }
+                        </section>
+                    </div>
                 </section>
                 <section class="admin-view" data-view="verifications" id="verifications" hidden><iframe src="/AdminIdentity?embedded=true" title="Verification requests" id="adminIdentityFrame" class="admin-reports-frame admin-auto-frame" scrolling="no" loading="lazy"></iframe><div hidden aria-hidden="true"><input id="verificationSearch" type="search" /><select id="verificationFilter"><option value="Pending">Pending</option><option value="All">All</option></select><div id="verificationQueue"></div><p id="verificationEmpty" hidden></p></div></section>
                 <section class="admin-view" data-view="reports" id="reports" hidden>
@@ -51,45 +72,57 @@
                     <div hidden aria-hidden="true"><input id="reportSearch" type="search" /><select id="reportFilter"><option value="Open">Open</option><option value="All">All</option><option value="Urgent">Urgent</option><option value="Resolved">Resolved</option><option value="Dismissed">Dismissed</option></select><div id="reportQueue"></div><p id="reportEmpty" hidden></p></div>
                 </section>
                 <section class="admin-view" data-view="deletions" id="deletions" hidden><iframe src="/AdminDeletions?embedded=true" title="Account deletion requests" class="admin-reports-frame" loading="lazy"></iframe></section><section class="admin-view" data-view="users" id="users" hidden><iframe src="/AdminUsers?embedded=true" title="Account management" class="admin-reports-frame admin-users-frame" id="adminUsersFrame" scrolling="no" loading="lazy"></iframe><div hidden><input id="userSearch"/><div id="userList"></div></div></section>
-                <section class="admin-view" data-view="activity" id="activity" hidden><div class="section-title"><div><p class="eyebrow">ADMIN ACTIVITY</p><h2>Activity log</h2><p>See who recorded recent moderation, safety report, and identity verification decisions.</p></div></div><article class="admin-card activity-card"><div class="card-tools"><input id="activitySearch" type="search" placeholder="Search by admin, action, or record" aria-label="Search activity" /><button id="exportActivity" class="review-button" type="button">Export CSV</button></div><div id="activityList"></div><p id="activityEmpty" class="empty-state" hidden>No activity recorded yet.</p></article></section><section class="admin-view" data-view="notifications" id="notifications" hidden><div class="section-title"><div><p class="eyebrow">ADMIN INBOX</p><h2>Notifications</h2><p>Open a review queue to see the items that need attention.</p></div></div><article class="admin-card"><div id="adminNotificationList"></div><p id="adminNotificationEmpty" class="empty-state" hidden>No pending items.</p></article></section>
+                <section class="admin-view" data-view="activity" id="activity" hidden><div class="section-title"><div><p class="eyebrow">ADMIN ACTIVITY</p><h2>Activity log</h2><p>See who recorded recent moderation, safety report, and identity verification decisions.</p></div></div><article class="admin-card activity-card"><div class="card-tools"><input id="activitySearch" type="search" placeholder="Search by admin, action, or record" aria-label="Search activity" /><button id="exportActivity" class="review-button" type="button">Export CSV</button></div><div id="activityList"></div><p id="activityEmpty" class="empty-state" hidden>No activity recorded yet.</p></article></section><section class="admin-view" data-view="notifications" id="notifications" data-admin-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" hidden>
+    <article class="admin-card">
+        <div class="admin-inbox-toolbar">
+            <div role="group" aria-label="Filter notifications">
+                <button class="review-button" type="button" data-inbox-filter="all" aria-pressed="true">All</button>
+                <button class="review-button" type="button" data-inbox-filter="unread" aria-pressed="false">Unread</button>
+            </div>
+            <button class="review-button" type="button" id="adminInboxReadAll">Mark all as read</button>
+        </div>
+        @if (Model.InboxIncomplete) { <p>Some notifications could not be loaded.</p> }
+        @foreach (var item in Model.Inbox.OrderByDescending(i => i.Time))
+        {
+            var destination = item.Kind == "report" ? "/AdminReports" : item.Kind == "verification" ? "/AdminIdentity" : "/AdminDeletions";
+            var label = item.Kind == "report" ? "Safety report" : item.Kind == "verification" ? "Verification request" : "Deletion request for account";
+            <a class="admin-inbox-entry" data-inbox-key="@($"{item.Kind}:{item.Id}:{item.Time.Ticks}")" asp-page="@destination" asp-route-recordId="@item.Id">
+                <strong><span class="admin-inbox-unread" hidden>Unread</span> @label #@item.Id</strong>
+                <span>@item.Status.Replace("-", " ") · @tts.Data.DisplayTime.Philippine(item.Time) @if(item.Priority == 3) { <text> · High priority</text> }</span>
+            </a>
+        }
+        <span id="adminInboxStatus" role="status"></span><p id="adminInboxEmpty" class="empty-state" role="status" hidden></p>
+    </article>
+</section>
                 <section class="admin-view admin-settings" data-view="settings" id="settings" hidden>
                     <div class="section-title">
                         <div>
-                            <p class="eyebrow">LOCAL PREFERENCES</p>
                             <h2>Admin settings</h2>
-                            <p>Manage browser preferences, account security, and local demo staff.</p>
                         </div>
                     </div>
                     <div class="admin-settings-grid">
-                        <article class="admin-card settings-card">
-                            <h3>Browser preferences</h3>
-                            <label class="admin-setting-switch"><input id="urgentNotifications" type="checkbox" role="switch" /> Show urgent-report alerts</label>
-                            <label class="admin-setting-switch"><input id="showResolved" type="checkbox" role="switch" checked /> Include resolved items in review lists</label>
-                            <button id="saveAdminSettings" class="primary-action" type="button">Save settings</button>
-                            <span id="settingsSaved" aria-live="polite"></span>
+                        <article class="admin-card">
+                            <h3>My account</h3>
+                            <dl>
+                                <dt>Name</dt><dd>@(User.Identity?.Name ?? "Admin")</dd>
+                                <dt>Email</dt><dd>@(User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "Unavailable")</dd>
+                                <dt>Role</dt><dd>@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Unavailable")</dd>
+                            </dl>
                         </article>
                         <article class="admin-card">
                             <h3>Security &amp; devices</h3>
                             <p>Review sign-in alerts and active sessions for your admin account.</p>
-                            <a class="review-button admin-security-link" href="/Security">Manage security</a>
+                            <a class="primary-action admin-security-link" href="/Security">Manage security</a>
                         </article>
-                        <article class="admin-card" id="adminAccountPanel">
-                            <h3>Admin account</h3>
-                            <p>Update this browser's local demo admin profile.</p>
-                            <form id="adminAccountForm" class="admin-account-form">
-                                <label>Display name<input id="adminDisplayName" required /></label>
-                                <label>New password<input id="adminNewPassword" type="password" minlength="8" placeholder="Password changes are not available yet" disabled /></label>
-                                <button class="primary-action" type="submit">Save admin account</button>
-                                <span id="adminAccountSaved" aria-live="polite"></span>
-                            </form>
-                        </article>
-                        <article class="admin-card" id="staffPanel">
-                            <h3>Admin roles</h3>
-                            <p>Local demo staff roles. Only System Admin can manage account settings.</p>
-                            <div id="staffList"></div>
+                        <article class="admin-card settings-card" style="grid-column: 1 / -1">
+                            <h3>Workspace preferences</h3>
+                            <p>Preferences are saved in this browser.</p>
+                            <label class="admin-setting-switch"><input id="urgentNotifications" type="checkbox" role="switch" /> Show notification alerts in the header</label>
+                            <label class="admin-setting-switch"><input id="showResolved" type="checkbox" role="switch" checked /> Include closed safety reports by default</label>
+                            <button id="saveAdminSettings" class="primary-action" type="button">Save preferences</button>
+                            <span id="settingsSaved" role="status"></span>
                         </article>
                     </div>
-                    <p class="admin-settings-note">Local demo settings are saved in this browser.</p>
                 </section>
             </div>
         </main>

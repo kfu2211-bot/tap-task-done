@@ -12,7 +12,16 @@
 <body>
 <main class="users-page">
     @if (!Model.Embedded) { <h1>Users</h1> }
-    <p class="intro">Confirm evidence-based offenses. Penalties: #1 written warning; #2 orange warning / 3 tasks; #3 3 days / 6 tasks; #4 7 days / 10 tasks; #5 permanent suspension.</p>
+    @if (Model.RelatedReport is { } report)
+    {
+        <p><a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-fragment="@($"report-{report.Id}")">← Back to Safety Reports</a></p>
+        <h2>Account review for report #@report.Id</h2>
+        <p>Reported name: <strong>@report.Target</strong>. Verify the account using the evidence before recording an offense.</p>
+    }
+    else
+    {
+        <p class="intro">Look up an account to check its status and moderation history. Start new offense reviews from Safety Reports.</p>
+    }
     @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="notice" role="status">@Model.Notice</p> }
     @if (Model.Unavailable) { <div class="empty" role="alert">Account moderation is unavailable. Check the account moderation database setup.</div> }
     else {
@@ -26,14 +35,18 @@
                     <p><strong>Confirmed offenses: @user.Moderation.Offenses</strong> · Next: @tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)</p>
                     @if(user.Moderation.Target > 0 && !user.Moderation.Permanent) { <p>Recovery progress: @user.Moderation.Completed / @user.Moderation.Target completed tasks. Temporary suspension ends automatically; completion credit starts after it ends.</p> }
                     @if(user.Moderation.Legacy) { <p>Previous actions remain in history; they are not automatically counted as new offenses.</p> }
+                    @if (Model.RelatedReport is { } linkedReport ? user.Id != linkedReport.ReporterId && user.Moderation.Offenses < 5 && !user.Moderation.Permanent : user.Suspended || user.Restricted)
+                    {
                     <form method="post" data-moderation-account="@user.Name" data-next-penalty="@tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)">
                         <input type="hidden" name="userId" value="@user.Id" /><input type="hidden" name="expectedNumber" value="@(user.Moderation.Offenses + 1)" /><input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
-                        <label class="reason-label" for="case-@user.Id">Incident reference <span>(required for a new offense; e.g. report:123)</span></label><input id="case-@user.Id" name="incidentKey" maxlength="100" placeholder="report:123 or unique case reference" />
+                        <input type="hidden" name="ReportId" value="@Model.ReportId" />
+                        <input type="hidden" name="incidentKey" value="@(Model.ReportId.HasValue ? $"report:{Model.ReportId}" : "")" />
                         <label class="reason-label" for="reason-@user.Id">Reason for this decision <span>(required)</span></label>
                         <textarea id="reason-@user.Id" name="reason" required maxlength="500" rows="2" placeholder="Describe the reviewed evidence and decision"></textarea>
-                        <label class="offense-confirm"><input type="checkbox" name="reviewConfirmed" value="true" /> I reviewed the evidence and confirmed this is a distinct incident.</label>
-                        <div class="actions">@if(user.Moderation.Offenses < 5 && !user.Moderation.Permanent) { <button type="submit" class="primary" name="action" value="offense">Confirm offense #@(user.Moderation.Offenses + 1)</button> } @if(user.Suspended || user.Restricted) { <button type="submit" name="action" value="restore">Lift penalty after review</button> }</div>
+                        @if (Model.RelatedReport is not null) { <label class="offense-confirm"><input type="checkbox" name="reviewConfirmed" value="true" /> I reviewed the evidence and confirmed this is a distinct incident.</label> }
+                        <div class="actions">@if(Model.RelatedReport is not null) { <button type="submit" class="primary" name="action" value="offense">Confirm offense #@(user.Moderation.Offenses + 1)</button> } @if(Model.RelatedReport is null) { <button type="submit" name="action" value="restore">Lift penalty after review</button> }</div>
                     </form>
+                    }
                 }
                 <details class="history"><summary><span><strong>Admin action history</strong><small>View decisions and notes</small></span><span class="chevron" aria-hidden="true">⌄</span></summary>
                     <div class="history-content">@if (history.Count == 0) { <p class="history-empty">No decisions recorded for this account yet.</p> } else { @foreach (var item in history) { <div class="history-entry"><div><strong>@(item.Action == "warn" ? "Warning" : item.Action == "restrict" ? "Restricted" : item.Action == "suspend" ? "Suspended (legacy)" : item.Action == "offense" ? "Confirmed offense" : "Penalty lifted")</strong><small>@item.Admin · @tts.Data.DisplayTime.Philippine(item.CreatedAt)</small></div><p>@item.Reason</p></div> } }</div>

@@ -31,11 +31,23 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         title.Length is >= 1 and <= 120 && description.Length is >= 1 and <= 5000 && category.Length is >= 1 and <= 60 &&
         location.Length is >= 1 and <= 120 && schedule.Length <= 120 && budget is > 0 and <= 9999999999m;
 
-    public async Task<IActionResult> OnPostEditAsync(long id, string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null)
+    public static DateOnly TodayInPhilippines => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(8));
+
+    private static DateTime? ClosingTimeUtc(DateOnly? date) =>
+        date?.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc).AddHours(-8);
+
+    public async Task<IActionResult> OnPostEditAsync(long id, string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null, DateOnly? postEndDate = null)
     {
         if (UserId <= 0) return Challenge();
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim();
         location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
+        if (ModelState.TryGetValue(nameof(postEndDate), out var dateState) && dateState.Errors.Count > 0 ||
+            postEndDate is { } endDate && (endDate < TodayInPhilippines || endDate == DateOnly.MaxValue))
+        {
+            Notice = "Choose a valid closing date today or later.";
+            return RedirectToPage(new { view = "mine" });
+        }
+
         if (!ModelState.IsValid || (postDurationDays is not (null or 3 or 7)) || (!ValidTaskDetails(title, description, category, location, budget, schedule) || !ValidBudgetMaximum(budget, budgetMaximum) || !TaskLocationRules.Valid(latitude, longitude)))
         { Notice = "Check the task details. The maximum budget must be at least the minimum, and the location pin must be confirmed."; return RedirectToPage(new { view = "mine" }); }
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
@@ -45,6 +57,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (task is null || !CanEditTask(task.Status, task.ClientId, UserId)) { Notice = "This task cannot be edited. It may already be confirmed or cancelled."; return RedirectToPage(new { view = "mine" }); }
         task.Title = title; task.Description = description; task.Category = category; task.Location = location; task.Budget = budget; task.BudgetMaximum = budgetMaximum; task.ScheduleText = schedule;
         task.PostDurationDays = postDurationDays;
+        task.PostExpiresUtc = ClosingTimeUtc(postEndDate);
         TaskLocationRules.Save(db, id, await db.Set<TaskDestination>().SingleOrDefaultAsync(d => d.TaskId == id, ct), latitude!.Value, longitude!.Value);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         Notice = "Task and destination updated. Review the details, then confirm to publish.";
@@ -108,18 +121,25 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
 
     public static bool ValidBudgetMaximum(decimal minimum, decimal? maximum) => maximum is null || maximum >= minimum && maximum <= 9999999999m && decimal.Round(maximum.Value, 2) == maximum;
 
-    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null)
+    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null, DateOnly? postEndDate = null)
     {
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim(); location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (UserId <= 0) return Challenge();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
+        if (ModelState.TryGetValue(nameof(postEndDate), out var dateState) && dateState.Errors.Count > 0 ||
+            postEndDate is { } endDate && (endDate < TodayInPhilippines || endDate == DateOnly.MaxValue))
+        {
+            Notice = "Choose a valid closing date today or later.";
+            return RedirectToPage(new { view = "mine" });
+        }
+
         if (!ModelState.IsValid || postDurationDays is not (null or 3 or 7) || !ValidTaskDetails(title, description, category, location, budget, schedule) || !ValidBudgetMaximum(budget, budgetMaximum) || !TaskLocationRules.Valid(latitude, longitude))
         { Notice = "Complete the task details, ensure the maximum budget is at least the minimum, and confirm the destination pin."; return RedirectToPage(); }
         var role = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
         if (role is not ("client" or "both")) { Notice = "Choose Client or Client & Freelancer in Settings to post tasks."; return RedirectToPage(); }
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot create new tasks while restricted or pending account deletion."; return RedirectToPage(); }
-        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, Location = location, Budget = budget, BudgetMaximum = budgetMaximum, PostDurationDays = postDurationDays ?? 7, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
+        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, Location = location, Budget = budget, BudgetMaximum = budgetMaximum, PostDurationDays = postDurationDays ?? 7, PostExpiresUtc = ClosingTimeUtc(postEndDate), ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
         db.MarketplaceTasks.Add(task); await db.SaveChangesAsync(ct);
         TaskLocationRules.Save(db, task.Id, null, latitude!.Value, longitude!.Value);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Task saved. Confirm it below to make it visible to freelancers."; return RedirectToPage();
@@ -133,9 +153,9 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (!await db.Set<TaskDestination>().AnyAsync(d => d.TaskId == id && d.Latitude >= 14.92 && d.Latitude <= 15.10 && d.Longitude >= 120.54 && d.Longitude <= 120.73, ct)) { Notice = "Edit this draft and confirm a work-location pin before publishing."; return RedirectToPage(new { view = "mine" }); }
         var now = DateTime.UtcNow;
         var threeDays = now.AddDays(3); var sevenDays = now.AddDays(7);
-        var count = await db.MarketplaceTasks.Where(t => t.Id == id && t.ClientId == UserId && t.Status == "pending-confirmation").ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, "open").SetProperty(t => t.PostExpiresUtc, t => t.PostDurationDays == 3 ? threeDays : sevenDays), ct);
+        var count = await db.MarketplaceTasks.Where(t => t.Id == id && t.ClientId == UserId && t.Status == "pending-confirmation" && (t.PostExpiresUtc == null || t.PostExpiresUtc > now)).ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, "open").SetProperty(t => t.PostExpiresUtc, t => t.PostExpiresUtc ?? (t.PostDurationDays == 3 ? threeDays : sevenDays)), ct);
         await tx.CommitAsync(ct);
-        Notice = count == 1 ? "Task is now open for offers." : "Task could not be confirmed."; return RedirectToPage();
+        Notice = count == 1 ? "Task is now open for offers." : "Task could not be confirmed. If the closing date has passed, edit the draft and choose a new date."; return RedirectToPage();
     }
     public async Task<IActionResult> OnPostCancelAsync(long id, string? reason, CancellationToken ct)
     {

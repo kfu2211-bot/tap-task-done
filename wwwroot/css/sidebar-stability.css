@@ -731,6 +731,18 @@
         box-shadow: none !important;
     }
 
+    html body:not(.sidebar-open) #mobileMenuToggle {
+        background: #f2f7f0 !important;
+        color: #176b50 !important;
+        border: 1px solid #d5e5d7 !important;
+    }
+
+    html[data-theme="dark"] body:not(.sidebar-open) #mobileMenuToggle {
+        background: #20342b !important;
+        color: #a8e1c5 !important;
+        border-color: #466356 !important;
+    }
+
     html body.sidebar-open #mobileMenuToggle {
         left: calc(var(--mobile-drawer-width) - 54px) !important;
         font-size: 22px !important;

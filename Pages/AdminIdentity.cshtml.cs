@@ -17,11 +17,11 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     [TempData(Key = "AdminIdentity.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct, long? recordId = null)
     {
         Response.Headers.CacheControl = "no-store";
         if (!availability.Enabled) Notice = "Document review is paused until secure document storage is configured. Existing requests are listed below.";
-        try { Items = await (from r in db.IdentityRequests.AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id orderby r.Id descending select new Item(r.Id, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), r.Status, r.IdLast4, r.CreatedAt, r.Certification != null, r.SupportingDocument != null)).Take(100).ToListAsync(ct); }
+        try { Items = await (from r in db.IdentityRequests.AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id where !recordId.HasValue || r.Id == recordId.Value orderby r.Id descending select new Item(r.Id, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), r.Status, r.IdLast4, r.CreatedAt, r.Certification != null, r.SupportingDocument != null)).Take(100).ToListAsync(ct); }
         catch (MySqlConnector.MySqlException ex) when (ex.Number == 1146 && !availability.Enabled)
         { Notice = "No verification requests have been set up. Document submissions and review are paused until secure document storage is configured."; }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { DatabaseUnavailable = true; Notice = "Verification requests could not be loaded. Please check the database setup and try again."; }

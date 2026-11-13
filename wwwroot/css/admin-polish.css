@@ -220,3 +220,53 @@ html[data-theme="dark"] .admin-settings .review-button {
 html[data-theme="dark"] .report-priority { background:#304338; color:#ddf3e4; }
 html[data-theme="dark"] .report-priority.priority-3 { background:#614127; color:#ffdfba; }
 html[data-theme="dark"] .priority-editor select { background:#172820; border-color:#496454; color:#eff8f1; }
+.admin-shell #overview .admin-intro {
+    padding:clamp(22px,4vw,44px);
+    border-radius:18px;
+    background:linear-gradient(115deg,#124536,#21654d);
+    margin-bottom:20px;
+}
+.admin-shell #overview .admin-intro h2 { color:#fff !important; }
+.admin-shell #overview .admin-intro p { color:#ddede4 !important; margin-bottom:0; }
+.admin-shell #overview .stat-card { background:#fff !important; min-height:96px; }
+.overview-panels { display:grid; grid-template-columns:1.25fr 1fr; gap:16px; align-items:start; }
+.overview-panels .card-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px; }
+.overview-panels .card-heading h2 { font-size:18px; }
+.overview-panels .card-heading a { color:inherit; font-size:13px; font-weight:650; }
+.overview-activity { list-style:none; margin:0; padding:0; }
+.overview-activity li { display:grid; gap:4px; padding:12px 0; border-bottom:1px solid #d8e8da; overflow-wrap:anywhere; }
+.overview-activity li:last-child { border-bottom:0; }
+.overview-activity small { opacity:.8; }
+html[data-theme="dark"] .admin-shell #overview .stat-card { background:#1b3026 !important; }
+html[data-theme="dark"] .overview-activity li { border-color:#385047; }
+@media (max-width:800px) { .overview-panels { grid-template-columns:minmax(0,1fr); } }
+.admin-inbox-toolbar {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:12px;
+}
+.admin-inbox-toolbar [aria-pressed="true"] { background:#185843; color:#fff; }
+.admin-inbox-entry {
+    display:grid;
+    gap:6px;
+    padding:14px;
+    border-top:1px solid #c6dfcf;
+    color:inherit;
+    text-decoration:none;
+}
+.admin-inbox-entry[hidden] { display:none; }
+.admin-inbox-entry:hover { text-decoration:underline; }
+.admin-inbox-entry > span { font-size:13px; }
+.admin-inbox-unread {
+    display:inline-block;
+    margin-inline-end:6px;
+    padding:2px 7px;
+    border-radius:20px;
+    background:#185843;
+    color:#fff;
+    font-size:11px;
+}
+.admin-inbox-unread[hidden] { display:none; }

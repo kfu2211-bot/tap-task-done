@@ -68,10 +68,10 @@ html[data-theme="dark"] .task-location-picker.location-needs-confirmation .locat
 .post-work-details>.post-field{width:100%;min-width:0}
 .post-work-details>.task-location-picker{box-sizing:border-box;width:100%;margin:0;min-width:0}
 .post-duration { display:grid; gap:8px; }
-.post-duration select { width:100%; min-height:46px; padding:10px 14px; border:1px solid #b9d1c0; border-radius:8px; background:#fff; color:#163d30; font:inherit; }
+.post-duration input[type="date"] { width:100%; min-height:46px; padding:10px 14px; border:1px solid #b9d1c0; border-radius:8px; background:#fff; color:#163d30; font:inherit; }
 .task-location-picker .location-search-results button { min-height:44px; line-height:1.4; }
 .task-location-picker .location-search-results button:hover { background:#dceee1; }
-html[data-theme="dark"] .post-duration select { background:#1d3028; color:#eaf5ed; border-color:#577469; }
+html[data-theme="dark"] .post-duration input[type="date"] { background:#1d3028; color:#eaf5ed; border-color:#577469; }
 @media(max-width:700px){
  .task-location-picker{box-sizing:border-box;width:100%;padding:12px}
  .location-picker-map{height:260px;min-width:0}

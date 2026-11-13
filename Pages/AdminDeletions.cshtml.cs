@@ -17,13 +17,13 @@ public sealed class AdminDeletionsModel(ApplicationDbContext db, IConfiguration 
     public bool Unavailable { get; private set; }
     [TempData(Key = "AdminDeletions.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct, long? recordId = null)
     {
         if (Request.Query["embedded"] != "true") return Redirect("/Admin#deletions");
         Response.Headers.CacheControl = "no-store";
         try
         {
-            var rows = await (from r in db.Set<AccountDeletionRequest>().AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id where r.RequestedUtc != null orderby r.UpdatedUtc descending select new { Request = r, u.FirstName, u.LastName, u.Username }).Take(50).ToListAsync(ct);
+            var rows = await (from r in db.Set<AccountDeletionRequest>().AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id where r.RequestedUtc != null && (!recordId.HasValue || r.UserId == recordId.Value) orderby r.UpdatedUtc descending select new { Request = r, u.FirstName, u.LastName, u.Username }).Take(50).ToListAsync(ct);
             foreach (var row in rows) Requests.Add(new(row.Request, ($"{row.FirstName} {row.LastName}").Trim(), row.Username ?? "Deleted account", row.Request.Status == "deleted" ? [] : await tts.Data.AccountDeletion.BlockersAsync(db, row.Request.UserId, ct)));
             History = await db.Set<AccountDeletionEvent>().AsNoTracking().OrderByDescending(e => e.Id).Take(100).ToListAsync(ct);
         }

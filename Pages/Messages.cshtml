@@ -262,10 +262,10 @@
                                     <option value="@task.Id" selected="@(task.Id == Model.Selected.Id)">@task.Title · Task #@task.TaskId</option>
                                 }
                             </select>
-                            <button type="submit">Switch</button>
+                            <button type="submit" data-task-submit>Switch</button>
                         </form>
                         }
-                        <a class="thread-task-link" href="@(Model.Selected.ClientId == Model.UserId ? "/MarketTasks?view=mine" : "/MyJobs")">View task</a>
+                        <a class="thread-task-link" asp-page="/TaskDetails" asp-route-taskId="@Model.Selected.TaskId" asp-route-conversationId="@Model.Selected.Id">View task</a>
                     </div>
                     @if (Model.Selected.Assigned)
                     {
@@ -280,15 +280,10 @@
                                 <strong>@(Model.Selected.CanSend ? "Start the conversation" : "No messages")</strong>
                                 @if (Model.Selected.CanSend) { <p>Send a message to discuss the task details.</p> }
                             </div> }
-                        @{ DateTime? messageDay = null; long? previousConversation = null; var tasks = Model.SelectedTasks.ToDictionary(task => task.Id); }
+                        @{ DateTime? messageDay = null; }
                         @foreach (var message in Model.Messages) {
                             var day = message.CreatedAt.AddHours(8).Date;
                             if (day != messageDay) { <div class="thread-date">@day.ToString("MMMM d, yyyy")</div> messageDay = day; }
-                            if (Model.SelectedTasks.Count > 1 && previousConversation != message.ConversationId && message.ConversationId is long conversationId)
-                            {
-                                <div class="thread-context"><span>@tasks[conversationId].Title · Task #@message.TaskId</span></div>
-                                previousConversation = conversationId;
-                            }
                             <div class="thread-message @(message.SenderId == Model.UserId ? "mine" : "theirs")"><p>@message.Body</p><time datetime="@message.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")" title="@tts.Data.DisplayTime.Philippine(message.CreatedAt)">@message.CreatedAt.AddHours(8).ToString("h:mm tt")</time></div>
                         }
                     </div>

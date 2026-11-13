@@ -50,10 +50,10 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
             if (Selected is not null)
             {
                 SelectedTasks = groups[Selected.OtherId];
-                var selectedIds = SelectedTasks.Select(c => c.Id).ToArray();
-                var openedNotices = unread.Where(n => selectedIds.Contains(n.ConversationId!.Value));
+                var selectedId = Selected.Id;
+                var openedNotices = unread.Where(n => n.ConversationId == selectedId);
                 var lastNoticeId = await openedNotices.MaxAsync(n => (long?)n.Id, ct);
-                Messages = await db.MarketplaceMessages.AsNoTracking().Where(m => m.ConversationId.HasValue && selectedIds.Contains(m.ConversationId.Value)).OrderBy(m => m.Id).ToListAsync(ct);
+                Messages = await db.MarketplaceMessages.AsNoTracking().Where(m => m.ConversationId == selectedId).OrderBy(m => m.Id).ToListAsync(ct);
                 if (lastNoticeId.HasValue)
                     await openedNotices.Where(n => n.Id <= lastNoticeId.Value).ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true), ct);
             }

@@ -27,7 +27,7 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     [TempData(Key = "AdminReports.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct, long? recordId = null)
     {
         if (AdminId <= 0) return Challenge();
         Response.Headers.CacheControl = "no-store";
@@ -35,7 +35,9 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         {
         var query = from r in db.SafetyReports.AsNoTracking() join u in db.Users.AsNoTracking() on r.ReporterId equals u.Id
             select new { Report = r, u.FirstName, u.LastName };
-        if (StatusFilter is "open" or "reviewing" or "resolved" or "dismissed") query = query.Where(x => x.Report.Status == StatusFilter);
+        if (recordId.HasValue) query = query.Where(x => x.Report.Id == recordId.Value);
+        if (StatusFilter == "pending") query = query.Where(x => x.Report.Status == "open" || x.Report.Status == "reviewing");
+        else if (StatusFilter is "open" or "reviewing" or "resolved" or "dismissed") query = query.Where(x => x.Report.Status == StatusFilter);
         else StatusFilter = "all";
         if (int.TryParse(PriorityFilter, out var priority) && priority is >= 0 and <= 3) query = query.Where(x => x.Report.Priority == priority);
         else PriorityFilter = "all";

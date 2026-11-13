@@ -43,7 +43,7 @@ html body.messages-current-view .conversation-link.has-unread .conversation-prev
     min-width:0;
     font-size:13px;
 }
-.thread-task-picker label { font-weight:600; }
+.thread-task-picker label { font-size:12px; font-weight:650; }
 .thread-task-picker select {
     flex:1;
     min-width:0;
@@ -58,6 +58,13 @@ html body.messages-current-view .conversation-link.has-unread .conversation-prev
     color:inherit;
     font:inherit;
 }
+.thread-task-picker select {
+    border-radius:10px;
+    background:#f2f7f3;
+    text-overflow:ellipsis;
+}
+.thread-task-picker select:focus-visible { outline:2px solid #19765a; outline-offset:2px; }
+.thread-task-picker [data-task-submit][hidden] { display:none; }
 .thread-task-picker button:hover, .thread-task-link:hover { background:#e4f0e8; color:#124831; }
 html body.messages-current-view .conversation-task,html body.messages-current-view .conversation-preview { display:block; margin:4px 0 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; line-height:1.35; }
 .conversation-list-empty { padding:16px; color:#526c5d; font-size:13px; line-height:1.5; }
@@ -207,16 +214,6 @@ html body.messages-current-view .conversation-link:focus-visible {
     outline-offset:-3px;
 }
 html body.messages-current-view .thread-message p { font-size:14px; }
-.thread-context { display:flex; justify-content:center; margin:6px 0 16px; text-align:center; }
-.thread-context span {
-    max-width:100%;
-    padding:5px 12px;
-    border-radius:999px;
-    background:#e4eee6;
-    color:#284e3d;
-    font-size:12px;
-    overflow-wrap:anywhere;
-}
 .thread-archived {
     display:flex;
     align-items:center;
@@ -232,7 +229,6 @@ html body.messages-current-view .thread-message p { font-size:14px; }
 .thread-back { display:none; }
 html[data-theme="dark"] .messages-current .inbox-welcome { background:radial-gradient(ellipse at center,#20382c,transparent 68%); }
 html[data-theme="dark"] .inbox-welcome-icon,
-html[data-theme="dark"] .thread-context span,
 html[data-theme="dark"] .thread-archived,
 html[data-theme="dark"] .thread-task-picker :is(select,button) {
     background:#23392e;
