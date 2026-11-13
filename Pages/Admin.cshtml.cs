@@ -108,7 +108,7 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
     {
         Response.Headers.CacheControl = "no-store";
         await LoadStaffAsync(cancellationToken);
-        await LoadInboxAsync(db.SafetyReports.AsNoTracking().Select(r => new InboxItem("report", r.Id, r.Status, r.CreatedAt, r.Priority)), cancellationToken);
+        await LoadInboxAsync(SafetyReportPriority.Rank(db.SafetyReports.AsNoTracking()).Select(r => new InboxItem("report", r.Report.Id, r.Report.Status, r.Report.CreatedAt, r.Priority)), cancellationToken);
         await LoadInboxAsync(db.IdentityRequests.AsNoTracking().Select(r => new InboxItem("verification", r.Id, r.Status, r.CreatedAt, 0)), cancellationToken);
         await LoadInboxAsync(db.Set<AccountDeletionRequest>().AsNoTracking().Where(r => r.RequestedUtc.HasValue)
             .Select(r => new InboxItem("deletion", r.UserId, r.Status, r.RequestedUtc!.Value, 0)), cancellationToken);

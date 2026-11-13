@@ -10,7 +10,7 @@ namespace tts.Pages;
 [Authorize(Policy = "AdminOnly")]
 public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsModel> logger, IConfiguration config) : PageModel
 {
-    public record ReportItem(SafetyReport Report, string Reporter);
+    public record ReportItem(SafetyReport Report, string Reporter, int Priority);
     public record ActionItem(SafetyReportAction Action, string AdminName);
     public record EvidenceItem(long Id, long ReportId, string ContentType);
     public List<ReportItem> Reports { get; private set; } = [];
@@ -42,21 +42,21 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         Response.Headers.CacheControl = "no-store";
         try
         {
-        var query = from r in db.SafetyReports.AsNoTracking() join u in db.Users.AsNoTracking() on r.ReporterId equals u.Id
-            select new { Report = r, u.FirstName, u.LastName };
+        var query = from r in SafetyReportPriority.Rank(db.SafetyReports.AsNoTracking()) join u in db.Users.AsNoTracking() on r.Report.ReporterId equals u.Id
+            select new { r.Report, r.Priority, u.FirstName, u.LastName };
         if (recordId.HasValue) query = query.Where(x => x.Report.Id == recordId.Value);
         if (recordId.HasValue) StatusFilter = "all";
         if (StatusFilter == "history") query = query.Where(x => x.Report.Status == "resolved" || x.Report.Status == "dismissed");
         else if (StatusFilter == "pending") query = query.Where(x => x.Report.Status == "open" || x.Report.Status == "reviewing");
         else if (StatusFilter is "open" or "reviewing" or "resolved" or "dismissed") query = query.Where(x => x.Report.Status == StatusFilter);
         else StatusFilter = "all";
-        if (!recordId.HasValue && int.TryParse(PriorityFilter, out var priority) && priority is >= 0 and <= 3) query = query.Where(x => x.Report.Priority == priority);
+        if (!recordId.HasValue && int.TryParse(PriorityFilter, out var priority) && priority is >= 1 and <= 3) query = query.Where(x => x.Priority == priority);
         else PriorityFilter = "all";
         Sort = Sort is "oldest" or "priority" or "recent" ? Sort : StatusFilter == "open" ? "priority" : "recent";
         var rows = await (Sort == "oldest" ? query.OrderBy(x => x.Report.CreatedAt).ThenBy(x => x.Report.Id)
-            : Sort == "priority" ? query.OrderByDescending(x => x.Report.Priority).ThenBy(x => x.Report.CreatedAt).ThenBy(x => x.Report.Id)
+            : Sort == "priority" ? query.OrderByDescending(x => x.Priority).ThenBy(x => x.Report.CreatedAt).ThenBy(x => x.Report.Id)
             : query.OrderByDescending(x => x.Report.CreatedAt).ThenByDescending(x => x.Report.Id)).Take(100).ToListAsync(ct);
-        Reports = rows.Select(x => new ReportItem(x.Report, ((x.FirstName ?? "") + " " + (x.LastName ?? "")).Trim())).ToList();
+        Reports = rows.Select(x => new ReportItem(x.Report, ((x.FirstName ?? "") + " " + (x.LastName ?? "")).Trim(), x.Priority)).ToList();
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         {
@@ -126,22 +126,6 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         return Page();
     }
 
-    public async Task<IActionResult> OnPostPriorityAsync(long id, int priority, CancellationToken ct)
-    {
-        if (AdminId <= 0) return Challenge();
-        if (priority is < 0 or > 3) return BadRequest();
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        var count = await db.SafetyReports.Where(r => r.Id == id).ExecuteUpdateAsync(s => s.SetProperty(r => r.Priority, priority), ct);
-        if (count == 1) {
-            var label = priority switch { 1 => "Low", 2 => "Normal", 3 => "High", _ => "Not assessed" };
-            db.SafetyReportActions.Add(new SafetyReportAction { ReportId = id, AdminId = AdminId, Status = "priority", Note = $"Priority set to {label}.", CreatedAt = DateTime.UtcNow });
-            await db.SaveChangesAsync(ct);
-        }
-        await transaction.CommitAsync(ct);
-        Notice = count == 1 ? "Report priority updated." : "Report not found.";
-        return RedirectToPage(new { embedded = Embedded, recordId = RecordId, sort = Sort, statusFilter = StatusFilter, priorityFilter = PriorityFilter });
-    }
-
     public async Task<IActionResult> OnGetEvidenceAsync(long id, CancellationToken ct)
     {
         if (AdminId <= 0) return Challenge();
@@ -173,7 +157,8 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
                 ModelState.AddModelError("reviewConfirmed", "Confirm that you reviewed the evidence.");
             if (status is not ("reviewing" or "resolved" or "dismissed"))
                 ModelState.AddModelError("status", "Choose a valid review status.");
-            if (!ModelState.Values.Any(v => v.Errors.Count > 0))
+            if (!new[] { "note", "publicMessage", "reviewConfirmed", "status" }.Any(key =>
+                ModelState.TryGetValue(key, out var field) && field.Errors.Count > 0))
                 ModelState.AddModelError("review", "Check the review details and try again.");
             return await OnGetAsync(ct, id);
         }
@@ -182,18 +167,32 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         if (report is null) return NotFound();
         var changed = await db.SafetyReports.Where(r => r.Id == id && (r.Status == "open" || r.Status == "reviewing") && r.Status != status)
             .ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, status), ct);
-        if (changed == 0) { Notice = "This report is unavailable or already has that status."; return RedirectToPage(new { embedded = Embedded, recordId = RecordId }); }
+        if (changed == 0)
+        {
+            await transaction.RollbackAsync(ct);
+            var currentStatus = await db.SafetyReports.Where(r => r.Id == id).Select(r => r.Status).SingleOrDefaultAsync(ct);
+            if (currentStatus is null) return NotFound();
+            Notice = "This report already has a saved status. No duplicate update was sent.";
+            return RedirectToPage("/AdminReports", new { embedded = Embedded, statusFilter = currentStatus is "resolved" or "dismissed" ? "history" : currentStatus });
+        }
         db.SafetyReportActions.Add(new SafetyReportAction { ReportId = id, AdminId = AdminId, Status = status!, Note = note, PublicMessage = publicMessage, ReviewConfirmed = reviewConfirmed, CreatedAt = DateTime.UtcNow });
         if (report.TaskId.HasValue) db.MarketplaceNotifications.Add(MarketplaceNotification.Create(report.ReporterId, report.TaskId.Value, "safety_report", $"Report #{id}: {status}. Open Safety & Reports to read the admin update."));
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
-        Notice = "Decision saved. The reporter can read the update in Safety & Reports.";
+        Notice = status == "reviewing"
+            ? "Review saved. The report moved to Under review."
+            : "Report closed and moved to History.";
+        Notice += " The reporter can read the update in Safety & Reports.";
         var email = await db.Users.Where(u => u.Id == report.ReporterId).Select(u => u.Username).SingleOrDefaultAsync(ct);
         if (!string.IsNullOrWhiteSpace(email))
         {
             try { await SmtpMailer.SendAsync(config, email, $"Tap, Task, Done — report #{id} update", $"Your report #{id} is now {status}.\n\n{publicMessage}\n\nOpen Safety & Reports on the website to review your report history. If you have new evidence, submit a follow-up report referencing #{id}.", ct); }
-            catch (System.Net.Mail.SmtpException ex) { logger.LogWarning("Report update email failed ({Reason}).", SmtpMailer.Diagnostic(ex)); Notice += " Email could not be delivered; the update remains available on the website."; }
+            catch (Exception ex) when (ex is System.Net.Mail.SmtpException or InvalidOperationException or FormatException or ArgumentException)
+            {
+                logger.LogWarning("Report update email failed ({Type}).", ex.GetType().Name);
+                Notice += " Email could not be delivered. The update is available on the website.";
+            }
         }
-        return RedirectToPage(new { embedded = Embedded, statusFilter = report.Status == "reviewing" ? "reviewing" : "open" });
+        return RedirectToPage("/AdminReports", new { embedded = Embedded, statusFilter = status == "reviewing" ? "reviewing" : "history" });
     }
 }

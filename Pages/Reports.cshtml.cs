@@ -8,7 +8,7 @@ namespace tts.Pages;
 [Authorize]
 public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger) : PageModel
 {
-    private static readonly string[] Reasons = ["Scam or fake account", "No-show", "Harassment or inappropriate behavior", "Work quality or service issue", "Other"];
+    private static readonly string[] Reasons = ["Scam or fake account", "No-show", "Harassment or inappropriate behavior", "Work quality or service issue", "Threat to safety", "Payment disagreement", "Scheduling disagreement", "Disagreement about agreed work", "Minor communication or service concern", "Other"];
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public List<SafetyReport> Reports { get; private set; } = [];
     public List<ReportUpdate> Updates { get; private set; } = [];
@@ -73,7 +73,7 @@ public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger)
             }
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
             // Preliminary triage only: admins review the evidence and can change this priority.
-            var initialPriority = immediateDanger || reason is "Harassment or inappropriate behavior" or "Scam or fake account" ? 3 : reason == "Work quality or service issue" ? 1 : 2;
+            var initialPriority = SafetyReportPriority.Initial(reason, immediateDanger);
             var report = new SafetyReport { ReporterId = UserId, TaskId = taskId, Target = target, Reason = reason, Description = description, Status = "open", Priority = initialPriority, CreatedAt = DateTime.UtcNow };
             db.SafetyReports.Add(report);
             await db.SaveChangesAsync(ct);

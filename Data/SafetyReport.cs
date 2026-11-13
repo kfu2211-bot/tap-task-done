@@ -24,3 +24,16 @@ public sealed class SafetyReportAction
     public bool ReviewConfirmed { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+public static class SafetyReportPriority
+{
+    public static int Initial(string reason, bool immediateDanger) =>
+        immediateDanger || reason is "Scam or fake account" or "Harassment or inappropriate behavior" or "Threat to safety" ? 3 :
+        reason is "Work quality or service issue" or "Minor communication or service concern" ? 1 : 2;
+
+    public static IQueryable<RankedReport> Rank(IQueryable<SafetyReport> reports) =>
+        reports.Select(r => new RankedReport(r, r.Priority == 3 || r.Reason == "Scam or fake account" ||
+            r.Reason == "Harassment or inappropriate behavior" || r.Reason == "Threat to safety" ? 3 : (r.Reason == "Minor communication or service concern" || (r.Reason == "Work quality or service issue" && r.Priority != 3)) ? 1 : 2));
+
+    public sealed record RankedReport(SafetyReport Report, int Priority);
+}
