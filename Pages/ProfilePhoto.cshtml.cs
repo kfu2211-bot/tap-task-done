@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -9,7 +10,7 @@ using tts.Data;
 
 namespace tts.Pages;
 
-[Authorize]
+[Authorize(AuthenticationSchemes = "Cookies,AdminCookie")]
 [RequestSizeLimit(6 * 1024 * 1024)]
 public class ProfilePhotoModel(ApplicationDbContext db, IDataProtectionProvider protection,
     IdentityVerificationAvailability availability, IWebHostEnvironment environment, ILogger<ProfilePhotoModel> logger) : PageModel
@@ -41,6 +42,20 @@ public class ProfilePhotoModel(ApplicationDbContext db, IDataProtectionProvider 
         if (ownerId != UserId && !await db.FreelancerProfiles.AnyAsync(p => p.UserId == ownerId &&
             (p.WorkRole == "freelancer" || p.WorkRole == "both") && p.Service != "" && p.Location != "", ct))
             return NotFound();
+        return await ReadPhotoAsync(ownerId, ct);
+    }
+
+    public async Task<IActionResult> OnGetStaffAsync(int userId, CancellationToken ct)
+    {
+        PrivateResponse();
+        var session = await HttpContext.AuthenticateAsync("AdminCookie");
+        if (session.Principal is not { } principal || !(principal.IsInRole("admin") || principal.IsInRole("moderator")))
+            return NotFound();
+        return await ReadPhotoAsync(userId, ct);
+    }
+
+    private async Task<IActionResult> ReadPhotoAsync(int ownerId, CancellationToken ct)
+    {
         var stored = await db.Users.AsNoTracking().Where(x => x.Id == ownerId && x.Role != "deleted").Select(x => x.ProfilePicture).SingleOrDefaultAsync(ct);
         if (stored is null || stored.Length == 0) return new NoContentResult();
         try

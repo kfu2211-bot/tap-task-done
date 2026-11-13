@@ -22,7 +22,7 @@
         @foreach (var user in Model.Users) {
             var history = Model.History.Where(h => h.UserId == user.Id).ToList();
             <article class="user-card" data-search="@($"{user.Name} {user.Email}".ToLowerInvariant())">
-                <div class="user-head"><div class="user-identity"><span class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(user.Name) ? "U" : user.Name.Trim().Substring(0, 1).ToUpperInvariant())</span><div><strong>@user.Name @if(user.Restricted) { <span class="account-warning-symbol" title="Account warning">⚠</span> }</strong><p>@user.Email <span aria-hidden="true">·</span> @user.Role</p></div></div><span class="badge @(user.Suspended ? "suspended" : user.Restricted ? "restricted" : "")">@user.Moderation.Penalty</span></div>
+                <div class="user-head"><div class="user-identity"><span class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(user.Name) ? "U" : user.Name.Trim().Substring(0, 1).ToUpperInvariant())@if (user.HasPhoto) { <img class="user-avatar-photo" src="@Url.Page("/ProfilePhoto", "Staff", new { userId = user.Id })" alt="" loading="lazy" /> }</span><div><strong>@user.Name @if(user.Restricted) { <span class="account-warning-symbol" title="Account warning">⚠</span> }</strong><p>@user.Email <span aria-hidden="true">·</span> @user.Role</p></div></div><span class="badge @(user.Suspended ? "suspended" : user.Restricted ? "restricted" : "")">@user.Moderation.Penalty</span></div>
                 @if (!tts.Data.AccountModerationRules.IsStaff(user.Role)) {
                     <p><strong>Confirmed offenses: @user.Moderation.Offenses</strong> · Next: @tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)</p>
                     @if(user.Moderation.Target > 0 && !user.Moderation.Permanent) { <p>Recovery progress: @user.Moderation.Completed / @user.Moderation.Target completed tasks. Temporary suspension ends automatically; completion credit starts after it ends.</p> }
@@ -153,6 +153,11 @@
             button.classList.remove('moderation-loading');
             button.disabled = false;
         });
+    });
+
+    document.querySelectorAll('.user-avatar-photo').forEach(photo => {
+        photo.addEventListener('error', () => photo.remove(), { once: true });
+        if (photo.complete && !photo.naturalWidth) photo.remove();
     });
 
     const search = document.getElementById('search');

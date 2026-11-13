@@ -49,3 +49,5 @@
 .unverified-delete .actions { margin-top: 12px; }
 .unverified-delete button { color: #a12836; border-color: #a12836; }
 html[data-theme="dark"] .unverified-delete summary { color: #ffb4ba; }
+.user-identity .avatar { position: relative; overflow: hidden; }
+.user-avatar-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
