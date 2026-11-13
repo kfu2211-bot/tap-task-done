@@ -11,17 +11,19 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
 {
     public record Item(long Id, string Name, string Status, string IdLast4, DateTime CreatedAt, bool HasCertification, bool HasSupporting) { public bool HasSelfie { get; init; } public string? GovernmentType { get; init; } }
     public List<Item> Items { get; private set; } = [];
+    public string Queue { get; private set; } = "pending";
     public bool DatabaseUnavailable { get; private set; }
     public Dictionary<long, string> DocumentTypes { get; private set; } = [];
     public bool ReviewEnabled => availability.Enabled;
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     [TempData(Key = "AdminIdentity.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct, long? recordId = null)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct, long? recordId = null, string? queue = null)
     {
         Response.Headers.CacheControl = "no-store";
         if (!availability.Enabled) Notice = "Document review is paused until secure document storage is configured. Existing requests are listed below.";
-        try { Items = await (from r in db.IdentityRequests.AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id where !recordId.HasValue || r.Id == recordId.Value orderby r.Id descending select new Item(r.Id, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), r.Status, r.IdLast4, r.CreatedAt, r.Certification != null, r.SupportingDocument != null)).Take(100).ToListAsync(ct); }
+        Queue = queue is "approved" or "rejected" ? queue : "pending";
+        try { Items = await (from r in db.IdentityRequests.AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id where recordId.HasValue ? r.Id == recordId.Value : Queue == "rejected" ? (r.Status == "rejected" || r.Status == "resubmit") : r.Status == Queue orderby r.Id descending select new Item(r.Id, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), r.Status, r.IdLast4, r.CreatedAt, r.Certification != null, r.SupportingDocument != null)).Take(100).ToListAsync(ct); }
         catch (MySqlConnector.MySqlException ex) when (ex.Number == 1146 && !availability.Enabled)
         { Notice = "No verification requests have been set up. Document submissions and review are paused until secure document storage is configured."; }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { DatabaseUnavailable = true; Notice = "Verification requests could not be loaded. Please check the database setup and try again."; }
