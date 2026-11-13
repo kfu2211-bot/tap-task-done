@@ -141,6 +141,13 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     public async Task<IActionResult> OnPostUpdateAsync(long id, string? status, string? note, string? publicMessage, bool reviewConfirmed, CancellationToken ct)
     {
         if (AdminId <= 0) return Challenge();
+        if (id <= 0 || (ModelState.TryGetValue(nameof(id), out var reportIdField) && reportIdField.Errors.Count > 0))
+            return BadRequest();
+        // Queue filters and the detail-view ID are navigation state, not review inputs.
+        ModelState.Remove(nameof(StatusFilter));
+        ModelState.Remove(nameof(PriorityFilter));
+        ModelState.Remove(nameof(Sort));
+        ModelState.Remove(nameof(RecordId));
         note = (note ?? "").Trim();
         publicMessage = (publicMessage ?? "").Trim();
         if (!ModelState.IsValid || !ReportReviewRules.Valid(status, note, publicMessage, reviewConfirmed))

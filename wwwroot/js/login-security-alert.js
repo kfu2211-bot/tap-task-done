@@ -12,8 +12,28 @@
         busy = true;
         try {
             const response = await fetch('/api/security/status', { credentials: 'same-origin', cache: 'no-store' });
-            if (response.redirected || response.status === 401) { location.assign('/Login?sessionEnded=1'); return; }
+            if (response.status === 401) {
+                if (!document.querySelector('[data-session-ended]')) {
+                    const notice = document.createElement('p');
+                    notice.dataset.sessionEnded = 'true';
+                    notice.setAttribute('role', 'status');
+                    Object.assign(notice.style, {
+                        position: 'fixed', bottom: '20px', right: '20px', zIndex: '10000',
+                        maxWidth: 'calc(100vw - 40px)', margin: '0', padding: '14px',
+                        borderRadius: '10px', background: 'var(--signin-alert-surface, #fff)',
+                        color: 'var(--signin-alert-text, #163d30)', boxShadow: '0 4px 20px #163d3033'
+                    });
+                    const link = document.createElement('a');
+                    link.href = '/Login?sessionEnded=1';
+                    link.textContent = 'Log in again';
+                    link.style.color = 'inherit';
+                    notice.append('Your session ended. ', link);
+                    document.body.append(notice);
+                }
+                return;
+            }
             if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return;
+            document.querySelector('[data-session-ended]')?.remove();
             const { alert } = await response.json();
             if (!alert) { document.querySelector('[data-signin-alert]')?.remove(); lastId = null; return; }
             if (lastId === alert.id || dismissed.has(String(alert.id))) return;

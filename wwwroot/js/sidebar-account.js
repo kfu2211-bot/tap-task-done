@@ -64,12 +64,7 @@
             account = {};
         }
 
-        // This protects the local prototype pages from being opened after sign out.
-        // Production access control must still be enforced by the server.
-        if (!account || !account.email) {
-            window.location.replace("/Login");
-            return;
-        }
+        // The authenticated page can render even when the browser cache is empty.
 
         // The database, not the browser cache, is authoritative for work preferences.
         try {
@@ -84,7 +79,7 @@
         } catch (error) { console.warn('Work preferences could not be refreshed.', error); }
 
         var name = (account.nickname || account.name || "User").trim();
-        var email = (account.email || "user@email.com").trim();
+        var email = (account.email || "").trim();
         var initials = name
             .split(/\s+/)
             .filter(Boolean)
