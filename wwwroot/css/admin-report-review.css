@@ -55,3 +55,8 @@ html[data-theme="dark"] .report-admin-body .report-action-form p, html[data-them
     overflow-wrap: anywhere;
 }
 .report-account-matches a:hover { border-color: currentColor; }
+.report-queue-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-block:18px; }
+.report-queue-tabs a,.report-list-meta a { display:inline-flex; align-items:center; min-height:44px; padding:8px 14px; color:inherit; border:1px solid #abc5b3; border-radius:8px; text-decoration:none; font-weight:650; }
+.report-queue-tabs a[aria-current="page"] { background:#175d45; color:#fff; border-color:#175d45; }
+.report-list-meta { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:12px; }
+.report-list-meta time { font-size:.875rem; }

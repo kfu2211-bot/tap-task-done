@@ -16,6 +16,7 @@
     @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="notice" role="status">@Model.Notice</p> }
     @if (Model.Unavailable) { <div class="empty" role="alert">Account moderation is unavailable. Check the account moderation database setup.</div> }
     else {
+        <div class="users-toolbar"><p class="users-total"><strong>@Model.Users.Count</strong> total users</p><span id="userSearchCount" role="status"></span></div>
         <label class="search"><span class="sr-only">Search users</span><input id="search" type="search" placeholder="Search by name or email" /></label>
         <div class="user-list">
         @foreach (var user in Model.Users) {
@@ -125,7 +126,9 @@
         const query = search.value.trim().toLowerCase();
         const users = [...document.querySelectorAll('[data-search]')];
         users.forEach(user => user.hidden = !user.dataset.search.includes(query));
-        document.getElementById('noMatches').hidden = users.some(user => !user.hidden);
+        const visibleCount = users.filter(user => !user.hidden).length;
+        document.getElementById('userSearchCount').textContent = query ? `${visibleCount} of ${users.length} shown` : '';
+        document.getElementById('noMatches').hidden = visibleCount > 0;
     });
     if (document.documentElement.classList.contains('embedded') && window.parent !== window) {
         const reportHeight = () => window.parent.postMessage({ type: 'admin-users-height', height: document.querySelector('.users-page').getBoundingClientRect().height }, window.location.origin);

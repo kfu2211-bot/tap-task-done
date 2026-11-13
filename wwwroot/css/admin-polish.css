@@ -295,3 +295,44 @@ html[data-theme="dark"] .overview-activity li { border-color:#385047; }
 .admin-staff-form :is(input, select) { width: 100%; border: 1px solid #91b4a1; background: transparent; color: inherit; font: inherit; }
 .admin-settings-grid .admin-security-link { margin-top: 12px; padding-inline: 16px; }
 .admin-settings-grid .admin-account-details { padding: 14px; border: 1px solid #bcd4c5; border-radius: 10px; }
+.admin-staff-form {
+    padding: 16px;
+    border: 1px solid #c8ddd0;
+    border-radius: 12px;
+    background: #f2f7f3;
+}
+.admin-staff-form label { font-size: .875rem; }
+.admin-staff-form label:first-child { flex-grow: 2; }
+.admin-staff-form :is(input, select) { background: #fff; }
+.admin-staff-form button { min-width: 150px; }
+.admin-staff-form button:disabled { cursor: wait; }
+.admin-staff-form[aria-busy="true"] button::before {
+    content: "";
+    display: inline-block;
+    width: .8em;
+    height: .8em;
+    margin-inline-end: .45em;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+    animation: staff-save-spin .75s linear infinite;
+}
+@keyframes staff-save-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .admin-staff-form[aria-busy="true"] button::before { animation: none; }
+}
+.admin-staff-list-title { margin: 22px 0 10px; font-size: 1rem; }
+.admin-staff-list .admin-staff-role {
+    justify-self: start;
+    padding: 4px 10px;
+    border: 1px solid #91b4a1;
+    border-radius: 999px;
+    font-size: .8rem;
+}
+.admin-settings-grid article > .admin-staff-notice {
+    padding: 10px 12px;
+    border-inline-start: 3px solid #397958;
+    font-size: .875rem;
+}
+html[data-theme="dark"] .admin-staff-form { background: #172a22; border-color: #466356; }
+html[data-theme="dark"] .admin-staff-form :is(input, select) { background: #20342b; }

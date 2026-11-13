@@ -1,4 +1,23 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const staffForm = document.querySelector(".admin-staff-form");
+    if (staffForm) {
+        const button = staffForm.querySelector('button[type="submit"]');
+        const label = button.textContent;
+        staffForm.addEventListener("submit", event => {
+            if (button.disabled) {
+                event.preventDefault();
+                return;
+            }
+            button.disabled = true;
+            button.textContent = "Saving access…";
+            staffForm.setAttribute("aria-busy", "true");
+        });
+        window.addEventListener("pageshow", () => {
+            button.disabled = false;
+            button.textContent = label;
+            staffForm.removeAttribute("aria-busy");
+        });
+    }
     const read = function (key, fallback) { try { const value = JSON.parse(localStorage.getItem(key) || "null"); return value === null ? fallback : value; } catch { return fallback; } };
     const save = function (key, value) { localStorage.setItem(key, JSON.stringify(value)); };
     const notify = function (message) { const notices = read("tapTaskDoneNotifications", []); notices.unshift({ message: message, time: "Just now", read: false }); save("tapTaskDoneNotifications", notices.slice(0, 30)); };

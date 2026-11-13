@@ -39,3 +39,8 @@
 }
 #moderationDecision .actions { justify-content: flex-end; }
 #moderationDecision button { min-height: 44px; }
+.users-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; font-size:.875rem; }
+.users-total { margin:0; padding:7px 12px; background:#e2f0e6; color:#174d38; border-radius:8px; }
+.users-total strong { margin-inline-end:4px; font-size:1.15rem; }
+.user-card .history:not([open]) { background:transparent; }
+.user-card .history summary { padding-block:10px; }

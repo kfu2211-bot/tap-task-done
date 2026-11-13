@@ -113,7 +113,6 @@
                             <h3>Workspace preferences</h3>
                             <p>Preferences are saved in this browser.</p>
                             <label class="admin-setting-switch"><input id="urgentNotifications" type="checkbox" role="switch" /> Show notification alerts in the header</label>
-                            <label class="admin-setting-switch"><input id="showResolved" type="checkbox" role="switch" checked /> Include closed safety reports by default</label>
                             <button id="saveAdminSettings" class="primary-action" type="button">Save preferences</button>
                             <span id="settingsSaved" role="status"></span>
                         </article>
@@ -125,18 +124,19 @@
                                 <form method="post" asp-page-handler="StaffRole" class="admin-staff-form">
                                     <label>Account email<input type="email" name="email" required maxlength="254" /></label>
                                     <label>Access level<select name="role" required>
-                                        <option value="">Choose access</option>
+                                        <option value="" disabled selected>Choose access</option>
                                         <option value="admin">Admin</option>
                                         <option value="moderator">Moderator</option>
                                         <option value="client">Regular user</option>
                                     </select></label>
                                     <button type="submit" class="primary-action">Save access</button>
                                 </form>
-                                @if (Model.StaffNotice is not null) { <p role="status">@Model.StaffNotice</p> }
+                                @if (Model.StaffNotice is not null) { <p class="admin-staff-notice" role="status">@Model.StaffNotice</p> }
                                 @if (Model.StaffUnavailable) { <p>Staff accounts are temporarily unavailable.</p> }
                                 else if (Model.Staff.Count == 0) { <p>No staff accounts found.</p> }
                                 else
                                 {
+                                    <h4 class="admin-staff-list-title">Current staff</h4>
                                     <ul class="admin-staff-list">
                                         @foreach (var staff in Model.Staff)
                                         {

@@ -27,7 +27,7 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     public bool HistoryUnavailable { get; private set; }
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     [BindProperty(SupportsGet = true)] public string Sort { get; set; } = "recent";
-    [BindProperty(SupportsGet = true)] public string StatusFilter { get; set; } = "all";
+    [BindProperty(SupportsGet = true)] public string StatusFilter { get; set; } = "open";
     [BindProperty(SupportsGet = true)] public string PriorityFilter { get; set; } = "all";
     [TempData(Key = "AdminReports.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
@@ -42,10 +42,11 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
             select new { Report = r, u.FirstName, u.LastName };
         if (recordId.HasValue) query = query.Where(x => x.Report.Id == recordId.Value);
         if (recordId.HasValue) StatusFilter = "all";
-        if (StatusFilter == "pending") query = query.Where(x => x.Report.Status == "open" || x.Report.Status == "reviewing");
+        if (StatusFilter == "history") query = query.Where(x => x.Report.Status == "resolved" || x.Report.Status == "dismissed");
+        else if (StatusFilter == "pending") query = query.Where(x => x.Report.Status == "open" || x.Report.Status == "reviewing");
         else if (StatusFilter is "open" or "reviewing" or "resolved" or "dismissed") query = query.Where(x => x.Report.Status == StatusFilter);
         else StatusFilter = "all";
-        if (int.TryParse(PriorityFilter, out var priority) && priority is >= 0 and <= 3) query = query.Where(x => x.Report.Priority == priority);
+        if (!recordId.HasValue && int.TryParse(PriorityFilter, out var priority) && priority is >= 0 and <= 3) query = query.Where(x => x.Report.Priority == priority);
         else PriorityFilter = "all";
         Sort = Sort is "oldest" or "priority" ? Sort : "recent";
         var rows = await (Sort == "oldest" ? query.OrderBy(x => x.Report.CreatedAt).ThenBy(x => x.Report.Id)
@@ -93,7 +94,7 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
             }
         }
         var ids = Reports.Select(x => x.Report.Id).ToList();
-        if (ids.Count == 0) return Page();
+        if (!recordId.HasValue || ids.Count == 0) return Page();
         try
         {
         Evidence = await db.SafetyReportEvidence.AsNoTracking().Where(e => ids.Contains(e.ReportId)).OrderBy(e => e.Id).Select(e => new EvidenceItem(e.Id, e.ReportId, e.ContentType)).ToListAsync(ct);

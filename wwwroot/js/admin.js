@@ -16,19 +16,13 @@ function renderO(){const s=window.adminSummary||{},verificationAvailable=s.verif
 function render(){renderV();renderR();renderU();renderA();renderO()}
 // Save a review decision in the correct local collection (submitted or demo data).
 change=function(ok){if(!selected)return;const {type,item}=selected,status=type==="v"?(ok?"Approved":"Rejected"):(ok?"Resolved":"Dismissed"),key=type==="v"?K.v:K.r,demoKey=type==="v"?K.dv:K.dr,note=adminNote.value.trim();let records=read(key),index=records.findIndex(a=>a.id===item.id),store=key;if(index<0){records=read(demoKey);index=records.findIndex(a=>a.id===item.id);store=demoKey}if(index>=0){records[index]={...records[index],status,adminNote:note};save(store,records)}if(type==="v"&&!item.id.startsWith("v"))localStorage.setItem("tapTaskDoneVerificationStatus",status.toLowerCase());log(`${status} ${type==="v"?"verification":"report"}`,`${status} ${type==="v"?`verification for ${item.name}`:`report about ${item.target}`}${note?`: ${note}`:"."}`);close();render()};
-approveAction.onclick=()=>change(true);rejectAction.onclick=()=>change(false);[verificationSearch,verificationFilter].forEach(x=>x.oninput=renderV);[reportSearch,reportFilter].forEach(x=>x.oninput=renderR);userSearch.oninput=renderU;const st=read(K.s,{urgent:false,showResolved:true});urgentNotifications.checked=!!st.urgent;showResolved.checked=st.showResolved!==false;function applyWorkspacePreferences(preferences) {
+approveAction.onclick=()=>change(true);rejectAction.onclick=()=>change(false);[verificationSearch,verificationFilter].forEach(x=>x.oninput=renderV);[reportSearch,reportFilter].forEach(x=>x.oninput=renderR);userSearch.oninput=renderU;const st=read(K.s,{urgent:false,showResolved:true});urgentNotifications.checked=!!st.urgent;function applyWorkspacePreferences(preferences) {
     adminAlerts.hidden = !preferences.urgent;
-    const reportsFrame = document.getElementById("adminReportsFrame");
-    const url = new URL(reportsFrame.getAttribute("src"), location.origin);
-    const status = preferences.showResolved ? "all" : "pending";
-    if ((url.searchParams.get("statusFilter") || "all") !== status) {
-        url.searchParams.set("statusFilter", status);
-        reportsFrame.src = url.href;
-    }
+
 }
 applyWorkspacePreferences(st);
 saveAdminSettings.onclick = () => {
-    const preferences = {urgent: urgentNotifications.checked, showResolved: showResolved.checked};
+    const preferences = {urgent: urgentNotifications.checked};
     try {
         save(K.s, preferences);
         applyWorkspacePreferences(preferences);
