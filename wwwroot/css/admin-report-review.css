@@ -62,7 +62,7 @@ html[data-theme="dark"] .report-admin-body .report-action-form p, html[data-them
 .report-list-meta time { font-size:.875rem; }
 .report-admin-body .admin-report-page { width: min(1360px, calc(100% - 32px)); margin: 12px auto 20px; }
 .admin-report-page .report-queue-tabs { margin-block: 10px; }
-.admin-report-page .report-filters { grid-template-columns: repeat(2, minmax(0, 1fr)) auto; margin-block: 10px; padding: 12px; }
+.admin-report-page .report-filters { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; margin-block: 10px; padding: 12px; }
 .admin-report-page .report-summary-card { margin-block: 10px; padding: 16px; }
 .report-summary-card .report-card-heading h2 { font-size: 1.1rem; margin: 4px 0; }
 .report-summary-card .report-list-meta { margin-top: 4px; }

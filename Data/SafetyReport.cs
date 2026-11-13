@@ -32,8 +32,12 @@ public static class SafetyReportPriority
         reason is "Work quality or service issue" or "Minor communication or service concern" ? 1 : 2;
 
     public static IQueryable<RankedReport> Rank(IQueryable<SafetyReport> reports) =>
-        reports.Select(r => new RankedReport(r, r.Priority == 3 || r.Reason == "Scam or fake account" ||
-            r.Reason == "Harassment or inappropriate behavior" || r.Reason == "Threat to safety" ? 3 : (r.Reason == "Minor communication or service concern" || (r.Reason == "Work quality or service issue" && r.Priority != 3)) ? 1 : 2));
+        reports.Select(r => new RankedReport { Report = r, Priority = r.Priority == 3 || r.Reason == "Scam or fake account" ||
+            r.Reason == "Harassment or inappropriate behavior" || r.Reason == "Threat to safety" ? 3 : (r.Reason == "Minor communication or service concern" || (r.Reason == "Work quality or service issue" && r.Priority != 3)) ? 1 : 2 });
 
-    public sealed record RankedReport(SafetyReport Report, int Priority);
+    public sealed class RankedReport
+    {
+        public required SafetyReport Report { get; init; }
+        public int Priority { get; init; }
+    }
 }

@@ -29,7 +29,7 @@
             {
             <form method="get" class="report-filters" aria-label="Filter and sort reports">
                 @if (Model.Embedded) { <input type="hidden" name="embedded" value="true" /> }
-                <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                <div class="report-filter-field"><label for="reportStatusFilter">Status</label><select id="reportStatusFilter" name="statusFilter" asp-for="StatusFilter"><option value="all">All statuses</option><option value="open">New</option><option value="reviewing">Under review</option><option value="history">History</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option><option value="pending">Open and under review</option></select></div>
                 <div class="report-filter-field"><label for="reportPriorityFilter">Priority</label><select id="reportPriorityFilter" name="priorityFilter" asp-for="PriorityFilter"><option value="all">All priorities</option><option value="1">Low</option><option value="2">Normal</option><option value="3">High</option></select></div>
                 <div class="report-filter-field"><label for="reportSort">Sort by</label>
                 <select id="reportSort" name="sort" asp-for="Sort"><option value="recent">Newest first</option><option value="oldest">Oldest first</option><option value="priority">Highest priority</option></select></div>
