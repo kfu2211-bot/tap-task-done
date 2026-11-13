@@ -34,10 +34,10 @@
                     .then(r=>{
                         if(r.redirected || r.status===401) throw new Error('Sign in again to look up the address.');
                         if(r.status===429) throw new Error('Too many lookups. Wait a moment, then select the pin again.');
-                        if(!r.ok) return null;
+                        if(!r.ok) throw new Error('Reverse lookup failed: ' + r.status);
                         return r.json();
                     })
-                    .then(place=>{if(current!==reverseGeneration)return; if(place?.label){address.value=place.label;status.textContent='Approximate address found. Check it and confirm the pin.';}else status.textContent='Address unavailable. Enter the address and confirm the pin.';})
+                    .then(place=>{if(current!==reverseGeneration)return; if(place?.label){address.value=place.label;status.textContent='Approximate address found. Check it and confirm the pin.';}else status.textContent='No address found for this pin. Enter a nearby landmark or the work address, then confirm.';})
                     .catch(error=>{
                         if(current!==reverseGeneration)return;
                         status.textContent=error instanceof Error && !controller.signal.aborted &&

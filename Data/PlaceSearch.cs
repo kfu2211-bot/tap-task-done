@@ -21,6 +21,10 @@ public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
         {
             place = await LookupPinAsync(lat, lon, ct);
         }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            place = await LookupPinAsync(lat, lon, ct);
+        }
         if (place is not null)
             Cache.Set(key, place, new MemoryCacheEntryOptions().SetSize(1).SetAbsoluteExpiration(TimeSpan.FromHours(12)));
         return place;
