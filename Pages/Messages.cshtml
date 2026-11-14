@@ -277,7 +277,7 @@
                             <p>@(Model.SharingPhone && Model.HasPhone ? "Your mobile number is shared for this task." : "Share your mobile number with this person for this task.")</p>
                             @if (Model.HasPhone || Model.SharingPhone)
                             {
-                                <form method="post" asp-page-handler="PhoneSharing">
+                                <form method="post" asp-page-handler="PhoneSharing" data-submit-pending="@(Model.SharingPhone ? "Updating…" : "Sharing…")">
                                     <input type="hidden" name="conversationId" value="@Model.Selected.Id" />
                                     <input type="hidden" name="share" value="@(Model.SharingPhone ? "false" : "true")" />
                                     <button class="thread-task-link" type="submit">@(Model.SharingPhone ? "Stop sharing" : "Share my number")</button>

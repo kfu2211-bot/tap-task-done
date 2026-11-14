@@ -1,0 +1,10 @@
+[data-pending-label] {
+    cursor: wait !important;
+    opacity: .8;
+}
+button[data-pending-label]::after {
+    content: attr(data-pending-label);
+    display: inline-block;
+    margin-inline-start: .5em;
+    font-size: .85em;
+}
