@@ -32,17 +32,12 @@
             </div>
             <small id="task-help-language">You can ask questions in English, Filipino, or Taglish.</small>
         </form>
-        <nav aria-label="Task Help links">
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <a asp-page="/Settings" asp-fragment="work-preferences">Settings</a>
-                <a asp-page="/IdentityVerification">Identity Verification</a>
-            }
-            else
-            {
+        @if (User.Identity?.IsAuthenticated != true)
+        {
+            <nav aria-label="Task Help links">
                 <a asp-page="/Login">Log in</a>
                 <a asp-page="/Index">Create account</a>
-            }
-        </nav>
+            </nav>
+        }
     </div>
 </dialog>

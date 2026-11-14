@@ -9,7 +9,7 @@
 .task-help .task-help-heading #task-help-title { color:#fff; font-size:1.25rem; line-height:1.2; }
 .task-help-heading span { display:block; margin-top:3px; color:#e0f2e9; font-size:.8125rem; }
 .task-help header button { min-width:44px; background:transparent; color:white; border:1px solid #ffffff80; font-size:24px; }
-.task-help-content { display:grid; gap:14px; padding:16px; }
+.task-help-content { display:grid; gap:14px; padding:16px 16px 18px; }
 .task-help-topics, .task-help nav { display:flex; flex-wrap:wrap; gap:8px; }
 .task-help-topics button { padding:0 10px; background:#e5f1e8; border:1px solid #bad3c3; color:#164936; }
 .task-help-answer { padding:12px; background:white; border:1px solid #c5dbce; border-radius:10px; }

@@ -33,7 +33,7 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT INTO community_feedback (UserId, Rating, Message, ShowDisplayName)
                 VALUES ({userId}, {rating}, {feedback}, TRUE)
-                ON DUPLICATE KEY UPDATE Rating = {rating}, Message = {feedback}, ShowDisplayName = TRUE, PublishedAt = CURRENT_TIMESTAMP
+                ON DUPLICATE KEY UPDATE UserId = UserId
                 """, ct);
             Notice = "Your feedback is now visible on the landing page.";
         }
@@ -166,6 +166,18 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         { logger.LogError(ex, "Unable to save freelancer location"); return StatusCode(503, new { message = "Location storage is not ready. Please contact support." }); }
     }
     public Task<bool> HasReviewAsync(long taskId) => db.MarketplaceReviews.AnyAsync(r => r.TaskId == taskId, HttpContext.RequestAborted);
+    public async Task<bool> CanWriteCommunityReviewAsync()
+    {
+        try
+        {
+            return !await db.CommunityFeedback.AnyAsync(review => review.UserId == UserId, HttpContext.RequestAborted);
+        }
+        catch (MySqlConnector.MySqlException ex)
+        {
+            logger.LogWarning(ex, "Community review status could not be loaded.");
+            return false;
+        }
+    }
 
     public record TrackingItem(MarketplaceTask Task, string Client, string Freelancer, bool IsClient) { public int FreelancerId { get; init; } }
     public List<TrackingItem> Tasks { get; private set; } = [];

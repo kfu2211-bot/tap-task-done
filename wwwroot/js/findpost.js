@@ -914,7 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const empty = document.getElementById('jobsFilterEmpty');
     const normalize = value => value.toLowerCase().replace(/\s*\/\s*/g, '/').trim();
     function updateJobs() {
-        const selected = normalize(filter.value);
+        const selected = normalize(filter.querySelector('input:checked').value);
         let visible = 0;
         for (const card of cards) {
             const matches = !selected || normalize(card.dataset.jobCategory || '') === selected;
@@ -924,10 +924,15 @@ document.addEventListener('DOMContentLoaded', () => {
         count.textContent = `${visible} open ${visible === 1 ? 'task' : 'tasks'}`;
         empty.hidden = !selected || visible !== 0 || cards.length === 0;
     }
-    filter.addEventListener('change', updateJobs);
-    document.getElementById('jobsFilterReset').addEventListener('click', () => {
-        filter.value = '';
+    const summary = filter.querySelector('summary');
+    filter.addEventListener('change', event => {
+        filter.querySelector('[data-category-label]').textContent = event.target.value || 'All categories';
         updateJobs();
-        filter.focus();
+    });
+    document.getElementById('jobsFilterReset').addEventListener('click', () => {
+        const all = filter.querySelector('input');
+        all.checked = true;
+        all.dispatchEvent(new Event('change', { bubbles: true }));
+        summary.focus();
     });
 });
