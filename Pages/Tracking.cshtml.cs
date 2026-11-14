@@ -12,14 +12,14 @@ namespace tts.Pages;
 [RequestSizeLimit(6 * 1024 * 1024)]
 public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logger) : PageModel
 {
-    public async Task<IActionResult> OnPostFeedbackAsync(long taskId, int rating, string? feedback, bool publish, CancellationToken ct)
+    public async Task<IActionResult> OnPostFeedbackAsync(long taskId, int rating, string? feedback, CancellationToken ct)
     {
         if (User.Identity?.IsAuthenticated != true) return Challenge();
         feedback = feedback?.Trim();
-        if (!ModelState.IsValid || rating is < 1 or > 5 || feedback is not { Length: > 0 and <= 500 } || !publish ||
+        if (!ModelState.IsValid || rating is < 1 or > 5 || feedback is not { Length: > 0 and <= 500 } ||
             !int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
         {
-            Notice = "Choose a rating, write up to 500 characters, and confirm public sharing.";
+            Notice = "Choose a rating, write up to 500 characters, before publishing.";
             return RedirectToPage("/Tracking", new { taskId });
         }
 
@@ -31,9 +31,9 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         try
         {
             await db.Database.ExecuteSqlInterpolatedAsync($"""
-                INSERT INTO community_feedback (UserId, Rating, Message)
-                VALUES ({userId}, {rating}, {feedback})
-                ON DUPLICATE KEY UPDATE Rating = {rating}, Message = {feedback}
+                INSERT INTO community_feedback (UserId, Rating, Message, ShowDisplayName)
+                VALUES ({userId}, {rating}, {feedback}, TRUE)
+                ON DUPLICATE KEY UPDATE Rating = {rating}, Message = {feedback}, ShowDisplayName = TRUE, PublishedAt = CURRENT_TIMESTAMP
                 """, ct);
             Notice = "Your feedback is now visible on the landing page.";
         }

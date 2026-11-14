@@ -17,9 +17,11 @@ public sealed class AdminDeletionsModel(ApplicationDbContext db, IConfiguration 
     public bool Unavailable { get; private set; }
     [TempData(Key = "AdminDeletions.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct, long? recordId = null)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct, long? recordId = null, bool embedded = false)
     {
-        if (Request.Query["embedded"] != "true") return Redirect("/Admin#deletions");
+        // Keep the queue inside its frame even if a navigation omits the embedded flag.
+        if (!embedded && Request.Headers["Sec-Fetch-Dest"] != "iframe")
+            return RedirectToPage("/Admin", null, recordId is > 0 ? new { inboxKind = "deletion", inboxRecord = recordId } : null, "deletions");
         Response.Headers.CacheControl = "no-store";
         try
         {
