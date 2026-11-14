@@ -61,7 +61,7 @@ function questionLanguage(question) {
     return hasEnglish ? "taglish" : "fil";
 }
 
-let lastQuestionLanguage = "taglish";
+let lastQuestionLanguage = "en";
 const specificAnswers = {
     payment: ["Tap, Task, Done does not process payments. The client and freelancer can discuss and agree on how and when to pay through Messages or over a phone call.", "Sa labas ng Tap, Task, Done ginagawa ang pagbabayad. Ang kliyente at freelancer ay maaaring mag-usap sa Messages o sa tawag sa telepono upang magkasundo kung paano at kailan magbabayad.", "Sa labas ng Tap, Task, Done ang payment. Ang client at freelancer ang mag-uusap sa Messages o sa phone call para magkasundo sa payment method at kung kailan magbabayad."],
     reportStatus: ["Open Safety & Reports → Your report history to check the status and admin updates.", "Buksan ang Safety & Reports → Your report history upang makita ang kalagayan ng ulat at mga tugon ng admin.", "Sa Safety & Reports → Your report history, makikita mo ang status at admin updates."],
@@ -97,8 +97,28 @@ function showTaskHelpAnswer(topic, language = "taglish", unclear = false) {
 taskHelpLaunch.hidden = false;
 taskHelpLaunch.addEventListener("click", () => taskHelp.showModal());
 taskHelp.addEventListener("close", () => taskHelpLaunch.focus());
+const languagePicker = taskHelp.querySelector("[data-help-language]");
+const helpCopy = {
+    en: ["What would you like to do?", "Type your question", "Send", "You can ask questions in English, Filipino, or Taglish.", "Post a task", "Find jobs", "Verify my identity", "Service areas", "Report an issue"],
+    fil: ["Ano ang gusto mong gawin?", "I-type ang tanong mo", "Ipadala", "Magtanong sa English, Filipino, o Taglish.", "Mag-post ng task", "Maghanap ng trabaho", "Magpa-verify", "Saan available?", "Mag-report"]
+};
+languagePicker.addEventListener("change", () => {
+    const language = languagePicker.value;
+    const [prompt, inputLabel, send, hint, ...topics] = helpCopy[language];
+    lastQuestionLanguage = language;
+    taskHelp.lang = language;
+    taskHelp.querySelector("[data-help-prompt]").textContent = prompt;
+    taskHelp.querySelector('label[for="task-help-input"]').textContent = inputLabel;
+    taskHelp.querySelector(".task-help-input-row button").textContent = send;
+    taskHelp.querySelector("#task-help-language").textContent = hint;
+    taskHelp.querySelectorAll("[data-topic]").forEach((button, index) => {
+        button.textContent = topics[index];
+    });
+    taskHelpAnswer.hidden = true;
+    taskHelpReport.hidden = true;
+});
 taskHelp.querySelectorAll("[data-topic]").forEach(button => {
-    button.addEventListener("click", () => showTaskHelpAnswer(button.dataset.topic));
+    button.addEventListener("click", () => showTaskHelpAnswer(button.dataset.topic, languagePicker.value));
 });
 document.querySelector("#task-help-question").addEventListener("submit", event => {
     event.preventDefault();

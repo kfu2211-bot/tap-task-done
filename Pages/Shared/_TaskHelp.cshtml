@@ -14,18 +14,19 @@
         <form method="dialog"><button type="submit" aria-label="Close Task Help">×</button></form>
     </header>
     <div class="task-help-content">
-        <p>Ano ang gusto mong gawin?</p>
+        <label>Language / Wika <select data-help-language><option value="en">English</option><option value="fil">Filipino</option></select></label>
+        <p data-help-prompt>What would you like to do?</p>
         <div class="task-help-topics">
-            <button type="button" data-topic="post">Mag-post ng task</button>
-            <button type="button" data-topic="jobs">Maghanap ng trabaho</button>
-            <button type="button" data-topic="verify">Magpa-verify</button>
-            <button type="button" data-topic="areas">Saan available?</button>
-            <button type="button" data-topic="report">Mag-report</button>
+            <button type="button" data-topic="post">Post a task</button>
+            <button type="button" data-topic="jobs">Find jobs</button>
+            <button type="button" data-topic="verify">Verify my identity</button>
+            <button type="button" data-topic="areas">Service areas</button>
+            <button type="button" data-topic="report">Report an issue</button>
         </div>
         <p class="task-help-answer" role="status" id="task-help-answer" hidden></p>
         <a class="task-help-action" id="task-help-report" hidden>@(User.Identity?.IsAuthenticated == true ? "Open Safety & Reports" : "Log in to report")</a>
         <form id="task-help-question">
-            <label for="task-help-input">I-type ang tanong mo</label>
+            <label for="task-help-input">Type your question</label>
             <div class="task-help-input-row">
                 <input id="task-help-input" maxlength="250" autocomplete="off" aria-describedby="task-help-language" required />
                 <button type="submit">Send</button>
