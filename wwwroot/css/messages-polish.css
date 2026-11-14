@@ -28,11 +28,15 @@ html body.messages-current-view .conversation-row-heading { display:flex; align-
     min-width:24px;
     padding:4px 6px;
     border-radius:999px;
-    background:#a1263b;
-    color:#fff;
+    background:#c52d43;
     font-size:12px;
     font-weight:700;
     text-align:center;
+}
+html body .messages-current .conversation-link .conversation-unread,
+html[data-theme="dark"] body .messages-current .conversation-link .conversation-unread {
+    color:#fff !important;
+    margin-top:0;
 }
 html body.messages-current-view .conversation-link.has-unread .conversation-preview { font-weight:700; }
 .thread-task-picker {
@@ -271,11 +275,16 @@ html body.messages-current-view .thread-form :is(textarea, button) { min-height:
     border-bottom:1px solid #d6e6da;
 }
 .thread-contact p { margin:0; font-size:.875rem; }
-.thread-contact .thread-task-link, .thread-heading .thread-call {
+.thread-contact .thread-task-link {
     min-height:44px;
     display:inline-flex;
     align-items:center;
     cursor:pointer;
+}
+.thread-heading .thread-phone {
+    user-select: all;
+    cursor: text;
+    white-space: nowrap;
 }
 html[data-theme="dark"] .thread-contact {
     background:#1e2923;

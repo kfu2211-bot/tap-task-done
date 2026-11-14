@@ -268,7 +268,7 @@
                         <a class="thread-task-link" asp-page="/TaskDetails" asp-route-taskId="@Model.Selected.TaskId" asp-route-conversationId="@Model.Selected.Id">View task</a>
                         @if (Model.SharedPhone is { } phone)
                         {
-                            <a class="thread-task-link thread-call" href="tel:@phone">Call @(Model.Selected.ClientId == Model.UserId ? "freelancer" : "client")</a>
+                            <bdi class="thread-task-link thread-phone" dir="ltr" aria-label="Shared mobile number: @phone">@phone</bdi>
                         }
                     </div>
                     @if (Model.PhoneSharingAvailable)
