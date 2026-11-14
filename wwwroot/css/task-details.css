@@ -1,0 +1,14 @@
+.task-detail-page { margin:0; background:#f4f7f2; color:#18392d; font:16px/1.5 system-ui,sans-serif; }
+.task-detail-page a { color:#126348; font-weight:650; }
+.task-detail-header { background:#fff; border-bottom:1px solid #d6e5d8; padding:14px clamp(18px,5vw,64px); }
+.task-detail-header a { display:inline-flex; align-items:center; gap:10px; text-decoration:none; }
+.task-detail-main { box-sizing:border-box; max-width:960px; margin:auto; padding:24px clamp(16px,4vw,36px) 80px; }
+.task-detail-card { margin-top:16px; padding:clamp(18px,4vw,36px); background:#fff; border:1px solid #d6e5d8; border-radius:16px; overflow-wrap:anywhere; }
+.task-detail-card h1 { margin:8px 0; line-height:1.2; }
+.task-detail-card dl { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:10px 18px; padding-block:16px; border-block:1px solid #d6e5d8; }
+.task-detail-card dd { margin:0; }
+.task-detail-status { display:inline-block; margin-inline-start:8px; padding:3px 10px; border-radius:20px; background:#e2f1e5; color:#15583f; }
+html[data-theme="dark"] .task-detail-page :is(.task-detail-card,.task-detail-header) { background:#1e2923; border-color:#38483f; }
+html[data-theme="dark"] .task-detail-page a { color:#a5edcc; }
+html[data-theme="dark"] .task-detail-status { background:#294438; color:#a5edcc; }
+html[data-theme="dark"] .task-detail-card dl { border-color:#38483f; }

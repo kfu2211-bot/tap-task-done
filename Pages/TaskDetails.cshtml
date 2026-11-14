@@ -1,15 +1,27 @@
 @page
 @model tts.Pages.TaskDetailsModel
 @{
-    ViewData["Title"] = Model.Work.Title;
+    Layout = null;
     var task = Model.Work;
 }
 
-<div class="py-4">
-    <a asp-page="/Messages" asp-route-conversationId="@Model.ConversationId">← Back to conversation</a>
-    <article class="card mt-3">
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@task.Title - Tap, Task, Done</title>
+    <link rel="icon" href="/tap-task-icon.svg" />
+    <link rel="stylesheet" href="~/css/task-details.css" asp-append-version="true" />
+    <partial name="_AccountTheme" />
+</head>
+<body class="task-detail-page">
+    <header class="task-detail-header"><a asp-page="/Dashboard"><img src="/tap-task-icon.svg" width="32" height="32" alt="" /> Tap, Task, Done</a></header>
+<main class="task-detail-main">
+    <a asp-page="/Messages" asp-route-conversationId="@Model.ConversationId" asp-route-taskId="@task.Id">← Back to conversation</a>
+    <article class="task-detail-card">
         <div class="card-body">
-            <p class="small mb-2">Task #@task.Id · @task.Status.Replace("-", " ")</p>
+            <p class="small mb-2">Task #@task.Id <span class="task-detail-status">@tts.Data.TaskProgress.Label(task.Status)</span></p>
             <h1 class="h3">@task.Title</h1>
             <p style="white-space: pre-wrap; overflow-wrap: anywhere">@task.Description</p>
             <dl class="row">
@@ -30,4 +42,7 @@
             }
         </div>
     </article>
-</div>
+</main>
+<partial name="_TaskHelp" />
+</body>
+</html>
