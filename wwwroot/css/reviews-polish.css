@@ -54,3 +54,10 @@ html, body { background:#f6f7f3 !important; }
     .reviews-overview-score { width:100%; margin:4px 0 0; padding:12px 0 0; border-left:0; border-top:1px solid #cfe1d1; }
     .reviews-live .review-top { flex-wrap:wrap; }
 }
+
+/* Shared presentation for Received and Given. */
+html body .reviews-live .review-card { box-shadow: 0 3px 12px rgba(25, 62, 48, .06); }
+html body .reviews-live .review-rating { color: #40594d; font-size: 14px; }
+html body .reviews-live .review-feedback { font-size: 15px; line-height: 1.55; overflow-wrap: anywhere; }
+html body .reviews-live .reviews-empty a { display: inline-block; margin-top: 8px; font-weight: 700; }
+html[data-theme="dark"] body .reviews-live .review-rating { color: var(--muted, #c0d2c7); }

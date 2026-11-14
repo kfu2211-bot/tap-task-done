@@ -102,3 +102,17 @@ html body.my-jobs-page .job-card .job-progress-button:hover { background:#155f49
     cursor: pointer;
 }
 #withdrawJobDialog button[value="withdraw"] { background: #a32932; border-color: #a32932; color: #fff; }
+
+/* Match the My Tasks workspace palette and spacing. */
+html body.my-jobs-page .jobs-page { padding-block-start: 26px; }
+html body.my-jobs-page .jobs-intro h2 { font-size: clamp(25px, 3vw, 36px); line-height: 1.18; }
+html body.my-jobs-page .jobs-section-heading h2 { font-size: 22px; }
+html body.my-jobs-page .job-tabs :is(a, button) { min-height: 44px; }
+html body.my-jobs-page :is(.jobs-empty, .job-card) {
+    border-radius: 15px;
+    box-shadow: 0 3px 12px rgba(25, 62, 48, .06);
+}
+html body.my-jobs-page .jobs-empty { padding: clamp(26px, 4vw, 44px) 20px; }
+html body.my-jobs-page .job-card-head > div { min-width: 0; overflow-wrap: anywhere; }
+html body.my-jobs-page .job-card-head p { font-size: 15px; line-height: 1.55; }
+html body.my-jobs-page .job-card .job-status { flex-shrink: 0; font-size: 13px; font-weight: 700; }

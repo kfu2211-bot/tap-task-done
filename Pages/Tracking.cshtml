@@ -132,8 +132,8 @@
 
                 <h1>Tracking</h1>
 
-                <div class="notification">
-                    ♧
+                <div class="notification app-notification-trigger">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-2 7-2 9h16c0-2-2-2-2-9M10 20h4"/></svg>
                 </div>
 
             </header>
@@ -547,9 +547,10 @@
                     .tracking-intro .db-tracking-eyebrow { color:#19765a; font-size:10px; letter-spacing:.14em; }
                     .tracking-intro .db-tracking-header h2 { margin:10px 0 8px; font-size:28px; letter-spacing:-.5px; }
                     .tracking-intro .db-tracking-header p { margin:0; font-size:14px; }
-                    html body .db-tracking .tracking-intro, html body .db-tracking .tracking-intro .db-tracking-header { background:#fff !important; box-shadow:none; }
+                    html body .db-tracking .tracking-intro { background:#fff !important; box-shadow:none; }
+                    html body .db-tracking .tracking-intro .db-tracking-header { background:#e5f0e6; box-shadow:none; }
                     .tracking-picker { position:relative; margin-top:10px; }
-                    .tracking-picker-label { display:block; margin-top:24px; color:#193e30; font-size:13px; font-weight:600; }
+                    .tracking-picker-label { display:block; margin-top:16px; color:#193e30; font-size:13px; font-weight:600; }
                     .tracking-picker summary { list-style:none; display:flex; justify-content:space-between; align-items:center; gap:16px; min-height:62px; padding:13px 16px; border:1px solid #bfd3c3; border-radius:8px; background:#fff; color:#193e30; cursor:pointer; }
                     .tracking-picker summary::-webkit-details-marker { display:none; }
                     .tracking-picker summary > span { min-width:0; }
@@ -678,5 +679,7 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
 
 <script src="~/js/completion-photo.js" asp-append-version="true" defer></script>
 <script src="~/js/job-location.js" asp-append-version="true" defer></script>
+
+    <partial name="_TaskHelp" />
 </body>
 </html>

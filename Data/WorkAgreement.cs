@@ -76,5 +76,11 @@ public static class AgreementRules
 public static class ConversationAccess
 {
     public static IQueryable<TaskConversation> VisibleTo(ApplicationDbContext db, int viewer) =>
-        db.Set<TaskConversation>().Where(c => c.FreelancerId == viewer || db.MarketplaceTasks.Any(t => t.Id == c.TaskId && t.ClientId == viewer));
+        from conversation in db.Set<TaskConversation>()
+        join task in db.MarketplaceTasks on conversation.TaskId equals task.Id
+        join client in db.Users on task.ClientId equals client.Id
+        join freelancer in db.Users on conversation.FreelancerId equals freelancer.Id
+        where (client.Id == viewer || freelancer.Id == viewer)
+            && client.Role != "deleted" && freelancer.Role != "deleted"
+        select conversation;
 }

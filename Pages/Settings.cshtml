@@ -69,7 +69,6 @@
                             </dialog>
                             <button id="removePhotoButton" class="remove-photo-button" type="button">Remove photo</button>
                             <span class="photo-file-note">JPG, PNG or WEBP · Max 5 MB</span>
-                            <span class="photo-storage-note">Your photo is securely saved to your account.</span>
                             <p id="photoMessage" class="photo-message" aria-live="polite"></p>
                         </div>
                     </section>
@@ -139,17 +138,30 @@
                     <div class="account-role" id="work-preferences"><h3 id="workRoleTitle">Work role</h3><select aria-labelledby="workRoleTitle" aria-describedby="workRoleHelp" asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select><p id="workRoleHelp" class="form-message"></p></div><div id="freelancerPreferences"><fieldset class="settings-group work-group">
                         <legend>Service details</legend>
                         <div class="field-grid work-field-grid">
-                            <label>Service / profession<select asp-for="Service"><option value="">Choose a service</option>@foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other/General" }) { <option value="@category">@category</option> } @if (!string.IsNullOrWhiteSpace(Model.Service) && !new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other/General" }.Contains(Model.Service, StringComparer.OrdinalIgnoreCase)) { <option value="@Model.Service">@Model.Service (previous selection)</option> }</select><small>Choose the category that best describes your service.</small></label>
-                            <label for="Location">Service location
-                                <select id="Location" name="Location" aria-describedby="serviceLocationHelp serviceLocationError">
-                                    <option value="">Choose a barangay</option>
+                            <div class="service-choice">
+                                <strong>Services offered</strong>
+                                <details>
+                                    <summary>Add services</summary>
+                                    <div class="service-checkboxes">
+                                        @foreach (var service in SettingsModel.ServiceOptions)
+                                        {
+                                            <label><input type="checkbox" name="Services" value="@service" checked="@Model.Services.Contains(service)" /> @service</label>
+                                        }
+                                    </div>
+                                </details>
+                                <div id="selectedServices"></div>
+                                <label id="otherServiceField">Specify your service<input asp-for="OtherService" maxlength="60" /></label>
+                            </div>
+                            <div class="service-choice">
+                                <strong>Service areas</strong>
+                                <div class="service-checkboxes">
+                                    <label><input type="checkbox" id="selectAllServiceAreas" /> Select all 5 areas</label>
                                     @foreach (var area in tts.Pages.BacolorServiceAreas.Names)
                                     {
-                                        <option value="@area" selected="@(area == Model.SelectedServiceArea)">@area</option>
+                                        <label><input type="checkbox" name="Areas" value="@area" checked="@Model.Areas.Contains(area)" /> @area</label>
                                     }
-                                </select>
-                                <span asp-validation-for="Location" id="serviceLocationError" class="text-danger"></span><small id="serviceLocationHelp">Choose where you offer services in Bacolor, Pampanga.</small>
-                            </label>
+                                </div>
+                            </div>
                             <label>Minimum rate (₱)<input asp-for="Rate" type="number" min="1" step="1" placeholder="e.g. 500" /></label>
                             <label>Maximum rate (₱)<input asp-for="RateMaximum" type="number" min="1" step="1" placeholder="e.g. 1000" /></label>
                             
@@ -182,5 +194,7 @@
             </section>
         </main>
     </div>
+
+    <partial name="_TaskHelp" />
 </body>
 </html>

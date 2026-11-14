@@ -1,0 +1,107 @@
+@page "/"
+@{
+    Layout = null;
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var services = new[]
+    {
+        ("Cleaning", "m14 3 3 3-7 8-3-3zM7 11l-4 7c3 3 6 3 9 0l-2-4"),
+        ("Repairs", "M14 6a5 5 0 0 0-6 6L3 17a3 3 0 0 0 4 4l5-5a5 5 0 0 0 6-6l-4 3-3-3z"),
+        ("Gardening", "M20 3C8 3 3 8 5 15c5 5 14 1 15-12ZM3 21 15 9"),
+        ("Errands", "M4 8h16l1 13H3zM8 9V6a4 4 0 0 1 8 0v3")
+    };
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Find local freelancers and post tasks in Bacolor, Pampanga." />
+    <title>Tap, Task, Done | Local help in Bacolor</title>
+    <link rel="icon" href="/tap-task-icon.svg" />
+    <link rel="stylesheet" href="/css/landing.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="landing-header">
+        <a class="landing-brand" asp-page="/Landing"><img src="/tap-task-icon.svg" alt="" width="38" height="38" /> Tap, Task, Done</a>
+        <nav aria-label="Main navigation">
+            <a href="#how-it-works">How it works</a>
+            <a href="#service-areas">Service areas</a>
+            @if (signedIn)
+            {
+                <a class="landing-button" asp-page="/Dashboard">Dashboard</a>
+            }
+            else
+            {
+                <a asp-page="/Login">Log in</a>
+                <a class="landing-button" asp-page="/Index">Create account</a>
+            }
+        </nav>
+    </header>
+    <main>
+        <section class="landing-hero" aria-labelledby="landing-title">
+            <div class="hero-copy">
+                <h1 id="landing-title">Local help,<br />made simple.</h1>
+                <p>Find local freelancers in Bacolor, Pampanga.</p>
+                <div class="hero-actions">
+                    <a class="landing-button" asp-page="@(signedIn ? "/FindPost" : "/Login")" asp-route-mode="@(signedIn ? "post" : null)">Post a task</a>
+                    <a class="landing-button landing-outline" asp-page="@(signedIn ? "/FindPost" : "/Login")">Find a freelancer</a>
+                </div>
+            </div>
+            <img class="hero-photo" src="/landing-gardener.png" asp-append-version="true" alt="A gardener trimming a hedge at a home" fetchpriority="high" />
+        </section>
+        <section class="landing-section landing-services" aria-labelledby="services-title">
+            <h2 id="services-title">What kind of help do you need?</h2>
+            <div class="service-grid">
+                @foreach (var (name, path) in services)
+                {
+                    <a asp-page="@(signedIn ? "/FindPost" : "/Login")" asp-route-search="@(signedIn ? name : null)">
+                        <span class="service-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="@path" /></svg></span>
+                        @name
+                    </a>
+                }
+            </div>
+        </section>
+        <section class="landing-section" id="how-it-works">
+            <h2>How it works</h2>
+            <ol class="landing-steps">
+                <li><strong>Choose your role</strong><span>In Settings, choose Client, Freelancer, or Client &amp; Freelancer.</span></li>
+                <li><strong>Verify your identity</strong><span>Get your identity verification approved before posting a task or finding jobs.</span></li>
+                <li><strong>Post a task or find jobs</strong><span>Clients post tasks. Freelancers look for jobs. Choose both roles to do both.</span></li>
+                <li><strong>Connect</strong><span>Discuss the task details with the client or freelancer.</span></li>
+                <li><strong>Get it done</strong><span>Complete the task together.</span></li>
+            </ol>
+        </section>
+        <section class="landing-section landing-community" aria-labelledby="community-reviews-title">
+            <div>
+                <h2 id="community-reviews-title">Reviews from the community</h2>
+                <p>Sample reviews</p>
+            </div>
+            <div class="landing-review-list">
+                <figure class="landing-review">
+                    <span class="landing-review-avatar" aria-hidden="true">MR</span>
+                    <div>
+                        <span class="landing-review-stars" role="img" aria-label="5 out of 5 stars">★★★★★</span>
+                        <blockquote>Easy to coordinate, and the garden looked great after.</blockquote>
+                        <figcaption>Mika R. · Client · Gardening</figcaption>
+                    </div>
+                </figure>
+                <figure class="landing-review">
+                    <span class="landing-review-avatar" aria-hidden="true">PD</span>
+                    <div>
+                        <span class="landing-review-stars" role="img" aria-label="5 out of 5 stars">★★★★★</span>
+                        <blockquote>Clear instructions and an agreed schedule made the job easy to plan.</blockquote>
+                        <figcaption>Paolo D. · Freelancer · Repairs</figcaption>
+                    </div>
+                </figure>
+            </div>
+        </section>
+        <section class="landing-section landing-areas" id="service-areas">
+            <h2>Service areas</h2>
+            <p>Solana Casa Real, Cabalantian, Parulog, Cabetican, and Magliman in Bacolor, Pampanga.</p>
+        </section>
+    </main>
+    <footer class="landing-section">© @DateTime.UtcNow.AddHours(8).Year Tap, Task, Done.</footer>
+
+    <partial name="_TaskHelp" />
+</body>
+</html>

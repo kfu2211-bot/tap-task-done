@@ -82,3 +82,134 @@ html body #findJobsSection .sent-offer-status { padding:5px 10px; border-radius:
 .provider-detail-panel .direct-booking-form p { color:#526c5d; font-size:13px; line-height:1.5; }
 .provider-detail-panel .direct-booking-form small { color:#526c5d; line-height:1.5; }
 .provider-detail-panel .direct-booking-form input[type="datetime-local"] { min-height:46px; color-scheme:light; }
+
+/* Shared presentation for the three Find & Post views. */
+html body .page-content .mode-switcher {
+    width: fit-content;
+    max-width: 100%;
+    padding: 3px;
+    background: #fff !important;
+    border: 1px solid #cfe0d1 !important;
+    border-radius: 24px;
+}
+html body .page-content .mode-switcher .mode-button {
+    min-height: 44px;
+    padding: 10px clamp(10px, 2vw, 22px);
+    border: 0;
+    border-radius: 20px;
+}
+html body .page-content .mode-switcher .mode-button.active {
+    background: #dcefe1 !important;
+    color: #164d37 !important;
+}
+html body .page-content :is(.provider-search-intro, .jobs-heading) {
+    padding: clamp(16px, 2vw, 24px);
+    background: #e9f3ea !important;
+    border: 1px solid #d3e4d5 !important;
+    border-radius: 12px;
+}
+html body .page-content :is(.freelancer-card, .jobs-card) {
+    background: #fff !important;
+    border-radius: 12px;
+}
+#findFreelancerSection .freelancer-info .provider-availability {
+    display: block;
+    width: fit-content;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #edf5ed;
+    color: #176b50;
+}
+#findFreelancerSection .freelancer-info > span:not(.provider-availability),
+#findFreelancerSection .freelancer-info .match-details {
+    color: #40594d;
+    font-size: 14px;
+    line-height: 1.5;
+}
+#findFreelancerSection .freelancer-info .search-match-reasons:not(:empty) {
+    color: #176047;
+    font-size: 14px;
+    font-weight: 600;
+}
+html[data-theme="dark"] body #findFreelancerSection .freelancer-info .provider-availability {
+    background: #254537;
+    color: #edf5ef !important;
+}
+html body #postTaskSection .post-categories input:not(:checked) + span {
+    background: #fff !important;
+}
+html body #findJobsSection .jobs-card {
+    padding: clamp(16px, 2vw, 24px);
+}
+@media (min-width: 850px) {
+    html body #findFreelancerSection .freelancer-right {
+        display: grid;
+        grid-template-columns: minmax(120px, max-content) minmax(150px, max-content) auto;
+        align-items: center;
+        gap: 12px;
+    }
+    #findFreelancerSection .freelancer-right > :is(.freelancer-rating, .freelancer-price) {
+        border-inline-start: 1px solid #cfe0d1;
+        padding-inline-start: 12px;
+    }
+}
+#findFreelancerSection .freelancer-price {
+    width: auto;
+    white-space: nowrap;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Find Jobs keeps task information and actions aligned on wide screens. */
+html body .page-content .mode-switcher .mode-button.active {
+    border: 0;
+    border-radius: 20px;
+}
+html body #findJobsSection .jobs-heading {
+    background: linear-gradient(110deg, #f0f6ee, #e5f0e5) !important;
+    padding-block: 18px;
+}
+html body #findJobsSection .jobs-card {
+    display: grid;
+    gap: 8px 16px;
+}
+#findJobsSection .jobs-card > :is(h3, p, form, .jobs-meta, .jobs-offer) {
+    margin: 0;
+}
+#findJobsSection .jobs-card > p:not(.jobs-offer-status),
+html body #findJobsSection .jobs-card .jobs-meta {
+    color: #40594d !important;
+    font-size: 14px;
+}
+html body #findJobsSection .jobs-card > .jobs-offer-status {
+    justify-self: start;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #e1efe3;
+    color: #15513a !important;
+    font-size: 14px;
+    font-weight: 700;
+}
+html[data-theme="dark"] body #findJobsSection .jobs-card > .jobs-offer-status {
+    background: #254537;
+    color: #edf5ef !important;
+}
+html body #findJobsSection .jobs-card .jobs-offer {
+    background: transparent !important;
+    border: 0;
+}
+@media (min-width: 1050px) {
+    #findJobsSection .jobs-card {
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: center;
+    }
+    #findJobsSection .jobs-card-top { grid-column: 1 / -1; }
+    #findJobsSection .jobs-card > :is(h3, p, .jobs-meta) { grid-column: 1; }
+    #findJobsSection .jobs-card > form { grid-column: 2; grid-row: 3 / span 2; }
+    #findJobsSection .jobs-card > .jobs-offer { grid-column: 3; grid-row: 3 / span 2; }
+    #findJobsSection .jobs-card > .jobs-offer[open] {
+        grid-column: 1 / -1;
+        grid-row: auto;
+        justify-self: stretch;
+    }
+}

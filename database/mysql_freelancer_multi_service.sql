@@ -1,0 +1,1 @@
+ALTER TABLE freelancer_profiles MODIFY COLUMN Service VARCHAR(200) NOT NULL DEFAULT '';

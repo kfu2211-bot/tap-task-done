@@ -1,0 +1,48 @@
+<link rel="stylesheet" href="~/css/task-help.css" asp-append-version="true" />
+<script defer src="~/js/landing-help.js" asp-append-version="true"></script>
+
+<button type="button" class="task-help-launch" aria-haspopup="dialog" hidden>
+    <span aria-hidden="true">☏</span> Task Help
+</button>
+<dialog class="task-help" aria-labelledby="task-help-title"
+        data-report-url="@Url.Page(User.Identity?.IsAuthenticated == true ? "/Reports" : "/Login")">
+    <header>
+        <div class="task-help-heading">
+            <h2 id="task-help-title">Task Help</h2>
+            <span>Tap, Task, Done</span>
+        </div>
+        <form method="dialog"><button type="submit" aria-label="Close Task Help">×</button></form>
+    </header>
+    <div class="task-help-content">
+        <p>Ano ang gusto mong gawin?</p>
+        <div class="task-help-topics">
+            <button type="button" data-topic="post">Mag-post ng task</button>
+            <button type="button" data-topic="jobs">Maghanap ng trabaho</button>
+            <button type="button" data-topic="verify">Magpa-verify</button>
+            <button type="button" data-topic="areas">Saan available?</button>
+            <button type="button" data-topic="report">Mag-report</button>
+        </div>
+        <p class="task-help-answer" role="status" id="task-help-answer" hidden></p>
+        <a class="task-help-action" id="task-help-report" hidden>@(User.Identity?.IsAuthenticated == true ? "Open Safety & Reports" : "Log in to report")</a>
+        <form id="task-help-question">
+            <label for="task-help-input">I-type ang tanong mo</label>
+            <div class="task-help-input-row">
+                <input id="task-help-input" maxlength="250" autocomplete="off" aria-describedby="task-help-language" required />
+                <button type="submit">Send</button>
+            </div>
+            <small id="task-help-language">You can ask questions in English, Filipino, or Taglish.</small>
+        </form>
+        <nav aria-label="Task Help links">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-page="/Settings" asp-fragment="work-preferences">Settings</a>
+                <a asp-page="/IdentityVerification">Identity Verification</a>
+            }
+            else
+            {
+                <a asp-page="/Login">Log in</a>
+                <a asp-page="/Index">Create account</a>
+            }
+        </nav>
+    </div>
+</dialog>

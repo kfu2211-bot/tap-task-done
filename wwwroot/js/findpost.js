@@ -306,7 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 : availability === "busy" ? status.startsWith("busy") : status === availability);
             const categorySearch = categoryFromHome && query === categoryFromHome.trim().toLowerCase();
             const isOther = query === "other/general" || (otherCategory && !query);
-            const matchesOther = !isOther || !Object.values(categoryTerms).some(words => words.some(word => service.includes(word)));
+            const matchesOther = !isOther || service.includes("other/general") || !Object.values(categoryTerms).some(words => words.some(word => service.includes(word)));
             const matches = matchesOther && (isOther || !query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
                 matchesLocation &&
                 (maximum === null || (rate > 0 && rate <= maximum)) &&

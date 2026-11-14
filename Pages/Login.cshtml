@@ -32,7 +32,7 @@
 
         <!-- LOGO -->
 
-        <div class="login-logo">
+        <a class="login-logo" asp-page="/Landing" aria-label="Tap, Task, Done home">
 
             <div class="login-logo-circle">
                 ✓
@@ -42,7 +42,7 @@
                 Tap, Task, Done
             </span>
 
-        </div>
+        </a>
 
 
 
@@ -129,7 +129,7 @@
 
                 Don't have an account?
 
-                <a href="/">
+                <a asp-page="/Index">
                     Create an account
                 </a>
 
@@ -219,6 +219,7 @@
             }
         });
     </script>
+
 
 </body>
 

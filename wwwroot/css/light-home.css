@@ -9,6 +9,8 @@ body .navigation .nav-icon { color: #28765a !important; }
 html body .sidebar-user { background: #f8faf7 !important; border-color: #dfe8df !important; color: #1c302b !important; }
 html body .sidebar-user .user-info strong, html body .sidebar-user .user-info small { color: #40574c !important; }
 .topbar { background: #fff; border-color: #e4eae4; }
+body.dashboard-body { overflow-x: clip; }
+.dashboard .main-content > .topbar { position: sticky; top: 0; z-index: 30; }
 .topbar h1 { color: #20372e; }
 .notification { background: #fff; color: #19765a; border-color: #d7e4d9; }
 .notification:hover { background: #e5f1e8; color: #155e48; }

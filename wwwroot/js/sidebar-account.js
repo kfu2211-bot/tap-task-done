@@ -76,7 +76,7 @@
                 account.availability = preferences.availability;
                 localStorage.setItem('tapTaskDoneAccount', JSON.stringify(account));
             }
-        } catch (error) { console.warn('Work preferences could not be refreshed.', error); }
+        } catch (error) { console.warn('Work preferences could not be refreshed.', error); }    
 
         var name = (account.nickname || account.name || "User").trim();
         var email = (account.email || "").trim();
@@ -178,10 +178,12 @@
             nav.querySelectorAll('a[href="/FindPost?mode=jobs"]').forEach(function (link) { if (!isFreelancer || isClient) link.remove(); });
         });
 
-        var popupStyle = document.createElement("link");
-        popupStyle.rel = "stylesheet";
-        popupStyle.href = "/css/notification-popup.css";
-        document.head.appendChild(popupStyle);
+        if (!document.querySelector('link[href*="/css/notification-popup.css"]')) {
+            var popupStyle = document.createElement("link");
+            popupStyle.rel = "stylesheet";
+            popupStyle.href = "/css/notification-popup.css";
+            document.head.appendChild(popupStyle);
+        }
         var header = document.querySelector("main > header, .topbar, .top-header, .mytasks-topbar, .market-header");
         var notificationSelector = ".notification, .notification-button, #notificationButton, .mytasks-notification";
         if (header && !header.querySelector(notificationSelector)) {
@@ -434,7 +436,7 @@
             accountCaption.textContent = "MY ACCOUNT";
             accountCopy.append(accountCaption, accountName);
             var chevron = document.createElement("span");
-            chevron.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
+            chevron.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
             chevron.className = "header-account-chevron";
             chevron.setAttribute("aria-hidden", "true");
             accountButton.append(avatar, accountCopy, chevron);

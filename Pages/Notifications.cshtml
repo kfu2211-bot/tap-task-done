@@ -27,4 +27,6 @@ else { <div class="notification-list">@foreach (var item in Model.Items) {
 <form method="post" asp-page-handler="Open"><input type="hidden" name="id" value="@item.Id" />
 <button data-kind="@item.Kind" data-created="@item.CreatedAt.ToUniversalTime().ToString("o")" class="notification-item @(item.IsRead ? "" : "unread")" type="submit"><span class="notification-dot" aria-hidden="true"></span><span><strong>@item.Message</strong><small>@(Model.TaskTitles.TryGetValue(item.TaskId, out var taskTitle) ? taskTitle : "Task unavailable") · @tts.Data.DisplayTime.Philippine(item.CreatedAt) · @(item.IsRead ? "Read" : "Unread")</small></span><span aria-hidden="true">→</span></button></form>
 }</div><p class="notification-footnote">Showing up to 100 most recent updates.</p> }
-</section></main></div></body></html>
+</section></main></div>
+    <partial name="_TaskHelp" />
+</body></html>

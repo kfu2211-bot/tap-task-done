@@ -104,7 +104,7 @@ public static class LoginSecurity
     }
     public static bool Usable(LoginChallenge challenge, DateTime now) => !challenge.Consumed && challenge.Attempts < 5 && challenge.ExpiresUtc > now;
     public record ChallengeProof(string Token, string Code);
-    public static async Task<string> SignInAsync(ApplicationDbContext db, HttpContext context, AppUser user, bool trust, CancellationToken ct, ChallengeProof? proof = null)
+    public static async Task<string> SignInAsync(ApplicationDbContext db, HttpContext context, AppUser user, bool trust, CancellationToken ct, ChallengeProof? proof = null, bool registrationOnly = false)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var current = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id={user.Id} FOR UPDATE").AsNoTracking().ToListAsync(ct)).SingleOrDefault();
@@ -112,11 +112,13 @@ public static class LoginSecurity
         if (current is null || AccountStore.SessionFingerprint(current.PasswordHash) != AccountStore.SessionFingerprint(user.PasswordHash) || current.Username != user.Username || !current.DateOfBirth.HasValue || current.DateOfBirth.Value.Date > DateTime.UtcNow.AddHours(8).Date.AddYears(-16))
             throw new InvalidOperationException("Your account changed. Please log in again.");
         user = current;
+        if (registrationOnly && (AccountModerationRules.IsStaff(user.Role) || user.Role == "deleted"))
+            throw new InvalidOperationException("This account requires regular sign-in.");
         if (proof is null)
         {
             // Repeat under the account lock so a simultaneous revoke cannot reuse stale trust.
             var registrationProof = VerificationMailer.Enabled(config) && await RegistrationVerification.ConsumeFirstLoginAsync(db, context, user, ct);
-            if (!registrationProof && !await TrustedAsync(db, context, user, ct)) throw new InvalidOperationException("This browser needs a new sign-in code.");
+            if (!registrationProof && (registrationOnly || !await TrustedAsync(db, context, user, ct))) throw new InvalidOperationException("This browser needs a new sign-in code.");
         }
         else
         {

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -45,13 +47,65 @@ public sealed class VerifyEmailModel(ApplicationDbContext db, IConfiguration con
         {
             await LoadAsync(ct);
             if (RegistrationVerification.ValidCode(Code) && await RegistrationVerification.ConfirmAsync(db, HttpContext, Code, ct))
-            { Completed = true; RegistrationNotice = null; return Page(); }
+            { RegistrationNotice = null; return RedirectToPage(new { handler = "Continue" }); }
             ErrorMessage = "Invalid or expired code. You have up to five attempts per code. Use Resend code if needed.";
             await LoadAsync(ct);
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException)
         { logger.LogWarning("Registration code verification failed ({Type}).", ex.GetType().Name); ErrorMessage = "Unable to verify the code. Try again, or change the email if it can no longer be used."; await LoadSafelyAsync(ct); }
         Code = null; ModelState.Clear(); return Page();
+    }
+    public async Task<IActionResult> OnGetContinueAsync(CancellationToken ct)
+    {
+        Protect();
+        var token = Request.Cookies[RegistrationVerification.FirstLoginCookie];
+        if (!VerificationMailer.Enabled(config) || !LoginSecurity.ValidToken(token))
+            return RedirectToPage("/Login");
+        try
+        {
+            var hash = LoginSecurity.Hash(token!);
+            var now = DateTime.UtcNow;
+            var user = await (from proof in db.Set<RegistrationEmailCode>().AsNoTracking()
+                join account in db.Users.AsNoTracking() on proof.UserId equals account.Id
+                where proof.FirstLoginHash == hash && proof.FirstLoginExpiresUtc > now &&
+                    proof.Email == account.Username
+                select account).SingleOrDefaultAsync(ct);
+            if (user is null || AccountModerationRules.IsStaff(user.Role) || user.Role == "deleted")
+                return RedirectToPage("/Login");
+            if (LoginSecurity.Enabled(config))
+            {
+                await LoginSecurity.SignInAsync(db, HttpContext, user, false, ct, registrationOnly: true);
+            }
+            else
+            {
+                await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+                var current = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id={user.Id} FOR UPDATE")
+                    .AsNoTracking().ToListAsync(ct)).SingleOrDefault();
+                if (current is null || AccountModerationRules.IsStaff(current.Role) || current.Role == "deleted" ||
+                    current.DateOfBirth is not DateTime birth || birth.Date > now.AddHours(8).Date.AddYears(-16) ||
+                    !await VerificationMailer.IsVerifiedAsync(db, current, ct) ||
+                    await ModerationGuard.IsSuspendedAsync(db, current.Id, ct) ||
+                    !await RegistrationVerification.ConsumeFirstLoginAsync(db, HttpContext, current, ct))
+                    return RedirectToPage("/Login");
+                await db.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+                var identity = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, current.Id.ToString()),
+                    new Claim(ClaimTypes.Name, $"{current.FirstName} {current.LastName}".Trim()),
+                    new Claim(ClaimTypes.Email, current.Username ?? ""),
+                    new Claim("password_version", AccountStore.SessionFingerprint(current.PasswordHash))
+                }, "Cookies");
+                await HttpContext.SignInAsync("Cookies", new ClaimsPrincipal(identity));
+            }
+            TempData["RegistrationSuccess"] = "Account created and email verified.";
+            return RedirectToPage("/Dashboard");
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException)
+        {
+            logger.LogWarning("Registration sign-in failed ({Type}).", ex.GetType().Name);
+            return RedirectToPage("/Login");
+        }
     }
     public Task<IActionResult> OnPostResendAsync(CancellationToken ct) => SendAsync(false, ct);
     public Task<IActionResult> OnPostChangeAsync(CancellationToken ct) => SendAsync(true, ct);

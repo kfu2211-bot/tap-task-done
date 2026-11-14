@@ -138,3 +138,8 @@ html:has(.page), body:has(.page) {
 .page .birth-date-error:empty { display: none; }
 .page .date-row .dropdown-button[aria-invalid="true"] { border-color: #b94440; }
 html[data-theme="dark"] .page .birth-date-error { background: #462727; color: #ffd2ce; }
+.page.registration-page { display: flex; flex-direction: column; min-height: 100vh; background: #f6f7f3; }
+.registration-page .login-logo { position: static; align-self: flex-start; margin: 24px clamp(16px, 4vw, 48px) 0; }
+.page.registration-page .right-side { width: 100%; flex: 1; min-height: 0; display: grid; place-items: center; }
+.login-logo { text-decoration: none; }
+.login-logo:focus-visible { outline: 2px solid #19765a; outline-offset: 5px; }

@@ -49,6 +49,7 @@ namespace tts.Pages
                 CategoryCounts = terms.ToDictionary(x => x.Key,
                     x => services.Count(service => x.Value.Any(term => service.Contains(term, StringComparison.OrdinalIgnoreCase))));
                 CategoryCounts["Others"] = services.Count(service =>
+                    service.Contains("Other/General", StringComparison.OrdinalIgnoreCase) ||
                     !terms.Values.Any(words => words.Any(word => service.Contains(word, StringComparison.OrdinalIgnoreCase))));
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)

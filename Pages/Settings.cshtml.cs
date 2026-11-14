@@ -11,14 +11,18 @@ namespace tts.Pages;
 
 public static class BacolorServiceAreas
 {
+    public const string AllAreas = "All 5 supported areas";
     public static IReadOnlyList<string> Names { get; } =
         Array.AsReadOnly(new[] { "Solana Casa Real", "Cabalantian", "Parulog", "Cabetican", "Magliman" });
 
     public static string? Match(string? name) =>
-        Names.FirstOrDefault(area => string.Equals(area, name?.Trim(), StringComparison.OrdinalIgnoreCase));
+        string.Equals(AllAreas, name?.Trim(), StringComparison.OrdinalIgnoreCase)
+            ? AllAreas
+            : Names.FirstOrDefault(area => string.Equals(area, name?.Trim(), StringComparison.OrdinalIgnoreCase));
 
     public static IEnumerable<string> InLocation(string location)
     {
+        if (Match(location) == AllAreas) return Names;
         var normalized = " " + System.Text.RegularExpressions.Regex.Replace(location.ToLowerInvariant(), "[^a-z0-9]+", " ").Trim() + " ";
         return Names.Where(area => normalized.Contains(" " + area.ToLowerInvariant() + " ", StringComparison.Ordinal));
     }
@@ -38,7 +42,10 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
     public bool ContactUnavailable { get; private set; }
     [BindProperty] public string? Service { get; set; }
     [BindProperty] public string? Location { get; set; }
-    public string? SelectedServiceArea => BacolorServiceAreas.Match(Location?.Split(',')[0]);
+    public static readonly string[] ServiceOptions = ["Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other/General"];
+    [BindProperty] public string[] Services { get; set; } = [];
+    [BindProperty] public string[] Areas { get; set; } = [];
+    [BindProperty] public string? OtherService { get; set; }
     [BindProperty] public int? Rate { get; set; }
     [BindProperty] public int? RateMaximum { get; set; }
     [BindProperty] public string WorkRole { get; set; } = "client";
@@ -58,7 +65,11 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
             PhoneNumber = contact?.PhoneNumber ?? ""; SharePhone = contact?.ShareWithAssignedUser ?? false;
         } catch (MySqlConnector.MySqlException ex) { logger.LogWarning(ex, "Contact storage unavailable"); ContactUnavailable = true; }
         var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId);
-        if (profile != null) { Service = profile.Service; Location = profile.Location; Rate = profile.Rate; RateMaximum = profile.RateMaximum ?? profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
+        if (profile != null) { Service = profile.Service; Location = profile.Location;
+            var savedServices = Service.Split(", ", StringSplitOptions.RemoveEmptyEntries);
+            Services = savedServices.Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) || !ServiceOptions.Contains(value) ? "Other/General" : value).Distinct().ToArray();
+            OtherService = string.Join(", ", savedServices.Where(value => !ServiceOptions.Contains(value)).Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) ? value["Other/General: ".Length..] : value));
+            Areas = BacolorServiceAreas.InLocation(Location).ToArray(); Rate = profile.Rate; RateMaximum = profile.RateMaximum ?? profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
         EffectiveAvailability = await FreelancerAvailability.GetAsync(db, UserId, Availability, HttpContext.RequestAborted);
         return Page();
     }
@@ -124,24 +135,26 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
     public async Task<IActionResult> OnPostAsync()
     {
         var validDays = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
-        Service = (Service ?? "").Trim(); Location = (Location ?? "").Trim();
+        OtherService = OtherService?.Trim();
         Days ??= [];
-        if (!ModelState.IsValid || UserId == 0 || Service.Length > 60 || Location.Length > 80 || Rate is <= 0 || RateMaximum is <= 0 ||
+        if (!ModelState.IsValid || UserId == 0 || Rate is <= 0 || RateMaximum is <= 0 ||
             ((WorkRole is "freelancer" or "both") && (Rate.HasValue != RateMaximum.HasValue || RateMaximum < Rate)) ||
             !new[] { "client", "freelancer", "both" }.Contains(WorkRole) ||
             !new[] { "Available", "Busy", "Day off" }.Contains(Availability) || Days.Any(x => !validDays.Contains(x)))
         { Message = "Please check your work preferences and try again."; return RedirectToPage(); }
-        var serviceArea = SelectedServiceArea;
-        if ((WorkRole is "freelancer" or "both") && serviceArea is null)
-        { ModelState.AddModelError(nameof(Location), "Choose one of the five supported barangays in Bacolor before saving."); return Page(); }
+        if ((WorkRole is "freelancer" or "both") &&
+            (Services.Length == 0 || Services.Any(service => !ServiceOptions.Contains(service)) ||
+             Areas.Length == 0 || Areas.Any(area => !BacolorServiceAreas.Names.Contains(area)) ||
+             (Services.Contains("Other/General") && (string.IsNullOrWhiteSpace(OtherService) || OtherService.Length > 60 || OtherService.Contains(',')))))
+        { Message = "Choose at least one service and area. For Other / General, enter a service name of up to 60 characters without commas."; return RedirectToPage(); }
         if (!await db.Users.AnyAsync(x => x.Id == UserId)) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
         var profile = await db.FreelancerProfiles.FindAsync(UserId);
         if (profile is null) { profile = new FreelancerProfile { UserId = UserId }; db.FreelancerProfiles.Add(profile); }
         profile.WorkRole = WorkRole;
         if (WorkRole is "freelancer" or "both")
         {
-            profile.Service = Service;
-            profile.Location = serviceArea!;
+            profile.Service = string.Join(", ", ServiceOptions.Where(Services.Contains).Select(service => service == "Other/General" ? $"Other/General: {OtherService}" : service));
+            profile.Location = Areas.Distinct().Count() == BacolorServiceAreas.Names.Count ? BacolorServiceAreas.AllAreas : string.Join(", ", BacolorServiceAreas.Names.Where(Areas.Contains));
             profile.Rate = Rate;
             profile.RateMaximum = RateMaximum;
             profile.Availability = Availability;

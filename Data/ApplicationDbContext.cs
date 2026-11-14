@@ -201,7 +201,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         profile.ToTable("freelancer_profiles");
         profile.HasKey(x => x.UserId);
         profile.HasOne<AppUser>().WithOne().HasForeignKey<FreelancerProfile>(x => x.UserId);
-        profile.Property(x => x.Service).HasMaxLength(60);
+        profile.Property(x => x.Service).HasMaxLength(200);
         profile.Property(x => x.Location).HasMaxLength(80);
         profile.Property(x => x.WorkRole).HasMaxLength(16);
         profile.Property(x => x.Availability).HasMaxLength(16);

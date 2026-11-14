@@ -1,7 +1,7 @@
 -- Apply to the existing taptaskdone database; does not alter existing accounts.
 CREATE TABLE IF NOT EXISTS freelancer_profiles (
     UserId INT NOT NULL PRIMARY KEY,
-    Service VARCHAR(60) NOT NULL DEFAULT '',
+    Service VARCHAR(200) NOT NULL DEFAULT '',
     Location VARCHAR(80) NOT NULL DEFAULT '',
     Rate INT NULL,
     RateMaximum INT NULL,

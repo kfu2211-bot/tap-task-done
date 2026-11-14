@@ -32,3 +32,23 @@ html body .verification-page .document-title strong,.verification-page .id-numbe
 .verification-page .status-approved .status-icon { background:#ccebd4 !important; color:#176c4d !important; font-size:22px; font-weight:700; }
 html[data-theme="dark"] body .verification-page .status-card.status-approved { background:#1b392c !important; border-color:#3d7253 !important; color:#e3f6e8 !important; }
 html[data-theme="dark"] body .verification-page .status-approved .status-icon { background:#2c6245 !important; color:#d7f8df !important; }
+
+.verification-page .page-heading {
+    padding: clamp(18px, 2.4vw, 32px);
+    background: #e9f3ea;
+    border: 1px solid #d3e4d5;
+    border-radius: 15px;
+}
+.verification-page .page-heading p { margin: 0; }
+.verification-page .status-card { gap: 16px; }
+html body .verification-page .status-approved .status-text strong {
+    color: #15513a !important;
+    font-size: 15px;
+}
+html body .verification-page .status-approved .status-text p { color: #365b49; font-size: 14px; }
+html[data-theme="dark"] body .verification-page .page-heading {
+    background: #20352b;
+    border-color: #3d6250;
+}
+html[data-theme="dark"] body .verification-page .status-approved .status-text strong,
+html[data-theme="dark"] body .verification-page .status-approved .status-text p { color: #e3f6e8 !important; }

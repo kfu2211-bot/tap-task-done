@@ -125,3 +125,16 @@ html body main > .safety-page.settings-content {
 @media (max-width: 600px) {
     .related-task-options { position: static; margin-top: 4px; }
 }
+
+.safety-page .report-history-grid { display:grid; grid-template-columns:minmax(0, 3fr) minmax(0, 2fr); gap:16px; }
+.safety-page .report-history-grid > section { min-width:0; border:1px solid #d3e4d5; border-radius:12px; padding:14px; }
+.safety-page .report-history-grid h3 { margin:0 0 10px; font-size:17px; }
+.safety-page .report-history-grid :is(article, p) { overflow-wrap:anywhere; }
+.safety-page .report-history-status { display:inline-block; padding:3px 8px; border-radius:999px; background:#e1efe3; color:#15513a; font-size:13px; text-transform:capitalize; }
+html body .safety-page .report-workspace { gap:16px; }
+html body .safety-page .report-workspace > .settings-card { padding:clamp(16px, 2vw, 24px); }
+html body .safety-page .safety-form label { font-size:14px; }
+html body .safety-page .safety-form small { font-size:13px; line-height:1.45; }
+@media (max-width:760px) {
+    .safety-page .report-history-grid { grid-template-columns:minmax(0, 1fr); }
+}

@@ -14,16 +14,16 @@
 <partial name="_AccountTheme" /></head>
 <body><div class="settings-layout"><aside class="sidebar"><div class="brand"><span class="brand-icon">✓</span><strong>Tap, Task, Done</strong></div><nav class="sidebar-menu"></nav><div class="sidebar-account"><span class="account-avatar">U</span><div><strong id="sidebarName">User</strong><span id="sidebarEmail"></span></div></div></aside>
 <main><header><h1>Safety &amp; Reports</h1></header><section class="settings-content safety-page">
-<div class="page-intro"><span class="safety-eyebrow">TRUST &amp; SAFETY</span><h2>Safety &amp; Reports</h2><p>Report a scam, no-show, harassment, or service issue for admin review.</p></div>
+<div class="page-intro"><h2>Report an issue</h2><p>Report a scam, no-show, harassment, or service issue for admin review.</p></div>
 <div class="safety-emergency"><span aria-hidden="true">!</span><p>If someone is in immediate danger, contact local emergency services.</p></div>
 @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="safety-notice" role="status">@Model.Notice</p> }
 <div class="report-workspace"><form method="post" enctype="multipart/form-data" class="settings-card safety-form">
-<h3><svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 4 8 9 10 5-2 9-5 9-10V6L12 2Z"/><path d="m8 12 3 3 5-6"/></svg>Report a safety issue</h3><label for="reportTarget">Person or provider name</label><input id="reportTarget" name="target" maxlength="80" required placeholder="Name of the person being reported" /><small>This is a name for review, not an automatically verified account.</small>
+<h3><svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 4 8 9 10 5-2 9-5 9-10V6L12 2Z"/><path d="m8 12 3 3 5-6"/></svg>Report a safety issue</h3><label for="reportTarget">Person or provider name</label><input id="reportTarget" name="target" maxlength="80" required /><small>This is a name for review, not an automatically verified account.</small>
 <div class="report-field-grid"><div><label for="reportReason">Reason</label><select id="reportReason" name="reason" required><option>Scam or fake account</option><option>No-show</option><option>Harassment or inappropriate behavior</option><option>Threat to safety</option><option>Payment disagreement</option><option>Scheduling disagreement</option><option>Disagreement about agreed work</option><option>Minor communication or service concern</option><option>Other</option></select>
 </div><div><label for="reportTask">Related task (optional)</label>
-<select id="reportTask" name="taskId" aria-describedby="reportTaskHelp reportTaskSelection"><option value="">No related task</option>@foreach(var task in Model.Tasks) { var status = task.Status.Replace('-', ' '); var date = tts.Data.DisplayTime.Philippine(task.CreatedAt); var freelancer = Model.FreelancerNames.TryGetValue(task.Id, out var name) ? name : "No freelancer assigned"; <option value="@task.Id" data-title="@task.Title" data-status="@status" data-date="@date" data-freelancer="@freelancer">@task.Title — #@task.Id · @freelancer · @status · @date</option> }</select><small id="reportTaskHelp">Choose the task involved in this report, or leave this blank if it is not about a task.</small>
+<select id="reportTask" name="taskId" aria-describedby="reportTaskHelp reportTaskSelection"><option value="">No related task</option>@foreach(var task in Model.Tasks) { var status = task.Status.Replace('-', ' '); var date = tts.Data.DisplayTime.Philippine(task.CreatedAt); var freelancer = Model.FreelancerNames.TryGetValue(task.Id, out var name) ? name : "No freelancer assigned"; <option value="@task.Id" data-title="@task.Title" data-status="@status" data-date="@date" data-freelancer="@freelancer">@task.Title — #@task.Id · @freelancer · @status · @date</option> }</select><small id="reportTaskHelp">Choose the task involved, if any.</small>
 <div id="reportTaskSelection" class="report-task-selection" aria-live="polite" hidden><span class="report-task-selection-label">SELECTED TASK</span><strong id="reportTaskTitle"></strong><span id="reportTaskMeta"></span></div>
-</div></div><label for="reportDescription">What happened?</label><textarea id="reportDescription" name="description" maxlength="1000" required rows="5" placeholder="Describe what happened. Do not include passwords or sensitive identity details."></textarea>
+</div></div><label for="reportDescription">What happened?</label><textarea id="reportDescription" name="description" maxlength="1000" required rows="5" placeholder="Do not include passwords or sensitive identity details."></textarea>
 <label class="report-evidence-label" for="reportEvidence">Supporting evidence <em class="report-optional">(optional)</em></label><div class="report-evidence-field"><label class="report-attach" for="reportEvidence">Attach files</label><input id="reportEvidence" class="report-file-input" name="evidence" type="file" accept="image/jpeg,image/png,application/pdf" multiple aria-describedby="reportEvidenceHelp" /><small id="reportEvidenceHelp">JPG, PNG or PDF · Up to 3 files · Maximum 3 MB each</small><output id="reportFileSummary"></output></div><p><label><input type="checkbox" name="immediateDanger" value="true" /> There is an immediate safety risk.</label></p><button class="primary-button" type="submit"><svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-8-6 18-4-8-8-2Zm8 2L21 3"/></svg>Submit report</button></form>
 <section class="report-guide" aria-labelledby="reportGuideTitle">
     <h3 id="reportGuideTitle">What happens next?</h3>
@@ -34,5 +34,43 @@
     </ol>
 </section>
 </div>
-<section class="settings-card safety-history-card"><div class="safety-history-heading"><span class="safety-history-icon" aria-hidden="true">▤</span><div><h2>Your report history</h2><p>Review the reports you have submitted.</p></div></div>@if(Model.Reports.Count == 0) { <p class="safety-history-empty">No reports submitted yet.</p> } @foreach(var report in Model.Reports) { <article class="safety-history"><strong>Report #@report.Id · @report.Reason · @report.Status</strong><p>@report.Target · @tts.Data.DisplayTime.Philippine(report.CreatedAt)</p><p>@report.Description</p><div class="report-public-updates">@foreach(var update in Model.Updates.Where(x => x.ReportId == report.Id)){<section><strong>Admin update · @update.Status</strong><small>@tts.Data.DisplayTime.Philippine(update.Time) PHT</small><p>@update.Message</p></section>}</div>@if(report.Status is "resolved" or "dismissed"){<p>New evidence? Submit a follow-up report above and include reference #@report.Id.</p>}</article> }</section>
-</section></main></div><script defer src="/js/report-attachments.js" asp-append-version="true"></script></body></html>
+<section class="settings-card safety-history-card" aria-labelledby="report-history-title">
+    <div class="safety-history-heading"><span class="safety-history-icon" aria-hidden="true">▤</span><h2 id="report-history-title">Your report history</h2></div>
+    <div class="report-history-grid">
+        <section>
+            <h3>Submitted reports</h3>
+            @if (Model.Reports.Count == 0) { <p>No reports submitted yet.</p> }
+            @foreach (var report in Model.Reports)
+            {
+                <article class="safety-history">
+                    <strong>Report #@report.Id · @report.Reason</strong>
+                    <span class="report-history-status">@report.Status</span>
+                    <p>@report.Target · @tts.Data.DisplayTime.Philippine(report.CreatedAt) PHT</p>
+                    <p>@report.Description</p>
+                    @if (report.Status is "resolved" or "dismissed")
+                    {
+                        <p>New evidence? Submit a follow-up report and include reference #@report.Id.</p>
+                    }
+                </article>
+            }
+        </section>
+        <section>
+            <h3>Admin replies</h3>
+            @if (!Model.Updates.Any()) { <p>No admin replies yet.</p> }
+            <div class="report-public-updates">
+                @foreach (var update in Model.Updates.OrderByDescending(x => x.Time))
+                {
+                    <section>
+                        <strong>Report #@update.ReportId</strong>
+                        <span class="report-history-status">@update.Status</span>
+                        <small>@tts.Data.DisplayTime.Philippine(update.Time) PHT</small>
+                        <p>@update.Message</p>
+                    </section>
+                }
+            </div>
+        </section>
+    </div>
+</section>
+</section></main></div><script defer src="/js/report-attachments.js" asp-append-version="true"></script>
+    <partial name="_TaskHelp" />
+</body></html>

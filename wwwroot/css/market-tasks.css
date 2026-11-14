@@ -129,3 +129,18 @@ html body .market-content .task-card .task-actions > form > button { width:100%;
     cursor: pointer;
 }
 #cancelTaskDialog button[value="cancel-task"] { background: #a32932; border-color: #a32932; color: #fff; }
+
+/* My Tasks workspace presentation. */
+.market-content:has(.task-filters) { padding-block-start: 26px; }
+.market-content:has(.task-filters) .market-intro h2 { font-size: clamp(25px, 3vw, 36px); }
+.market-content:has(.task-filters) .market-intro .muted { margin: 8px 0 0; line-height: 1.5; }
+html body .market-content .task-card { border-radius: 15px; box-shadow: 0 3px 12px rgba(25, 62, 48, .06); }
+html body .market-content .task-card h3 { font-size: 23px; }
+html body .market-content .task-card .task-description { margin-bottom: 18px; }
+html body .market-content .task-card .offer { background: #eff6ee !important; }
+@media (min-width: 901px) {
+    .market-content .task-meta > div + div {
+        border-inline-start: 1px solid #d9e7da;
+        padding-inline-start: 16px;
+    }
+}

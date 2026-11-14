@@ -63,3 +63,53 @@ html body main > .account-workspace {
 @media (max-width: 600px) {
     .profile-personal-details dl > div { grid-template-columns: minmax(0, 1fr); }
 }
+
+.account-workspace .page-intro { margin-bottom: 18px; }
+.account-workspace .page-intro h2 { font-size: clamp(26px, 3vw, 36px); }
+.account-workspace .settings-card { border-radius: 15px; }
+.account-workspace .profile-summary { padding: 16px 18px; }
+.account-workspace .photo-settings { gap: 12px 20px; margin-top: 16px; }
+html body .account-workspace .photo-actions label.photo-upload-button {
+    background: #176b50;
+    border-color: #176b50;
+    color: #fff !important;
+}
+html body .account-workspace .photo-actions .remove-photo-button {
+    border: 1px solid #a9cbb0;
+    color: #176b50;
+    text-decoration: none;
+}
+.account-workspace .photo-file-note { color: #49675a; font-size: 13px; }
+html[data-theme="dark"] body .account-workspace .photo-actions .remove-photo-button,
+html[data-theme="dark"] body .account-workspace .photo-file-note { color: #c0d2c7; }
+.account-workspace .profile-personal-details dl > div { padding-block: 10px; }
+.account-workspace .profile-shortcut-links { flex-wrap: wrap; }
+.account-workspace .account-settings-grid .settings-group { margin-block-start: 16px; }
+.account-workspace .account-settings-grid .work-field-grid { gap: 12px 16px; }
+.account-workspace .account-shortcuts a { border-radius: 10px; }
+
+.account-workspace .service-choice { min-width:0; display:grid; gap:8px; align-content:start; }
+.account-workspace .service-choice summary {
+    cursor:pointer; padding:11px 12px; color:inherit; font-weight:650;
+    background:var(--surface-2, #f1f7f0); border:1px solid var(--line, #cfe1d2); border-radius:9px;
+}
+.account-workspace .service-checkboxes { display:grid; gap:6px; }
+.account-workspace .service-choice details .service-checkboxes {
+    grid-template-columns:repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    margin-top:8px;
+}
+html body .account-workspace .service-checkboxes > label {
+    display:flex; flex-direction:row; align-items:center; justify-content:flex-start;
+    gap:9px; min-height:44px; margin:0; padding:7px 10px; cursor:pointer;
+    border:1px solid var(--line, #cfe1d2); border-radius:8px;
+}
+.account-workspace .service-checkboxes > label:has(:checked, :indeterminate) {
+    background:var(--surface-2, #e5f1e6);
+}
+html body .account-workspace .service-checkboxes input[type="checkbox"] {
+    width:17px; height:17px; min-height:0; flex:0 0 17px;
+    margin:0; padding:0; accent-color:#176b50;
+}
+.account-workspace #selectedServices { display:flex; flex-wrap:wrap; gap:6px; }
+.account-workspace #selectedServices button { border:1px solid #a9cbb0; border-radius:999px; padding:6px 10px; background:#e5f1e6; color:#15563f; cursor:pointer; overflow-wrap:anywhere; }
+.account-workspace #otherServiceField[hidden] { display:none; }

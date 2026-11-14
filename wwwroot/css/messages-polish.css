@@ -252,3 +252,10 @@ html[data-theme="dark"] .thread-task-picker :is(select,button) {
         text-decoration:none;
     }
 }
+
+body.messages-current-view:has(.thread-form) .task-help-launch {
+    bottom: max(102px, calc(env(safe-area-inset-bottom) + 84px));
+}
+html body.messages-current-view .thread-message p { line-height: 1.55; overflow-wrap: anywhere; }
+html body.messages-current-view .conversation-row-heading strong { font-size: 15px; }
+html body.messages-current-view .thread-form :is(textarea, button) { min-height: 44px; }

@@ -21,4 +21,6 @@ else {
 @if(Model.Blockers.Count>0){<section class="security-card"><h2>Items to resolve</h2><ul>@foreach(var item in Model.Blockers){<li>@item</li>}</ul><p>Admins also review reported issues that cannot be linked automatically.</p><div class="deletion-actions"><a class="security-return" href="/MarketTasks?view=mine">Open My Tasks</a><a class="security-return" href="/MyJobs">Open My Jobs</a>@if(Model.RequestRow is { } activeRequest && AccountDeletion.Pending(activeRequest.Status)){<form method="post"><input type="hidden" name="action" value="withdraw-offers"/><button class="security-secondary" type="submit">Withdraw my pending offers</button></form>}</div></section>}
 @if(Model.History.Count>0){<section class="security-card"><h2>Request history</h2>@foreach(var item in Model.History){<div class="security-row"><div><strong>@item.Action</strong><small>@DisplayTime.Philippine(item.CreatedUtc) PHT</small><p>@item.Reason</p></div></div>}</section>}
 }
-</main></body></html>
+</main>
+    <partial name="_TaskHelp" />
+</body></html>

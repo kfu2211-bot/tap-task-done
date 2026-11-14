@@ -26,3 +26,11 @@ body .security-page { width: min(100% - 48px, 1700px); max-width: none; box-sizi
 .security-page .security-row form:has(input[type="password"]) :is(input[type="password"], button) {
     min-height: 44px;
 }
+
+.security-page .security-page-header h1 { font-size: clamp(26px, 3vw, 36px); }
+.security-page .security-workspace { align-items: start; }
+.security-page .security-card { border-radius: 15px; }
+.security-page .security-section-heading h2 { margin-block: 0; }
+.security-page .security-alert-list .security-row { padding-block: 12px; }
+.security-page .security-row small { line-height: 1.5; }
+.security-page .security-other-sessions { border-radius: 12px; }

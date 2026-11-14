@@ -15,6 +15,12 @@
         let map, marker, candidate=lat.value&&lon.value&&valid(Number(lat.value),Number(lon.value)) ? [Number(lon.value),Number(lat.value)] : null;
         let searching=false, generation=0, mapFailed=false, searchTimer, reverseGeneration=0, reverseController;
         const areas=['Solana Casa Real','Cabalantian','Parulog','Cabetican','Magliman'];
+        const addressPlaceholder = address.placeholder;
+        function setLookingUp(loading) {
+            address.placeholder = loading ? 'Finding address for this pin…' : addressPlaceholder;
+            address.setAttribute('aria-busy', String(loading));
+            confirm.disabled = loading;
+        }
         if(candidate) { root.classList.add('location-confirmed');confirm.textContent='Pin confirmed';status.textContent='Saved work destination. Change it only if needed, then confirm the new pin.'; }
         function invalidate() { lat.value='';lon.value='';root.classList.remove('location-confirmed');confirm.textContent='Confirm this pin'; }
         function warn(message) { notice.textContent=message;notice.hidden=false;root.classList.add('location-needs-confirmation'); }
@@ -37,10 +43,15 @@
             status.textContent = message;
         }
         function pick(point, label) {
+            if(!valid(point[1],point[0])) {
+                if(candidate) marker?.setLngLat(candidate);
+                status.textContent='Choose a work location in the Bacolor service area.';
+                return;
+            }
             invalidate();
             reverseController?.abort();
             generation++; clearTimeout(searchTimer); results.replaceChildren();
-            if(!valid(point[1],point[0])) { candidate=null; reverseGeneration++; status.textContent='Choose a work location in the Bacolor service area.';return; }
+            setLookingUp(!label);
             candidate=point;
             if(label) { reverseGeneration++; address.value=label; status.textContent='Check the marker and address, then press Confirm this pin.'; }
             else {
@@ -65,7 +76,10 @@
                         }
                         useMapAddress(point, 'Address lookup unavailable. Enter the work address or a nearby landmark, then confirm.');
                     })
-                    .finally(()=>clearTimeout(timeout));
+                    .finally(()=>{
+                        clearTimeout(timeout);
+                        if(current===reverseGeneration) setLookingUp(false);
+                    });
             }
             if(map) {
                 if(!marker) { marker=new maplibregl.Marker({color:'#dc3838',draggable:true}).setLngLat(point).addTo(map);marker.on('dragend',()=>{const p=marker.getLngLat();pick([p.lng,p.lat]);}); }
@@ -73,7 +87,7 @@
                 map.jumpTo({center:point,zoom:16});
             }
         }
-        address.addEventListener('input',()=>{generation++;reverseGeneration++;reverseController?.abort();invalidate();results.replaceChildren();clearTimeout(searchTimer);const query=address.value.trim();if(candidate)status.textContent='Address edited. Check the pin and confirm your work location.';if(!query)return;for(const name of areas.filter(x=>x.toLowerCase().includes(query.toLowerCase()))){const b=document.createElement('button');b.type='button';b.textContent=name+', Bacolor, Pampanga';b.addEventListener('click',()=>{address.value=b.textContent;results.replaceChildren();root.querySelector('[data-location-search]').click();});results.append(b);}if(query.length>=3)searchTimer=setTimeout(()=>root.querySelector('[data-location-search]').click(),700);});
+        address.addEventListener('input',()=>{generation++;reverseGeneration++;reverseController?.abort();setLookingUp(false);invalidate();results.replaceChildren();clearTimeout(searchTimer);const query=address.value.trim();if(candidate)status.textContent='Address edited. Check the pin and confirm your work location.';if(!query)return;for(const name of areas.filter(x=>x.toLowerCase().includes(query.toLowerCase()))){const b=document.createElement('button');b.type='button';b.textContent=name+', Bacolor, Pampanga';b.addEventListener('click',()=>{address.value=b.textContent;results.replaceChildren();root.querySelector('[data-location-search]').click();});results.append(b);}if(query.length>=3)searchTimer=setTimeout(()=>root.querySelector('[data-location-search]').click(),700);});
         root.querySelector('[data-location-search]').addEventListener('click',async event=>{
             const query=address.value.trim();if(query.length<3){status.textContent='Enter an address or landmark with at least 3 characters.';return;}
             if(searching)return;searching=true;event.currentTarget.disabled=true;const request=++generation;
@@ -104,7 +118,15 @@
             if(map||mapFailed||!root.getBoundingClientRect().width)return;
             if(!window.maplibregl){mapFailed=true;status.textContent='Map could not load. You can still search or use current location and confirm the result.';return;}
             try {
-                map=new maplibregl.Map({container:root.querySelector('[data-location-map]'),style:'https://tiles.openfreemap.org/styles/liberty',center:candidate||[120.653,15.000],zoom:candidate?16:13});
+                map=new maplibregl.Map({
+                    container:root.querySelector('[data-location-map]'),
+                    style:'https://tiles.openfreemap.org/styles/liberty',
+                    center:candidate||[120.653,15.000],
+                    zoom:candidate?16:13,
+                    minZoom:12,
+                    maxBounds:[[120.54,14.92],[120.73,15.10]],
+                    renderWorldCopies:false
+                });
                 map.addControl(new maplibregl.NavigationControl({showCompass:false}));map.addControl(new maplibregl.FullscreenControl());
                 map.on('click',e=>pick([e.lngLat.lng,e.lngLat.lat]));
                 map.on('error',()=>{status.textContent=(lat.value&&lon.value?'Your destination pin is still confirmed. ':'')+'Some map details could not load. You can search or use current location instead.';});
