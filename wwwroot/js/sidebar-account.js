@@ -377,7 +377,12 @@
         var seenUpdates = new Set(), toastInitialized = false, toastBusy = false;
         try { var savedSeen = sessionStorage.getItem(toastKey); if (savedSeen !== null) { seenUpdates = new Set(JSON.parse(savedSeen)); toastInitialized = true; } } catch (_) { /* Use the in-memory set. */ }
         function saveSeenUpdates() { try { sessionStorage.setItem(toastKey, JSON.stringify(Array.from(seenUpdates).slice(-300))); } catch (_) { /* Storage can be unavailable. */ } }
-        function showUpdateToast(source) {
+        var pendingToasts = [];
+        var activeToast = false;
+        function showUpdateToast() {
+            if (activeToast || !pendingToasts.length || document.hidden || document.querySelector('[data-signin-alert]')) return;
+            var source = pendingToasts.shift();
+            activeToast = true;
             var button = source.querySelector('.notification-item');
             var toast = document.createElement('div');
             toast.className = 'live-update-toast'; toast.setAttribute('role', 'status');
@@ -386,9 +391,14 @@
             var text = document.createElement('p'); text.textContent = button.querySelector('strong')?.textContent || 'You have a new update.';
             var form = document.importNode(source, true); form.className = 'live-update-action';
             var openButton = form.querySelector('.notification-item'); openButton.className = 'live-update-open'; openButton.textContent = 'View update';
-            var dismiss = function () { toast.remove(); };
+            var dismiss = function () {
+                clearTimeout(timeout);
+                toast.remove();
+                activeToast = false;
+                showUpdateToast();
+            };
             close.addEventListener('click', dismiss); toast.append(heading, close, text, form); document.body.append(toast);
-            setTimeout(dismiss, 10000);
+            var timeout = setTimeout(dismiss, 10000);
         }
         async function checkLiveUpdates() {
             if (toastBusy || document.hidden) return;
@@ -403,14 +413,14 @@
                 });
                 forms.reverse().forEach(function (form) {
                     var id = form.querySelector('input[name="id"]').value;
-                    if (toastInitialized && !seenUpdates.has(id)) showUpdateToast(form);
+                    if (toastInitialized && !seenUpdates.has(id)) pendingToasts.push(form);
                     seenUpdates.add(id);
                 });
                 toastInitialized = true; saveSeenUpdates();
             } catch (_) { /* Keep the current page usable if the network is unavailable. */ }
-            finally { toastBusy = false; }
+            finally { toastBusy = false; showUpdateToast(); }
         }
-        checkLiveUpdates(); setInterval(checkLiveUpdates, 30000);
+        checkLiveUpdates(); setInterval(checkLiveUpdates, 10000);
         window.addEventListener('focus', checkLiveUpdates);
         document.addEventListener('visibilitychange', function () { if (!document.hidden) checkLiveUpdates(); });
 
