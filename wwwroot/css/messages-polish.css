@@ -259,3 +259,25 @@ body.messages-current-view:has(.thread-form) .task-help-launch {
 html body.messages-current-view .thread-message p { line-height: 1.55; overflow-wrap: anywhere; }
 html body.messages-current-view .conversation-row-heading strong { font-size: 15px; }
 html body.messages-current-view .thread-form :is(textarea, button) { min-height: 44px; }
+
+.thread-contact {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px 16px;
+    padding:8px 24px;
+    background:#eff6ef;
+    border-bottom:1px solid #d6e6da;
+}
+.thread-contact p { margin:0; font-size:.875rem; }
+.thread-contact .thread-task-link, .thread-heading .thread-call {
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    cursor:pointer;
+}
+html[data-theme="dark"] .thread-contact {
+    background:#1e2923;
+    border-color:#38483f;
+}

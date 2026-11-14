@@ -102,7 +102,7 @@
                     <details class="profile-name-editor">
                         <summary>Edit phone number</summary>
                         @if (Model.ContactUnavailable) { <p>Contact settings are temporarily unavailable.</p> }
-                        else { <form method="post" asp-page-handler="Contact" class="profile-contact-form"><label>Phone number (optional)<input name="phoneNumber" type="tel" maxlength="25" autocomplete="tel" value="@Model.PhoneNumber" /></label><label class="profile-contact-sharing"><input type="checkbox" name="sharePhone" value="true" checked="@Model.SharePhone" /><span>Share my number with the other participant after a task is accepted</span></label><button class="settings-security-link" type="submit">Save contact details</button></form> }
+                        else { <form method="post" asp-page-handler="Contact" class="profile-contact-form"><label>Phone number (optional)<input name="phoneNumber" type="tel" maxlength="25" autocomplete="tel" value="@Model.PhoneNumber" /></label><p>Choose when to share your number from the task conversation in Messages.</p><button class="settings-security-link" type="submit">Save contact details</button></form> }
                     </details>
                 </section>
                 @if (Model.WorkRole is "freelancer" or "both")

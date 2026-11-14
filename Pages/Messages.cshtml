@@ -266,7 +266,29 @@
                         </form>
                         }
                         <a class="thread-task-link" asp-page="/TaskDetails" asp-route-taskId="@Model.Selected.TaskId" asp-route-conversationId="@Model.Selected.Id">View task</a>
+                        @if (Model.SharedPhone is { } phone)
+                        {
+                            <a class="thread-task-link thread-call" href="tel:@phone">Call @(Model.Selected.ClientId == Model.UserId ? "freelancer" : "client")</a>
+                        }
                     </div>
+                    @if (Model.PhoneSharingAvailable)
+                    {
+                        <div class="thread-contact">
+                            <p>@(Model.SharingPhone && Model.HasPhone ? "Your mobile number is shared for this task." : "Share your mobile number with this person for this task.")</p>
+                            @if (Model.HasPhone || Model.SharingPhone)
+                            {
+                                <form method="post" asp-page-handler="PhoneSharing">
+                                    <input type="hidden" name="conversationId" value="@Model.Selected.Id" />
+                                    <input type="hidden" name="share" value="@(Model.SharingPhone ? "false" : "true")" />
+                                    <button class="thread-task-link" type="submit">@(Model.SharingPhone ? "Stop sharing" : "Share my number")</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a class="thread-task-link" asp-page="/Settings" asp-route-view="profile">Add mobile number</a>
+                            }
+                        </div>
+                    }
                     @if (Model.Selected.Assigned)
                     {
                         <div class="thread-agreement">

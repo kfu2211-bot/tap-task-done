@@ -137,7 +137,7 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
     public record TrackingItem(MarketplaceTask Task, string Client, string Freelancer, bool IsClient) { public int FreelancerId { get; init; } }
     public List<TrackingItem> Tasks { get; private set; } = [];
     public bool Unavailable { get; private set; }
-    public Dictionary<int, string> SharedPhones { get; private set; } = [];
+    public Dictionary<long, string> SharedPhones { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
@@ -161,8 +161,15 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         }
         if (!Unavailable) {
             try {
-                var otherIds = Tasks.Select(x => x.IsClient ? x.FreelancerId : x.Task.ClientId).Distinct().ToList();
-                SharedPhones = await db.Set<UserContact>().AsNoTracking().Where(x => otherIds.Contains(x.UserId) && x.ShareWithAssignedUser && x.PhoneNumber != "").ToDictionaryAsync(x => x.UserId, x => x.PhoneNumber, ct);
+                var activeIds = Tasks.Where(x => TaskPhoneShare.IsActive(x.Task.Status)).Select(x => x.Task.Id).ToArray();
+                SharedPhones = await (from c in ConversationAccess.VisibleTo(db, userId)
+                    join t in db.MarketplaceTasks on c.TaskId equals t.Id
+                    join o in db.MarketplaceOffers on new { c.TaskId, c.FreelancerId } equals new { o.TaskId, o.FreelancerId }
+                    join s in db.Set<TaskPhoneShare>() on c.Id equals s.ConversationId
+                    join contact in db.Set<UserContact>() on s.UserId equals contact.UserId
+                    where activeIds.Contains(t.Id) && o.Status == "accepted" && contact.PhoneNumber != ""
+                        && s.UserId == (t.ClientId == userId ? c.FreelancerId : t.ClientId)
+                    select new { t.Id, contact.PhoneNumber }).ToDictionaryAsync(x => x.Id, x => x.PhoneNumber, ct);
             } catch (MySqlConnector.MySqlException ex) { logger.LogWarning(ex, "Shared contact details unavailable"); }
             try {
                 var ids = Tasks.Select(x => x.Task.Id).ToList();

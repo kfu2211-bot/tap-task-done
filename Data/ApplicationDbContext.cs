@@ -76,6 +76,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         loginAlert.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         var conversation = modelBuilder.Entity<TaskConversation>();
         conversation.ToTable("task_conversations"); conversation.HasKey(c => c.Id);
+        var phoneShare = modelBuilder.Entity<TaskPhoneShare>();
+        phoneShare.ToTable("task_phone_shares");
+        phoneShare.HasKey(x => new { x.ConversationId, x.UserId });
         conversation.HasIndex(c => new { c.TaskId, c.FreelancerId }).IsUnique();
         conversation.HasOne<MarketplaceTask>().WithMany().HasForeignKey(c => c.TaskId).OnDelete(DeleteBehavior.Restrict);
         conversation.HasOne<AppUser>().WithMany().HasForeignKey(c => c.FreelancerId).OnDelete(DeleteBehavior.Restrict);

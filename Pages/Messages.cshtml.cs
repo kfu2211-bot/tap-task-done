@@ -9,12 +9,17 @@ namespace tts.Pages;
 public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logger) : PageModel
 {
     public record Conversation(long TaskId, string Title, int ClientId, int FreelancerId, string OtherName)
-    { public long Id { get; init; } public int OtherId { get; init; } public bool CanSend { get; init; } public bool Assigned { get; init; } }
+    { public long Id { get; init; } public int OtherId { get; init; } public bool CanSend { get; init; } public bool Assigned { get; init; } public string Status { get; init; } = ""; }
     public List<Conversation> Conversations { get; private set; } = [];
     public List<Conversation> SelectedTasks { get; private set; } = [];
     public Dictionary<int, int> UnreadCounts { get; private set; } = [];
     public Dictionary<int, MarketplaceMessage> LatestMessages { get; private set; } = [];
     public static string Initials(string? name) => string.Concat((name ?? "User").Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0])).ToUpperInvariant();
+    public string? SharedPhone { get; private set; }
+    public bool SharingPhone { get; private set; }
+    public bool HasPhone { get; private set; }
+    public bool PhoneSharingAvailable { get; private set; }
+
     public Conversation? Selected { get; private set; }
     public List<MarketplaceMessage> Messages { get; private set; } = [];
     public int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
@@ -38,7 +43,7 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
                 orderby t.CreatedAt descending, c.CreatedAtUtc descending, c.Id descending
                 select new { c.Id, c.CreatedAtUtc, TaskId = t.Id, t.Title, t.ClientId, c.FreelancerId, t.Status, t.IsPrivate, Assigned = selected, Pending = pending, ClientName = (client.FirstName ?? "") + " " + (client.LastName ?? ""), FreelancerName = (freelancer.FirstName ?? "") + " " + (freelancer.LastName ?? "") }).ToListAsync(ct);
             var rowsByCreation = rows.ToDictionary(r => r.Id, r => r.CreatedAtUtc);
-            var tasks = rows.Select(r => new Conversation(r.TaskId, r.Title, r.ClientId, r.FreelancerId, (r.ClientId == UserId ? r.FreelancerName : r.ClientName).Trim()) { Id = r.Id, OtherId = r.ClientId == UserId ? r.FreelancerId : r.ClientId, Assigned = r.Assigned, CanSend = MaySend(r.Status, r.Assigned, r.Pending, r.IsPrivate) }).ToList();
+            var tasks = rows.Select(r => new Conversation(r.TaskId, r.Title, r.ClientId, r.FreelancerId, (r.ClientId == UserId ? r.FreelancerName : r.ClientName).Trim()) { Id = r.Id, OtherId = r.ClientId == UserId ? r.FreelancerId : r.ClientId, Assigned = r.Assigned, Status = r.Status, CanSend = MaySend(r.Status, r.Assigned, r.Pending, r.IsPrivate) }).ToList();
             var ids = tasks.Select(c => c.Id).ToArray();
             var unread = db.MarketplaceNotifications.Where(n => n.UserId == UserId && !n.IsRead && n.Kind == "message" && n.ConversationId.HasValue && ids.Contains(n.ConversationId.Value));
             var groups = tasks.GroupBy(c => c.OtherId).ToDictionary(g => g.Key, g => g.ToList());
@@ -51,6 +56,18 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
             {
                 SelectedTasks = groups[Selected.OtherId];
                 var selectedId = Selected.Id;
+                if (Selected.CanSend && TaskPhoneShare.IsActive(Selected.Status))
+                {
+                    try
+                    {
+                        var contacts = TaskPhoneShare.SharedContacts(db, selectedId);
+                        SharedPhone = await contacts.Where(x => x.UserId == Selected.OtherId).Select(x => x.PhoneNumber).SingleOrDefaultAsync(ct);
+                        SharingPhone = await db.Set<TaskPhoneShare>().AnyAsync(x => x.ConversationId == selectedId && x.UserId == UserId, ct);
+                        HasPhone = await db.Set<UserContact>().AnyAsync(x => x.UserId == UserId && x.PhoneNumber != "", ct);
+                        PhoneSharingAvailable = true;
+                    }
+                    catch (MySqlConnector.MySqlException ex) { logger.LogWarning(ex, "Task phone sharing unavailable"); }
+                }
                 var openedNotices = unread.Where(n => n.ConversationId == selectedId);
                 var lastNoticeId = await openedNotices.MaxAsync(n => (long?)n.Id, ct);
                 Messages = await db.MarketplaceMessages.AsNoTracking().Where(m => m.ConversationId == selectedId).OrderBy(m => m.Id).ToListAsync(ct);
@@ -82,6 +99,37 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Unable to load private conversations"); Unavailable = true; }
         return Page();
     }
+    public async Task<IActionResult> OnPostPhoneSharingAsync(long conversationId, bool share, CancellationToken ct)
+    {
+        if (UserId <= 0) return Challenge();
+        var context = await (from c in ConversationAccess.VisibleTo(db, UserId)
+            join t in db.MarketplaceTasks on c.TaskId equals t.Id
+            where c.Id == conversationId
+            select new { t.Status, t.IsPrivate,
+                Assigned = db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == c.FreelancerId && o.Status == "accepted"),
+                Pending = db.MarketplaceBookings.Any(b => b.TaskId == t.Id && b.FreelancerId == c.FreelancerId && b.Status == "pending") })
+            .SingleOrDefaultAsync(ct);
+        if (context is null) return NotFound();
+        if (share && (!TaskPhoneShare.IsActive(context.Status) || !MaySend(context.Status, context.Assigned, context.Pending, context.IsPrivate)))
+            return RedirectToPage(new { conversationId });
+
+        try
+        {
+            if (!share)
+                await db.Set<TaskPhoneShare>().Where(x => x.ConversationId == conversationId && x.UserId == UserId).ExecuteDeleteAsync(ct);
+            else if (await db.Set<UserContact>().AnyAsync(x => x.UserId == UserId && x.PhoneNumber != "", ct))
+                await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO task_phone_shares (ConversationId, UserId) VALUES ({conversationId}, {UserId}) ON DUPLICATE KEY UPDATE UserId = UserId", ct);
+            else
+                Notice = "Add a mobile number to your profile before sharing.";
+        }
+        catch (MySqlConnector.MySqlException ex)
+        {
+            logger.LogWarning(ex, "Unable to update task phone sharing");
+            Notice = "Phone sharing could not be updated. Please try again.";
+        }
+        return RedirectToPage(new { conversationId });
+    }
+
     public async Task<IActionResult> OnPostStartAsync(long taskId, CancellationToken ct, int? freelancerId = null)
     {
         if (UserId <= 0) return Challenge();
