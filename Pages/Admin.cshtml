@@ -51,14 +51,17 @@
                     <section class="admin-intro"><div><h2>Welcome, <span id="adminGreeting">Admin</span></h2><p>Review identity checks, safety reports, and recent admin decisions.</p></div></section>
                     <section class="stat-grid"><button class="stat-card teal" type="button" data-go-to="verifications"><span><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6z M8 12l3 3 5-6"/></svg></span><div><strong id="verificationCount">—</strong><small>Pending verification</small></div><b>›</b></button><button class="stat-card amber" type="button" data-go-to="reports"><span><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4c5-3 9 3 14 0v10c-5 3-9-3-14 0"/></svg></span><div><strong id="reportCount">—</strong><small>Open reports</small></div><b>›</b></button><button class="stat-card teal" type="button" data-go-to="users"><span><svg class="admin-ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2 M20 21v-2a4 4 0 0 0-2-3.5 M17 4a4 4 0 0 1 0 8 M9.5 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg></span><div><strong id="verifiedCount">—</strong><small>Registered users</small></div><b>›</b></button></section>
                     <div class="overview-panels">
-                        <section class="admin-card overview-card" aria-labelledby="reviewQueueTitle">
+                        <section class="admin-card overview-card overview-queue" aria-labelledby="reviewQueueTitle">
                             <div class="card-heading"><h2 id="reviewQueueTitle">Review queue</h2><a href="#reports" data-go-to="reports">View queue</a></div>
                             <ul class="overview-activity overview-review-list">
                                 @foreach (var entry in Model.QueueReports)
                                 {
                                     var priority = entry.Priority == 3 ? "High" : entry.Priority == 1 ? "Low" : "Normal";
                                     <li>
-                                        <div><strong>Report #@entry.Report.Id · @entry.Report.Reason</strong><small>@(entry.Report.Status == "reviewing" ? "Under review" : "New")</small></div>
+                                        <div class="overview-report-copy">
+                                            <strong>@entry.Report.Reason</strong>
+                                            <small>Report #@entry.Report.Id · @(entry.Report.Status == "reviewing" ? "Under review" : "New")</small>
+                                        </div>
                                         <span class="overview-priority priority-@entry.Priority">@priority</span>
                                         <a class="review-button" asp-page="/Admin" asp-route-inboxKind="report" asp-route-inboxRecord="@entry.Report.Id" asp-fragment="reports">Review</a>
                                     </li>
@@ -68,7 +71,9 @@
                             else if (Model.QueueReports.Count == 0 && Model.PendingVerifications == 0) { <p class="empty-state">No pending items.</p> }
                             @if (Model.PendingVerifications > 0)
                             {
-                                <a href="#verifications" data-go-to="verifications">Review pending verifications (@Model.PendingVerifications)</a>
+                                <a class="overview-verifications" href="#verifications" data-go-to="verifications">
+                                    <span>Pending verifications</span><strong>@Model.PendingVerifications <span aria-hidden="true">›</span></strong>
+                                </a>
                             }
                         </section>
                         <section class="admin-card overview-card" aria-labelledby="recentAdminTitle">

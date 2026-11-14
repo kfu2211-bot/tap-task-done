@@ -357,3 +357,29 @@ html[data-theme="dark"] .admin-staff-form :is(input, select) { background: #2034
 .overview-review-list .review-button { display:inline-flex; align-items:center; text-decoration:none; }
 .overview-priority { padding:4px 9px; border-radius:999px; background:#e4efe7; color:#184b35; font-size:.8rem; font-weight:700; }
 .overview-priority.priority-3 { background:#fee7e2; color:#842e23; }
+
+.overview-queue .overview-review-list { margin-block: 0; }
+.overview-queue .overview-report-copy { display: grid; gap: 4px; overflow-wrap: anywhere; }
+.overview-queue .overview-report-copy small { color: #506b60; font-size: .8rem; }
+.overview-queue .review-button { min-height: 44px; }
+.overview-queue .overview-verifications {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: 1px solid #cfe2d4;
+    border-radius: 10px;
+    background: #edf5ef;
+    color: #16583f;
+    font-weight: 650;
+    text-decoration: none;
+}
+.overview-queue .overview-verifications:hover { text-decoration: underline; }
+html[data-theme="dark"] .overview-queue .overview-verifications {
+    background: #23372d;
+    border-color: #40584a;
+    color: #b0e9cd;
+}
