@@ -97,11 +97,12 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         return Page();
     }
 
-    public async Task<IActionResult> OnPostReviewAsync(long id, int rating, string? feedback, CancellationToken ct)
+    public async Task<IActionResult> OnPostReviewAsync(long id, int rating, string? feedback, bool fromTracking, CancellationToken ct)
     {
+        IActionResult ReviewReturn() => fromTracking ? RedirectToPage("/Tracking", new { taskId = id }) : RedirectToPage(new { view = "mine" });
         feedback = (feedback ?? "").Trim();
         if (UserId == 0 || !ModelState.IsValid || rating is < 1 or > 5 || feedback.Length > 1000)
-        { Notice = "Choose a rating from 1 to 5 and check your feedback."; return RedirectToPage(); }
+        { Notice = "Choose a rating from 1 to 5 and check your feedback."; return ReviewReturn(); }
         try
         {
             var freelancerId = await (from task in db.MarketplaceTasks.AsNoTracking()
@@ -109,14 +110,15 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
                 where task.Id == id && task.ClientId == UserId && task.Status == "completed" && offer.Status == "accepted"
                 select (int?)offer.FreelancerId).SingleOrDefaultAsync(ct);
             if (freelancerId is null || freelancerId == UserId || await db.MarketplaceReviews.AnyAsync(r => r.TaskId == id, ct))
-            { Notice = "This task cannot be reviewed, or already has a review."; return RedirectToPage(); }
+            { Notice = "This task cannot be reviewed, or already has a review."; return ReviewReturn(); }
             db.MarketplaceReviews.Add(new MarketplaceReview { TaskId = id, ClientId = UserId, FreelancerId = freelancerId.Value, Rating = rating, Feedback = feedback, CreatedAt = DateTime.UtcNow });
             await db.SaveChangesAsync(ct); Notice = "Review saved. Thank you for your feedback.";
+            if (fromTracking) return ReviewReturn();
             return RedirectToPage("/Reviews", new { view = "given" });
         }
         catch (DbUpdateException) { Notice = "Review could not be saved. It may already have been submitted."; }
         catch (MySqlException) { Notice = "Reviews are unavailable. Check that the review table has been created."; }
-        return RedirectToPage();
+        return ReviewReturn();
     }
 
     public static bool ValidBudgetMaximum(decimal minimum, decimal? maximum) => maximum is null || maximum >= minimum && maximum <= 9999999999m && decimal.Round(maximum.Value, 2) == maximum;

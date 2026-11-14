@@ -144,3 +144,12 @@ html body .market-content .task-card .offer { background: #eff6ee !important; }
         padding-inline-start: 16px;
     }
 }
+
+.market-content .task-record-note {
+    padding: 12px 14px;
+    border: 1px solid var(--line, #d5e4d8);
+    border-radius: 9px;
+    background: var(--surface-2, #f2f7f1);
+    overflow-wrap: anywhere;
+}
+.market-content .offer .offer-details { font-weight: 600; }

@@ -213,3 +213,11 @@ html body #findJobsSection .jobs-card .jobs-offer {
         justify-self: stretch;
     }
 }
+
+html body #findJobsSection .jobs-offer[open] > form {
+    margin-top: 12px;
+    padding: 16px;
+    border: 1px solid var(--line, #d5e4d8);
+    border-radius: 10px;
+    background: var(--surface-2, #f2f7f1);
+}

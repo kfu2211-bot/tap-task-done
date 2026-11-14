@@ -53,3 +53,8 @@ footer { font-size:14px; }
   .service-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .landing-steps { grid-template-columns:1fr; }
 }
+
+.landing-feedback { display:grid; gap:12px; margin-top:12px; }
+.landing-feedback :is(select, textarea) { display:block; width:100%; padding:8px; border:1px solid #9ebdac; border-radius:8px; font:inherit; }
+.landing-feedback button, .landing-community summary { cursor:pointer; }
+.landing-community blockquote { overflow-wrap:anywhere; }

@@ -132,6 +132,8 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         catch (MySqlConnector.MySqlException ex)
         { logger.LogError(ex, "Unable to save freelancer location"); return StatusCode(503, new { message = "Location storage is not ready. Please contact support." }); }
     }
+    public Task<bool> HasReviewAsync(long taskId) => db.MarketplaceReviews.AnyAsync(r => r.TaskId == taskId, HttpContext.RequestAborted);
+
     public record TrackingItem(MarketplaceTask Task, string Client, string Freelancer, bool IsClient) { public int FreelancerId { get; init; } }
     public List<TrackingItem> Tasks { get; private set; } = [];
     public bool Unavailable { get; private set; }

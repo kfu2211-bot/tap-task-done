@@ -36,3 +36,26 @@ html body .db-tracking .db-tracking-details { margin-block: 18px; }
 html body .db-tracking .db-tracking-details span { color: #49675a; font-size: 13px; }
 html body .db-tracking .db-tracking-details strong { font-size: 15px; }
 html[data-theme="dark"] body .db-tracking .db-tracking-details span { color: var(--muted, #c0d2c7); }
+
+.db-tracking .tracking-aside .tracking-panel {
+    border-radius: 14px;
+}
+.db-tracking .tracking-person { font-size: 1.125rem; font-weight: 700; }
+.db-tracking .tracking-review { display: block; }
+.tracking-review > summary { color: #176b50; font-weight: 700; cursor: pointer; }
+.tracking-review[open] {
+    padding: 16px;
+    border: 1px solid var(--line, #d3e3d6);
+    border-radius: 12px;
+    background: var(--surface-2, #f2f7f1);
+}
+.tracking-review[open] > form { display: grid; gap: 12px; margin-top: 12px; }
+.tracking-review label { display: grid; gap: 6px; }
+.tracking-review :is(select, textarea) {
+    padding: 10px;
+    border: 1px solid var(--line, #bfd3c3);
+    border-radius: 8px;
+    font: inherit;
+}
+.tracking-review button { justify-self: start; }
+html[data-theme="dark"] .tracking-review > summary { color: var(--brand); }

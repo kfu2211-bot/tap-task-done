@@ -116,3 +116,13 @@ html body.my-jobs-page .jobs-empty { padding: clamp(26px, 4vw, 44px) 20px; }
 html body.my-jobs-page .job-card-head > div { min-width: 0; overflow-wrap: anywhere; }
 html body.my-jobs-page .job-card-head p { font-size: 15px; line-height: 1.55; }
 html body.my-jobs-page .job-card .job-status { flex-shrink: 0; font-size: 13px; font-weight: 700; }
+
+.my-jobs-page .job-card > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: 12px;
+    border: 1px solid var(--line, #bfd9c7);
+    border-radius: 8px;
+    font-weight: 650;
+}

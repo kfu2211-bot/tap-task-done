@@ -159,7 +159,7 @@
                 if (item.href === "/Messages" || item.href === "/MyJobs" || item.href.indexOf("/MarketTasks") === 0) {
                     var navBadge = document.createElement("span");
                     navBadge.className = "sidebar-unread-badge";
-                    navBadge.dataset.notificationKind = item.href === "/Messages" ? "message" : "task";
+                    navBadge.dataset.notificationKind = item.href === "/Messages" ? "message" : "my-tasks";
                     navBadge.hidden = true;
                     navBadge.setAttribute("aria-hidden", "true");
                     link.appendChild(navBadge);
@@ -356,7 +356,7 @@
                     if (otherBadge) { otherBadge.textContent = otherCount > 99 ? "99+" : String(otherCount); otherBadge.hidden = otherCount <= 0; }
                 });
                 document.querySelectorAll(".sidebar-unread-badge").forEach(function (badge) {
-                    var unread = badge.dataset.notificationKind === "message" ? messageCount : taskCount;
+                    var unread = badge.dataset.notificationKind === "message" ? messageCount : Number(data.myTasksCount) || 0;
                     badge.textContent = unread > 99 ? "99+" : String(unread);
                     badge.hidden = unread <= 0;
                     var link = badge.parentElement;

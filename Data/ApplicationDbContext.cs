@@ -5,6 +5,7 @@ namespace tts.Data;
 public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : DbContext(options)
 {
+    public DbSet<CommunityFeedback> CommunityFeedback => Set<CommunityFeedback>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<PasswordResetRequest> PasswordResetRequests => Set<PasswordResetRequest>();
     public DbSet<PasswordResetCode> PasswordResetCodes => Set<PasswordResetCode>();
