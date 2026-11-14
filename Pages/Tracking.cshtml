@@ -651,9 +651,32 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
 
 <a href="@(item.IsClient ? "/MarketTasks?view=mine" : "/MyJobs?view=active")">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a>
 </div>
+@if (task.Status == "completed")
+{
+    <section id="completed-reviews" class="tracking-completed-reviews">
+        <h4>Leave a review</h4>
 @if (item.IsClient && item.FreelancerId > 0 && task.Status == "completed" && !await Model.HasReviewAsync(task.Id)) {
-    <details class="tracking-review tracking-actions"><summary>Leave a review</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Review"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="fromTracking" value="true" /><label>Rating<select name="rating" required><option value="">Choose a rating</option>@for (var rating = 5; rating >= 1; rating--) { <option value="@rating">@rating / 5</option> }</select></label><label>Feedback (optional)<textarea name="feedback" maxlength="1000" rows="3"></textarea></label><button type="submit" class="tracking-primary">Submit review</button></form></details>
-}</section>
+    <details class="tracking-review tracking-actions"><summary>Review your freelancer</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Review"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="fromTracking" value="true" /><label>Rating<select name="rating" required><option value="">Choose a rating</option>@for (var rating = 5; rating >= 1; rating--) { <option value="@rating">@rating / 5</option> }</select></label><label>Feedback (optional)<textarea name="feedback" maxlength="1000" rows="3"></textarea></label><button type="submit" class="tracking-primary">Submit review</button></form></details>
+}
+        <details class="tracking-review tracking-actions">
+            <summary>Write a community review</summary>
+            <form method="post" asp-page-handler="Feedback" data-submit-pending="Saving…">
+                <input type="hidden" name="taskId" value="@task.Id" />
+                <p>Share your experience using Tap, Task, Done.</p>
+                <label>Rating
+                    <select name="rating" required>
+                        <option value="">Choose a rating</option>
+                        @for (var rating = 5; rating >= 1; rating--) { <option value="@rating">@rating / 5</option> }
+                    </select>
+                </label>
+                <label>Your feedback<textarea name="feedback" maxlength="500" rows="3" required></textarea></label>
+                <label class="community-publish"><input type="checkbox" name="publish" value="true" required /> Publish anonymously on the landing page</label>
+                <button type="submit" class="tracking-primary">Save community review</button>
+            </form>
+        </details>
+    </section>
+}
+</section>
                     <aside class="tracking-aside"><section class="tracking-panel"><h4>@(item.IsClient ? "Freelancer" : "Client")</h4><div class="tracking-person" data-account-id="@(item.IsClient ? item.FreelancerId : task.ClientId)">@(item.IsClient ? item.Freelancer : item.Client)</div><p>Assigned to this task</p>@if (Model.SharedPhones.TryGetValue(task.Id, out var sharedPhone)) { <p class="tracking-shared-phone"><strong>Mobile number</strong> <bdi dir="ltr" style="user-select: all">@sharedPhone</bdi></p> }<div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a></div></section><section class="tracking-location"><strong>Task location</strong><span>@(string.IsNullOrWhiteSpace(task.Location) ? "Location not provided" : task.Location)</span>
 <div class="job-location" data-job-location data-task-id="@task.Id" data-viewer-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" data-freelancer="@(!item.IsClient ? "true" : "false")" data-progress-status="@task.Status" data-active="@(task.Status == "on-the-way" ? "true" : "false")" data-address="@task.Location" data-route-url="@(Configuration["Routing:BaseUrl"] ?? (HostEnvironment.EnvironmentName == "Development" ? "https://router.project-osrm.org" : ""))">
 <div class="map-place-search" data-map-search><label>Search a place on the map<input maxlength="120" placeholder="Bacolor address or landmark" /></label><button type="button">Search map</button><div class="location-search-results"></div><p role="status">Search only changes your map view. To change the work destination, request changes in Confirm work details.</p></div><div class="job-location-map" data-map aria-label="Task and freelancer location map"></div>

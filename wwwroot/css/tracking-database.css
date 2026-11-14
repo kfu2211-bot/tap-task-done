@@ -59,3 +59,17 @@ html[data-theme="dark"] body .db-tracking .db-tracking-details span { color: var
 }
 .tracking-review button { justify-self: start; }
 html[data-theme="dark"] .tracking-review > summary { color: var(--brand); }
+
+.tracking-completed-reviews {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line, #d1e3d6);
+}
+.tracking-completed-reviews h4 { margin: 0 0 10px; }
+.tracking-completed-reviews summary { padding: 10px 0; }
+.tracking-completed-reviews .community-publish {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+.tracking-completed-reviews .community-publish input { width: auto; flex: none; }

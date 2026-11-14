@@ -79,26 +79,6 @@
         <section id="community-reviews" class="landing-section landing-community" aria-labelledby="community-reviews-title">
             <div>
                 <h2 id="community-reviews-title">Reviews from the community</h2>
-                @if (Model.FeedbackNotice is { } notice) { <p role="status">@notice</p> }
-                @if (signedIn)
-                {
-                    <details>
-                        <summary>Write a community review</summary>
-                        <form method="post" asp-page-handler="Feedback" class="landing-feedback">
-                            <p>Rate your experience using Tap, Task, Done.</p>
-                            <label>Rating <select name="rating" required><option value="">Choose a rating</option>
-                                @for (var rating = 5; rating >= 1; rating--) { <option value="@rating">@rating / 5</option> }
-                            </select></label>
-                            <label>Your feedback <textarea name="feedback" maxlength="500" required rows="3"></textarea></label>
-                            <label><input type="checkbox" name="publish" value="true" required /> Publish my rating and feedback anonymously on the landing page.</label>
-                            <button class="landing-button" type="submit">Save feedback</button>
-                        </form>
-                    </details>
-                }
-                else
-                {
-                    <a asp-page="/Login">Log in to write a community review</a>
-                }
             </div>
             <div class="landing-review-list">
                 @if (Model.Reviews.Count == 0) { <p>No community feedback to display yet.</p> }

@@ -12,6 +12,39 @@ namespace tts.Pages;
 [RequestSizeLimit(6 * 1024 * 1024)]
 public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logger) : PageModel
 {
+    public async Task<IActionResult> OnPostFeedbackAsync(long taskId, int rating, string? feedback, bool publish, CancellationToken ct)
+    {
+        if (User.Identity?.IsAuthenticated != true) return Challenge();
+        feedback = feedback?.Trim();
+        if (!ModelState.IsValid || rating is < 1 or > 5 || feedback is not { Length: > 0 and <= 500 } || !publish ||
+            !int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        {
+            Notice = "Choose a rating, write up to 500 characters, and confirm public sharing.";
+            return RedirectToPage("/Tracking", new { taskId });
+        }
+
+        if (!await db.MarketplaceTasks.AnyAsync(task => task.Id == taskId && task.Status == "completed" &&
+            db.MarketplaceOffers.Any(offer => offer.TaskId == task.Id && offer.Status == "accepted" &&
+                (task.ClientId == userId || offer.FreelancerId == userId)), ct))
+            return NotFound();
+
+        try
+        {
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO community_feedback (UserId, Rating, Message)
+                VALUES ({userId}, {rating}, {feedback})
+                ON DUPLICATE KEY UPDATE Rating = {rating}, Message = {feedback}
+                """, ct);
+            Notice = "Your feedback is now visible on the landing page.";
+        }
+        catch (MySqlConnector.MySqlException ex)
+        {
+            logger.LogWarning(ex, "Community feedback could not be saved.");
+            Notice = "Feedback could not be saved. Please try again later.";
+        }
+        return RedirectToPage("/Tracking", new { taskId });
+    }
+
     public async Task<IActionResult> OnPostAdvanceAsync(long id, string? action, string? note, IFormFile? photo, CancellationToken ct)
     {
         if (UserId <= 0) return Challenge();
