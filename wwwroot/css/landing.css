@@ -58,3 +58,22 @@ footer { font-size:14px; }
 .landing-feedback :is(select, textarea) { display:block; width:100%; padding:8px; border:1px solid #9ebdac; border-radius:8px; font:inherit; }
 .landing-feedback button, .landing-community summary { cursor:pointer; }
 .landing-community blockquote { overflow-wrap:anywhere; }
+
+:root[data-theme="dark"] { color-scheme:dark; color:#edf5ef; background:#121916; }
+[data-theme="dark"] :is(.landing-header, .landing-review, .service-grid a, .landing-feedback select, .landing-feedback textarea) {
+  background:#1e2923;
+  border-color:#46594e;
+  color:#edf5ef;
+}
+[data-theme="dark"] .landing-header { box-shadow:0 1px 0 #38483f; }
+[data-theme="dark"] :is(.landing-hero, .landing-services, .landing-areas, .landing-community) { background:#18231d; }
+[data-theme="dark"] :is(.hero-copy p, .landing-steps span, .landing-areas p, .landing-community p, .landing-review figcaption, footer) { color:#b8cbbf; }
+[data-theme="dark"] :is(.service-icon, .landing-review-avatar) { background:#294438; color:#a5edcc; }
+[data-theme="dark"] .landing-review-stars { color:#f4c369; }
+[data-theme="dark"] .landing-button { background:#81dbb2; border-color:#81dbb2; color:#10231a; }
+[data-theme="dark"] .landing-button:hover { background:#a0eac8; }
+[data-theme="dark"] .landing-outline { background:#1e2923; color:#a5edcc; }
+[data-theme="dark"] .landing-outline:hover { background:#294438; }
+[data-theme="dark"] :is(.landing-community summary, .landing-community a) { color:#a5edcc; }
+[data-theme="dark"] :is(a, summary, input, select, textarea, button):focus-visible { outline:3px solid #81dbb2; outline-offset:3px; }
+[data-theme="dark"] .landing-feedback input { accent-color:#81dbb2; }

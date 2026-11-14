@@ -66,6 +66,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
+        var openedAt = DateTime.UtcNow;
         if (UserId == 0 || !await db.Users.AnyAsync(x => x.Id == UserId, ct)) return Challenge();
         WorkRole = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
         MyTasks = await (from t in db.MarketplaceTasks.AsNoTracking()
@@ -94,6 +95,15 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             select new BookingItem(b, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).ToListAsync(ct);
         try { Reviews = await db.MarketplaceReviews.AsNoTracking().Where(r => r.ClientId == UserId).ToDictionaryAsync(r => r.TaskId, ct); }
         catch (MySqlException) { ReviewsUnavailable = true; }
+        var view = Request.Query["view"].ToString();
+        if (view is not ("jobs" or "post") && ownIds.Length > 0)
+        {
+            Response.Headers.CacheControl = "no-store";
+            await db.MarketplaceNotifications
+                .Where(n => n.UserId == UserId && !n.IsRead && n.CreatedAt <= openedAt
+                    && MarketplaceNotification.TaskKinds.Contains(n.Kind) && ownIds.Contains(n.TaskId))
+                .ExecuteUpdateAsync(update => update.SetProperty(n => n.IsRead, true), ct);
+        }
         return Page();
     }
 

@@ -797,3 +797,20 @@ html[data-theme="dark"] body .task-help #task-help-input {
     border-color: #567264 !important;
     caret-color: var(--text);
 }
+
+/* Theme the rendered basemap while keeping interactive controls and pins distinct. */
+html[data-theme="dark"] :is(.location-picker-map, .job-location-map) {
+    background: #18231d;
+}
+html[data-theme="dark"] :is(.location-picker-map, .job-location-map) .maplibregl-canvas {
+    filter: invert(.92) hue-rotate(180deg) saturate(.72);
+}
+html[data-theme="dark"] :is(.location-picker-map, .job-location-map) .maplibregl-ctrl-group {
+    background: #26352d;
+}
+html[data-theme="dark"] :is(.location-picker-map, .job-location-map) .maplibregl-ctrl-icon {
+    filter: invert(1);
+}
+html[data-theme="dark"] body .sidebar.sidebar.sidebar > .sidebar-logo > span {
+    color: var(--text) !important;
+}

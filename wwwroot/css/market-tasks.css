@@ -153,3 +153,37 @@ html body .market-content .task-card .offer { background: #eff6ee !important; }
     overflow-wrap: anywhere;
 }
 .market-content .offer .offer-details { font-weight: 600; }
+
+.task-card-heading,
+.market-content .task-booking-record {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+}
+.task-card-heading h3 { margin: 0; overflow-wrap: anywhere; }
+.task-cancelled-badge {
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #f8e9df;
+    color: #813d24;
+    font-size: 13px;
+}
+.task-cancellation {
+    margin-block-start: 16px;
+    padding: 12px 16px;
+    border-inline-start: 3px solid #bd7959;
+    border-radius: 8px;
+    background: #fbf3ed;
+    color: #693721;
+}
+.task-cancellation p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.market-content .task-booking-record span { display: block; text-transform: capitalize; }
+.market-content .task-booking-record .task-chat-action { min-height: 44px; }
+.market-content .task-card[data-task-status="cancelled"] .task-actions:empty { display: none; }
+html[data-theme="dark"] .task-cancellation { background: #30251f; }
+html[data-theme="dark"] body .task-card-heading .task-cancelled-badge {
+    background: #493027;
+    color: #ffd0b8 !important;
+}
