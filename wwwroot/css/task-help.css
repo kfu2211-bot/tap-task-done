@@ -30,20 +30,23 @@
     font-size:.875rem;
     font-weight:600;
 }
-.task-help .task-help-language-picker select {
+#task-help-language-select {
     min-height:44px;
     min-width:8rem;
     max-width:100%;
     padding-inline:12px;
-    border:1px solid #9ebdac;
+    border:1px solid #9ebdac !important;
     border-radius:10px;
-    background:#fff;
-    color:#16382d;
-    color-scheme:light;
+    background:#fff !important;
+    color:#16382d !important;
+    color-scheme:light !important;
     font:inherit;
     cursor:pointer;
 }
-html[data-theme="dark"] .task-help .task-help-language-picker select { color-scheme:dark; }
+#task-help-language-select option {
+    background:#fff !important;
+    color:#16382d !important;
+}
 .task-help-language-picker select:focus-visible {
     outline:2px solid #19765a;
     outline-offset:2px;
