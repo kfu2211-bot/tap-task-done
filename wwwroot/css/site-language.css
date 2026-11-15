@@ -8,7 +8,14 @@
     list-style: none;
 }
 .site-language-menu summary::-webkit-details-marker { display: none; }
-.site-language-menu summary::before { content: "◎"; font-size: 1.1rem; }
+.site-language-menu summary::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cellipse cx='12' cy='12' rx='4' ry='9'/%3E%3Cpath d='M4 9h16M4 15h16'/%3E%3C/svg%3E") center / contain no-repeat;
+}
 .site-language-menu summary::after { content: "⌄"; }
 .site-language-options {
     position: absolute;
