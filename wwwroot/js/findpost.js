@@ -465,6 +465,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById("selectedProviderAvailability").textContent = selectedProvider.availability || "Availability not set";
                     const bookingFreelancerId = document.getElementById("bookingFreelancerId");
                     if (bookingFreelancerId) bookingFreelancerId.value = card.dataset.id || "";
+                    const inquiryFreelancerId = document.getElementById("inquiryFreelancerId");
+                    if (inquiryFreelancerId && inquiryFreelancerId.value !== card.dataset.id) {
+                        inquiryFreelancerId.form.reset();
+                        inquiryFreelancerId.closest("details").open = false;
+                        inquiryFreelancerId.value = card.dataset.id || "";
+                    }
+                    const bookingInquiryId = document.getElementById("bookingInquiryId");
+                    const query = new URLSearchParams(window.location.search);
+                    if (bookingInquiryId) bookingInquiryId.value = query.get("providerId") === card.dataset.id ? query.get("inquiryId") || "" : "";
                     const bookingBudget = document.getElementById("bookingBudget");
                     if (bookingBudget) bookingBudget.value = card.dataset.rate || "";
                     const bookingBudgetMaximum = document.getElementById("bookingBudgetMaximum");

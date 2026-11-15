@@ -222,3 +222,65 @@ html body #findJobsSection .jobs-offer[open] > form {
     background: var(--surface-2, #f2f7f1);
 }
 @media (max-width: 600px) { .jobs-category-filter { max-width: none; } }
+
+.service-inquiry {
+    margin-block: 16px;
+    border: 1px solid #b9d6c4;
+    border-radius: 12px;
+    background: #f5f9f6;
+}
+.service-inquiry summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 10px 16px;
+    list-style: none;
+    cursor: pointer;
+    font-weight: 700;
+}
+.service-inquiry summary::-webkit-details-marker { display: none; }
+.service-inquiry summary::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    margin-inline: 12px 4px;
+    border: solid currentColor;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.service-inquiry[open] summary::after { transform: rotate(225deg); }
+.service-inquiry form {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 14px 16px 16px;
+    border-top: 1px solid var(--line, #d4e4d9);
+}
+.service-inquiry label { font-weight: 650; }
+html body #providerDetailPanel #inquiryQuestion {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    min-height: 96px;
+    padding: 12px;
+    border: 1px solid #aac7b6;
+    border-radius: 8px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    resize: vertical;
+}
+.service-inquiry-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+}
+.service-inquiry-footer small { color: var(--muted, #486656); }
+.service-inquiry-footer button { min-height: 44px; margin: 0; }
+@media (max-width: 480px) {
+    .service-inquiry-footer button { width: 100%; }
+}
+html[data-theme="dark"] .service-inquiry { background: #20392e; border-color: #567264; color: #edf5ef; }

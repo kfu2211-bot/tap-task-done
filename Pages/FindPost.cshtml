@@ -453,9 +453,22 @@
                                 <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
                                 <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span id="selectedProviderAvailability" class="available-now">Availability —</span></div>
                                 @if (tts.Pages.BookingRequestsModel.CanBook(Model.WorkRole)) {
+                                <details class="service-inquiry">
+                                    <summary>Ask about a service</summary>
+                                    <form method="post" asp-page="/BookingRequests" asp-page-handler="Inquiry">
+                                        <input type="hidden" name="freelancerId" id="inquiryFreelancerId" />
+                                        <label for="inquiryQuestion">Your question</label>
+                                        <textarea id="inquiryQuestion" name="question" rows="3" maxlength="2000" required aria-describedby="inquiryHelp" placeholder="e.g. Are you available this Saturday in Cabetican?"></textarea>
+                                        <div class="service-inquiry-footer">
+                                            <small id="inquiryHelp">Your question starts a private conversation in Messages.</small>
+                                            <button type="submit" class="post-submit-button">Send question</button>
+                                        </div>
+                                    </form>
+                                </details>
                                 <p class="provider-detail-help">Request work directly from this freelancer. Your request is private and will appear in their My Jobs → Booking requests.</p>
                                 <form method="post" asp-page="/BookingRequests" asp-page-handler="Direct" class="direct-booking-form">
                                     <input type="hidden" name="freelancerId" id="bookingFreelancerId" />
+                                    <input type="hidden" name="inquiryId" id="bookingInquiryId" />
                                     <div class="booking-fields">
                                     <label for="bookingTitle">What do you need help with?</label><input id="bookingTitle" name="title" maxlength="120" required placeholder="e.g. Clean a two-bedroom home" />
                                     <label for="bookingDescription">Work details</label><textarea id="bookingDescription" name="description" maxlength="5000" rows="3" required placeholder="Describe the work, scope, and any special requirements"></textarea>

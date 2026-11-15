@@ -103,8 +103,12 @@ public static class RegistrationVerification
                 throw new RegistrationFlowException("Your account changed. Return to login.");
             if (newEmail is not null)
             {
-                if (!ValidEmail(newEmail) || password is null || password.Length is 0 or > 256 || !context.RequestServices.GetRequiredService<AccountStore>().VerifyPassword(user, password))
-                    throw new RegistrationFlowException("Enter a valid email and your registration password.");
+                if (!ValidEmail(newEmail))
+                    throw new RegistrationFlowException("Enter a valid corrected email address.");
+                if (string.IsNullOrEmpty(password) || password.Length > 256)
+                    throw new RegistrationFlowException("Enter the password you used when creating this account.");
+                if (!context.RequestServices.GetRequiredService<AccountStore>().VerifyPassword(user, password))
+                    throw new RegistrationFlowException("That password does not match your registration password. Check it and try again.");
                 if (await db.Users.AnyAsync(x => x.Id != user.Id && x.Username == newEmail, ct)) throw new RegistrationFlowException("That email cannot be used. Choose another email or log in to the existing account.");
                 row.Email = newEmail; // Username changes only after proof of ownership of this address.
             }

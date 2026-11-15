@@ -16,8 +16,61 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
 
     public IActionResult OnGet() => RedirectToPage("/FindPost");
 
+    public async Task<IActionResult> OnPostInquiryAsync(int freelancerId, string? question, CancellationToken ct)
+    {
+        if (UserId <= 0) return Challenge();
+        question = question?.Trim();
+        if (!ModelState.IsValid || freelancerId <= 0 || freelancerId == UserId || question is not { Length: > 0 and <= 2000 })
+            return BadRequest();
+
+        try
+        {
+            await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+            var role = await db.FreelancerProfiles.Where(p => p.UserId == UserId).Select(p => p.WorkRole).SingleOrDefaultAsync(ct);
+            var provider = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == freelancerId &&
+                (p.WorkRole == "freelancer" || p.WorkRole == "both") && p.Service != "" && p.Location != "", ct);
+            if (!CanBook(role ?? "client") || provider is null ||
+                !await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, freelancerId))
+            {
+                Notice = "This service inquiry could not be sent.";
+                return RedirectToPage("/FindPost", new { providerId = freelancerId });
+            }
+
+            var conversation = await (from c in db.Set<TaskConversation>()
+                join t in db.MarketplaceTasks on c.TaskId equals t.Id
+                where t.ClientId == UserId && t.IsPrivate && t.Status == "inquiry" && c.FreelancerId == freelancerId
+                orderby c.Id descending
+                select c).FirstOrDefaultAsync(ct);
+            if (conversation is null)
+            {
+                var task = new MarketplaceTask { ClientId = UserId, Title = "Service inquiry",
+                    Status = "inquiry", IsPrivate = true, CreatedAt = DateTime.UtcNow };
+                db.Add(task);
+                await db.SaveChangesAsync(ct);
+                await AgreementRules.ConversationAsync(db, task.Id, freelancerId, ct);
+                await db.SaveChangesAsync(ct);
+                conversation = await db.Set<TaskConversation>().SingleAsync(c => c.TaskId == task.Id && c.FreelancerId == freelancerId, ct);
+            }
+
+            db.Add(new MarketplaceMessage { TaskId = conversation.TaskId, ConversationId = conversation.Id,
+                SenderId = UserId, Body = question, CreatedAt = DateTime.UtcNow });
+            var notice = MarketplaceNotification.Create(freelancerId, conversation.TaskId, "message", "You have a new service inquiry.");
+            notice.ConversationId = conversation.Id;
+            db.Add(notice);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            return RedirectToPage("/Messages", new { conversationId = conversation.Id });
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException)
+        {
+            logger.LogWarning(ex, "Unable to send service inquiry");
+            Notice = "Your inquiry could not be sent. Please try again.";
+            return RedirectToPage("/FindPost", new { providerId = freelancerId });
+        }
+    }
+
     public async Task<IActionResult> OnPostDirectAsync(int freelancerId, string? title, string? description,
-        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null)
+        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, long? inquiryId = null)
     {
         if (UserId <= 0) return Challenge();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
@@ -26,32 +79,56 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         if (!ModelState.IsValid || freelancerId <= 0 || freelancerId == UserId || title.Length is < 1 or > 120 ||
             description.Length is < 1 or > 5000 || location.Length is < 1 or > 120 || schedule.Length is < 1 or > 120 ||
             budget is < 1 or > 9999999999m || decimal.Round(budget, 2) != budget || !MarketTasksModel.ValidBudgetMaximum(budget, budgetMaximum) || !TaskLocationRules.Valid(latitude, longitude))
-        { Notice = "Complete the work details and confirm the location. The maximum budget must be at least the minimum."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
+        { Notice = "Complete the work details and confirm the location. The maximum budget must be at least the minimum."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
         if (!DateTime.TryParseExact(schedule, "yyyy-MM-dd'T'HH:mm", System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.None, out var preferredTime) ||
             new DateTimeOffset(DateTime.SpecifyKind(preferredTime, DateTimeKind.Unspecified), TimeSpan.FromHours(8)).UtcDateTime <= DateTime.UtcNow)
-        { Notice = "Choose a valid future date and time for your booking (Philippine time)."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
+        { Notice = "Choose a valid future date and time for your booking (Philippine time)."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
         schedule = preferredTime.ToString("MMM d, yyyy 'at' h:mm tt '(PHT)'", System.Globalization.CultureInfo.InvariantCulture);
         try
         {
             await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
             if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, freelancerId))
-            { Notice = "This request cannot be sent while either account is restricted or has a pending deletion request."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
+            { Notice = "This request cannot be sent while either account is restricted or has a pending deletion request."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
             var requesterProfile = await db.FreelancerProfiles.SingleOrDefaultAsync(p => p.UserId == UserId, ct);
             var role = requesterProfile?.WorkRole ?? "client";
             var provider = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == freelancerId &&
                 (p.WorkRole == "freelancer" || p.WorkRole == "both") && p.Availability == "Available" && p.Service != "" && p.Location != "", ct);
             if (!CanBook(role) || provider is null || await FreelancerAvailability.IsBusyAsync(db, freelancerId, ct))
-            { Notice = "Choose an available freelancer to send a booking."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
+            { Notice = "Choose an available freelancer to send a booking."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
             var duplicate = await db.MarketplaceBookings.AnyAsync(b => b.FreelancerId == freelancerId && b.Status == "pending" &&
                 db.MarketplaceTasks.Any(t => t.Id == b.TaskId && t.ClientId == UserId && t.Status == "booking-pending" &&
                     t.Title == title && t.Description == description && t.Location == location && t.ScheduleText == schedule && t.Budget == budget && t.BudgetMaximum == budgetMaximum), ct);
             if (duplicate)
             { Notice = "This booking request has already been sent. Check My Tasks for its status."; return RedirectToPage("/MarketTasks", new { view = "mine" }); }
-            // This internal task is private: public directories only select status "open".
-            var work = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Location = location,
-                ScheduleText = schedule, Budget = budget, BudgetMaximum = budgetMaximum, Category = provider.Service, Status = "booking-pending", IsPrivate = true, CreatedAt = DateTime.UtcNow };
-            db.MarketplaceTasks.Add(work);
+            MarketplaceTask? work = null;
+            if (inquiryId.HasValue)
+            {
+                work = await (from c in db.Set<TaskConversation>()
+                    join t in db.MarketplaceTasks on c.TaskId equals t.Id
+                    where c.Id == inquiryId && c.FreelancerId == freelancerId &&
+                        t.ClientId == UserId && t.IsPrivate && t.Status == "inquiry"
+                    select t).SingleOrDefaultAsync(ct);
+                if (work is null)
+                {
+                    Notice = "This inquiry is no longer available for booking.";
+                    return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId });
+                }
+            }
+            else
+            {
+                work = new MarketplaceTask { ClientId = UserId, IsPrivate = true, CreatedAt = DateTime.UtcNow };
+                db.Add(work);
+            }
+
+            work.Title = title;
+            work.Description = description;
+            work.Location = location;
+            work.ScheduleText = schedule;
+            work.Budget = budget;
+            work.BudgetMaximum = budgetMaximum;
+            work.Category = provider.Service;
+            work.Status = "booking-pending";
             await db.SaveChangesAsync(ct);
             TaskLocationRules.Save(db, work.Id, null, latitude!.Value, longitude!.Value);
             await AgreementRules.ConversationAsync(db, work.Id, freelancerId, ct);
@@ -59,11 +136,12 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             db.MarketplaceNotifications.Add(MarketplaceNotification.Create(freelancerId, work.Id, "booking_request", "A client sent you a private work request. Review it in My Jobs → Booking requests."));
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            if (inquiryId.HasValue) return RedirectToPage("/Messages", new { conversationId = inquiryId });
             Notice = "Booking request sent directly to the freelancer. You can follow its status in My Tasks.";
             return RedirectToPage("/MarketTasks", new { view = "mine" });
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException)
-        { logger.LogWarning(ex, "Unable to create direct booking"); Notice = "Booking could not be saved. Please try again."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
+        { logger.LogWarning(ex, "Unable to create direct booking"); Notice = "Booking could not be saved. Please try again."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
     }
 
     public async Task<IActionResult> OnPostCreateAsync(long taskId, int freelancerId, CancellationToken ct)

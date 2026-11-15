@@ -204,12 +204,16 @@
             <div class="messages-grid @(Model.Selected is null ? "" : "has-open-thread")"><nav class="messages-conversations" aria-label="Conversations">
                 <div class="conversations-toolbar"><div class="conversations-title"><h2>Conversations</h2><span class="conversation-count">@Model.Conversations.Count</span></div><label class="conversation-search"><span class="messages-sr-only">Search conversations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="conversationSearch" type="search" placeholder="Search conversations" autocomplete="off" /></label></div>
                 <div class="conversation-results">
-                @if (Model.Conversations.Count == 0) { <p class="conversation-list-empty">No conversations yet. Ask about a public task or discuss a private booking to start a conversation.</p> }
+                <div class="messages-inbox-tabs" aria-label="Conversation filters">
+                    <a asp-page="/Messages" aria-current="@(!Model.Archived ? "page" : null)">Active</a>
+                    <a asp-page="/Messages" asp-route-archived="true" aria-current="@(Model.Archived ? "page" : null)">Archived</a>
+                </div>
+                @if (Model.Conversations.Count == 0) { <p class="conversation-list-empty">@(Model.Archived ? "No archived conversations yet." : "No active conversations yet. Ask about a task or discuss a booking to start one.")</p> }
                 @foreach (var conversation in Model.Conversations) {
                     Model.LatestMessages.TryGetValue(conversation.OtherId, out var latest);
                     var unread = Model.UnreadCounts.GetValueOrDefault(conversation.OtherId);
                     <a class="conversation-link @(Model.Selected?.OtherId == conversation.OtherId ? "selected" : "") @(unread > 0 ? "has-unread" : "")"
-                       asp-page="/Messages" asp-route-accountId="@conversation.OtherId"
+                       asp-page="/Messages" asp-route-conversationId="@conversation.Id"
                        aria-current="@(Model.Selected?.OtherId == conversation.OtherId ? "page" : null)"
                        data-search="@($"{conversation.OtherName} {conversation.Title}".ToLowerInvariant())">
                         <span class="conversation-avatar" aria-hidden="true">@MessagesModel.Initials(conversation.OtherName)</span>
@@ -265,7 +269,19 @@
                             <button type="submit" data-task-submit>Switch</button>
                         </form>
                         }
-                        <div class="thread-task-actions"><a class="thread-task-link" asp-page="/TaskDetails" asp-route-taskId="@Model.Selected.TaskId" asp-route-conversationId="@Model.Selected.Id">View task</a></div>
+                        <div class="thread-task-actions">
+                            @if (Model.Selected.Status == "inquiry")
+                            {
+                                @if (Model.Selected.ClientId == Model.UserId)
+                                {
+                                    <a class="thread-task-link inquiry-booking-action" asp-page="/FindPost" asp-route-providerId="@Model.Selected.FreelancerId" asp-route-inquiryId="@Model.Selected.Id">Request booking</a>
+                                }
+                            }
+                            else
+                            {
+                                <a class="thread-task-link" asp-page="/TaskDetails" asp-route-taskId="@Model.Selected.TaskId" asp-route-conversationId="@Model.Selected.Id">View task</a>
+                            }
+                        </div>
                         @if (Model.SharedPhone is { } phone)
                         {
                             <bdi class="thread-task-link thread-phone" dir="ltr" aria-label="Shared mobile number: @phone">@phone</bdi>

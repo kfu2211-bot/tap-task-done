@@ -25,8 +25,10 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
     public int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public bool Unavailable { get; private set; }
     [TempData] public string? Notice { get; set; }
-    public static bool MaySend(string status, bool assigned, bool pendingBooking, bool isPrivate = false) => status == "open" && !isPrivate || assigned || status == "booking-pending" && pendingBooking;
-    public async Task<IActionResult> OnGetAsync(long? taskId, CancellationToken ct, long? conversationId = null, int? freelancerId = null, int? accountId = null)
+    public bool Archived { get; private set; }
+    public static bool IsArchived(string status) => status is "completed" or "cancelled" or "canceled";
+    public static bool MaySend(string status, bool assigned, bool pendingBooking, bool isPrivate = false) => !IsArchived(status) && (status == "inquiry" && isPrivate || status == "open" && !isPrivate || assigned || status == "booking-pending" && pendingBooking);
+    public async Task<IActionResult> OnGetAsync(long? taskId, CancellationToken ct, long? conversationId = null, int? freelancerId = null, int? accountId = null, bool archived = false)
     {
         Response.Headers.CacheControl = "no-store";
         if (UserId <= 0) return Challenge();
@@ -47,11 +49,14 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
             var ids = tasks.Select(c => c.Id).ToArray();
             var unread = db.MarketplaceNotifications.Where(n => n.UserId == UserId && !n.IsRead && n.Kind == "message" && n.ConversationId.HasValue && ids.Contains(n.ConversationId.Value));
             var groups = tasks.GroupBy(c => c.OtherId).ToDictionary(g => g.Key, g => g.ToList());
-            Conversations = groups.Values.Select(g => g[0]).ToList();
+            Conversations = tasks.Where(c => IsArchived(c.Status) == archived).GroupBy(c => c.OtherId).Select(g => g.First()).ToList();
             Selected = conversationId.HasValue ? tasks.FirstOrDefault(c => c.Id == conversationId)
                 : taskId.HasValue ? tasks.Where(c => c.TaskId == taskId && (!freelancerId.HasValue || c.FreelancerId == freelancerId)).OrderByDescending(c => c.Assigned).FirstOrDefault()
-                : accountId.HasValue ? Conversations.FirstOrDefault(c => c.OtherId == accountId) : null;
+                : accountId.HasValue ? Conversations.FirstOrDefault(c => c.OtherId == accountId)
+                    ?? tasks.FirstOrDefault(c => c.OtherId == accountId) : null;
             if ((conversationId.HasValue || taskId.HasValue || accountId.HasValue) && Selected is null) return NotFound();
+            Archived = Selected is null ? archived : IsArchived(Selected.Status);
+            Conversations = tasks.Where(c => IsArchived(c.Status) == Archived).GroupBy(c => c.OtherId).Select(g => g.First()).ToList();
             if (Selected is not null)
             {
                 SelectedTasks = groups[Selected.OtherId];

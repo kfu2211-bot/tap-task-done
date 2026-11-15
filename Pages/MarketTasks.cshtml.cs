@@ -71,7 +71,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         WorkRole = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
         MyTasks = await (from t in db.MarketplaceTasks.AsNoTracking()
                     join u in db.Users.AsNoTracking() on t.ClientId equals u.Id
-                    where t.ClientId == UserId orderby t.Id descending
+                    where t.ClientId == UserId && t.Status != "inquiry" orderby t.Id descending
                     select new TaskItem(t, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).ToListAsync(ct);
         var ownIds = MyTasks.Select(t => t.Task.Id).ToArray();
         Destinations = await db.Set<TaskDestination>().AsNoTracking().Where(d => ownIds.Contains(d.TaskId)).ToDictionaryAsync(d => d.TaskId, ct);

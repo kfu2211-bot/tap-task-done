@@ -11,7 +11,7 @@ const taskHelpAnswers = {
     messages: "Buksan ang Messages at piliin ang account na gusto mong kausapin. Piliin ang task sa chat header kung may higit sa isang task.",
     password: "Sa Log in, piliin ang Forgot password? at sundin ang instructions na ipapadala sa email.",
     tracking: "Buksan ang Tracking at piliin ang task para makita ang progress at ang susunod na available na action.",
-    role: "Sa Settings, hanapin ang Work role. Piliin ang Client, Freelancer, o Client & Freelancer at i-save ang settings.",
+    role: "Buksan ang account menu sa kanang itaas, piliin ang Settings, at hanapin ang Work role. Piliin ang Client, Freelancer, o Client & Freelancer, tapos pindutin ang Save changes. Kung may agreement na lalabas, basahin ito at piliin ang Agree and activate.",
     notifications: "Buksan ang bell o ang Notifications para makita ang updates. Gamitin ang Unread para makita ang mga bago.",
     post: "Sa Settings, piliin ang Client o Client & Freelancer at hintaying maaprubahan ang Identity Verification. Buksan ang Post a Task, punan ang form, at pindutin ang Review task. Sa My Tasks, suriin ito at piliin ang Confirm and open task para makita ito ng freelancers.",
     jobs: "Piliin ang Freelancer o Client & Freelancer sa Settings. Kapag approved na ang identity verification mo, buksan ang Find Jobs tab sa Find & Post para makita ang mga bukas na task.",
@@ -27,7 +27,7 @@ const english = {
     messages: "Open Messages and select the person you want to contact. If you share several tasks, use the selector in the chat header.",
     password: "Select Forgot password? on the Log in page and follow the instructions sent to your email.",
     tracking: "Open Tracking and select a task to see its progress and available actions.",
-    role: "In Settings, open Work role, choose Client, Freelancer, or Client & Freelancer, and save your changes.",
+    role: "Open the account menu in the upper-right corner, select Settings, and find Work role. Choose Client, Freelancer, or Client & Freelancer, then select Save changes. If an agreement appears, review it and select Agree and activate.",
     notifications: "Open Notifications using the bell. Select Unread to see notifications you have not read.",
     post: "In Settings, choose Client or Client & Freelancer and wait for Identity Verification approval. Open Post a Task, fill out the form, and select Review task. In My Tasks, check the details and select Confirm and open task to make it visible to freelancers.",
     jobs: "Choose Freelancer or Client & Freelancer in Settings. Once your identity verification is approved, open the Find Jobs tab in Find & Post to browse open tasks.",
@@ -43,7 +43,7 @@ const filipino = {
     messages: "Buksan ang Messages at piliin ang taong nais mong kausapin. Kung marami kayong gawain, piliin ang nais pag-usapan sa itaas ng usapan.",
     password: "Piliin ang Forgot password? sa pahina ng pagpasok at sundin ang mga tagubiling ipinadala sa iyong email.",
     tracking: "Buksan ang Tracking at piliin ang gawain para makita ang kalagayan nito at ang susunod na hakbang.",
-    role: "Sa Settings, hanapin ang Work role. Piliin ang Client, Freelancer, o Client & Freelancer at itala ang pagbabago.",
+    role: "Buksan ang account menu sa kanang itaas, piliin ang Settings, at hanapin ang Work role. Piliin ang Client, Freelancer, o Client & Freelancer, tapos pindutin ang Save changes. Kung may agreement na lalabas, basahin ito at piliin ang Agree and activate.",
     notifications: "Pindutin ang kampana upang buksan ang Notifications. Piliin ang Unread para makita ang mga abisong hindi mo pa nababasa.",
     post: "Sa Settings, piliin ang Client o Client & Freelancer at hintaying maaprubahan ang Identity Verification. Buksan ang Post a Task, punan ang form, at pindutin ang Review task. Sa My Tasks, suriin ito at piliin ang Confirm and open task para makita ito ng freelancers.",
     jobs: "Piliin ang Freelancer o Client & Freelancer sa Settings. Kapag napatunayan na ang iyong pagkakakilanlan, buksan ang Find Jobs tab sa Find & Post para makita ang mga bukas na gawain.",
@@ -197,6 +197,12 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
     taskHelpInput.focus();
     taskHelpReport.hidden = true;
     const asksWhere = /^(?:saan(?:\s+(?:po|yun|iyon|doon|dito))?(?:\s+(?:yan|iyan))?|where(?:\s+is\s+it)?)\s*[?!.]*$/i.test(question);
+    const asksAboutRole = /\b(?:role|roles)\b/i.test(question) && /\b(?:saan|paano|pano|makikita|palitan|change|switch|where|select|choose|work)\b/i.test(question);
+    if (asksAboutRole || (asksWhere && previousHelpTopic === "role")) {
+        showTaskHelpAnswer("role", language);
+        button.disabled = false;
+        return;
+    }
     if (asksWhere && (previousHelpTopic === "report" || previousHelpTopic === "reportStatus")) {
         showTaskHelpAnswer(previousHelpTopic, language);
         button.disabled = false;
