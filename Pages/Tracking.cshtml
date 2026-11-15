@@ -637,7 +637,47 @@
 @{ var finished = Model.Progress.LastOrDefault(x => x.TaskId == task.Id && x.Status == "awaiting-confirmation"); }
 @if (finished is not null) { <div class="tracking-completion"><strong>Completion note</strong><p style="white-space:pre-wrap">@finished.Note</p>@if (finished.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@finished.Id" target="_blank" rel="noopener"><img src="/Tracking?handler=CompletionPhoto&amp;eventId=@finished.Id" alt="Completion photo" loading="lazy" style="max-width:100%;max-height:240px;border-radius:8px" /></a> }</div> }
 <div class="tracking-actions">
-@if (!Model.ProgressUnavailable && !item.IsClient && task.Status is "assigned" or "on-the-way" or "arrived" or "in-progress") {
+@if (!Model.ProgressUnavailable && task.Status == "on-the-way")
+{
+    var requested = Model.Progress.Any(x => x.TaskId == task.Id && x.Status == TaskProgress.ArrivalRequest);
+    <section class="tracking-arrival" data-arrival-panel data-task-id="@task.Id" data-arrival-requested="@(requested ? "true" : "false")" aria-labelledby="arrivalTitle-@task.Id">
+        <h3 id="arrivalTitle-@task.Id">Confirm arrival</h3>
+        @if (item.IsClient)
+        {
+            <p>@(requested ? "The freelancer asked you to confirm their arrival. Confirm once they are at the agreed location." : "The freelancer is travelling to the agreed task location.")</p>
+            @if (requested)
+            {
+                <form method="post" asp-page-handler="Advance">
+                    <input type="hidden" name="id" value="@task.Id" />
+                    <button name="action" value="confirm-arrival" type="submit" class="tracking-primary">Confirm freelancer arrival</button>
+                </form>
+            }
+        }
+        else
+        {
+            <p data-arrival-status role="status">I’ve arrived becomes available once a recent, accurate location is within 100 m of the agreed pin.</p>
+            <div class="tracking-arrival-buttons">
+                <form method="post" asp-page-handler="Advance" data-arrival-form hidden>
+                    <input type="hidden" name="id" value="@task.Id" />
+                    <button name="action" value="arrive" type="submit" class="tracking-primary">I’ve arrived</button>
+                </form>
+                <button type="button" class="db-tracking-link" data-arrival-retry>Retry location</button>
+            </div>
+            @if (requested)
+            {
+                <p>Waiting for the client to confirm your arrival.</p>
+            }
+            else
+            {
+                <form method="post" asp-page-handler="Advance">
+                    <input type="hidden" name="id" value="@task.Id" />
+                    <button name="action" value="request-arrival" type="submit" class="db-tracking-link">Ask client to confirm arrival</button>
+                </form>
+            }
+        }
+    </section>
+}
+@if (!Model.ProgressUnavailable && !item.IsClient && task.Status is "assigned" or "arrived" or "in-progress") {
 var action = task.Status switch { "assigned" => "travel", "on-the-way" => "arrive", "arrived" => "start", _ => "finish" };
 var button = action switch { "travel" => "Start travel & share location", "arrive" => "I’ve arrived", "start" => "Start work", _ => "Mark work finished" };
 <form method="post" asp-page-handler="Advance" enctype="multipart/form-data" class="tracking-progress-form"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="@action" />

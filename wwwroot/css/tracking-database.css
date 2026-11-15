@@ -73,3 +73,18 @@ html[data-theme="dark"] .tracking-review > summary { color: var(--brand); }
     gap: 8px;
 }
 .tracking-completed-reviews .community-publish input { width: auto; flex: none; }
+
+.tracking-arrival {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #a9cbb7;
+    border-radius: 12px;
+    background: #edf6ef;
+    color: #173e30;
+}
+.tracking-arrival h3 { margin: 0 0 6px; font-size: 1rem; }
+.tracking-arrival p { margin: 0 0 10px; }
+.tracking-arrival-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.tracking-arrival button { min-height: 44px; }
+.tracking-arrival [hidden] { display: none !important; }
+html[data-theme="dark"] .tracking-arrival { background: #20392e; border-color: #567264; color: #edf5ef; }

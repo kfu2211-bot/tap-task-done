@@ -134,7 +134,12 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
                 .Where(x => x.TaskId == taskId && x.UserId == assignment.FreelancerId)
                 .OrderByDescending(x => x.RecordedAtUtc).ThenByDescending(x => x.Id)
                 .Select(x => new { x.Latitude, x.Longitude, x.AccuracyMeters, x.RecordedAtUtc }).FirstOrDefaultAsync(ct);
-            return new JsonResult(new { active = assignment.Status == "on-the-way", status = assignment.Status, location = latest });
+            var active = assignment.Status == "on-the-way";
+            var canArrive = active && UserId == assignment.FreelancerId &&
+                await TaskProgress.NearDestinationAsync(db, taskId, UserId, ct);
+            var arrivalRequested = active && await db.Set<TaskProgressEvent>().AnyAsync(x =>
+                x.TaskId == taskId && x.ActorId == assignment.FreelancerId && x.Status == TaskProgress.ArrivalRequest, ct);
+            return new JsonResult(new { active, status = assignment.Status, location = latest, canArrive, arrivalRequested });
         }
         catch (MySqlConnector.MySqlException ex)
         { logger.LogError(ex, "Location storage unavailable"); return StatusCode(503, new { message = "Location storage is not ready. Please contact support." }); }
@@ -160,7 +165,7 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
                 Latitude = input.Latitude, Longitude = input.Longitude, AccuracyMeters = input.AccuracyMeters, RecordedAtUtc = now });
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
-            return new JsonResult(new { saved = true });
+            return new JsonResult(new { saved = true, canArrive = await TaskProgress.NearDestinationAsync(db, input.TaskId, UserId, ct) });
         }
         catch (MySqlConnector.MySqlException ex)
         { logger.LogError(ex, "Unable to save freelancer location"); return StatusCode(503, new { message = "Location storage is not ready. Please contact support." }); }

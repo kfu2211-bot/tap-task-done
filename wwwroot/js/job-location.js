@@ -14,6 +14,19 @@
     let destination, destinationMarker, candidate, editing = false, route, routing = false, lastRouteAt = 0, routeDestination = '', routeGeneration = 0;
     let routeProgress = 0, remainingCoordinates = null;
     const taskId = Number(root.dataset.taskId);
+    const arrivalPanel = document.querySelector(`[data-arrival-panel][data-task-id="${taskId}"]`);
+    const arrivalForm = arrivalPanel?.querySelector('[data-arrival-form]');
+    const arrivalStatus = arrivalPanel?.querySelector('[data-arrival-status]');
+    let arrivalExpiry;
+    function updateArrival(eligible) {
+        if (!arrivalForm) return;
+        clearTimeout(arrivalExpiry);
+        arrivalForm.hidden = !eligible;
+        arrivalStatus.textContent = eligible
+            ? 'You’re near the agreed task location. Confirm once you’re there.'
+            : 'Waiting for a recent, accurate location within 100 m of the agreed pin.';
+        if (eligible) arrivalExpiry = setTimeout(() => updateArrival(false), 15000);
+    }
     const consentKey = 'tts-location-sharing:' + root.dataset.viewerId + ':' + taskId;
     const consent = () => { try { return sessionStorage.getItem(consentKey); } catch { return null; } };
     const remember = value => { try { sessionStorage.setItem(consentKey, value); } catch { /* Browser storage may be disabled. */ } };
@@ -31,6 +44,7 @@
     function stopSharing(text, preserveConsent = false) {
         if (!preserveConsent) remember("off");
         sharing = false;
+        updateArrival(false);
         clearInterval(sampleTimer);
         if (watchId !== null) navigator.geolocation.clearWatch(watchId);
         watchId = null;
@@ -82,6 +96,11 @@
             const response = await fetch(endpoint, { cache: 'no-store', headers: { Accept: 'application/json' } });
             if (!response.ok || response.redirected) throw new Error('Unable to load location. Check your connection or sign in again.');
             const result = await response.json();
+            if (arrivalPanel && !arrivalForm && result.arrivalRequested && arrivalPanel.dataset.arrivalRequested !== 'true') {
+                location.reload();
+                return;
+            }
+            updateArrival(sharing && result.canArrive);
             if (result.status && root.dataset.progressStatus && result.status !== root.dataset.progressStatus && !editing && !document.querySelector('.tracking-progress-form textarea')?.value?.trim()) {
                 location.reload(); return;
             }
@@ -104,6 +123,8 @@
             if (response.status === 404 || response.redirected) { stopSharing('Sharing stopped. The job changed or your session ended.'); return; }
             if (response.status === 429) return;
             if (!response.ok) throw new Error('Location could not be saved. Check your connection and try sharing again.');
+            const result = await response.json();
+            updateArrival(sharing && result.canArrive);
             latest = { latitude: position.coords.latitude, longitude: position.coords.longitude, accuracyMeters: position.coords.accuracy, recordedAtUtc: new Date().toISOString() };
             render();
             if (sharing) message('Location sharing active · Updates about every 15 seconds.', true);
@@ -128,6 +149,19 @@
         }, 15000);
     }
     share?.addEventListener('click', startSharing);
+    arrivalPanel?.querySelector('[data-arrival-retry]')?.addEventListener('click', () => {
+        if (!sharing) {
+            startSharing();
+            return;
+        }
+        arrivalStatus.textContent = 'Checking your location…';
+        navigator.geolocation.getCurrentPosition(position => {
+            send(position);
+        }, () => {
+            updateArrival(false);
+            arrivalStatus.textContent = 'Could not get a fresh location. Try again or ask the client to confirm.';
+        }, { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 });
+    });
     stop?.addEventListener('click', () => stopSharing('Location sharing stopped. The client can still see the last reported location and its timestamp.'));
     window.addEventListener('pagehide', () => { disposed = true; clearTimeout(pollTimer); stopSharing('Location sharing stopped.', true); });
     window.addEventListener('pageshow', event => { if (event.persisted) { disposed = false; poll(); if (share && active && consent() === 'on') startSharing(); } });
