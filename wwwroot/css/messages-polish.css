@@ -290,3 +290,35 @@ html[data-theme="dark"] .thread-contact {
     background:#1e2923;
     border-color:#38483f;
 }
+
+.thread-task-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.thread-task-actions .thread-task-link,
+html body .thread-task-actions button.task-help-messages {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 8px 12px;
+    font: 650 13px/1.25 system-ui, sans-serif;
+}
+html body .thread-task-actions button.task-help-messages {
+    border: 1px solid #bfd3c3;
+    background: transparent;
+    color: #176b50;
+}
+html[data-theme="dark"] body .thread-task-actions button.task-help-messages {
+    border-color: #567264;
+    color: #a5edcc;
+}
+@media (max-width: 700px) {
+    .thread-task-actions {
+        order: 2;
+        width: 100%;
+    }
+    .thread-task-actions > :is(a, button) { flex: 1 1 auto; }
+}

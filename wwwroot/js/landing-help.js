@@ -94,6 +94,12 @@ function showTaskHelpAnswer(topic, language = "taglish", unclear = false) {
     taskHelpAnswer.textContent = unclear ? clarify : redirect;
 }
 
+const helpPlacement = document.querySelector(".thread-task-actions") || document.querySelector(".conversations-toolbar");
+if (helpPlacement) {
+    taskHelpLaunch.classList.add("task-help-messages");
+    taskHelpLaunch.querySelector("[aria-hidden]").textContent = "?";
+    helpPlacement.append(taskHelpLaunch);
+}
 taskHelpLaunch.hidden = false;
 taskHelpLaunch.addEventListener("click", () => taskHelp.showModal());
 taskHelp.addEventListener("close", () => taskHelpLaunch.focus());
@@ -120,36 +126,34 @@ languagePicker.addEventListener("change", () => {
 taskHelp.querySelectorAll("[data-topic]").forEach(button => {
     button.addEventListener("click", () => showTaskHelpAnswer(button.dataset.topic, languagePicker.value));
 });
-document.querySelector("#task-help-question").addEventListener("submit", event => {
+document.querySelector("#task-help-question").addEventListener("submit", async event => {
     event.preventDefault();
-    const question = taskHelpInput.value.trim().toLowerCase();
-    if (!question) return;
-    const topic = Object.entries({
-        payment: /\b(?:payments?|pay|bayad|magbayad|pagbabayad|gcash)\b/,
-        reportStatus: /(?=.*\b(?:status|pending|update|history|kalagayan)\b)(?=.*(?:report|reklamo|ulat))/,
-        pendingPost: /(?=.*(?:post|maglathala))(?=.*(?:verif|pagkakakilanlan))(?=.*(?:pending|while|habang|pa ba|before|bago))/,
-        photo: /profile (?:photo|picture)|larawan ng profile/,
-        edit: /\b(?:edit|update|baguhin)\b.*\b(?:task|post|gawain)\b/,
-        cancel: /\b(?:cancel|kanselahin)\b.*\b(?:task|post|gawain)\b/,
-        booking: /\bbooking\b|mag-book/,
-        offers: /\boffers?\b|\balok\b/,
-        location: /\b(?:location|landmark|address|pin|lokasyon)\b/,
-        report: /report|reklamo|sumbong|scam|harass|complaint/,
-        password: /password|forgot|reset|hudyat|kontrasenyas/,
-        review: /review|rating|feedback|puna|\brate\b/,
-        messages: /message|chat|kausap|kausapin|mensahe/,
-        notifications: /notification|unread|alert|abiso/,
-        tracking: /tracking|progress|kumplet|complet/,
-        role: /\brole\b|work preferences/,
-        settings: /\bsettings?\b/,
-        verify: /verif|pagkakakilanlan|patunayan|pending|\botp\b|\bid\b/,
-        areas: /barangay|available|bacolor|coverage|service area/,
-        post: /post|hire|client|magpagawa|maglathala|kumuha ng tulong/,
-        jobs: /job|trabaho|freelanc|work|apply|hanapbuhay/
-    }).find(([, pattern]) => pattern.test(question))?.[0];
-    const unclear = /ayaw gumana|hindi gumagana|di gumagana|may error|may problema|not working|doesn.t work|something went wrong|help me|can.t|hindi makapag/.test(question);
-    lastQuestionLanguage = questionLanguage(question);
-    const postingIssue = topic === "post" && unclear;
-    showTaskHelpAnswer(postingIssue ? undefined : topic, lastQuestionLanguage, unclear);
-    taskHelpInput.value = "";
+    const question = taskHelpInput.value.trim();
+    const button = event.currentTarget.querySelector("button");
+    if (!question || button.disabled) return;
+
+    const language = questionLanguage(question.toLowerCase());
+    lastQuestionLanguage = language;
+    button.disabled = true;
+    taskHelpReport.hidden = true;
+    taskHelpAnswer.hidden = false;
+    taskHelpAnswer.textContent = language === "en" ? "Looking up your question…" : "Hinahanap ang sagot…";
+    try {
+        const response = await fetch("/api/task-help", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: question })
+        });
+        if (!response.ok) throw new Error("Task Help unavailable");
+        const { topic } = await response.json();
+        const recognized = Object.hasOwn(english, topic) || Object.hasOwn(specificAnswers, topic);
+        showTaskHelpAnswer(recognized ? topic : undefined, language, topic === "unclear");
+        if (taskHelpInput.value.trim() === question) taskHelpInput.value = "";
+    } catch {
+        taskHelpAnswer.textContent = language === "en"
+            ? "Task Help is temporarily unavailable. Try again or choose a shortcut above."
+            : "Pansamantalang hindi available ang Task Help. Subukan ulit o pumili ng shortcut sa itaas.";
+    } finally {
+        button.disabled = false;
+    }
 });

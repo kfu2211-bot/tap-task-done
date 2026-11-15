@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.Gmail.json", optional: true, reloadOnChange: true);
 if (!builder.Environment.IsDevelopment()) builder.Configuration.AddJsonFile("/etc/secrets/appsettings.Gmail.json", optional: true, reloadOnChange: false);
 builder.Configuration.AddEnvironmentVariables();
+builder.Services.AddHttpClient("TaskHelp", client => client.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddHttpClient<PlaceSearch>(client => client.Timeout = TimeSpan.FromSeconds(10));
 if (builder.Environment.IsDevelopment())
 {
@@ -118,6 +119,7 @@ builder.Services.AddAuthorization(options => options.AddPolicy("AdminOnly", poli
     policy.AddAuthenticationSchemes("AdminCookie").RequireAuthenticatedUser().RequireRole("admin", "moderator")));
 builder.Services.AddRateLimiter(options =>
 {
+    options.AddPolicy("TaskHelpLimit", _ => RateLimitPartition.GetFixedWindowLimiter("task-help", _ => new FixedWindowRateLimiterOptions { PermitLimit = 12, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     options.AddPolicy("PlaceSearchLimit", context => RateLimitPartition.GetFixedWindowLimiter(context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.AddPolicy("AdminLoginLimit", context =>
@@ -321,4 +323,5 @@ app.MapGet("/api/places/reverse", async (double lat, double lon, PlaceSearch sea
 }).RequireAuthorization().RequireRateLimiting("PlaceSearchLimit");
 app.MapRazorPages();
 
+app.MapPost("/api/task-help", TaskHelpAi.AskAsync).RequireRateLimiting("TaskHelpLimit");
 app.Run();

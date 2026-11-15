@@ -58,6 +58,19 @@
 .task-help #task-help-question { padding-top:12px; border-top:1px solid #c5dbce; }
 .task-help-launch[hidden], .task-help [hidden] { display:none; }
 
+html body button.task-help-launch.task-help-messages {
+    position: static;
+    align-self: flex-start;
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 44px;
+    margin: 0;
+    padding: 0 16px;
+    font: 700 14px/1.25 system-ui, sans-serif;
+    white-space: nowrap;
+    box-shadow: none;
+}
+
 .task-help #task-help-input {
     /* The help panel uses a light palette in either account theme. */
     color-scheme: light;
@@ -94,3 +107,7 @@
 .task-help nav a:hover {
     background: #e5f1e8;
 }
+
+.conversations-toolbar .task-help-messages { margin-top: 10px; }
+
+.task-help-launch { font: 700 14px/1.25 system-ui, sans-serif; }

@@ -265,7 +265,7 @@
                             <button type="submit" data-task-submit>Switch</button>
                         </form>
                         }
-                        <a class="thread-task-link" asp-page="/TaskDetails" asp-route-taskId="@Model.Selected.TaskId" asp-route-conversationId="@Model.Selected.Id">View task</a>
+                        <div class="thread-task-actions"><a class="thread-task-link" asp-page="/TaskDetails" asp-route-taskId="@Model.Selected.TaskId" asp-route-conversationId="@Model.Selected.Id">View task</a></div>
                         @if (Model.SharedPhone is { } phone)
                         {
                             <bdi class="thread-task-link thread-phone" dir="ltr" aria-label="Shared mobile number: @phone">@phone</bdi>
