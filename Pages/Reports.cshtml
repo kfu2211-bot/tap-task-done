@@ -12,7 +12,15 @@
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
 <link rel='stylesheet' href='/css/report-workspace.css' asp-append-version='true' />
 <partial name="_AccountTheme" /></head>
-<body><div class="settings-layout"><aside class="sidebar"><a class="brand" asp-page="/Landing" aria-label="Tap, Task, Done landing page" style="text-decoration:none"><span class="brand-icon">✓</span><strong>Tap, Task, Done</strong></a><nav class="sidebar-menu"></nav><div class="sidebar-account"><span class="account-avatar">U</span><div><strong id="sidebarName">User</strong><span id="sidebarEmail"></span></div></div></aside>
+<body><div class="settings-layout"><aside class="sidebar"><a class="brand" asp-page="/Landing" aria-label="Tap, Task, Done landing page" style="text-decoration:none"><span class="brand-icon">✓</span><strong>Tap, Task, Done</strong></a><nav class="sidebar-menu" aria-label="Workspace">
+    <a href="/Dashboard"><span class="menu-icon" aria-hidden="true">⌂</span><span>Home</span></a>
+    <a href="/FindPost"><span class="menu-icon" aria-hidden="true">⌕</span><span>Find &amp; Post</span></a>
+    <a href="/Messages"><span class="menu-icon" aria-hidden="true">□</span><span>Messages</span></a>
+    <a href="/Tracking"><span class="menu-icon" aria-hidden="true">➤</span><span>Tracking</span></a>
+    <a href="/Reviews"><span class="menu-icon" aria-hidden="true">☆</span><span>Reviews</span></a>
+    <a href="/IdentityVerification"><span class="menu-icon" aria-hidden="true">✓</span><span>Identity Verification</span></a>
+    <a href="/Reports" class="active" aria-current="page"><span class="menu-icon" aria-hidden="true">⚑</span><span>Safety &amp; Reports</span></a>
+</nav><div class="sidebar-account"><span class="account-avatar">U</span><div><strong id="sidebarName">@(User.Identity?.Name ?? "User")</strong><span id="sidebarEmail"></span></div></div></aside>
 <main><header><h1>Safety &amp; Reports</h1></header><section class="settings-content safety-page">
 <div class="page-intro"><h2>Report an issue</h2><p>Report a scam, no-show, harassment, or service issue for admin review.</p></div>
 <div class="safety-emergency"><span aria-hidden="true">!</span><p>If someone is in immediate danger, contact local emergency services.</p></div>

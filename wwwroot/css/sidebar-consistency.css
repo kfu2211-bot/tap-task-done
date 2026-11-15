@@ -29,6 +29,11 @@ html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sid
     z-index: 1000 !important;
 }
 
+html[data-theme="dark"] {
+    --sidebar-brand-text: #edf5ef;
+    --sidebar-brand-divider: #38483f;
+}
+
 html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) {
     box-sizing: border-box !important;
     flex: 0 0 68px !important;
@@ -41,13 +46,13 @@ html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sid
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
-    border-bottom: 1px solid #d1e1d2 !important;
-    color: #193e30 !important;
+    border-bottom: 1px solid var(--sidebar-brand-divider, #d1e1d2) !important;
+    color: var(--sidebar-brand-text, #193e30) !important;
     white-space: nowrap !important;
 }
 
 html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) :is(strong, span:not(.brand-icon):not(.logo-check):not(.mytasks-logo-check)) {
-    color: #193e30 !important;
+    color: var(--sidebar-brand-text, #193e30) !important;
     font-size: 13px !important;
     font-weight: 600 !important;
 }

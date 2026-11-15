@@ -68,7 +68,10 @@
 
         // The database, not the browser cache, is authoritative for work preferences.
         try {
-            var response = await fetch('/api/work-preferences', { credentials: 'same-origin' });
+            var response = await fetch('/api/work-preferences', {
+                credentials: 'same-origin',
+                signal: AbortSignal.timeout?.(3500)
+            });
             if (response.ok) {
                 var preferences = await response.json();
                 account.role = preferences.role;
@@ -78,7 +81,7 @@
             }
         } catch (error) { console.warn('Work preferences could not be refreshed.', error); }    
 
-        var name = (account.nickname || account.name || "User").trim();
+        var name = (account.nickname || account.name || document.querySelector("#sidebarName")?.textContent || "User").trim();
         var email = (account.email || "").trim();
         var initials = name
             .split(/\s+/)
