@@ -36,3 +36,23 @@ html body .safety-history-heading p,html body .safety-history-empty,html body .s
 .report-public-updates section{margin-top:14px;padding:16px;border:1px solid #cde2d2;border-radius:10px;background:#f2f8f1}
 .report-public-updates small{display:block;margin-top:5px;color:#526e60}
 .report-public-updates p{white-space:pre-wrap}
+
+html body .safety-form .report-risk {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    min-height: 44px;
+    margin-block: 12px;
+    cursor: pointer;
+}
+html body .safety-form .report-risk input[type="checkbox"] {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    accent-color: #176b50;
+}
+html[data-theme="dark"] body .safety-form .report-risk input[type="checkbox"] { accent-color: var(--brand); }

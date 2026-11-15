@@ -78,22 +78,25 @@
     menuPicker.append(options);
     landing?.querySelector('a[href="#service-areas"]')?.after(menuPicker);
 
-    const switchButton = document.createElement("button");
-    switchButton.type = "button";
-    switchButton.className = "header-theme-toggle site-language-switch";
-    switchButton.setAttribute("role", "switch");
-    switchButton.setAttribute("aria-label", "Filipino");
-    switchButton.innerHTML = '<span>Filipino</span><span class="theme-switch-track" aria-hidden="true"></span>';
-    switchButton.addEventListener("click", () => setLanguage(language === "fil" ? "en" : "fil"));
+    const accountLanguages = document.createElement("div");
+    accountLanguages.className = "account-language-options";
+    accountLanguages.setAttribute("role", "group");
+    for (const landingOption of options.children) {
+        const option = landingOption.cloneNode(true);
+        option.addEventListener("click", () => setLanguage(option.dataset.language));
+        accountLanguages.append(option);
+    }
 
     const selectors = ".landing-header nav a, .hero-copy h1, .hero-copy p, .hero-actions a, .landing-section h2, .landing-steps strong, .landing-steps span, .service-grid a, .sidebar nav a, .mytasks-sidebar nav a, .admin-sidebar nav a, .topbar h1, .market-header h1, .admin-topbar h1, #headerAccountMenu a, #headerAccountMenu button, #headerAccountButton span, .hero-text h1, .hero-text h2, .hero-text p, .hero-label, .hero-buttons button, .hero-buttons a, .category-card h4, .category-card p, .category-card strong, .section-heading h3, .section-heading p, .dashboard-task-heading, .provider-bottom a, .provider-availability, #loginForm label, #loginForm button, .login-subtitle, .create-account-text, .login-box h1, .login-eyebrow, .section h3, .section h3 + p";
     function translate() {
-        const darkMode = document.querySelector("#headerAccountMenu .header-theme-toggle:not(.site-language-switch)");
-        if (darkMode && darkMode.nextElementSibling !== switchButton) darkMode.after(switchButton);
+        const darkMode = document.querySelector("#headerAccountMenu .header-theme-toggle");
+        if (darkMode && darkMode.nextElementSibling !== accountLanguages) darkMode.after(accountLanguages);
         const currentLabel = language === "fil" ? "Filipino" : "English";
         if (summary.textContent !== currentLabel) summary.textContent = currentLabel;
-        switchButton.setAttribute("aria-checked", String(language === "fil"));
-        options.querySelectorAll("button").forEach(option => option.setAttribute("aria-pressed", String(option.dataset.language === language)));
+        accountLanguages.setAttribute("aria-label", language === "fil" ? "Wika" : "Language");
+        for (const option of [...options.children, ...accountLanguages.children]) {
+            option.setAttribute("aria-pressed", String(option.dataset.language === language));
+        }
         document.documentElement.lang = language;
         document.querySelectorAll(selectors).forEach(element => {
             const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);

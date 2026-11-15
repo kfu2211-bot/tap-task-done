@@ -12,3 +12,22 @@ html[data-theme="dark"] .task-detail-page :is(.task-detail-card,.task-detail-hea
 html[data-theme="dark"] .task-detail-page a { color:#a5edcc; }
 html[data-theme="dark"] .task-detail-status { background:#294438; color:#a5edcc; }
 html[data-theme="dark"] .task-detail-card dl { border-color:#38483f; }
+
+.task-detail-page .task-detail-action {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 6px 14px;
+    border: 1px solid #b9d3c0;
+    border-radius: 8px;
+    background: #fff;
+    text-decoration: none;
+}
+.task-detail-page .task-detail-action:hover { background: #e7f2e9; }
+.task-detail-page .task-detail-action.task-detail-progress { background: #176b50; color: #fff; border-color: transparent; }
+.task-detail-page .task-detail-action.task-detail-progress:hover { background: #125740; }
+html[data-theme="dark"] .task-detail-page .task-detail-action { background: #20392e; border-color: #567264; }
+html[data-theme="dark"] .task-detail-page .task-detail-action:hover { background: #294438; }
+html[data-theme="dark"] .task-detail-page .task-detail-action.task-detail-progress { background: #81dbb2; color: #102b1f; }
+html[data-theme="dark"] .task-detail-page .task-detail-action.task-detail-progress:hover { background: #a5edcc; }

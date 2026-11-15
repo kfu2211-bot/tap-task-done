@@ -814,3 +814,61 @@ html[data-theme="dark"] :is(.location-picker-map, .job-location-map) .maplibregl
 html[data-theme="dark"] body .sidebar.sidebar.sidebar > .sidebar-logo > span {
     color: var(--text) !important;
 }
+
+html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand),
+html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) > :is(span, strong):not(.brand-icon, .logo-check, .mytasks-logo-check) {
+    color: var(--text) !important;
+}
+html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) nav a:is(:hover, :focus-visible) {
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+}
+html[data-theme="dark"] body #findJobsSection .jobs-heading {
+    background: linear-gradient(110deg, var(--surface), var(--surface-2)) !important;
+    border-color: var(--line) !important;
+}
+html[data-theme="dark"] body #findJobsSection .jobs-heading p { color: var(--muted) !important; }
+
+html[data-theme="dark"] body .task-card .task-cancellation {
+    background: #30282c;
+    border-color: #b9808e;
+}
+html[data-theme="dark"] body .task-card-heading .task-cancelled-badge {
+    background: #49323b !important;
+    color: #ffd7e0 !important;
+}
+html[data-theme="dark"] body .verification-page .status-card.status-approved .status-icon {
+    background: #2c6245 !important;
+    color: #d7f8df !important;
+}
+
+html[data-theme="dark"] body :is(.location-picker-map, .job-location-map) .maplibregl-canvas {
+    filter: invert(.92) hue-rotate(180deg) saturate(.72) brightness(1.22);
+}
+html[data-theme="dark"] body .maplibregl-map .maplibregl-ctrl-attrib {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+}
+html[data-theme="dark"] body .maplibregl-map .maplibregl-ctrl-attrib a { color: var(--brand) !important; }
+html[data-theme="dark"] body .maplibregl-map .maplibregl-ctrl-attrib-button { filter: invert(1); }
+
+html[data-theme="dark"] body.messages-current-view .conversation-search {
+    background: #171f1c;
+    border-color: #567264;
+}
+html[data-theme="dark"] body.messages-current-view .conversation-search input {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+html[data-theme="dark"] body.messages-current-view .conversation-search:focus-within { outline-color: var(--brand); }
+html[data-theme="dark"] body.messages-current-view :is(.conversation-search svg, .conversation-row-heading time, .conversation-task, .conversation-preview, .conversation-list-empty, .thread-date) {
+    color: var(--muted) !important;
+}
+html[data-theme="dark"] body.messages-current-view :is(.conversation-count, .conversation-avatar, .thread-task-link) {
+    background: var(--surface-2);
+    color: var(--brand) !important;
+}
+html[data-theme="dark"] body.messages-current-view :is(.conversation-link, .thread-task-link) { border-color: var(--line); }
+html[data-theme="dark"] body.messages-current-view :is(.conversation-link, .thread-task-link):hover { background: #294438; }
+html[data-theme="dark"] body.messages-current-view .thread-date::before,
+html[data-theme="dark"] body.messages-current-view .thread-date::after { background: var(--line); }

@@ -615,16 +615,16 @@
                         <div class="jobs-heading"><div><span class="jobs-eyebrow">FREELANCER OPPORTUNITIES</span><h2>Find your next job</h2><p>Explore tasks posted by clients and make an offer that works for you.</p></div><span class="jobs-count" id="jobsFilterCount">@Model.OpenTasks.Count open @(Model.OpenTasks.Count == 1 ? "task" : "tasks")</span></div>
                         @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
                         @if (!Model.DirectoryUnavailable && (Model.WorkRole is "freelancer" or "both")) {
-                            <details class="jobs-category-filter" id="jobsCategoryFilter">
-                                <summary>Filter by service / profession <strong data-category-label>All categories</strong></summary>
-                                <fieldset aria-label="Filter by service / profession">
-                                    <label><input type="radio" name="job-category-filter" value="" checked /> All categories</label>
+                            <div class="jobs-category-filter">
+                                <label for="jobsCategoryFilter">Filter by service / profession</label>
+                                <select id="jobsCategoryFilter">
+                                    <option value="">All categories</option>
                                     @foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other / General" })
                                     {
-                                        <label><input type="radio" name="job-category-filter" value="@category" /> @category</label>
+                                        <option value="@category">@category</option>
                                     }
-                                </fieldset>
-                            </details>
+                                </select>
+                            </div>
                         }
                         @if (Model.DirectoryUnavailable) { <div class="jobs-empty"><h3>Jobs are unavailable right now</h3><p>Please try again later.</p></div> }
                         else if (Model.WorkRole is not ("freelancer" or "both")) { <div class="jobs-empty"><h3>Ready to find work?</h3><p>Set your work role to Freelancer or Client &amp; Freelancer to find jobs and send offers.</p><a href="/Settings">Open settings</a></div> }
