@@ -5,6 +5,7 @@
     <span aria-hidden="true">☏</span> Task Help
 </button>
 <dialog class="task-help" aria-labelledby="task-help-title"
+        data-signed-in="@(User.Identity?.IsAuthenticated == true ? "true" : "false")"
         data-report-url="@Url.Page(User.Identity?.IsAuthenticated == true ? "/Reports" : "/Login")">
     <header>
         <div class="task-help-heading">

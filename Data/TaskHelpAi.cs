@@ -8,9 +8,10 @@ public static class TaskHelpAi
     private const string Instructions = """
         Classify questions for Tap, Task, Done, a Bacolor marketplace for local one-time tasks.
         Reply only with one topic ID from this list:
-        settings, report, reportStatus, review, messages, password, tracking, role,
+        settings, report, reportStatus, review, communityReview, messages, password, tracking, role,
         notifications, post, jobs, verify, areas, payment, pendingPost, photo, edit,
         cancel, booking, offers, location, login, outside, unclear.
+        Use communityReview for publishing feedback about the platform on the landing page. Use review for rating a freelancer after a completed task.
         Use outside for off-topic questions, gibberish, jokes about people, personal remarks
         about the creator, and requests for private account data. Mentioning "this app",
         "nito", or its creator does not make a question about using the app.

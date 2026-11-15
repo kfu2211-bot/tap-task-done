@@ -7,14 +7,14 @@ taskHelpReport.href = taskHelp.dataset.reportUrl;
 const taskHelpAnswers = {
     settings: "Pag naka-log in, pindutin ang pangalan o profile icon mo sa kanang itaas. Sa account dropdown, piliin ang Settings.",
     report: "Sa sidebar, buksan ang Safety & Reports. Piliin ang reason, ilagay kung sino ang nire-report at ano ang nangyari, at mag-attach ng evidence kung meron. Pindutin ang Submit report. Makikita ang status at admin updates sa Your report history.",
-    review: "Kapag confirmed na complete ang task, buksan ang Rate your task sa Tracking. Pumili ng stars, maglagay ng feedback kung gusto mo, at pindutin ang Submit review.",
+    review: "Sa Tracking, piliin ang completed task at buksan ang Leave a review → Review your freelancer. Piliin ang rating at pindutin ang Submit review.",
     messages: "Buksan ang Messages at piliin ang account na gusto mong kausapin. Piliin ang task sa chat header kung may higit sa isang task.",
     password: "Sa Log in, piliin ang Forgot password? at sundin ang instructions na ipapadala sa email.",
     tracking: "Buksan ang Tracking at piliin ang task para makita ang progress at ang susunod na available na action.",
     role: "Sa Settings, hanapin ang Work role. Piliin ang Client, Freelancer, o Client & Freelancer at i-save ang settings.",
     notifications: "Buksan ang bell o ang Notifications para makita ang updates. Gamitin ang Unread para makita ang mga bago.",
-    post: "Piliin ang Client o Client & Freelancer sa Settings. Kapag approved na ang identity verification mo, pumunta sa Find & Post para mag-post ng task.",
-    jobs: "Piliin ang Freelancer o Client & Freelancer sa Settings. Kapag approved na ang identity verification mo, pumunta sa Find & Post para maghanap ng trabaho.",
+    post: "Sa Settings, piliin ang Client o Client & Freelancer at hintaying maaprubahan ang Identity Verification. Buksan ang Post a Task, punan ang form, at pindutin ang Review task. Sa My Tasks, suriin ito at piliin ang Confirm and open task para makita ito ng freelancers.",
+    jobs: "Piliin ang Freelancer o Client & Freelancer sa Settings. Kapag approved na ang identity verification mo, buksan ang Find Jobs tab sa Find & Post para makita ang mga bukas na task.",
     verify: "Gamitin ang code na pinadala sa email para sa email verification. Para mag-post o maghanap ng trabaho, isumite din ang hinihinging documents sa Identity Verification. Doon mo makikita ang status ng review.",
     areas: "Available sa Solana Casa Real, Cabalantian, Parulog, Cabetican, at Magliman sa Bacolor, Pampanga."
 };
@@ -23,14 +23,14 @@ const taskHelpAnswers = {
 const english = {
     settings: "After signing in, open the account menu by selecting your name or profile icon in the upper-right corner. Choose Settings.",
     report: "Open Safety & Reports from the sidebar. Choose a reason, identify who you are reporting, describe what happened, and attach evidence if available. Select Submit report. Check Your report history for updates.",
-    review: "Once the task is confirmed complete, open Rate your task in Tracking. Choose a star rating, add optional feedback, and select Submit review.",
+    review: "In Tracking, select the completed task and open Leave a review → Review your freelancer. Choose a rating and select Submit review.",
     messages: "Open Messages and select the person you want to contact. If you share several tasks, use the selector in the chat header.",
     password: "Select Forgot password? on the Log in page and follow the instructions sent to your email.",
     tracking: "Open Tracking and select a task to see its progress and available actions.",
     role: "In Settings, open Work role, choose Client, Freelancer, or Client & Freelancer, and save your changes.",
     notifications: "Open Notifications using the bell. Select Unread to see notifications you have not read.",
-    post: "Choose Client or Client & Freelancer in Settings. Once your identity verification is approved, go to Find & Post to post a task.",
-    jobs: "Choose Freelancer or Client & Freelancer in Settings. Once your identity verification is approved, go to Find & Post to look for jobs.",
+    post: "In Settings, choose Client or Client & Freelancer and wait for Identity Verification approval. Open Post a Task, fill out the form, and select Review task. In My Tasks, check the details and select Confirm and open task to make it visible to freelancers.",
+    jobs: "Choose Freelancer or Client & Freelancer in Settings. Once your identity verification is approved, open the Find Jobs tab in Find & Post to browse open tasks.",
     verify: "Use the code sent by email to verify your email address. To post tasks or find jobs, submit the required documents under Identity Verification. You can also check their review status there.",
     areas: "The service covers Solana Casa Real, Cabalantian, Parulog, Cabetican, and Magliman in Bacolor, Pampanga.",
     fallback: "I don't have an answer for that yet. Try naming the feature, such as Safety & Reports, Messages, Tracking, or Settings."
@@ -39,14 +39,14 @@ const english = {
 const filipino = {
     settings: "Pagkapasok sa iyong account, pindutin ang pangalan o larawan mo sa kanang itaas. Piliin ang Settings sa lalabas na menu.",
     report: "Buksan ang Safety & Reports sa menu. Piliin ang dahilan, tukuyin kung sino ang inirereklamo, at ilarawan ang nangyari. Maglakip ng ebidensiya kung mayroon at pindutin ang Submit report. Makikita ang mga bagong abiso sa Your report history.",
-    review: "Kapag nakumpirmang tapos na ang gawain, buksan ang Rate your task sa Tracking. Pumili ng bilang ng bituin, sumulat ng puna kung nais, at pindutin ang Submit review.",
+    review: "Sa Tracking, piliin ang natapos na gawain at buksan ang Leave a review → Review your freelancer. Pumili ng rating at pindutin ang Submit review.",
     messages: "Buksan ang Messages at piliin ang taong nais mong kausapin. Kung marami kayong gawain, piliin ang nais pag-usapan sa itaas ng usapan.",
     password: "Piliin ang Forgot password? sa pahina ng pagpasok at sundin ang mga tagubiling ipinadala sa iyong email.",
     tracking: "Buksan ang Tracking at piliin ang gawain para makita ang kalagayan nito at ang susunod na hakbang.",
     role: "Sa Settings, hanapin ang Work role. Piliin ang Client, Freelancer, o Client & Freelancer at itala ang pagbabago.",
     notifications: "Pindutin ang kampana upang buksan ang Notifications. Piliin ang Unread para makita ang mga abisong hindi mo pa nababasa.",
-    post: "Piliin ang Client o Client & Freelancer sa Settings. Kapag napatunayan na ang iyong pagkakakilanlan, gamitin ang Find & Post upang maglathala ng gawain.",
-    jobs: "Piliin ang Freelancer o Client & Freelancer sa Settings. Kapag napatunayan na ang iyong pagkakakilanlan, gamitin ang Find & Post upang maghanap ng trabaho.",
+    post: "Sa Settings, piliin ang Client o Client & Freelancer at hintaying maaprubahan ang Identity Verification. Buksan ang Post a Task, punan ang form, at pindutin ang Review task. Sa My Tasks, suriin ito at piliin ang Confirm and open task para makita ito ng freelancers.",
+    jobs: "Piliin ang Freelancer o Client & Freelancer sa Settings. Kapag napatunayan na ang iyong pagkakakilanlan, buksan ang Find Jobs tab sa Find & Post para makita ang mga bukas na gawain.",
     verify: "Gamitin ang kodigong ipinadala sa email upang patunayan ang iyong email address. Upang maglathala ng gawain o maghanap ng trabaho, isumite ang mga hinihinging dokumento sa Identity Verification. Doon mo rin makikita ang kalagayan ng pagsusuri.",
     areas: "Sakop ng serbisyo ang Solana Casa Real, Cabalantian, Parulog, Cabetican, at Magliman sa Bacolor, Pampanga.",
     fallback: "Wala pa akong sagot diyan. Subukang banggitin ang pahinang tinutukoy mo, gaya ng Safety & Reports, Messages, Tracking, o Settings."
@@ -63,6 +63,7 @@ function questionLanguage(question) {
 
 let lastQuestionLanguage = "en";
 const specificAnswers = {
+    communityReview: ["In Tracking, open a completed task and select Write a community review. Choose a rating, add feedback, and select Publish community review to show it on the landing page.", "Sa Tracking, buksan ang natapos na gawain at piliin ang Write a community review. Pumili ng rating, isulat ang feedback, at pindutin ang Publish community review para lumabas ito sa landing page.", "Sa Tracking, buksan ang completed task at piliin ang Write a community review. Ilagay ang rating at feedback, tapos pindutin ang Publish community review para lumabas sa landing page."],
     payment: ["Tap, Task, Done does not process payments. The client and freelancer can discuss and agree on how and when to pay through Messages or over a phone call.", "Sa labas ng Tap, Task, Done ginagawa ang pagbabayad. Ang kliyente at freelancer ay maaaring mag-usap sa Messages o sa tawag sa telepono upang magkasundo kung paano at kailan magbabayad.", "Sa labas ng Tap, Task, Done ang payment. Ang client at freelancer ang mag-uusap sa Messages o sa phone call para magkasundo sa payment method at kung kailan magbabayad."],
     reportStatus: ["Open Safety & Reports → Your report history to check the status and admin updates.", "Buksan ang Safety & Reports → Your report history upang makita ang kalagayan ng ulat at mga tugon ng admin.", "Sa Safety & Reports → Your report history, makikita mo ang status at admin updates."],
     pendingPost: ["Wait for Identity Verification approval before posting. Check your status on the Identity Verification page.", "Hintaying maaprubahan ang pagpapatunay ng iyong pagkakakilanlan bago maglathala ng gawain. Tingnan ang kalagayan sa Identity Verification.", "Hintaying ma-approve ang identity verification bago mag-post. Sa Identity Verification mo makikita ang status."],
@@ -108,13 +109,35 @@ function addHelpMessage(message, speaker, language) {
     helpHistory.scrollTop = helpHistory.scrollHeight;
 }
 
+let previousHelpTopic;
+
 function showTaskHelpAnswer(topic, language = "taglish", unclear = false) {
     const answers = language === "en" ? english : language === "fil" ? filipino : taskHelpAnswers;
     taskHelpAnswer.lang = language === "en" ? "en" : "fil";
     taskHelpReport.hidden = topic !== "report" && topic !== "reportStatus";
     taskHelpAnswer.hidden = true;
+    if (topic) previousHelpTopic = topic;
+    if (!taskHelpReport.hidden) {
+        const signedIn = taskHelp.dataset.signedIn === "true";
+        taskHelpReport.textContent = signedIn
+            ? (language === "en" ? "Open Safety & Reports" : "Buksan ang Safety & Reports")
+            : (language === "en" ? "Log in to report" : "Mag-log in para mag-report");
+        const nextStep = topic === "reportStatus"
+            ? (language === "en" ? "Open Your report history to see updates." : "Buksan ang Your report history para makita ang status.")
+            : (language === "en" ? "Fill out the report form and choose Submit report." : "Punan ang report form at pindutin ang Submit report.");
+        const direction = signedIn
+            ? (language === "en" ? "Use the button below to open Safety & Reports." : "Pindutin ang button sa ibaba para buksan ang Safety & Reports.")
+            : (language === "en" ? "Use the button below to log in. After signing in, open Safety & Reports from your dashboard menu." : "Mag-log in gamit ang button sa ibaba. Pagkapasok, buksan ang Safety & Reports sa menu ng dashboard.");
+        addHelpMessage(direction + " " + nextStep, "assistant", language);
+        return;
+    }
     if (topic) {
-        addHelpMessage(specificAnswers[topic]?.[["en", "fil", "taglish"].indexOf(language)] ?? answers[topic], "assistant", language);
+        const answer = specificAnswers[topic]?.[["en", "fil", "taglish"].indexOf(language)] ?? answers[topic];
+        const publicTopic = ["areas", "login", "password", "verify", "payment"].includes(topic);
+        const signIn = !publicTopic && taskHelp.dataset.signedIn !== "true"
+            ? (language === "en" ? "Log in first to access these options. " : "Mag-log in muna para makita ang mga option na ito. ")
+            : "";
+        addHelpMessage(signIn + answer, "assistant", language);
         return;
     }
     const [redirect, clarify] = followUp[language];
@@ -173,6 +196,12 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
     taskHelpInput.value = "";
     taskHelpInput.focus();
     taskHelpReport.hidden = true;
+    const asksWhere = /^(?:saan(?:\s+(?:po|yun|iyon|doon|dito))?(?:\s+(?:yan|iyan))?|where(?:\s+is\s+it)?)\s*[?!.]*$/i.test(question);
+    if (asksWhere && (previousHelpTopic === "report" || previousHelpTopic === "reportStatus")) {
+        showTaskHelpAnswer(previousHelpTopic, language);
+        button.disabled = false;
+        return;
+    }
     if (/\b(?:single|may jowa|relationship status|panget|pangit|gwapo|pogi|maganda|ugly|handsome|pretty)\b/i.test(question) &&
         /\b(?:developer|creator|founder|gumawa|owner)\b/i.test(question)) {
         showTaskHelpAnswer(undefined, language);
