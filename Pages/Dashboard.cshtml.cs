@@ -7,7 +7,7 @@ namespace tts.Pages
 {
     public class DashboardModel(ApplicationDbContext db, ILogger<DashboardModel> logger) : PageModel
     {
-        public record RatedProvider(int Id, string Name, string Service, double Average, int Count) { public string Availability { get; init; } = "Available"; }
+        public record RatedProvider(int Id, string Name, string Service, double Average, int Count) { public string Availability { get; init; } = "Available"; public bool CanRequest { get; init; } }
         public List<RatedProvider> RatedProviders { get; private set; } = [];
         public bool ReviewsUnavailable { get; private set; }
         public Dictionary<string, int> CategoryCounts { get; private set; } = new();
@@ -58,16 +58,25 @@ namespace tts.Pages
             {
                 var rows = await (from review in db.MarketplaceReviews.AsNoTracking()
                     join user in db.Users.AsNoTracking() on review.FreelancerId equals user.Id
-                    join profile in db.FreelancerProfiles.AsNoTracking() on user.Id equals profile.UserId
-                    where (profile.WorkRole == "freelancer" || profile.WorkRole == "both")
-                        && user.Role != "deleted"
-                        && profile.Service != "" && profile.Location != ""
-                    select new { user.Id, user.FirstName, user.LastName, profile.Service, profile.Availability, review.Rating }).ToListAsync(ct);
-                RatedProviders = rows.GroupBy(x => new { x.Id, x.FirstName, x.LastName, x.Service, x.Availability })
-                    .Select(g => new RatedProvider(g.Key.Id, ((g.Key.FirstName ?? "") + " " + (g.Key.LastName ?? "")).Trim(), g.Key.Service, g.Average(x => x.Rating), g.Count()) { Availability = g.Key.Availability })
-                    .OrderByDescending(x => x.Average).ThenByDescending(x => x.Count).ThenBy(x => x.Name).Take(8).ToList();
+                    join profile in db.FreelancerProfiles.AsNoTracking() on user.Id equals profile.UserId into profiles
+                    from profile in profiles.DefaultIfEmpty()
+                    where user.Role != "deleted"
+                    select new { user.Id, user.FirstName, user.LastName, profile.Service, profile.Location,
+                        profile.WorkRole, profile.Availability, review.Rating }).ToListAsync(ct);
+                RatedProviders = rows.GroupBy(x => x.Id).Select(group =>
+                {
+                    var provider = group.First();
+                    var canRequest = (provider.WorkRole is "freelancer" or "both")
+                        && !string.IsNullOrWhiteSpace(provider.Service) && !string.IsNullOrWhiteSpace(provider.Location);
+                    return new RatedProvider(provider.Id, ($"{provider.FirstName} {provider.LastName}").Trim(),
+                        provider.Service ?? "", group.Average(x => x.Rating), group.Count())
+                    {
+                        CanRequest = canRequest,
+                        Availability = canRequest ? provider.Availability ?? "Unavailable" : "Unavailable"
+                    };
+                }).OrderByDescending(x => x.Average).ThenByDescending(x => x.Count).ThenBy(x => x.Name).Take(8).ToList();
                 var active = await FreelancerAvailability.AssignmentsAsync(db, RatedProviders.Select(p => p.Id).ToArray(), ct);
-                RatedProviders = RatedProviders.Select(p => p with { Availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.Id) ?? []) }).ToList();
+                RatedProviders = RatedProviders.Select(p => p.CanRequest ? p with { Availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.Id) ?? []) } : p).ToList();
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
             { logger.LogError(ex, "Unable to load ratings"); ReviewsUnavailable = true; }

@@ -108,7 +108,7 @@ function showTaskHelpAnswer(topic, language = "taglish", unclear = false) {
     addHelpMessage(unclear ? clarify : redirect, "assistant", language);
 }
 
-const helpPlacement = document.querySelector(".thread-task-actions") || document.querySelector(".conversations-toolbar");
+const helpPlacement = document.querySelector(".thread-task-actions");
 if (helpPlacement) {
     taskHelpLaunch.classList.add("task-help-messages");
     taskHelpLaunch.querySelector("[aria-hidden]").textContent = "?";

@@ -306,13 +306,31 @@ html body .thread-task-actions button.task-help-messages {
     padding: 8px 12px;
     font: 650 13px/1.25 system-ui, sans-serif;
 }
-html body .thread-task-actions button.task-help-messages {
+html body.messages-current-view button.task-help-launch.task-help-messages {
     border: 1px solid #bfd3c3;
-    background: transparent;
+    background: #edf5ef;
     color: #176b50;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 9px;
 }
-html[data-theme="dark"] body .thread-task-actions button.task-help-messages {
+html body.messages-current-view button.task-help-messages[hidden] { display: none; }
+.task-help-messages > span[aria-hidden] {
+    order: 1;
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    width: 17px;
+    height: 17px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-size: 11px;
+}
+html[data-theme="dark"] body.messages-current-view button.task-help-launch.task-help-messages {
     border-color: #567264;
+    background: #23372d;
     color: #a5edcc;
 }
 @media (max-width: 700px) {
