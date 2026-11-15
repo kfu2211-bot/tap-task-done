@@ -79,21 +79,34 @@
             </ol>
         </section>
         <section id="community-reviews" class="landing-section landing-community" aria-labelledby="community-reviews-title">
-            <div>
+            <div class="landing-review-heading">
                 <h2 id="community-reviews-title">Reviews from the community</h2>
+                @if (Model.Reviews.Count > 0)
+                {
+                    <div class="landing-review-summary">
+                        <strong><span aria-hidden="true">★</span> @Model.Reviews.Average(review => review.Rating).ToString("0.0") / 5</strong>
+                        <span>Average of @Model.Reviews.Count recent @(Model.Reviews.Count == 1 ? "review" : "reviews")</span>
+                    </div>
+                }
             </div>
             <div class="landing-review-list">
                 @if (Model.ReviewsUnavailable) { <p>Community reviews could not be loaded. Please try again later.</p> }
                 else if (Model.Reviews.Count == 0) { <p>No community feedback to display yet.</p> }
                 @foreach (var review in Model.Reviews)
                 {
-                    <figure class="landing-review">
-                        <div>
-                            <span class="landing-review-stars" role="img" aria-label="@review.Rating out of 5 stars">@(new string('★', review.Rating))</span>
-                            <blockquote>@review.Message</blockquote>
-                            <figcaption>@(string.IsNullOrWhiteSpace(review.DisplayName) ? "Community member" : review.DisplayName)</figcaption>
+                    var name = string.IsNullOrWhiteSpace(review.DisplayName) ? "Community member" : review.DisplayName;
+                    <article class="landing-review">
+                        <div class="landing-review-author">
+                            <span class="landing-review-avatar" aria-hidden="true">@name[0].ToString().ToUpperInvariant()</span>
+                            <strong>@name</strong>
                         </div>
-                    </figure>
+                        <div class="landing-review-rating">
+                            <span class="landing-review-stars" aria-hidden="true">@(new string('★', review.Rating))<span class="landing-review-empty-stars">@(new string('☆', 5 - review.Rating))</span></span>
+                            <span aria-label="@review.Rating out of 5 stars">@review.Rating / 5</span>
+                        </div>
+                        <blockquote>@review.Message</blockquote>
+                        <time datetime="@review.PublishedAt.ToString("yyyy-MM-dd")">@review.PublishedAt.ToString("MMM d, yyyy")</time>
+                    </article>
                 }
             </div>
         </section>

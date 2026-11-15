@@ -5,6 +5,42 @@ if (workRole && freelancerPreferences) {
     const form = workRole.form;
     const save = form.querySelector('button[type="submit"]');
     const help = document.getElementById("workRoleHelp");
+    const agreementDialog = document.getElementById("roleAgreementDialog");
+    const agreements = [...agreementDialog.querySelectorAll("[data-agreement-role]")];
+    const confirmAgreement = agreementDialog.querySelector("[data-agreement-confirm]");
+    const requiredAgreements = () => agreements.filter(section =>
+        section.dataset.accepted !== "true" &&
+        (workRole.value === "both" || section.dataset.agreementRole === workRole.value));
+    const agreementChecked = section => section.querySelector("input").checked;
+    let submitter;
+
+    form.addEventListener("submit", event => {
+        const missing = requiredAgreements();
+        if (missing.every(agreementChecked)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        submitter = event.submitter;
+        agreements.forEach(section => {
+            section.hidden = !missing.includes(section);
+            section.querySelector("input").checked = false;
+        });
+        confirmAgreement.disabled = true;
+        agreementDialog.showModal();
+    }, true);
+
+    agreementDialog.addEventListener("change", () => {
+        confirmAgreement.disabled = !requiredAgreements().every(agreementChecked);
+    });
+    agreementDialog.querySelector("[data-agreement-cancel]").addEventListener("click", () => agreementDialog.close());
+    agreementDialog.addEventListener("close", () => {
+        agreements.forEach(section => { section.querySelector("input").checked = false; });
+        update();
+    });
+    confirmAgreement.addEventListener("click", () => {
+        if (!requiredAgreements().every(agreementChecked) || !form.reportValidity()) return;
+        agreementDialog.close();
+        form.requestSubmit(submitter ?? save);
+    });
     const descriptions = {
         client: "Post tasks and book freelancers.",
         freelancer: "Find jobs and receive booking requests.",
@@ -29,30 +65,18 @@ if (workRole && freelancerPreferences) {
         const otherSelected = services.some(service => service.checked && service.value === "Other/General");
         otherField.hidden = !otherSelected;
         otherInput.required = otherSelected && workRole.value !== "client";
-        allAreas.checked = areas.every(area => area.checked);
-        allAreas.indeterminate = !allAreas.checked && areas.some(area => area.checked);
-        selectedServices.replaceChildren(...services.filter(service => service.checked).map(service => {
-            const chip = document.createElement("button");
-            chip.type = "button";
-            chip.textContent = (service.value === "Other/General" ? otherInput.value.trim() || "Other / General" : service.value) + " ×";
-            chip.setAttribute("aria-label", "Remove " + service.value);
-            chip.addEventListener("click", () => {
-                service.checked = false;
-                update();
-                selectedServices.parentElement.querySelector("summary").focus();
-            });
-            return chip;
-        }));
+        allAreas.textContent = areas.every(area => area.checked) ? "Clear all" : "Select all " + areas.length;
+        selectedServices.textContent = services.filter(service => service.checked).length + " selected";
         help.textContent = descriptions[workRole.value] || "";
-        save.disabled = snapshot() === initial;
+        save.disabled = snapshot() === initial && requiredAgreements().length === 0;
     }
 
-    form.addEventListener("input", event => {
-        if (event.target === allAreas) {
-            areas.forEach(area => { area.checked = allAreas.checked; });
-        }
+    allAreas.addEventListener("click", () => {
+        const select = areas.some(area => !area.checked);
+        areas.forEach(area => { area.checked = select; });
         update();
     });
+    form.addEventListener("input", update);
     form.addEventListener("change", update);
     window.addEventListener("pageshow", update);
     update();

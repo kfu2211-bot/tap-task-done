@@ -236,3 +236,22 @@ html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sid
  html body.sidebar-open #mobileMenuToggle{background:#175d45!important;color:#fff!important;border:1px solid #175d45!important;font-size:30px!important;font-weight:600!important;line-height:1!important;display:grid!important;place-items:center!important;box-shadow:0 2px 8px #173e3026!important}
  html body.sidebar-open #mobileMenuToggle:focus-visible{outline:3px solid #88ba9b!important;outline-offset:3px!important}
 }
+
+html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) > :is(.sidebar-account, .sidebar-user, .mytasks-user) {
+    background: #202a25 !important;
+    border-color: #40584a !important;
+}
+html[data-theme="dark"] body :is(.sidebar-account, .sidebar-user, .mytasks-user) :is(strong, small, #sidebarEmail) {
+    color: #edf5ef !important;
+}
+html[data-theme="dark"] body :is(.sidebar-account, .sidebar-user, .mytasks-user) :is(.account-avatar, .user-avatar, .mytasks-avatar) {
+    background: #294438 !important;
+    border-color: #567264 !important;
+    color: #a5edcc !important;
+}
+html[data-theme="dark"] body .sidebar-account .account-more {
+    flex: 0 0 auto;
+    width: auto;
+    background: transparent !important;
+    color: #a5edcc !important;
+}

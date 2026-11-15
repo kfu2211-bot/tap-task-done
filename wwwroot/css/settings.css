@@ -72,3 +72,61 @@ main{width:calc(100% - 185px);margin-left:185px}header{height:58px;padding:0 30p
     cursor: pointer;
 }
 #profilePhotoCrop [data-save-crop] { background: #176b50; border-color: #176b50; color: #fff; }
+
+.role-agreement-dialog {
+    box-sizing: border-box;
+    width: min(600px, calc(100% - 24px));
+    max-height: 90dvh;
+    padding: clamp(16px, 4vw, 28px);
+    border: 1px solid #bfd3c3;
+    border-radius: 16px;
+    background: #fff;
+    color: #193e30;
+}
+.role-agreement-dialog::backdrop { background: #111d18aa; }
+.role-agreement-dialog { overflow-y: auto; overscroll-behavior: contain; }
+#roleAgreementDialog .role-agreement-terms > div {
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid var(--line, #bfd3c3);
+}
+.role-agreement-dialog section { margin-block: 12px; padding: 14px; border: 1px solid #bfd3c3; border-radius: 10px; }
+.role-agreement-dialog label { display: flex; gap: 10px; align-items: center; min-height: 44px; }
+.role-agreement-dialog label input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 18px; margin: 0; padding: 0; accent-color: #176b50; }
+.role-agreement-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.role-agreement-actions button { min-height: 44px; padding: 8px 16px; border: 1px solid #bfd3c3; border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
+.role-agreement-actions [data-agreement-confirm] { background: #176b50; color: #fff; }
+.role-agreement-actions button:disabled { opacity: .55; cursor: default; }
+html[data-theme="dark"] .role-agreement-dialog { background: #202a25; color: #edf5ef; border-color: #567264; }
+html[data-theme="dark"] .role-agreement-dialog section { border-color: #567264; }
+
+#roleAgreementDialog > h2 { margin: 0 0 6px; font-size: clamp(21px, 4vw, 26px); }
+#roleAgreementDialog > p { margin: 0 0 16px; line-height: 1.55; }
+#roleAgreementDialog > section { padding: 18px 0; border: 0; border-top: 1px solid var(--line, #bfd3c3); border-radius: 0; background: transparent; }
+#roleAgreementDialog > section h3 { margin: 0 0 10px; font-size: 17px; }
+#roleAgreementDialog > section p { margin: 0 0 10px; font-size: 14px; line-height: 1.55; }
+html body #roleAgreementDialog section > label {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: start;
+    gap: 10px;
+    margin: 12px 0 0;
+    padding-top: 8px;
+    border-top: 1px solid #bfd3c3;
+    cursor: pointer;
+}
+
+html[data-theme="dark"] body #roleAgreementDialog section > label { border-color: #567264; }
+
+#roleAgreementDialog > section h4 {
+    margin: 0 0 5px;
+    font-size: 15px;
+    line-height: 1.35;
+}
+#roleAgreementDialog .role-agreement-payment {
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid var(--line, #bfd3c3);
+}

@@ -113,3 +113,45 @@ html body .account-workspace .service-checkboxes input[type="checkbox"] {
 .account-workspace #selectedServices { display:flex; flex-wrap:wrap; gap:6px; }
 .account-workspace #selectedServices button { border:1px solid #a9cbb0; border-radius:999px; padding:6px 10px; background:#e5f1e6; color:#15563f; cursor:pointer; overflow-wrap:anywhere; }
 .account-workspace #otherServiceField[hidden] { display:none; }
+
+.account-workspace .work-field-grid { row-gap: 20px; }
+.account-workspace .service-tiles {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 142px), 1fr));
+}
+.account-workspace .service-tile-icon svg {
+    display: block;
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.account-workspace .service-tiles input { margin-inline-start: auto !important; }
+.account-workspace #selectedServices { color: var(--muted, #456456); font-size: .85rem; }
+.account-workspace .service-area-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.account-workspace #selectAllServiceAreas {
+    min-height: 44px;
+    padding: 6px 12px;
+    border: 1px solid var(--line, #a9cbb0);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+html body .account-workspace .service-area-list > label { border-color: transparent; }
+html body .account-workspace .service-checkboxes > label:is(:hover, :focus-within) {
+    border-color: var(--brand, #176b50);
+}
+.account-workspace #selectAllServiceAreas:hover { background: var(--surface-2, #e5f1e6); }
+@media (max-width: 700px) {
+    html body .account-workspace .work-field-grid { grid-template-columns: minmax(0, 1fr); }
+}

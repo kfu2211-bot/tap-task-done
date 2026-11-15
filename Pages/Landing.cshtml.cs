@@ -8,7 +8,7 @@ namespace tts.Pages;
 
 public class LandingModel(ApplicationDbContext db, ILogger<LandingModel> logger) : PageModel
 {
-    public record PublicReview(int Rating, string Message, string? DisplayName);
+    public record PublicReview(int Rating, string Message, string? DisplayName, DateTime PublishedAt);
     public List<PublicReview> Reviews { get; private set; } = [];
     public bool ReviewsUnavailable { get; private set; }
     [TempData] public string? FeedbackNotice { get; set; }
@@ -23,7 +23,7 @@ public class LandingModel(ApplicationDbContext db, ILogger<LandingModel> logger)
                 orderby review.PublishedAt descending, review.Id descending
                 select new PublicReview(review.Rating, review.Message, review.ShowDisplayName
                     ? ((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim()
-                    : null)).Take(6).ToListAsync(ct);
+                    : null, review.PublishedAt)).Take(6).ToListAsync(ct);
         }
         catch (MySqlConnector.MySqlException ex)
         {

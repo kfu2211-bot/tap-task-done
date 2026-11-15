@@ -77,3 +77,45 @@ footer { font-size:14px; }
 [data-theme="dark"] :is(.landing-community summary, .landing-community a) { color:#a5edcc; }
 [data-theme="dark"] :is(a, summary, input, select, textarea, button):focus-visible { outline:3px solid #81dbb2; outline-offset:3px; }
 [data-theme="dark"] .landing-feedback input { accent-color:#81dbb2; }
+
+.landing-section.landing-community {
+    display: block;
+    background: #eaf3eb;
+}
+.landing-review-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 24px;
+}
+.landing-review-summary {
+    display: grid;
+    gap: 3px;
+    padding: 12px 18px;
+    border: 1px solid #aacbb7;
+    border-radius: 12px;
+    font-size: .875rem;
+}
+.landing-review-summary strong { font-size: 1.3rem; }
+.landing-review-summary strong span { color: #8b5806; }
+.landing-review-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); }
+.landing-review-list > p { grid-column: 1 / -1; }
+.landing-review {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr auto;
+    border: 1px solid #c8decd;
+    gap: 12px;
+    padding: clamp(18px, 2vw, 26px);
+}
+.landing-review-author, .landing-review-rating { display: flex; align-items: center; gap: 10px; }
+.landing-review-author { overflow-wrap: anywhere; }
+.landing-review-avatar { flex: 0 0 44px; }
+.landing-review blockquote { margin: 0; font-weight: 400; white-space: pre-wrap; }
+.landing-review time, .landing-review-rating { font-size: .875rem; }
+.landing-review time, .landing-review-empty-stars { color: #426454; }
+[data-theme="dark"] .landing-section.landing-community { background: #182b22; }
+[data-theme="dark"] .landing-review-summary { border-color: #567264; }
+[data-theme="dark"] .landing-review-summary strong span { color: #f4c369; }
+[data-theme="dark"] .landing-review :is(time, .landing-review-empty-stars) { color: #b8cbbf; }

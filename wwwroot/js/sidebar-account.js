@@ -120,7 +120,7 @@
             { href: "/Reports", icon: "⚑", label: "Safety & Reports" }
         ];
 
-        // Keep the main action clear for the active role.
+        // Keep the main action clear for the active role.  
         sidebarFlow.forEach(function (item) {
             if (item.href === "/FindPost") item.label = isFreelancer && !isClient ? "Find Jobs" : isClient && !isFreelancer ? "Post a Task" : "Find & Post";
         });

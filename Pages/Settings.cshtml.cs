@@ -48,6 +48,14 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
     [BindProperty] public string? OtherService { get; set; }
     [BindProperty] public int? Rate { get; set; }
     [BindProperty] public int? RateMaximum { get; set; }
+    public List<string> AcceptedRoles { get; private set; } = [];
+    [BindProperty] public string[] AcceptedAgreements { get; set; } = [];
+    [BindProperty] public int AgreementVersion { get; set; }
+
+    private Task<List<string>> LoadAcceptedRolesAsync() => db.Set<RoleAgreementAcceptance>()
+        .Where(x => x.UserId == UserId && x.Version == RoleAgreementAcceptance.CurrentVersion)
+        .Select(x => x.Role).ToListAsync(HttpContext.RequestAborted);
+
     [BindProperty] public string WorkRole { get; set; } = "client";
     [BindProperty] public string Availability { get; set; } = "Available";
     [BindProperty] public string[] Days { get; set; } = [];
@@ -70,6 +78,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
             Services = savedServices.Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) || !ServiceOptions.Contains(value) ? "Other/General" : value).Distinct().ToArray();
             OtherService = string.Join(", ", savedServices.Where(value => !ServiceOptions.Contains(value)).Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) ? value["Other/General: ".Length..] : value));
             Areas = BacolorServiceAreas.InLocation(Location).ToArray(); Rate = profile.Rate; RateMaximum = profile.RateMaximum ?? profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
+        AcceptedRoles = await LoadAcceptedRolesAsync();
         EffectiveAvailability = await FreelancerAvailability.GetAsync(db, UserId, Availability, HttpContext.RequestAborted);
         return Page();
     }
@@ -148,6 +157,21 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
              (Services.Contains("Other/General") && (string.IsNullOrWhiteSpace(OtherService) || OtherService.Length > 60 || OtherService.Contains(',')))))
         { Message = "Choose at least one service and area. For Other / General, enter a service name of up to 60 characters without commas."; return RedirectToPage(); }
         if (!await db.Users.AnyAsync(x => x.Id == UserId)) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
+        var accepted = await LoadAcceptedRolesAsync();
+        string[] required = WorkRole == "both" ? ["client", "freelancer"] : [WorkRole];
+        var missing = required.Except(accepted).ToArray();
+        if (missing.Length > 0 && (AgreementVersion != RoleAgreementAcceptance.CurrentVersion ||
+            missing.Any(role => !AcceptedAgreements.Contains(role))))
+        {
+            Message = "Review and accept the required role agreements before saving.";
+            return RedirectToPage();
+        }
+
+        foreach (var role in missing)
+        {
+            db.Add(new RoleAgreementAcceptance { UserId = UserId, Role = role,
+                Version = AgreementVersion, AcceptedAtUtc = DateTime.UtcNow });
+        }
         var profile = await db.FreelancerProfiles.FindAsync(UserId);
         if (profile is null) { profile = new FreelancerProfile { UserId = UserId }; db.FreelancerProfiles.Add(profile); }
         profile.WorkRole = WorkRole;
@@ -170,7 +194,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
             Message = "Your changes could not be saved. Your previous work role is still active.";
             return RedirectToPage();
         }
-        Message = "Work preferences saved to the database.";
+        Message = "Work preferences saved.";
         return RedirectToPage();
     }
     public async Task<IActionResult> OnPostLogoutAsync() { if (LoginSecurity.Enabled(HttpContext.RequestServices.GetRequiredService<IConfiguration>())) await LoginSecurity.LogoutAsync(db, HttpContext, HttpContext.RequestAborted); await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }

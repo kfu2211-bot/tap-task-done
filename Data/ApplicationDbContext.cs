@@ -201,6 +201,11 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         verified.HasKey(x => x.UserId);
         verified.Property(x => x.Email).HasMaxLength(45);
         verified.HasOne<AppUser>().WithOne().HasForeignKey<VerifiedEmail>(x => x.UserId);
+        var roleAgreement = modelBuilder.Entity<RoleAgreementAcceptance>();
+        roleAgreement.ToTable("role_agreement_acceptances");
+        roleAgreement.HasKey(x => new { x.UserId, x.Role, x.Version });
+        roleAgreement.Property(x => x.Role).HasMaxLength(16);
+        roleAgreement.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         var profile = modelBuilder.Entity<FreelancerProfile>();
         profile.ToTable("freelancer_profiles");
         profile.HasKey(x => x.UserId);

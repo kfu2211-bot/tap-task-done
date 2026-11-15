@@ -189,3 +189,26 @@ html[data-theme="dark"] body .task-help :is(button, input, select, a):focus-visi
     outline: 2px solid #81dbb2;
     outline-offset: 2px;
 }
+
+html body button.task-help-launch:not([hidden]) {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    width: max-content !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 24px);
+    height: 44px !important;
+    min-height: 44px;
+    padding: 0 16px !important;
+    font: 700 14px/1.25 system-ui, sans-serif !important;
+    white-space: nowrap;
+}
+@media (max-width: 600px) {
+    html body button.task-help-launch:not(.task-help-messages) {
+        right: max(12px, env(safe-area-inset-right));
+        bottom: max(12px, env(safe-area-inset-bottom));
+    }
+}
