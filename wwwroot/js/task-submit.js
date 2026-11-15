@@ -17,6 +17,7 @@ document.addEventListener("submit", event => {
     form.setAttribute("aria-busy", "true");
     if (button) {
         button.setAttribute("aria-disabled", "true");
+        button.style.setProperty("--submit-spinner-color", getComputedStyle(button).color);
         button.dataset.pendingLabel = form.dataset.submitPending || "Loading…";
     }
 });
@@ -27,6 +28,7 @@ window.addEventListener("pageshow", () => {
         if (button) {
             button.removeAttribute("aria-disabled");
             delete button.dataset.pendingLabel;
+            button.style.removeProperty("--submit-spinner-color");
         }
     }
     pendingForms.clear();

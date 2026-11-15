@@ -214,8 +214,10 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
         button.disabled = false;
         return;
     }
-    taskHelpAnswer.hidden = false;
-    taskHelpAnswer.textContent = language === "en" ? "Looking up your question…" : "Hinahanap ang sagot…";
+    taskHelpAnswer.hidden = true;
+    button.style.setProperty("--submit-spinner-color", getComputedStyle(button).color);
+    button.dataset.pendingLabel = "true";
+    button.setAttribute("aria-busy", "true");
     try {
         const response = await fetch("/api/task-help", {
             method: "POST",
@@ -231,6 +233,9 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
             ? "I couldn’t look up your question right now. Please try again in a moment."
             : "Hindi ko masagot ang tanong mo sa ngayon. Pakisubukan ulit mamaya.", "assistant", language);
     } finally {
+        delete button.dataset.pendingLabel;
+        button.style.removeProperty("--submit-spinner-color");
+        button.removeAttribute("aria-busy");
         taskHelpAnswer.hidden = true;
         button.disabled = false;
     }

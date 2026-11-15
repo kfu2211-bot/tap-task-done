@@ -1,26 +1,21 @@
-[data-pending-label] {
-    cursor: wait !important;
-    opacity: .8;
+button[data-pending-label] {
+    position: relative;
+    color: transparent !important;
+    text-shadow: none !important;
+    pointer-events: none;
 }
-button[data-pending-label]::before {
-    content: attr(data-pending-label);
-    display: inline-block;
-    margin-inline-start: .5em;
-    font-size: .85em;
-}
-
-button[data-pending-label] { pointer-events: none; }
+button[data-pending-label] > * { opacity: 0; }
 button[data-pending-label]::after {
     content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
     box-sizing: border-box;
-    width: .9em;
-    height: .9em;
-    display: inline-block;
-    margin-inline-start: .5em;
-    border: 2px solid currentColor;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 2px solid var(--submit-spinner-color, #fff);
     border-inline-end-color: transparent;
     border-radius: 50%;
-    vertical-align: -.1em;
     animation: submit-pending-spin .65s linear infinite;
 }
 @keyframes submit-pending-spin { to { transform: rotate(360deg); } }
