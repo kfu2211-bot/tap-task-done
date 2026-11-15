@@ -29,7 +29,9 @@
             <button type="button" data-topic="areas">Service areas</button>
             <button type="button" data-topic="report">Report an issue</button>
         </div>
-        <div class="task-help-history" role="log" aria-label="Task Help conversation" tabindex="0" hidden></div>
+        <div class="task-help-history" role="log" aria-label="Task Help conversation" tabindex="0" hidden>
+            <p class="task-help-bubble assistant" data-help-greeting>Hi! I can help you post a task, find work, or use Tap, Task, Done.</p>
+        </div>
         <p class="task-help-answer" role="status" id="task-help-answer" hidden></p>
         <a class="task-help-action" id="task-help-report" hidden>@(User.Identity?.IsAuthenticated == true ? "Open Safety & Reports" : "Log in to report")</a>
         <form id="task-help-question">
