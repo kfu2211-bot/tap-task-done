@@ -55,12 +55,15 @@ if (workRole && freelancerPreferences) {
     const otherField = document.getElementById("otherServiceField");
     const otherInput = otherField.querySelector("input");
     const selectAllDays = document.getElementById("selectAllDays");
+    const days = [...form.querySelectorAll('#weeklyAvailability input[name="Days"]')];
     if (selectAllDays) selectAllDays.addEventListener("click", function () {
-        form.querySelectorAll('#weeklyAvailability input[name="Days"]').forEach(function (day) { day.checked = true; });
+        const select = days.some(day => !day.checked);
+        days.forEach(day => { day.checked = select; });
         update();
     });
 
     function update() {
+        if (selectAllDays) selectAllDays.textContent = days.every(day => day.checked) ? "Clear all" : "Select all";
         freelancerPreferences.hidden = workRole.value === "client";
         const otherSelected = services.some(service => service.checked && service.value === "Other/General");
         otherField.hidden = !otherSelected;

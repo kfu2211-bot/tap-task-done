@@ -619,7 +619,7 @@
                     }
                 </div>
                 @if (Model.Unavailable) { <div class="db-tracking-empty"><h3>Tracking is unavailable</h3><p>Please check the database connection and try again.</p></div> }
-                else if (Model.Tasks.Count == 0) { <div class="db-tracking-empty"><span aria-hidden="true">✓</span><h3>No tasks to track</h3><p>Accepted tasks and their progress appear here.</p><a href="/FindPost">Explore Find &amp; Post</a></div> }
+                else if (Model.Tasks.Count == 0) { <div class="db-tracking-empty"><span class="tracking-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12h4l3-6 3 12 2-6h4"/></svg></span><h3>No tasks to track</h3><p>Accepted tasks and their progress appear here.</p><a class="workspace-action" href="/FindPost">Explore Find &amp; Post</a></div> }
                 @foreach (var item in Model.Tasks.Where(x => x.Task.Id == selectedTask)) {
                     var task = item.Task;
                     var status = Array.IndexOf(TaskProgress.States, task.Status);

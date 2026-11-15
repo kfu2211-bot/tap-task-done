@@ -319,9 +319,7 @@
 
                             <div class="input-wrapper">
 
-                                <span>
-                                    ⌕
-                                </span>
+                                <span class="provider-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="5.5"/><path d="m14 14 5 5"/></svg></span>
 
                                 <select id="serviceSearch" aria-label="Service category"><option value="">All services</option>@foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other/General" }) { <option value="@category">@category</option> }</select>
 
@@ -339,9 +337,7 @@
 
                             <div class="input-wrapper">
 
-                                <span>
-                                    ♧
-                                </span>
+                                <span class="provider-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
 
                                 <select id="locationInput" aria-label="Service area" style="width:100%;min-width:0">
                                     <option value="">All 5 supported areas</option>
@@ -455,7 +451,7 @@
                                 @if (tts.Pages.BookingRequestsModel.CanBook(Model.WorkRole)) {
                                 <details class="service-inquiry">
                                     <summary>Ask about a service</summary>
-                                    <form method="post" asp-page="/BookingRequests" asp-page-handler="Inquiry">
+                                    <form method="post" asp-page="/BookingRequests" asp-page-handler="Inquiry" data-submit-pending="Sending…">
                                         <input type="hidden" name="freelancerId" id="inquiryFreelancerId" />
                                         <label for="inquiryQuestion">Your question</label>
                                         <textarea id="inquiryQuestion" name="question" rows="3" maxlength="2000" required aria-describedby="inquiryHelp" placeholder="e.g. Are you available this Saturday in Cabetican?"></textarea>
@@ -515,7 +511,7 @@
                         <button type="button" id="startPostTaskButton">Create a task</button>
                     </div>
 
-                    <form class="post-task-panel" id="databasePostTaskForm" data-submit-pending="Saving draft…" method="post" asp-page="/MarketTasks" asp-page-handler="Create">
+                    <form class="post-task-panel" id="databasePostTaskForm" data-submit-pending="Saving draft…" method="post" asp-page="/MarketTasks" asp-page-handler="Create" data-submit-pending="Saving task…">
                         <input type="hidden" name="schedule" id="databaseSchedule" />
                         <div class="post-task-heading">
                             <div>

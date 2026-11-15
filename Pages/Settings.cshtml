@@ -31,7 +31,7 @@
                 <a href="/Tracking"><span class="menu-icon">➤</span><span>Tracking</span></a>
                 <a href="/Reviews"><span class="menu-icon">☆</span><span>Reviews</span></a>
             </nav>
-            <div class="sidebar-account"><span class="account-avatar">U</span><div><strong id="sidebarName">User</strong><span id="sidebarEmail">user@email.com</span></div></div>
+            <div class="sidebar-account"><span class="account-avatar">@(Model.DisplayName.FirstOrDefault())</span><div><strong id="sidebarName">@Model.DisplayName</strong><span id="sidebarEmail">@Model.Email</span></div></div>
         </aside>
         <main>
             <header><h1>@pageTitle</h1></header>
@@ -42,7 +42,7 @@
                     <h2>Your profile</h2>
                     <p>Manage your display name and profile photo.</p>
                 </div>
-                <section class="settings-card account-card">
+                <section class="settings-card account-card" data-submit-pending="Saving…">
                     <h2>Account profile</h2>
                     <div class="profile-summary" aria-label="Current profile">
                         <span id="profileAvatar" class="profile-avatar">@(Model.DisplayName.FirstOrDefault())</span>
@@ -134,7 +134,7 @@
                     <p>Manage your work preferences, availability, and account security.</p>
                 </div>
                 <div class="account-settings-grid">
-                <form method="post" id="profileForm" class="settings-card account-card">
+                <form method="post" id="profileForm" class="settings-card account-card" data-submit-pending="Saving…">
                     <div class="account-role" id="work-preferences"><h3 id="workRoleTitle">Work role</h3><select aria-labelledby="workRoleTitle" aria-describedby="workRoleHelp" asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select><p id="workRoleHelp" class="form-message"></p></div>                    <dialog id="roleAgreementDialog" class="role-agreement-dialog" aria-labelledby="roleAgreementTitle">
                         <h2 id="roleAgreementTitle" tabindex="-1" autofocus>Work role agreements</h2>
                         <p>Review the terms for your selected role, then scroll down to accept.</p>

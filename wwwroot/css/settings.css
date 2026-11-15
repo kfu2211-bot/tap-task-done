@@ -130,3 +130,18 @@ html[data-theme="dark"] body #roleAgreementDialog section > label { border-color
     margin-top: 12px;
     border-top: 1px solid var(--line, #bfd3c3);
 }
+
+#roleAgreementDialog {
+    max-height: calc(100dvh - 32px);
+    scrollbar-gutter: stable;
+    box-shadow: 0 20px 64px #102b2650;
+}
+#roleAgreementTitle:focus { outline: none; }
+#roleAgreementDialog .role-agreement-actions {
+    padding-top: 14px;
+    border-top: 1px solid var(--line, #bfd3c3);
+}
+@media (max-width: 600px) {
+    #roleAgreementDialog { padding: 18px 16px max(18px, env(safe-area-inset-bottom)); }
+    #roleAgreementDialog .role-agreement-actions > button { flex: 1 1 auto; }
+}

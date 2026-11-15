@@ -247,10 +247,13 @@ app.MapGet("/api/work-preferences", async (HttpContext context, ApplicationDbCon
 {
     if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
         return Results.Unauthorized();
+    var accountName = await db.Users.AsNoTracking().Where(u => u.Id == userId)
+        .Select(u => ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())
+        .SingleOrDefaultAsync(context.RequestAborted);
     var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == userId);
     var effective = await FreelancerAvailability.GetAsync(db, userId, profile?.Availability ?? "Available", context.RequestAborted);
     context.Response.Headers.CacheControl = "no-store";
-    return Results.Json(new { role = profile?.WorkRole ?? "client", service = profile?.Service ?? "", availability = effective, preferredAvailability = profile?.Availability ?? "Available" });
+    return Results.Json(new { displayName = accountName, role = profile?.WorkRole ?? "client", service = profile?.Service ?? "", availability = effective, preferredAvailability = profile?.Availability ?? "Available" });
 }).RequireAuthorization();
 
 app.MapGet("/api/account-warning", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>

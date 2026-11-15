@@ -459,7 +459,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", service: service, rating: rating, price: price, availability: card.dataset.availability || "", location: card.dataset.location || "" };
                     document.getElementById("selectedProviderName").textContent = name;
                     document.getElementById("selectedProviderName").dataset.accountId = card.dataset.id;
-                    document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set") + " · Database profile";
+                    document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set");
                     document.getElementById("selectedProviderRating").textContent = rating;
                     document.getElementById("selectedProviderPrice").textContent = price;
                     document.getElementById("selectedProviderAvailability").textContent = selectedProvider.availability || "Availability not set";
@@ -499,7 +499,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 card.dataset.availability = next;
                 const badge = card.querySelector('.provider-availability'); if (badge) badge.textContent = next;
                 const label = card.querySelector('.match-details');
-                if (label) label.textContent = 'Service area: ' + card.dataset.location + ' · ' + next + ' · Database profile';
+                if (label) label.textContent = 'Service area: ' + card.dataset.location + ' · ' + next;
             });
             if (selectedProvider && statuses.has(selectedProvider.id)) {
                 selectedProvider.availability = statuses.get(selectedProvider.id);

@@ -37,3 +37,34 @@ html body :is(.jobs-empty,.market-empty,.reviews-empty,.db-tracking-empty,.verif
     html body .settings-content > .account-card .save-row { margin:18px -18px 0; padding:14px 18px; }
     html body .tracking-panel { padding:16px; }
 }
+
+html body a.workspace-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 6px 16px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: #176b50;
+    color: white;
+    font-weight: 650;
+    text-decoration: none;
+}
+html body a.workspace-action:hover { background: #125740; }
+html body a.workspace-action-secondary { background: transparent; border-color: #aacbb7; color: #15583f; }
+html body a.workspace-action-secondary:hover { background: #dceee0; }
+html[data-theme="dark"] body a.workspace-action-secondary { color: #a5edcc; border-color: #567264; }
+html[data-theme="dark"] body a.workspace-action-secondary:hover { background: #294438; }
+html body .db-tracking-empty > .tracking-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 14px;
+    border-radius: 14px;
+    background: #dceee0;
+    color: #176b50;
+}
+.tracking-empty-icon svg { width: 26px; height: 26px; }
+html[data-theme="dark"] body .db-tracking-empty > .tracking-empty-icon { background: #294438; color: #a5edcc; }

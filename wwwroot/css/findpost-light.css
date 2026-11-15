@@ -284,3 +284,16 @@ html body #providerDetailPanel #inquiryQuestion {
     .service-inquiry-footer button { width: 100%; }
 }
 html[data-theme="dark"] .service-inquiry { background: #20392e; border-color: #567264; color: #edf5ef; }
+
+html body .identity-work-notice {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+}
+html body .identity-work-notice a { margin: 0; text-align: center; }
+@media (max-width: 600px) {
+    html body .identity-work-notice { grid-template-columns: 40px minmax(0, 1fr); align-items: start; }
+    html body .identity-work-notice a { grid-column: 1 / -1; }
+}
+.provider-filter-icon svg { display: block; width: 18px; height: 18px; }

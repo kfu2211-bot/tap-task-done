@@ -66,6 +66,7 @@
 
         // The authenticated page can render even when the browser cache is empty.
 
+        let displayName = document.getElementById("profileSummaryName")?.textContent.trim();
         // The database, not the browser cache, is authoritative for work preferences.
         try {
             var response = await fetch('/api/work-preferences', {
@@ -74,6 +75,7 @@
             });
             if (response.ok) {
                 var preferences = await response.json();
+                displayName = preferences.displayName?.trim() || displayName;
                 account.role = preferences.role;
                 account.service = preferences.service;
                 account.availability = preferences.availability;
@@ -81,7 +83,7 @@
             }
         } catch (error) { console.warn('Work preferences could not be refreshed.', error); }    
 
-        var name = (account.nickname || account.name || document.querySelector("#sidebarName")?.textContent || "User").trim();
+        var name = displayName || (account.nickname || account.name || document.querySelector("#sidebarName")?.textContent || "").trim() || "User";
         var email = (account.email || "").trim();
         var initials = name
             .split(/\s+/)
@@ -150,7 +152,7 @@
                     }
                 }
 
-                var labelSpan = link.querySelector("span:last-child");
+                var labelSpan = link.querySelector(":scope > span:not(.sidebar-unread-badge):last-child, :scope > span:not(.sidebar-unread-badge):has(+ .sidebar-unread-badge)");
                 if (labelSpan && labelSpan !== link.querySelector("span:first-child")) labelSpan.textContent = item.label;
                 else if (link.classList.contains("mytasks-nav-item")) {
                     Array.from(link.childNodes).filter(function (node) { return node.nodeType === Node.TEXT_NODE; }).forEach(function (node) { node.remove(); });
@@ -160,7 +162,7 @@
                 link.classList.toggle("active", window.location.pathname.toLowerCase() === item.href.split("?")[0].toLowerCase());
                 decorateSidebarLink(link);
                 if (item.href === "/Messages" || item.href === "/MyJobs" || item.href.indexOf("/MarketTasks") === 0) {
-                    var navBadge = document.createElement("span");
+                    var navBadge = link.querySelector(":scope > .sidebar-unread-badge") || document.createElement("span");
                     navBadge.className = "sidebar-unread-badge";
                     navBadge.dataset.notificationKind = item.href === "/Messages" ? "message" : "my-tasks";
                     navBadge.hidden = true;

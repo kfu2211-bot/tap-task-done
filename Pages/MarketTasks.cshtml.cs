@@ -151,7 +151,26 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (role is not ("client" or "both")) { Notice = "Choose Client or Client & Freelancer in Settings to post tasks."; return RedirectToPage(); }
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot create new tasks while restricted or pending account deletion."; return RedirectToPage(); }
-        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, Location = location, Budget = budget, BudgetMaximum = budgetMaximum, PostDurationDays = postDurationDays ?? 7, PostExpiresUtc = ClosingTimeUtc(postEndDate), ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
+        // Serialize task creation by this client so simultaneous retries see the first draft.
+        await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {UserId} FOR UPDATE").AsNoTracking().ToListAsync(ct);
+        var duration = postDurationDays ?? 7;
+        var closingTime = ClosingTimeUtc(postEndDate);
+        var recent = DateTime.UtcNow.AddMinutes(-2);
+        var duplicate = await (from draft in db.MarketplaceTasks.AsNoTracking()
+            join pin in db.Set<TaskDestination>().AsNoTracking() on draft.Id equals pin.TaskId
+            where draft.ClientId == UserId && !draft.IsPrivate && draft.Status == "pending-confirmation" &&
+                draft.CreatedAt >= recent && draft.Title == title && draft.Description == description &&
+                draft.Category == category && draft.Location == location && draft.Budget == budget &&
+                draft.BudgetMaximum == budgetMaximum && draft.ScheduleText == schedule &&
+                draft.PostDurationDays == duration && draft.PostExpiresUtc == closingTime &&
+                pin.Latitude == latitude!.Value && pin.Longitude == longitude!.Value
+            select draft.Id).AnyAsync(ct);
+        if (duplicate)
+        {
+            Notice = "This task was already saved. Review it below before publishing.";
+            return RedirectToPage();
+        }
+        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, Location = location, Budget = budget, BudgetMaximum = budgetMaximum, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
         db.MarketplaceTasks.Add(task); await db.SaveChangesAsync(ct);
         TaskLocationRules.Save(db, task.Id, null, latitude!.Value, longitude!.Value);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Task saved. Confirm it below to make it visible to freelancers."; return RedirectToPage();
