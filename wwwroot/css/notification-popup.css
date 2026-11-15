@@ -138,3 +138,20 @@ html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) a .sidebar-unread-b
     color: #fff !important;
 }
 .sidebar-unread-badge[hidden] { display: none !important; }
+
+.live-update-toast {
+    inset: auto max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) auto;
+    width: min(380px, calc(100vw - 32px));
+    padding: 16px 58px 16px 18px;
+    border-inline-start: 4px solid var(--signin-alert-accent, #18765b);
+    box-shadow: 0 8px 28px #122e2426;
+    font: 14px/1.45 system-ui, sans-serif;
+    overflow-wrap: anywhere;
+}
+.live-update-toast strong { padding-right: 0; font-size: 15px; }
+.live-update-toast .live-update-close { width: 44px; height: 44px; top: 6px; right: 6px; border-radius: 10px; }
+.live-update-toast .live-update-open { min-height: 44px; }
+.live-update-toast :is(button, a):focus-visible {
+    outline: 2px solid var(--signin-alert-accent, #18765b);
+    outline-offset: 2px;
+}

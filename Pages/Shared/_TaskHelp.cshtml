@@ -29,6 +29,7 @@
             <button type="button" data-topic="areas">Service areas</button>
             <button type="button" data-topic="report">Report an issue</button>
         </div>
+        <div class="task-help-history" role="log" aria-label="Task Help conversation" tabindex="0" hidden></div>
         <p class="task-help-answer" role="status" id="task-help-answer" hidden></p>
         <a class="task-help-action" id="task-help-report" hidden>@(User.Identity?.IsAuthenticated == true ? "Open Safety & Reports" : "Log in to report")</a>
         <form id="task-help-question">

@@ -16,12 +16,17 @@ public static class TaskHelpAi
         """;
 
     public static async Task<IResult> AskAsync(Question input, IConfiguration config,
-        IHttpClientFactory clients, CancellationToken ct)
+        IHttpClientFactory clients, ILoggerFactory loggerFactory, CancellationToken ct)
     {
         var question = input.Text?.Trim();
         if (question is not { Length: > 0 and <= 250 }) return Results.BadRequest();
-        var key = config["TaskHelp:GeminiApiKey"];
-        if (string.IsNullOrWhiteSpace(key)) return Results.StatusCode(503);
+        var logger = loggerFactory.CreateLogger("TaskHelp");
+        var key = config["TaskHelp:GeminiApiKey"]?.Trim();
+        if (string.IsNullOrEmpty(key))
+        {
+            logger.LogWarning("Task Help Gemini API key is missing.");
+            return Results.StatusCode(503);
+        }
         var model = Uri.EscapeDataString(config["TaskHelp:Model"] ?? "gemini-3.1-flash-lite");
         using var request = new HttpRequestMessage(HttpMethod.Post,
             $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent");
@@ -36,7 +41,12 @@ public static class TaskHelpAi
         {
             using var client = clients.CreateClient("TaskHelp");
             using var response = await client.SendAsync(request, ct);
-            if (!response.IsSuccessStatusCode) return Results.StatusCode(503);
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogWarning("Task Help Gemini request returned HTTP {StatusCode} for model {Model}.",
+                    (int)response.StatusCode, model);
+                return Results.StatusCode(503);
+            }
             using var json = JsonDocument.Parse(await response.Content.ReadAsStreamAsync(ct));
             var topic = json.RootElement.GetProperty("candidates")[0].GetProperty("content")
                 .GetProperty("parts")[0].GetProperty("text").GetString()?.Trim();
@@ -45,6 +55,7 @@ public static class TaskHelpAi
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException
             or KeyNotFoundException or IndexOutOfRangeException or InvalidOperationException)
         {
+            logger.LogWarning("Task Help Gemini response failed ({ErrorType}).", ex.GetType().Name);
             return Results.StatusCode(503);
         }
     }

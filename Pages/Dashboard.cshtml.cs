@@ -56,12 +56,11 @@ namespace tts.Pages
             { logger.LogError(ex, "Unable to load category counts"); CategoriesUnavailable = true; }
             try
             {
-                var viewerId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var viewer) ? viewer : 0;
                 var rows = await (from review in db.MarketplaceReviews.AsNoTracking()
                     join user in db.Users.AsNoTracking() on review.FreelancerId equals user.Id
                     join profile in db.FreelancerProfiles.AsNoTracking() on user.Id equals profile.UserId
                     where (profile.WorkRole == "freelancer" || profile.WorkRole == "both")
-                        && user.Id != viewerId
+                        && user.Role != "deleted"
                         && profile.Service != "" && profile.Location != ""
                     select new { user.Id, user.FirstName, user.LastName, profile.Service, profile.Availability, review.Rating }).ToListAsync(ct);
                 RatedProviders = rows.GroupBy(x => new { x.Id, x.FirstName, x.LastName, x.Service, x.Availability })

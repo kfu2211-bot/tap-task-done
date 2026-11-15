@@ -81,17 +81,31 @@ const followUp = {
     taglish: ["Sorry, para lang sa mga tanong tungkol sa paggamit ng Tap, Task, Done ang Task Help.", "Saang step ka nagka-problema?"]
 };
 
+const helpHistory = taskHelp.querySelector(".task-help-history");
+
+function addHelpMessage(message, speaker, language) {
+    const bubble = document.createElement("p");
+    bubble.className = "task-help-bubble " + speaker;
+    bubble.lang = language === "en" ? "en" : "fil";
+    const label = document.createElement("strong");
+    label.textContent = speaker === "assistant" ? "Task Help" : language === "en" ? "You" : "Ikaw";
+    bubble.append(label, document.createTextNode(message));
+    helpHistory.hidden = false;
+    helpHistory.append(bubble);
+    helpHistory.scrollTop = helpHistory.scrollHeight;
+}
+
 function showTaskHelpAnswer(topic, language = "taglish", unclear = false) {
     const answers = language === "en" ? english : language === "fil" ? filipino : taskHelpAnswers;
     taskHelpAnswer.lang = language === "en" ? "en" : "fil";
     taskHelpReport.hidden = topic !== "report" && topic !== "reportStatus";
-    taskHelpAnswer.hidden = false;
+    taskHelpAnswer.hidden = true;
     if (topic) {
-        taskHelpAnswer.textContent = specificAnswers[topic]?.[["en", "fil", "taglish"].indexOf(language)] ?? answers[topic];
+        addHelpMessage(specificAnswers[topic]?.[["en", "fil", "taglish"].indexOf(language)] ?? answers[topic], "assistant", language);
         return;
     }
     const [redirect, clarify] = followUp[language];
-    taskHelpAnswer.textContent = unclear ? clarify : redirect;
+    addHelpMessage(unclear ? clarify : redirect, "assistant", language);
 }
 
 const helpPlacement = document.querySelector(".thread-task-actions") || document.querySelector(".conversations-toolbar");
@@ -124,7 +138,11 @@ languagePicker.addEventListener("change", () => {
     taskHelpReport.hidden = true;
 });
 taskHelp.querySelectorAll("[data-topic]").forEach(button => {
-    button.addEventListener("click", () => showTaskHelpAnswer(button.dataset.topic, languagePicker.value));
+    button.addEventListener("click", () => {
+        if (taskHelp.querySelector(".task-help-input-row button").disabled) return;
+        addHelpMessage(button.textContent, "visitor", languagePicker.value);
+        showTaskHelpAnswer(button.dataset.topic, languagePicker.value);
+    });
 });
 document.querySelector("#task-help-question").addEventListener("submit", async event => {
     event.preventDefault();
@@ -135,6 +153,9 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
     const language = questionLanguage(question.toLowerCase());
     lastQuestionLanguage = language;
     button.disabled = true;
+    addHelpMessage(question, "visitor", language);
+    taskHelpInput.value = "";
+    taskHelpInput.focus();
     taskHelpReport.hidden = true;
     taskHelpAnswer.hidden = false;
     taskHelpAnswer.textContent = language === "en" ? "Looking up your question…" : "Hinahanap ang sagot…";
@@ -148,12 +169,12 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
         const { topic } = await response.json();
         const recognized = Object.hasOwn(english, topic) || Object.hasOwn(specificAnswers, topic);
         showTaskHelpAnswer(recognized ? topic : undefined, language, topic === "unclear");
-        if (taskHelpInput.value.trim() === question) taskHelpInput.value = "";
     } catch {
-        taskHelpAnswer.textContent = language === "en"
+        addHelpMessage(language === "en"
             ? "Task Help is temporarily unavailable. Try again or choose a shortcut above."
-            : "Pansamantalang hindi available ang Task Help. Subukan ulit o pumili ng shortcut sa itaas.";
+            : "Pansamantalang hindi available ang Task Help. Subukan ulit o pumili ng shortcut sa itaas.", "assistant", language);
     } finally {
+        taskHelpAnswer.hidden = true;
         button.disabled = false;
     }
 });

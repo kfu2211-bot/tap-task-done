@@ -42,12 +42,12 @@
             clearTimeout(dismissTimer);
             const banner = document.createElement('div');
             banner.dataset.signinAlert = 'true'; banner.setAttribute('role', 'alert');
-            Object.assign(banner.style, { position:'fixed', bottom:'20px', right:'20px', zIndex:'10000', width:'360px', maxWidth:'calc(100vw - 32px)', background:'var(--signin-alert-surface, #fff)', color:'var(--signin-alert-text, #163d30)', border:'1px solid var(--signin-alert-border, #cfe0d3)', borderRadius:'14px', padding:'18px', boxShadow:'0 10px 36px #163d3026', font:'13px/1.6 Arial,sans-serif' });
+            banner.classList.add("live-update-toast", "signin-toast");
             const dismiss = () => { clearTimeout(dismissTimer); remember(alert.id); banner.remove(); };
             const header = document.createElement('div'); Object.assign(header.style, {display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px'});
             const title = document.createElement('strong'); title.textContent = 'New sign-in detected'; title.style.fontSize='14px';
             const close = document.createElement('button'); close.type='button'; close.textContent='×'; close.setAttribute('aria-label','Dismiss sign-in notification');
-            Object.assign(close.style,{border:'0',background:'var(--signin-alert-control, #edf5ef)',color:'var(--signin-alert-accent, #18765b)',borderRadius:'6px',width:'28px',height:'28px',padding:'0',font:'22px Arial,sans-serif',cursor:'pointer'});
+            close.classList.add("live-update-close");
             close.addEventListener('click', dismiss); header.append(title,close);
             const detail = document.createElement('p'); detail.textContent = alert.device; Object.assign(detail.style,{margin:'10px 0 2px',color:'var(--signin-alert-muted, #536d5e)'});
             const time = document.createElement('small'); time.textContent = new Date(alert.createdUtc.endsWith('Z') ? alert.createdUtc : alert.createdUtc + 'Z').toLocaleString('en-PH', { timeZone:'Asia/Manila' }) + ' PHT'; time.style.color='var(--signin-alert-muted, #718578)';
