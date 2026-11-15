@@ -777,27 +777,6 @@ html[data-theme="dark"] body :is(.report-history-status, .account-workspace #sel
 html[data-theme="dark"] body .account-workspace :is(.photo-file-note, .remove-photo-button) {
     color: var(--muted) !important;
 }
-html[data-theme="dark"] body :is(.task-help, .task-help-content) {
-    background: var(--surface);
-    border-color: var(--line);
-    color: var(--text);
-}
-html[data-theme="dark"] body .task-help :is(.task-help-answer, .task-help-topics button, nav a, .task-help-action) {
-    background: var(--surface-2);
-    border-color: #567264;
-    color: var(--text);
-}
-html[data-theme="dark"] body .task-help :is(nav, #task-help-question) {
-    border-color: var(--line);
-}
-html[data-theme="dark"] body .task-help #task-help-input {
-    color-scheme: dark;
-    background: #171f1c !important;
-    color: var(--text) !important;
-    border-color: #567264 !important;
-    caret-color: var(--text);
-}
-
 /* Theme the rendered basemap while keeping interactive controls and pins distinct. */
 html[data-theme="dark"] :is(.location-picker-map, .job-location-map) {
     background: #18231d;

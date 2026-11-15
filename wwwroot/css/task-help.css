@@ -72,7 +72,6 @@ html body button.task-help-launch.task-help-messages {
 }
 
 .task-help #task-help-input {
-    /* The help panel uses a light palette in either account theme. */
     color-scheme: light;
     background: #fff !important;
     color: #16382d !important;
@@ -136,3 +135,55 @@ html body button.task-help-launch.task-help-messages {
 html[data-theme="dark"] .task-help-history { background: #18251e; border-color: #40584a; }
 html[data-theme="dark"] .task-help-history .task-help-bubble { background: #273a30; color: #edf5ef; }
 html[data-theme="dark"] .task-help-history .visitor { background: #315342; }
+
+html[data-theme="dark"] body :is(.task-help, .task-help-content) {
+    background: #202a25;
+    border-color: #40584a;
+    color: #edf5ef;
+}
+html[data-theme="dark"] body .task-help :is(.task-help-answer, .task-help-topics button, nav a, .task-help-action) {
+    background: #20392e;
+    border-color: #567264;
+    color: #edf5ef;
+}
+html[data-theme="dark"] body .task-help :is(nav, #task-help-question) {
+    border-color: #40584a;
+}
+html[data-theme="dark"] body .task-help #task-help-input {
+    color-scheme: dark;
+    background: #171f1c !important;
+    color: #edf5ef !important;
+    border-color: #567264 !important;
+    caret-color: #edf5ef;
+}
+
+html[data-theme="dark"] body .task-help {
+    color-scheme: dark;
+}
+html[data-theme="dark"] body .task-help header {
+    background: #184a39;
+}
+html[data-theme="dark"] body .task-help #task-help-language-select,
+html[data-theme="dark"] body .task-help #task-help-language-select option {
+    color-scheme: dark !important;
+    background: #171f1c !important;
+    color: #edf5ef !important;
+    border-color: #567264 !important;
+}
+html[data-theme="dark"] body .task-help #task-help-language {
+    color: #aabdb3;
+}
+html[data-theme="dark"] body .task-help :is(.task-help-topics button, nav a, .task-help-action, header button):hover {
+    background: #315342;
+}
+html[data-theme="dark"] body .task-help .task-help-input-row button {
+    background: #81dbb2;
+    color: #102b1f;
+}
+html[data-theme="dark"] body .task-help .task-help-input-row button:not(:disabled):hover {
+    background: #a5edcc;
+}
+html[data-theme="dark"] body .task-help :is(button, input, select, a):focus-visible {
+    outline: 2px solid #81dbb2;
+    outline-offset: 2px;
+}

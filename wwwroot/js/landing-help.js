@@ -76,9 +76,9 @@ const specificAnswers = {
 };
 
 const followUp = {
-    en: ["Sorry, I can only answer questions about using Tap, Task, Done.", "Which step are you having trouble with?"],
-    fil: ["Paumanhin, masasagot ko lamang ang mga tanong tungkol sa paggamit ng Tap, Task, Done.", "Saang hakbang ka nahihirapan?"],
-    taglish: ["Sorry, para lang sa mga tanong tungkol sa paggamit ng Tap, Task, Done ang Task Help.", "Saang step ka nagka-problema?"]
+    en: ["I’m the virtual assistant for Tap, Task, Done. I can help you post tasks, find work, or use your account. What would you like to do?", "What are you trying to do in Tap, Task, Done? Tell me which page or step you’re on."],
+    fil: ["Virtual assistant ako ng Tap, Task, Done. Matutulungan kitang mag-post ng task, maghanap ng trabaho, o gamitin ang account mo. Ano ang gusto mong gawin?", "Ano ang sinusubukan mong gawin sa Tap, Task, Done? Sabihin mo kung saang page o hakbang ka na."],
+    taglish: ["Virtual assistant ako ng Tap, Task, Done. Puwede kitang tulungan sa pag-post ng task, paghahanap ng work, o paggamit ng account mo. Ano ang gusto mong gawin?", "Anong page o step sa Tap, Task, Done ang kailangan mo ng help?"]
 };
 
 const helpHistory = taskHelp.querySelector(".task-help-history");
@@ -157,6 +157,14 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
     taskHelpInput.value = "";
     taskHelpInput.focus();
     taskHelpReport.hidden = true;
+    if (/\b(?:single|may jowa|relationship status)\b/i.test(question) &&
+        /\b(?:developer|creator|founder|gumawa|n gumawa|owner)\b/i.test(question)) {
+        addHelpMessage(language === "en"
+            ? "I can’t confirm the creator’s relationship status. I’m the virtual assistant for Tap, Task, Done. Need help posting a task or finding work?"
+            : "Hindi ko makukumpirma kung single ang gumawa ng app. Virtual assistant ako ng Tap, Task, Done. May kailangan ka bang tulong sa pag-post ng task o paghahanap ng trabaho?", "assistant", language);
+        button.disabled = false;
+        return;
+    }
     taskHelpAnswer.hidden = false;
     taskHelpAnswer.textContent = language === "en" ? "Looking up your question…" : "Hinahanap ang sagot…";
     try {
@@ -171,8 +179,8 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
         showTaskHelpAnswer(recognized ? topic : undefined, language, topic === "unclear");
     } catch {
         addHelpMessage(language === "en"
-            ? "Task Help is temporarily unavailable. Try again or choose a shortcut above."
-            : "Pansamantalang hindi available ang Task Help. Subukan ulit o pumili ng shortcut sa itaas.", "assistant", language);
+            ? "I’m the virtual assistant for Tap, Task, Done. I couldn’t look up that question right now, but the shortcuts above can still guide you through common tasks."
+            : "Virtual assistant ako ng Tap, Task, Done. Hindi ko masagot ang tanong na iyan sa ngayon, pero puwede mong gamitin ang mga shortcut sa itaas para sa karaniwang gawain.", "assistant", language);
     } finally {
         taskHelpAnswer.hidden = true;
         button.disabled = false;
