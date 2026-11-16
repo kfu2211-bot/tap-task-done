@@ -1,6 +1,12 @@
 (() => {
     'use strict';
-    const valid = (lat, lon) => Number.isFinite(lat) && Number.isFinite(lon) && lat >= 14.92 && lat <= 15.10 && lon >= 120.54 && lon <= 120.73;
+    const areaCenters = {
+        'Solana Casa Real': [120.674900, 15.008790],
+        Cabalantian: [120.6696689, 15.004034],
+        Parulog: [120.6434642, 15.0113705],
+        Cabetican: [120.6515881, 14.9917222],
+        Magliman: [120.6667188, 15.0299016]
+    };
     async function search(query) {
         const response = await fetch('/api/places/search?q=' + encodeURIComponent(query), { credentials:'same-origin', cache:'no-store' });
         if(response.redirected || response.status===401)throw new Error('Sign in again to search locations.');
@@ -12,11 +18,11 @@
     document.querySelectorAll('[data-location-picker]').forEach(root => {
         const address=root.querySelector('[data-location-address]'), lat=root.querySelector('[data-location-latitude]'), lon=root.querySelector('[data-location-longitude]');
         const status=root.querySelector('[data-location-status]'), results=root.querySelector('[data-location-results]'), confirm=root.querySelector('[data-location-confirm]'), notice=root.querySelector('[data-location-alert]');
-        let map, marker, candidate=lat.value&&lon.value&&valid(Number(lat.value),Number(lon.value)) ? [Number(lon.value),Number(lat.value)] : null;
+        let map, marker, candidate=lat.value&&lon.value ? [Number(lon.value),Number(lat.value)] : null;
         let searching=false, generation=0, mapFailed=false, searchTimer, reverseGeneration=0, reverseController;
         const serviceArea = root.querySelector("[data-location-area]");
         let verifiedArea;
-        const areas=['Solana Casa Real','Cabalantian','Parulog','Cabetican','Magliman'];
+        const areas = Object.keys(areaCenters);
         const addressPlaceholder = address.placeholder;
         function setLookingUp(loading) {
             root.classList.toggle('location-looking-up', loading);
@@ -29,19 +35,8 @@
         function invalidate() { lat.value='';lon.value='';root.classList.remove('location-confirmed');confirm.textContent='Confirm this pin'; }
         function warn(message) { notice.textContent=message;notice.hidden=false;root.classList.add('location-needs-confirmation'); }
         function pick(point, label) {
-            if(!valid(point[1],point[0])) {
-                reverseGeneration++;
-                reverseController?.abort();
-                candidate = null;
-                verifiedArea = null;
-                invalidate();
-                marker?.remove();
-                marker = null;
-                setLookingUp(false);
-                warn('This pin is outside Bacolor. Move it to your selected service area.');
-                return;
-            }
             invalidate();
+            notice.hidden = true;
             verifiedArea = null;
             reverseController?.abort();
             generation++; clearTimeout(searchTimer); results.replaceChildren();
@@ -61,17 +56,16 @@
                     })
                     .then(place => {
                         if (current !== reverseGeneration) return;
-                        if (place?.label) address.value = place.label;
-                        verifiedArea = place?.serviceArea;
-                        if (place?.outsideBacolor) warn('This pin is outside Bacolor. Move it to your selected service area.');
-                        else if (!verifiedArea) warn('We couldn’t verify this pin in a supported service area. Try a nearby point.');
-                        else if (verifiedArea !== serviceArea.value) warn('The pin matches ' + verifiedArea + '. Choose that service area or move the pin.');
-                        else {
-                            notice.hidden = true;
-                            status.textContent = 'Pin matches ' + verifiedArea + '. Review the suggested address before confirming.';
+                        if (place?.outsideBacolor) {
+                            warn('This pin is outside Bacolor. Move it inside Bacolor to continue.');
+                            status.textContent = 'Choose another pin on the map.';
+                            return;
                         }
-                        if (!verifiedArea || verifiedArea !== serviceArea.value)
-                            status.textContent = 'Choose another pin to check its address and service area.';
+                        if (place?.label) address.value = place.label;
+                        verifiedArea = serviceArea.value;
+                        status.textContent = !verifiedArea ? 'Choose a service area to continue.' :
+                            address.value.trim() ? 'Pin is inside Bacolor. Review the work address before confirming.' :
+                            'Pin is inside Bacolor. Enter the work address, then confirm the pin.';
                     })
                     .catch(error=>{
                         if(current!==reverseGeneration)return;
@@ -91,7 +85,7 @@
             if(map) {
                 if(!marker) { marker=new maplibregl.Marker({color:'#dc3838',draggable:true}).setLngLat(point).addTo(map);marker.on('dragend',()=>{const p=marker.getLngLat();pick([p.lng,p.lat]);}); }
                 else marker.setLngLat(point);
-                map.jumpTo({center:point,zoom:16});
+                map.panTo(point);
             }
         }
         address.addEventListener('input',()=>{generation++;reverseGeneration++;reverseController?.abort();setLookingUp(false);invalidate();results.replaceChildren();clearTimeout(searchTimer);const query=address.value.trim();if(candidate)status.textContent='Address edited. Check the pin and confirm your work location.';if(!query)return;for(const name of areas.filter(x=>x.toLowerCase().includes(query.toLowerCase()))){const b=document.createElement('button');b.type='button';b.textContent=name+', Bacolor, Pampanga';b.addEventListener('click',()=>{address.value=b.textContent;results.replaceChildren();root.querySelector('[data-location-search]').click();});results.append(b);}if(query.length>=3)searchTimer=setTimeout(()=>root.querySelector('[data-location-search]').click(),700);});
@@ -112,9 +106,9 @@
             navigator.geolocation.getCurrentPosition(position=>{button.disabled=false;pick([position.coords.longitude,position.coords.latitude]);},()=>{button.disabled=false;status.textContent='Location access was denied or unavailable. You can still search or select a pin manually.';},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
         });
         let areaCenter;
-        serviceArea.addEventListener('change', async () => {
+        serviceArea.addEventListener('change', () => {
             const area = serviceArea.value;
-            const request = ++generation;
+            generation++;
             reverseGeneration++;
             reverseController?.abort();
             clearTimeout(searchTimer);
@@ -128,40 +122,28 @@
             marker?.remove();
             marker = null;
             address.value = '';
-            setLookingUp(Boolean(area));
+            setLookingUp(false);
             if (!area) {
                 status.textContent = 'Choose a service area to continue.';
                 return;
             }
-            status.textContent = 'Locating ' + area + ' on the map…';
-            try {
-                const places = await search(area + ', Bacolor, Pampanga');
-                if (request !== generation || serviceArea.value !== area) return;
-                const match = places.find(place =>
-                    place.label.split(',').some(part => part.trim().toLowerCase() === area.toLowerCase()) &&
-                    place.label.split(',').some(part => part.trim().toLowerCase() === 'bacolor') &&
-                    valid(place.latitude, place.longitude));
-                if (!match) throw new Error('Service area not found');
-                areaCenter = [match.longitude, match.latitude];
-                init();
-                map?.jumpTo({ center: areaCenter, zoom: 16 });
-                if (!candidate) status.textContent = 'Place the pin at the exact work address in ' + area + '.';
-            } catch {
-                if (request === generation && serviceArea.value === area && !candidate)
-                    status.textContent = 'Could not center the map on ' + area + '. Search for the work address or move the map manually.';
-            } finally {
-                if (request === generation && serviceArea.value === area) setLookingUp(false);
+            areaCenter = areaCenters[area];
+            init();
+            if (map && areaCenter) {
+                map.resize();
+                map.jumpTo({ center: areaCenter, zoom: 16 });
             }
+            status.textContent = 'Place the pin at the exact work address in Bacolor.';
         });
         confirm.addEventListener('click',()=>{
             if (!verifiedArea || verifiedArea !== serviceArea.value) return;
-            if(!candidate||!valid(candidate[1],candidate[0])||!address.value.trim()){warn('Choose a location on the map or search for an address first, then confirm the pin.');return;}
+            if(!candidate||!address.value.trim()){warn('Choose a location on the map or search for an address first, then confirm the pin.');return;}
             lat.value=candidate[1].toFixed(6);lon.value=candidate[0].toFixed(6);
             notice.hidden=true;root.classList.remove('location-needs-confirmation');root.classList.add('location-confirmed');confirm.textContent='Pin confirmed';
             status.textContent='Work destination confirmed. This pin will be saved with your task or proposal.';
         });
         root.closest('form')?.addEventListener('submit',event=>{
-            if(!lat.value||!lon.value||!valid(Number(lat.value),Number(lon.value))){event.preventDefault();warn('Please select your work location and confirm the pin before continuing.');root.scrollIntoView({behavior:'smooth',block:'center'});confirm.focus({preventScroll:true});}
+            if(!lat.value||!lon.value){event.preventDefault();warn('Please select your work location and confirm the pin before continuing.');root.scrollIntoView({behavior:'smooth',block:'center'});confirm.focus({preventScroll:true});}
         });
         setLookingUp(false);
         address.addEventListener('invalid',()=>warn('Enter the work address, select its location and confirm the pin before continuing.'));
@@ -175,7 +157,6 @@
                     center:areaCenter||candidate||[120.653,15.000],
                     zoom:areaCenter||candidate?16:13,
                     minZoom:12,
-                    maxBounds:[[120.54,14.92],[120.73,15.10]],
                     renderWorldCopies:false
                 });
                 map.addControl(new maplibregl.NavigationControl({showCompass:false}));map.addControl(new maplibregl.FullscreenControl());

@@ -40,8 +40,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     {
         if (UserId <= 0) return Challenge();
         arrivalInstructions = arrivalInstructions?.Trim();
-        if (arrivalInstructions?.Length > 500 || !await TaskLocationRules.MatchesAreaAsync(HttpContext, serviceArea, latitude, longitude, ct))
-        { Notice = "Choose a verified pin in the selected Bacolor service area and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
+        if (arrivalInstructions?.Length > 500 || !TaskLocationRules.ValidServiceLocation(serviceArea, latitude, longitude))
+        { Notice = "Choose a service area and confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim();
         location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (ModelState.TryGetValue(nameof(postEndDate), out var dateState) && dateState.Errors.Count > 0 ||
@@ -142,8 +142,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim(); location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (UserId <= 0) return Challenge();
         arrivalInstructions = arrivalInstructions?.Trim();
-        if (arrivalInstructions?.Length > 500 || !await TaskLocationRules.MatchesAreaAsync(HttpContext, serviceArea, latitude, longitude, ct))
-        { Notice = "Choose a verified pin in the selected Bacolor service area and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
+        if (arrivalInstructions?.Length > 500 || !TaskLocationRules.ValidServiceLocation(serviceArea, latitude, longitude))
+        { Notice = "Choose a service area and confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
         if (ModelState.TryGetValue(nameof(postEndDate), out var dateState) && dateState.Errors.Count > 0 ||
             postEndDate is { } endDate && (endDate < TodayInPhilippines || endDate == DateOnly.MaxValue))
@@ -188,7 +188,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot confirm new tasks while restricted or pending account deletion."; return RedirectToPage(); }
-        if (!await db.Set<TaskDestination>().AnyAsync(d => d.TaskId == id && d.Latitude >= 14.92 && d.Latitude <= 15.10 && d.Longitude >= 120.54 && d.Longitude <= 120.73, ct)) { Notice = "Edit this draft and confirm a work-location pin before publishing."; return RedirectToPage(new { view = "mine" }); }
+        var destination = await db.Set<TaskDestination>().AsNoTracking().SingleOrDefaultAsync(d => d.TaskId == id, ct);
+        if (!TaskLocationRules.Valid(destination?.Latitude, destination?.Longitude)) { Notice = "Edit this draft and confirm a work-location pin before publishing."; return RedirectToPage(new { view = "mine" }); }
         var now = DateTime.UtcNow;
         var threeDays = now.AddDays(3); var sevenDays = now.AddDays(7);
         var count = await db.MarketplaceTasks.Where(t => t.Id == id && t.ClientId == UserId && t.Status == "pending-confirmation" && (t.PostExpiresUtc == null || t.PostExpiresUtc > now)).ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, "open").SetProperty(t => t.PostExpiresUtc, t => t.PostExpiresUtc ?? (t.PostDurationDays == 3 ? threeDays : sevenDays)), ct);

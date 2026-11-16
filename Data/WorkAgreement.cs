@@ -33,26 +33,13 @@ public sealed class WorkAgreement
 
 public static class TaskLocationRules
 {
-    // Search/service-area envelope, not a cadastral municipal boundary.
-    public static bool Valid(double? latitude, double? longitude) => latitude.HasValue && longitude.HasValue &&
-        double.IsFinite(latitude.Value) && double.IsFinite(longitude.Value) && latitude is >= 14.92 and <= 15.10 && longitude is >= 120.54 and <= 120.73;
-    public static async Task<bool> MatchesAreaAsync(HttpContext context, string? area, double? latitude, double? longitude, CancellationToken ct)
-    {
-        if (!Valid(latitude, longitude) || area is null || !tts.Pages.BacolorServiceAreas.Names.Contains(area))
-            return false;
-        try
-        {
-            var result = await context.RequestServices.GetRequiredService<PlaceSearch>()
-                .ReverseAsync(latitude!.Value, longitude!.Value, ct);
-            return result?.ServiceArea == area && !result.OutsideBacolor;
-        }
-        catch (Exception ex) when (!ct.IsCancellationRequested &&
-            ex is HttpRequestException or OperationCanceledException or System.Text.Json.JsonException or InvalidOperationException)
-        {
-            return false;
-        }
-    }
+    public static bool Valid(double? latitude, double? longitude) =>
+        latitude.HasValue && longitude.HasValue &&
+        double.IsFinite(latitude.Value) && double.IsFinite(longitude.Value) &&
+        BacolorBoundary.Contains(latitude.Value, longitude.Value);
 
+    public static bool ValidServiceLocation(string? area, double? latitude, double? longitude) =>
+        area is not null && tts.Pages.BacolorServiceAreas.Names.Contains(area) && Valid(latitude, longitude);
     public static string PublicArea => "Bacolor, Pampanga";
     public static void Save(ApplicationDbContext db, long taskId, TaskDestination? existing, double latitude, double longitude)
     {

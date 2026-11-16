@@ -6,7 +6,7 @@ namespace tts.Data;
 // User-initiated address search only; no location-history or personal data is sent.
 public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
 {
-    public record Place(string Label, double Latitude, double Longitude, string? ServiceArea = null, bool OutsideBacolor = false);
+    public record Place(string Label, double Latitude, double Longitude);
     private static readonly SemaphoreSlim Gate = new(1, 1);
     private static readonly MemoryCache Cache = new(new MemoryCacheOptions { SizeLimit = 256 });
     private static DateTime lastRequest;
@@ -63,12 +63,7 @@ public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
                 .Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToArray();
 
             var label = string.Join(", ", parts);
-            var municipality = Read("city") ?? Read("municipality");
-            var bacolor = string.Equals(municipality, "Bacolor", StringComparison.OrdinalIgnoreCase);
-            var area = bacolor ? tts.Pages.BacolorServiceAreas.Names.FirstOrDefault(name =>
-                new[] { Read("district"), Read("locality"), Read("suburb"), Read("neighbourhood"), Read("name") }
-                    .Any(value => string.Equals(value, name, StringComparison.OrdinalIgnoreCase))) : null;
-            return new Place(label.Length > 120 ? label[..120] : label, lat, lon, area, municipality is not null && !bacolor);
+            return new Place(label.Length > 120 ? label[..120] : label, lat, lon);
         }
     }
     public async Task<Place[]> SearchAsync(string query, CancellationToken ct)
@@ -82,7 +77,7 @@ public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
             var wait = lastRequest.AddSeconds(1) - DateTime.UtcNow; if (wait > TimeSpan.Zero) await Task.Delay(wait, ct);
             var baseUrl = configuration["Geocoding:BaseUrl"] ?? "https://photon.komoot.io";
             if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var endpoint) || endpoint.Scheme != "https") throw new InvalidOperationException("Invalid geocoding endpoint.");
-            var url = endpoint.ToString().TrimEnd('/') + "/api/?q=" + Uri.EscapeDataString(query) + "&limit=6&bbox=120.54,14.92,120.73,15.10&lat=15.000&lon=120.653&lang=en";
+            var url = endpoint.ToString().TrimEnd('/') + "/api/?q=" + Uri.EscapeDataString(query) + "&limit=6&bbox=120.54,14.92,120.73,15.13&lat=15.000&lon=120.653&lang=en";
             using var request = new HttpRequestMessage(HttpMethod.Get, url); request.Headers.UserAgent.ParseAdd("TapTaskDone/1.0 (Bacolor task address search)");
             lastRequest = DateTime.UtcNow;
             using var response = await http.SendAsync(request, ct); response.EnsureSuccessStatusCode();

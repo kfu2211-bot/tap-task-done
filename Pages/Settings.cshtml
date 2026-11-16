@@ -112,7 +112,7 @@
                         <dl>
                             <div><dt>Service</dt><dd>@(string.IsNullOrWhiteSpace(Model.Service) ? "Not set" : Model.Service)</dd></div>
                             <div><dt>Service location</dt><dd>@(string.IsNullOrWhiteSpace(Model.Location) ? "Not set" : Model.Location)</dd></div>
-                            <div><dt>Rate range</dt><dd>@(Model.Rate is int rate ? $"₱{rate:N0} – ₱{(Model.RateMaximum ?? rate):N0}" : "Not set")</dd></div>
+                            <div><dt>Service rate</dt><dd>@(Model.Rate is int rate ? (Model.HasRateRange ? $"₱{rate:N0} – ₱{Model.RateMaximum:N0}" : $"₱{rate:N0}") : "Not set")</dd></div>
                         </dl>
                     </section>
                 }
@@ -212,8 +212,9 @@
                                     }
                                 </div>
                             </div>
-                            <label>Minimum rate (₱)<input asp-for="Rate" type="number" min="1" step="1" placeholder="e.g. 500" /></label>
-                            <label>Maximum rate (₱)<input asp-for="RateMaximum" type="number" min="1" step="1" placeholder="e.g. 1000" /></label>
+                            <label>Service Rate (₱)<input asp-for="ServiceRate" type="number" min="1" step="1" placeholder="e.g. 800" aria-describedby="serviceRateHelp" />
+                                <small id="serviceRateHelp">@(Model.HasRateRange ? "Enter one amount to replace your current rate range." : "Enter the amount you charge for your service.")</small>
+                            </label>
                             
                             
                         </div>

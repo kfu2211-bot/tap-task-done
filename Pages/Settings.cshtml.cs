@@ -46,8 +46,10 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
     [BindProperty] public string[] Services { get; set; } = [];
     [BindProperty] public string[] Areas { get; set; } = [];
     [BindProperty] public string? OtherService { get; set; }
-    [BindProperty] public int? Rate { get; set; }
-    [BindProperty] public int? RateMaximum { get; set; }
+    [BindProperty] public int? ServiceRate { get; set; }
+    public int? Rate { get; private set; }
+    public int? RateMaximum { get; private set; }
+    public bool HasRateRange => Rate.HasValue && RateMaximum > Rate;
     public List<string> AcceptedRoles { get; private set; } = [];
     [BindProperty] public string[] AcceptedAgreements { get; set; } = [];
     [BindProperty] public int AgreementVersion { get; set; }
@@ -79,7 +81,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
             var savedServices = Service.Split(", ", StringSplitOptions.RemoveEmptyEntries);
             Services = savedServices.Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) || !ServiceOptions.Contains(value) ? "Other/General" : value).Distinct().ToArray();
             OtherService = string.Join(", ", savedServices.Where(value => !ServiceOptions.Contains(value)).Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) ? value["Other/General: ".Length..] : value));
-            Areas = BacolorServiceAreas.InLocation(Location).ToArray(); Rate = profile.Rate; RateMaximum = profile.RateMaximum ?? profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; PreferredStart = profile.PreferredStart; PreferredEnd = profile.PreferredEnd; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
+            Areas = BacolorServiceAreas.InLocation(Location).ToArray(); Rate = profile.Rate; RateMaximum = profile.RateMaximum; ServiceRate = HasRateRange ? null : Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; PreferredStart = profile.PreferredStart; PreferredEnd = profile.PreferredEnd; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
         AcceptedRoles = await LoadAcceptedRolesAsync();
         EffectiveAvailability = await FreelancerAvailability.GetAsync(db, UserId, Availability, HttpContext.RequestAborted);
         return Page();
@@ -148,8 +150,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         var validDays = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
         OtherService = OtherService?.Trim();
         Days ??= [];
-        if (!ModelState.IsValid || UserId == 0 || Rate is <= 0 || RateMaximum is <= 0 ||
-            ((WorkRole is "freelancer" or "both") && (Rate.HasValue != RateMaximum.HasValue || RateMaximum < Rate)) ||
+        if (!ModelState.IsValid || UserId == 0 || ServiceRate is <= 0 ||
             !new[] { "client", "freelancer", "both" }.Contains(WorkRole) ||
             !new[] { "Available", "Busy", "Day off" }.Contains(Availability) || Days.Any(x => !validDays.Contains(x)))
         { Message = "Please check your work preferences and try again."; return RedirectToPage(); }
@@ -187,8 +188,12 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         {
             profile.Service = string.Join(", ", ServiceOptions.Where(Services.Contains).Select(service => service == "Other/General" ? $"Other/General: {OtherService}" : service));
             profile.Location = Areas.Distinct().Count() == BacolorServiceAreas.Names.Count ? BacolorServiceAreas.AllAreas : string.Join(", ", BacolorServiceAreas.Names.Where(Areas.Contains));
-            profile.Rate = Rate;
-            profile.RateMaximum = RateMaximum;
+            var hasExistingRange = profile.Rate.HasValue && profile.RateMaximum > profile.Rate;
+            if (ServiceRate.HasValue || !hasExistingRange)
+            {
+                profile.Rate = ServiceRate;
+                profile.RateMaximum = ServiceRate;
+            }
             profile.Availability = Availability;
             profile.PreferredStart = PreferredStart;
             profile.PreferredEnd = PreferredEnd;

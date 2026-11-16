@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Data/bacolor-boundary.geojson" LogicalName="BacolorBoundary.geojson" />
     <Folder Include="wwwroot\images\" />
     <Content Update="appsettings.Gmail.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
   </ItemGroup>
