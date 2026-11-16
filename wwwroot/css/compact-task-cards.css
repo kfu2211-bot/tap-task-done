@@ -1,0 +1,60 @@
+html body .task-card .task-list-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 20px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+}
+.task-card .task-title-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+}
+html body .task-card .task-list-detail { padding: 12px 16px; }
+html body .task-card .task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    margin: 10px 0;
+}
+html body .task-card .task-meta > div {
+    max-width: 38ch;
+    padding-inline: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+}
+html body .task-card .task-description { margin: 0 0 8px; }
+.task-card .task-closing { margin: 10px 0 0; font-size: .875rem; }
+html body .task-card .task-actions { margin-top: 10px; }
+
+html body #findJobsSection .jobs-card {
+    padding: 14px 16px;
+    border-radius: 12px;
+}
+html body #findJobsSection .jobs-card h3 { margin: 6px 0 4px; }
+html body #findJobsSection .jobs-card p { margin: 4px 0 8px; }
+html body #findJobsSection .job-offer-actions { gap: 8px; margin-top: 10px; }
+html body #findJobsSection .job-offer-editor {
+    max-width: none;
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid #c8dfce;
+    border-radius: 10px;
+    background: #eef5ee;
+}
+html[data-theme="dark"] body #findJobsSection .job-offer-editor {
+    border-color: #456555;
+    background: #233a30;
+}
+html body #findJobsSection .job-offer-fields {
+    display: grid;
+    grid-template-columns: minmax(100px, .75fr) minmax(0, 2.5fr) auto;
+    align-items: end;
+    gap: 8px;
+}
+html body #findJobsSection .job-offer-fields :is(input, textarea, button) { min-height: 44px; }
+@media (max-width: 600px) {
+    html body #findJobsSection .job-offer-fields { grid-template-columns: minmax(0, 1fr); }
+    html body #findJobsSection .job-offer-fields button { width: 100%; }
+}
