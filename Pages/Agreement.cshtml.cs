@@ -29,10 +29,12 @@ public class AgreementModel(ApplicationDbContext db, IWebHostEnvironment environ
             select new { t.ClientId, o.FreelancerId }).SingleOrDefaultAsync(ct);
         return pair is null ? [] : [pair.ClientId, pair.FreelancerId];
     }
-    public async Task<IActionResult> OnPostProposeAsync(long taskId, int expectedVersion, decimal price, string? scope, string? schedule, string? location, double? latitude, double? longitude, CancellationToken ct)
+    public async Task<IActionResult> OnPostProposeAsync(long taskId, int expectedVersion, decimal price, string? scope, string? schedule, string? location, double? latitude, double? longitude, CancellationToken ct, string? serviceArea = null)
     {
         scope = (scope ?? "").Trim(); schedule = (schedule ?? "").Trim(); location = (location ?? "").Trim();
         if (UserId <= 0) return Challenge();
+        if (!await TaskLocationRules.MatchesAreaAsync(HttpContext, serviceArea, latitude, longitude, ct))
+        { Notice = "Choose a verified pin in the selected Bacolor service area."; return RedirectToPage("/Tracking", new { taskId }); }
         if (!ModelState.IsValid || !AgreementRules.Valid(price, scope, schedule, location, latitude, longitude)) { Notice = "Check price, scope, schedule and the confirmed Bacolor-area destination pin."; return RedirectToPage("/Tracking", new { taskId }); }
         try
         {

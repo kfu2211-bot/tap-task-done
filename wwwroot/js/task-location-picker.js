@@ -14,59 +14,65 @@
         const status=root.querySelector('[data-location-status]'), results=root.querySelector('[data-location-results]'), confirm=root.querySelector('[data-location-confirm]'), notice=root.querySelector('[data-location-alert]');
         let map, marker, candidate=lat.value&&lon.value&&valid(Number(lat.value),Number(lon.value)) ? [Number(lon.value),Number(lat.value)] : null;
         let searching=false, generation=0, mapFailed=false, searchTimer, reverseGeneration=0, reverseController;
+        const serviceArea = root.querySelector("[data-location-area]");
+        let verifiedArea;
         const areas=['Solana Casa Real','Cabalantian','Parulog','Cabetican','Magliman'];
         const addressPlaceholder = address.placeholder;
         function setLookingUp(loading) {
+            root.classList.toggle('location-looking-up', loading);
             address.placeholder = loading ? 'Finding address for this pin…' : addressPlaceholder;
             address.setAttribute('aria-busy', String(loading));
-            confirm.disabled = loading;
+            address.readOnly = loading;
+            confirm.disabled = loading || !verifiedArea || verifiedArea !== serviceArea.value;
         }
-        if(candidate) { root.classList.add('location-confirmed');confirm.textContent='Pin confirmed';status.textContent='Saved work destination. Change it only if needed, then confirm the new pin.'; }
+        if(candidate) status.textContent='Choose the service area to verify your saved pin.';
         function invalidate() { lat.value='';lon.value='';root.classList.remove('location-confirmed');confirm.textContent='Confirm this pin'; }
         function warn(message) { notice.textContent=message;notice.hidden=false;root.classList.add('location-needs-confirmation'); }
-        function useMapAddress(point, message) {
-            const center = map?.project(point);
-            if (center && map.loaded()) {
-                const features = map.queryRenderedFeatures([
-                    [center.x - 28, center.y - 28],
-                    [center.x + 28, center.y + 28]
-                ]);
-                const nearby = features.find(feature =>
-                    ['transportation_name', 'poi'].includes(feature.sourceLayer) &&
-                    typeof feature.properties?.name === 'string' && feature.properties.name.trim());
-                if (nearby) {
-                    address.value = ('Near ' + nearby.properties.name + ', Bacolor, Pampanga').slice(0, 120);
-                    status.textContent = 'Nearby map label suggested. Check or edit the address before confirming.';
-                    return;
-                }
-            }
-            status.textContent = message;
-        }
         function pick(point, label) {
             if(!valid(point[1],point[0])) {
-                if(candidate) marker?.setLngLat(candidate);
-                status.textContent='Choose a work location in the Bacolor service area.';
+                reverseGeneration++;
+                reverseController?.abort();
+                candidate = null;
+                verifiedArea = null;
+                invalidate();
+                marker?.remove();
+                marker = null;
+                setLookingUp(false);
+                warn('This pin is outside Bacolor. Move it to your selected service area.');
                 return;
             }
             invalidate();
+            verifiedArea = null;
             reverseController?.abort();
             generation++; clearTimeout(searchTimer); results.replaceChildren();
-            setLookingUp(!label);
+            setLookingUp(true);
             candidate=point;
-            if(label) { reverseGeneration++; address.value=label; status.textContent='Check the marker and address, then press Confirm this pin.'; }
-            else {
-                const current=++reverseGeneration; address.value='';
+            {
+                const current=++reverseGeneration; address.value=label || "";
                 reverseController=new AbortController();
                 const controller=reverseController, timeout=setTimeout(()=>controller.abort(),12000);
                 status.textContent='Finding the address for this pin…';
-                fetch('/api/places/reverse?lat='+encodeURIComponent(point[1])+'&lon='+encodeURIComponent(point[0]),{credentials:'same-origin',cache:'no-store',signal:controller.signal})
+                fetch('/api/places/reverse?lat='+encodeURIComponent(point[1].toFixed(6))+'&lon='+encodeURIComponent(point[0].toFixed(6)),{credentials:'same-origin',cache:'no-store',signal:controller.signal})
                     .then(r=>{
                         if(r.redirected || r.status===401) throw new Error('Sign in again to look up the address.');
                         if(r.status===429) throw new Error('Too many lookups. Wait a moment, then select the pin again.');
                         if(!r.ok) throw new Error('Reverse lookup failed: ' + r.status);
                         return r.json();
                     })
-                    .then(place=>{if(current!==reverseGeneration)return; if(place?.label){address.value=place.label;status.textContent='Approximate address found. Check it and confirm the pin.';}else useMapAddress(point, 'No address found for this pin. Enter a nearby landmark or the work address, then confirm.');})
+                    .then(place => {
+                        if (current !== reverseGeneration) return;
+                        if (place?.label) address.value = place.label;
+                        verifiedArea = place?.serviceArea;
+                        if (place?.outsideBacolor) warn('This pin is outside Bacolor. Move it to your selected service area.');
+                        else if (!verifiedArea) warn('We couldn’t verify this pin in a supported service area. Try a nearby point.');
+                        else if (verifiedArea !== serviceArea.value) warn('The pin matches ' + verifiedArea + '. Choose that service area or move the pin.');
+                        else {
+                            notice.hidden = true;
+                            status.textContent = 'Pin matches ' + verifiedArea + '. Review the suggested address before confirming.';
+                        }
+                        if (!verifiedArea || verifiedArea !== serviceArea.value)
+                            status.textContent = 'Choose another pin to check its address and service area.';
+                    })
                     .catch(error=>{
                         if(current!==reverseGeneration)return;
                         if(error instanceof Error && !controller.signal.aborted &&
@@ -74,7 +80,8 @@
                             status.textContent=error.message;
                             return;
                         }
-                        useMapAddress(point, 'Address lookup unavailable. Enter the work address or a nearby landmark, then confirm.');
+                        status.textContent = 'Address lookup could not be completed.';
+                        warn('Service area lookup is unavailable. Select the pin again to retry.');
                     })
                     .finally(()=>{
                         clearTimeout(timeout);
@@ -104,7 +111,50 @@
             const button=event.currentTarget;button.disabled=true;status.textContent='Requesting your current location. Allow access if this is the work site.';
             navigator.geolocation.getCurrentPosition(position=>{button.disabled=false;pick([position.coords.longitude,position.coords.latitude]);},()=>{button.disabled=false;status.textContent='Location access was denied or unavailable. You can still search or select a pin manually.';},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
         });
+        let areaCenter;
+        serviceArea.addEventListener('change', async () => {
+            const area = serviceArea.value;
+            const request = ++generation;
+            reverseGeneration++;
+            reverseController?.abort();
+            clearTimeout(searchTimer);
+            results.replaceChildren();
+            areaCenter = null;
+            notice.hidden = true;
+            root.classList.remove('location-needs-confirmation');
+            invalidate();
+            candidate = null;
+            verifiedArea = null;
+            marker?.remove();
+            marker = null;
+            address.value = '';
+            setLookingUp(Boolean(area));
+            if (!area) {
+                status.textContent = 'Choose a service area to continue.';
+                return;
+            }
+            status.textContent = 'Locating ' + area + ' on the map…';
+            try {
+                const places = await search(area + ', Bacolor, Pampanga');
+                if (request !== generation || serviceArea.value !== area) return;
+                const match = places.find(place =>
+                    place.label.split(',').some(part => part.trim().toLowerCase() === area.toLowerCase()) &&
+                    place.label.split(',').some(part => part.trim().toLowerCase() === 'bacolor') &&
+                    valid(place.latitude, place.longitude));
+                if (!match) throw new Error('Service area not found');
+                areaCenter = [match.longitude, match.latitude];
+                init();
+                map?.jumpTo({ center: areaCenter, zoom: 16 });
+                if (!candidate) status.textContent = 'Place the pin at the exact work address in ' + area + '.';
+            } catch {
+                if (request === generation && serviceArea.value === area && !candidate)
+                    status.textContent = 'Could not center the map on ' + area + '. Search for the work address or move the map manually.';
+            } finally {
+                if (request === generation && serviceArea.value === area) setLookingUp(false);
+            }
+        });
         confirm.addEventListener('click',()=>{
+            if (!verifiedArea || verifiedArea !== serviceArea.value) return;
             if(!candidate||!valid(candidate[1],candidate[0])||!address.value.trim()){warn('Choose a location on the map or search for an address first, then confirm the pin.');return;}
             lat.value=candidate[1].toFixed(6);lon.value=candidate[0].toFixed(6);
             notice.hidden=true;root.classList.remove('location-needs-confirmation');root.classList.add('location-confirmed');confirm.textContent='Pin confirmed';
@@ -113,6 +163,7 @@
         root.closest('form')?.addEventListener('submit',event=>{
             if(!lat.value||!lon.value||!valid(Number(lat.value),Number(lon.value))){event.preventDefault();warn('Please select your work location and confirm the pin before continuing.');root.scrollIntoView({behavior:'smooth',block:'center'});confirm.focus({preventScroll:true});}
         });
+        setLookingUp(false);
         address.addEventListener('invalid',()=>warn('Enter the work address, select its location and confirm the pin before continuing.'));
         function init() {
             if(map||mapFailed||!root.getBoundingClientRect().width)return;
@@ -121,8 +172,8 @@
                 map=new maplibregl.Map({
                     container:root.querySelector('[data-location-map]'),
                     style:'https://tiles.openfreemap.org/styles/liberty',
-                    center:candidate||[120.653,15.000],
-                    zoom:candidate?16:13,
+                    center:areaCenter||candidate||[120.653,15.000],
+                    zoom:areaCenter||candidate?16:13,
                     minZoom:12,
                     maxBounds:[[120.54,14.92],[120.73,15.10]],
                     renderWorldCopies:false

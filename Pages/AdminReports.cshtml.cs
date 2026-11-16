@@ -36,6 +36,27 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     [TempData(Key = "AdminReports.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
+    public async Task<IActionResult> OnGetAccountMatchesAsync(long recordId, string? accountSearch, CancellationToken ct)
+    {
+        if (AdminId <= 0) return Challenge();
+        Response.Headers.CacheControl = "no-store";
+        var term = accountSearch?.Trim();
+        if (term is not { Length: >= 1 and <= 120 }) return new JsonResult(Array.Empty<ReviewAccount>());
+        var reporter = await db.SafetyReports.AsNoTracking().Where(r => r.Id == recordId)
+            .Select(r => (int?)r.ReporterId).SingleOrDefaultAsync(ct);
+        if (reporter is null) return NotFound();
+        return new JsonResult(await FindAccountsAsync(reporter.Value, term, ct));
+    }
+
+    private async Task<List<ReviewAccount>> FindAccountsAsync(int reporterId, string term, CancellationToken ct)
+    {
+        var matches = await db.Users.AsNoTracking().Where(u => u.Id != reporterId && u.Id != AdminId &&
+            u.Role != "deleted" && (((u.FirstName ?? "") + " " + (u.LastName ?? "")).Contains(term) ||
+            (u.Username ?? "").Contains(term))).OrderBy(u => u.Id).Take(20).ToListAsync(ct);
+        return matches.Where(u => !AccountModerationRules.IsStaff(u.Role))
+            .Select(u => new ReviewAccount(u.Id, $"{u.FirstName} {u.LastName}".Trim(), u.Username ?? "", null)).ToList();
+    }
+
     public async Task<IActionResult> OnGetAsync(CancellationToken ct, long? recordId = null, int? accountId = null, string? accountSearch = null)
     {
         if (AdminId <= 0) return Challenge();
@@ -81,13 +102,9 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
                     if (account is not null && !AccountModerationRules.IsStaff(account.Role))
                         SelectedAccount = new(account.Id, $"{account.FirstName} {account.LastName}".Trim(), account.Username ?? "", await OffensePolicy.GetAsync(db, account.Id, ct));
                 }
-                else if (!string.IsNullOrWhiteSpace(accountSearch) && accountSearch.Trim().Length is >= 2 and <= 120)
+                else if (!string.IsNullOrWhiteSpace(accountSearch) && accountSearch.Trim().Length is >= 1 and <= 120)
                 {
-                    var term = accountSearch.Trim();
-                    var matches = await accounts.Where(u => ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Contains(term) ||
-                        (u.Username ?? "").Contains(term)).OrderBy(u => u.Id).Take(20).ToListAsync(ct);
-                    AccountMatches = matches.Where(u => !AccountModerationRules.IsStaff(u.Role))
-                        .Select(u => new ReviewAccount(u.Id, $"{u.FirstName} {u.LastName}".Trim(), u.Username ?? "", null)).ToList();
+                    AccountMatches = await FindAccountsAsync(report.ReporterId, accountSearch.Trim(), ct);
                     if (AccountMatches.Count == 0) Notice = "No matching accounts. Try the full name or email.";
                 }
             }

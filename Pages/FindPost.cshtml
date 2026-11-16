@@ -476,7 +476,7 @@
                                     <p>The freelancer’s rate is a guide. Discuss and confirm the final price together before travel.</p>
                                     </div>
                                     <div class="booking-location">
-                                        <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
+                                        <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput(ShowArrivalInstructions: true)" />
                                     </div>
                                     <div class="booking-footer">
                                     <p id="bookingPrivacyNotice">Private booking: only your selected freelancer will receive this request. It will not appear in Find Jobs.</p>
@@ -554,7 +554,7 @@
                             </label>
                             <label class="post-field"><span>Maximum budget (₱)</span><span class="post-budget-control"><span aria-hidden="true">₱</span><input name="budgetMaximum" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 1000" /></span><small>Must be at least the minimum budget.</small></label>
                             <label class="post-field post-duration"><span>Post closing date</span><input type="date" name="postEndDate" min="@MarketTasksModel.TodayInPhilippines.ToString("yyyy-MM-dd")" max="9999-12-30" required /><small>After publishing, your post stays open through this date (Philippine time).</small></label>
-                            <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput()" />
+                            <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput(ShowArrivalInstructions: true)" />
                         </div>
 
                         <label class="post-field">

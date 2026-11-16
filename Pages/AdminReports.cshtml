@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" /><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Safety Reports - Admin</title><link rel="stylesheet" href="/css/admin.css" asp-append-version="true" /><link rel="stylesheet" href="/css/safety-reports.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" /><link rel="stylesheet" href="/css/admin-polish.css" asp-append-version="true" />
-<link rel="stylesheet" href="/css/admin-report-review.css" asp-append-version="true" /><link rel="stylesheet" href="/css/admin-design.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
+<link rel="stylesheet" href="/css/admin-report-review.css" asp-append-version="true" /><link rel="stylesheet" href="/css/admin-design.css" asp-append-version="true" /><partial name="_AccountTheme" /><script defer src="~/js/report-account-search.js" asp-append-version="true"></script></head>
 <body class="report-admin-body @(Model.Embedded ? "report-embedded" : "")"><div class="report-admin-layout">
     <aside class="report-admin-sidebar" aria-label="Admin navigation">
         <a class="report-brand" href="/Admin"><span>✓</span><strong>Tap, Task, Done</strong></a>
@@ -87,21 +87,20 @@
                             else
                             {
                                 <p>Search by name or email and verify the account against the report evidence.</p>
-                                <form method="get" asp-page="/AdminReports" asp-fragment="reported-account" class="safety-form">
+                                <form method="get" asp-page="/AdminReports" asp-fragment="reported-account" class="safety-form" data-account-search data-lookup-url="@Url.Page("/AdminReports", "AccountMatches")" data-photo-url="@Url.Page("/ProfilePhoto", "Staff")">
                                     <input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
                                     <input type="hidden" name="recordId" value="@report.Id" />
-                                    <label>Name or email<input type="search" name="accountSearch" minlength="2" maxlength="120" required /></label>
+                                    <label>Name or email<input type="search" name="accountSearch" value="@(Model.HttpContext.Request.Query["accountSearch"])" autocomplete="off" maxlength="120" required /></label>
                                     <button type="submit">Find account</button>
+                                    <p data-account-search-status role="status"></p>
                                 </form>
-                                @if (Model.AccountMatches.Count > 0)
-                                {
-                                    <ul class="report-account-matches">
+
+                                    <ul class="report-account-matches" data-account-matches>
                                         @foreach (var match in Model.AccountMatches)
                                         {
-                                            <li><a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-route-recordId="@report.Id" asp-route-accountId="@match.Id" asp-fragment="reported-account"><strong>@match.Name</strong> · @match.Email · #@match.Id</a></li>
+                                            <li><a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-route-recordId="@report.Id" asp-route-accountId="@match.Id" asp-fragment="reported-account"><span class="report-match-avatar"><img src="@Url.Page("/ProfilePhoto", "Staff", new { userId = match.Id })" alt="" /></span><span><strong>@match.Name</strong><small>@match.Email · #@match.Id</small></span></a></li>
                                         }
                                     </ul>
-                                }
                             }
                         </section>
                     }

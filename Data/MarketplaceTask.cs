@@ -7,6 +7,7 @@ public sealed class MarketplaceTask
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
     public string Category { get; set; } = "";
+    public string? ArrivalInstructions { get; set; }
     public string Location { get; set; } = "";
     public decimal Budget { get; set; }
     public decimal? BudgetMaximum { get; set; }

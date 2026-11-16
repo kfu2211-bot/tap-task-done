@@ -80,3 +80,47 @@ html[data-theme="dark"] .post-duration input[type="date"] { background:#1d3028; 
  .task-location-picker p{margin:10px 0;font-size:12px}
  .task-location-picker .maplibregl-ctrl-attrib{max-width:calc(100% - 12px)}
 }
+
+.task-location-picker .location-section-heading { margin-bottom: 10px; }
+.task-location-picker .location-section-heading strong { font-size: 1.15rem; }
+.task-location-picker .location-section-heading p { margin: 4px 0 0; }
+.task-location-picker [data-location-area] { width: 100%; min-height: 44px; margin-bottom: 12px; }
+.location-arrival-note { margin-top: 16px; padding: 14px; border: 1px solid var(--line, #c3dbca); border-radius: 10px; background: var(--surface-2, #edf5ef); }
+.location-arrival-note textarea { box-sizing: border-box; width: 100%; max-width: none; margin-block: 6px; font: inherit; resize: vertical; }
+.tracking-location .location-arrival-note p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-location-picker [data-location-confirm]:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 600px) {
+    .task-location-picker .location-confirmation { display: grid; gap: 10px; }
+    .task-location-picker [data-location-confirm] { width: 100%; }
+}
+
+.task-location-picker.location-looking-up [data-location-status] {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid #a5cbb7;
+    border-radius: 8px;
+    background: #e6f3ea;
+    color: #174b38;
+    font-weight: 650;
+}
+.task-location-picker.location-looking-up [data-location-status]::before {
+    content: "";
+    flex: 0 0 15px;
+    height: 15px;
+    box-sizing: border-box;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+    animation: location-lookup-spin .7s linear infinite;
+}
+@keyframes location-lookup-spin { to { transform: rotate(360deg); } }
+html[data-theme="dark"] .task-location-picker.location-looking-up [data-location-status] {
+    background: #20392e;
+    border-color: #567264;
+    color: #b7edd2;
+}
+@media (prefers-reduced-motion: reduce) {
+    .task-location-picker.location-looking-up [data-location-status]::before { animation: none; }
+}

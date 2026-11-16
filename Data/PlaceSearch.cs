@@ -6,7 +6,7 @@ namespace tts.Data;
 // User-initiated address search only; no location-history or personal data is sent.
 public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
 {
-    public record Place(string Label, double Latitude, double Longitude);
+    public record Place(string Label, double Latitude, double Longitude, string? ServiceArea = null, bool OutsideBacolor = false);
     private static readonly SemaphoreSlim Gate = new(1, 1);
     private static readonly MemoryCache Cache = new(new MemoryCacheOptions { SizeLimit = 256 });
     private static DateTime lastRequest;
@@ -54,12 +54,21 @@ public sealed class PlaceSearch(HttpClient http, IConfiguration configuration)
             if (!json.RootElement.TryGetProperty("features", out var features) || features.ValueKind != JsonValueKind.Array)
                 throw new JsonException("Missing geocoder features.");
             if (features.GetArrayLength() == 0 || !features[0].TryGetProperty("properties", out var properties)) return null;
-            var parts = new[] { "name", "housenumber", "street", "district", "locality", "city", "county", "state" }
-                .Select(k => properties.TryGetProperty(k, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null)
+            string? Read(string key) => properties.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.String
+                ? value.GetString()?.Trim() : null;
+            var streetAddress = string.Join(" ", new[] { Read("housenumber"), Read("street") }
+                .Where(value => !string.IsNullOrWhiteSpace(value)));
+            var parts = new[] { streetAddress, streetAddress.Length == 0 ? Read("name") : null,
+                Read("district"), Read("locality"), Read("city"), Read("county"), Read("state") }
                 .Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToArray();
-            if (parts.Length == 0) return null;
+
             var label = string.Join(", ", parts);
-            return new Place(label.Length > 120 ? label[..120] : label, lat, lon);
+            var municipality = Read("city") ?? Read("municipality");
+            var bacolor = string.Equals(municipality, "Bacolor", StringComparison.OrdinalIgnoreCase);
+            var area = bacolor ? tts.Pages.BacolorServiceAreas.Names.FirstOrDefault(name =>
+                new[] { Read("district"), Read("locality"), Read("suburb"), Read("neighbourhood"), Read("name") }
+                    .Any(value => string.Equals(value, name, StringComparison.OrdinalIgnoreCase))) : null;
+            return new Place(label.Length > 120 ? label[..120] : label, lat, lon, area, municipality is not null && !bacolor);
         }
     }
     public async Task<Place[]> SearchAsync(string query, CancellationToken ct)

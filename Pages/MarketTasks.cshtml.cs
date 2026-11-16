@@ -36,9 +36,12 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     private static DateTime? ClosingTimeUtc(DateOnly? date) =>
         date?.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc).AddHours(-8);
 
-    public async Task<IActionResult> OnPostEditAsync(long id, string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null, DateOnly? postEndDate = null)
+    public async Task<IActionResult> OnPostEditAsync(long id, string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null)
     {
         if (UserId <= 0) return Challenge();
+        arrivalInstructions = arrivalInstructions?.Trim();
+        if (arrivalInstructions?.Length > 500 || !await TaskLocationRules.MatchesAreaAsync(HttpContext, serviceArea, latitude, longitude, ct))
+        { Notice = "Choose a verified pin in the selected Bacolor service area and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim();
         location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (ModelState.TryGetValue(nameof(postEndDate), out var dateState) && dateState.Errors.Count > 0 ||
@@ -57,6 +60,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (task is null || !CanEditTask(task.Status, task.ClientId, UserId)) { Notice = "This task cannot be edited. It may already be confirmed or cancelled."; return RedirectToPage(new { view = "mine" }); }
         task.Title = title; task.Description = description; task.Category = category; task.Location = location; task.Budget = budget; task.BudgetMaximum = budgetMaximum; task.ScheduleText = schedule;
         task.PostDurationDays = postDurationDays;
+        task.ArrivalInstructions = arrivalInstructions;
         task.PostExpiresUtc = ClosingTimeUtc(postEndDate);
         TaskLocationRules.Save(db, id, await db.Set<TaskDestination>().SingleOrDefaultAsync(d => d.TaskId == id, ct), latitude!.Value, longitude!.Value);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
@@ -133,10 +137,13 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
 
     public static bool ValidBudgetMaximum(decimal minimum, decimal? maximum) => maximum is null || maximum >= minimum && maximum <= 9999999999m && decimal.Round(maximum.Value, 2) == maximum;
 
-    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null, DateOnly? postEndDate = null)
+    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null)
     {
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim(); location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (UserId <= 0) return Challenge();
+        arrivalInstructions = arrivalInstructions?.Trim();
+        if (arrivalInstructions?.Length > 500 || !await TaskLocationRules.MatchesAreaAsync(HttpContext, serviceArea, latitude, longitude, ct))
+        { Notice = "Choose a verified pin in the selected Bacolor service area and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
         if (ModelState.TryGetValue(nameof(postEndDate), out var dateState) && dateState.Errors.Count > 0 ||
             postEndDate is { } endDate && (endDate < TodayInPhilippines || endDate == DateOnly.MaxValue))
@@ -160,7 +167,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             join pin in db.Set<TaskDestination>().AsNoTracking() on draft.Id equals pin.TaskId
             where draft.ClientId == UserId && !draft.IsPrivate && draft.Status == "pending-confirmation" &&
                 draft.CreatedAt >= recent && draft.Title == title && draft.Description == description &&
-                draft.Category == category && draft.Location == location && draft.Budget == budget &&
+                draft.Category == category && draft.Location == location && draft.ArrivalInstructions == arrivalInstructions && draft.Budget == budget &&
                 draft.BudgetMaximum == budgetMaximum && draft.ScheduleText == schedule &&
                 draft.PostDurationDays == duration && draft.PostExpiresUtc == closingTime &&
                 pin.Latitude == latitude!.Value && pin.Longitude == longitude!.Value
@@ -170,7 +177,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             Notice = "This task was already saved. Review it below before publishing.";
             return RedirectToPage();
         }
-        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, Location = location, Budget = budget, BudgetMaximum = budgetMaximum, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
+        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, Location = location, ArrivalInstructions = arrivalInstructions, Budget = budget, BudgetMaximum = budgetMaximum, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
         db.MarketplaceTasks.Add(task); await db.SaveChangesAsync(ct);
         TaskLocationRules.Save(db, task.Id, null, latitude!.Value, longitude!.Value);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Task saved. Confirm it below to make it visible to freelancers."; return RedirectToPage();

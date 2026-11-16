@@ -70,10 +70,13 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
     }
 
     public async Task<IActionResult> OnPostDirectAsync(int freelancerId, string? title, string? description,
-        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, long? inquiryId = null)
+        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, long? inquiryId = null, string? serviceArea = null, string? arrivalInstructions = null)
     {
         if (UserId <= 0) return Challenge();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
+        arrivalInstructions = arrivalInstructions?.Trim();
+        if (arrivalInstructions?.Length > 500 || !await TaskLocationRules.MatchesAreaAsync(HttpContext, serviceArea, latitude, longitude, ct))
+        { Notice = "Choose a verified pin in the selected Bacolor service area and keep arrival instructions under 500 characters."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
         title = (title ?? "").Trim(); description = (description ?? "").Trim();
         location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (!ModelState.IsValid || freelancerId <= 0 || freelancerId == UserId || title.Length is < 1 or > 120 ||
@@ -124,6 +127,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             work.Title = title;
             work.Description = description;
             work.Location = location;
+            work.ArrivalInstructions = arrivalInstructions;
             work.ScheduleText = schedule;
             work.Budget = budget;
             work.BudgetMaximum = budgetMaximum;

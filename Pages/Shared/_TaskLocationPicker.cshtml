@@ -1,8 +1,28 @@
 @model tts.Data.TaskLocationInput
 @{ var key = "location-" + Guid.NewGuid().ToString("N"); var invariant = System.Globalization.CultureInfo.InvariantCulture; }
 <section class="task-location-picker" data-location-picker>
-    <label for="@key">Work address or landmark</label>
+    <div class="location-section-heading">
+        <strong>Work location</strong>
+        <p>Available in five service areas in Bacolor, Pampanga.</p>
+    </div>
+    <label for="@(key)-area">Service area</label>
+    <select id="@(key)-area" name="serviceArea" required data-location-area>
+        <option value="">Choose a service area</option>
+        @foreach (var area in tts.Pages.BacolorServiceAreas.Names)
+        {
+            <option value="@area">@area</option>
+        }
+    </select>
+    <label for="@key">Work address</label>
     <input id="@key" name="location" value="@Model.Address" maxlength="120" required placeholder="Search a barangay, street or landmark in Bacolor" autocomplete="off" data-location-address />
+    @if (Model.ShowArrivalInstructions)
+    {
+        <div class="location-arrival-note">
+            <label for="@(key)-arrival">Arrival instructions <span>(optional)</span></label>
+            <textarea id="@(key)-arrival" name="arrivalInstructions" maxlength="500" rows="3" placeholder="e.g. Use the side gate beside the blue fence.">@Model.ArrivalInstructions</textarea>
+            <small>Shared with the assigned freelancer in Tracking.</small>
+        </div>
+    }
     <input type="hidden" name="latitude" value="@(Model.Latitude?.ToString(invariant))" data-location-latitude />
     <input type="hidden" name="longitude" value="@(Model.Longitude?.ToString(invariant))" data-location-longitude />
     <div class="location-picker-actions"><button type="button" data-location-search>Search location</button><button type="button" data-location-current>Use my current location</button></div>
