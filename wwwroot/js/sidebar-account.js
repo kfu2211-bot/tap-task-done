@@ -509,6 +509,10 @@
                     if (!token) throw new Error("Missing logout token");
                     var logoutResponse = await fetch("/Settings?handler=Logout", { method: "POST", credentials: "same-origin", body: new URLSearchParams({ __RequestVerificationToken: token.value }) });
                     if (!logoutResponse.ok || new URL(logoutResponse.url).pathname.toLowerCase() !== "/login") throw new Error("Logout failed");
+                    try {
+                        localStorage.removeItem("tts-task-help-signed-in-history");
+                        sessionStorage.removeItem("tts-task-help-history");
+                    } catch (storageError) { /* Storage may be disabled. */ }
                     try { Object.keys(sessionStorage).filter(function (key) { return key.indexOf("tts-location-sharing:") === 0; }).forEach(function (key) { sessionStorage.removeItem(key); }); } catch (storageError) { /* Storage may be disabled. */ }
                     localStorage.removeItem("tapTaskDoneAccount");
                     window.location.replace("/Login");

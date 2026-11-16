@@ -126,6 +126,9 @@ const followUp = {
 const helpHistory = taskHelp.querySelector(".task-help-history");
 const historyKey = "tts-task-help-history";
 const historyOwner = taskHelp.dataset.historyOwner;
+const signedInHistory = taskHelp.dataset.signedIn === "true" && historyOwner !== "guest";
+const persistentHistoryKey = "tts-task-help-signed-in-history";
+let historyCleared = false;
 let savedMessages = [];
 const helpPrompt = taskHelp.querySelector("[data-help-prompt]");
 const helpTopics = taskHelp.querySelector(".task-help-topics");
@@ -151,24 +154,39 @@ function addHelpMessage(message, speaker, language, save = true) {
     updateHelpView();
     helpHistory.append(bubble);
     helpHistory.scrollTop = helpHistory.scrollHeight;
-    if (save) {
+    if (save && !historyCleared) {
         savedMessages.push({ message, speaker, language });
         savedMessages = savedMessages.slice(-40);
         try {
-            sessionStorage.setItem(historyKey, JSON.stringify({ owner: historyOwner, messages: savedMessages }));
+            const storage = signedInHistory ? localStorage : sessionStorage;
+            storage.setItem(signedInHistory ? persistentHistoryKey : historyKey,
+                JSON.stringify({ owner: historyOwner, messages: savedMessages }));
         } catch { /* Chat remains available on this page. */ }
     }
 }
 
 try {
-    const history = JSON.parse(sessionStorage.getItem(historyKey));
+    const persistent = signedInHistory ? localStorage.getItem(persistentHistoryKey) : null;
+    const history = JSON.parse(persistent ?? sessionStorage.getItem(historyKey));
     if (history?.owner === historyOwner && Array.isArray(history.messages)) {
         savedMessages = history.messages.slice(-40);
         savedMessages.forEach(({ message, speaker, language }) => addHelpMessage(message, speaker, language, false));
+        if (signedInHistory && !persistent)
+            localStorage.setItem(persistentHistoryKey, JSON.stringify({ owner: historyOwner, messages: savedMessages }));
     } else {
         sessionStorage.removeItem(historyKey);
     }
+    if (signedInHistory) sessionStorage.removeItem(historyKey);
 } catch { /* Start with an empty chat when storage is unavailable. */ }
+
+window.addEventListener("storage", event => {
+    if (!signedInHistory || event.key !== persistentHistoryKey || event.newValue !== null) return;
+    historyCleared = true;
+    savedMessages = [];
+    helpHistory.querySelectorAll(".task-help-bubble:not([data-help-greeting])").forEach(message => message.remove());
+    conversationStarted = false;
+    updateHelpView();
+});
 
 let previousHelpTopic;
 
