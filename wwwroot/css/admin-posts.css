@@ -28,3 +28,4 @@ summary { cursor: pointer; }
 .confirmation { display: flex; align-items: center; gap: 8px; }
 .confirmation input { min-height: auto; }
 @media (max-width: 740px) { .review-layout { grid-template-columns: minmax(0, 1fr); } }
+html:has(body.embedded) { background: transparent; } .embedded main { max-width: none; padding: 0 0 4px; }

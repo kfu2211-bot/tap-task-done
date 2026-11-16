@@ -15,6 +15,7 @@ public class AdminPostsModel(ApplicationDbContext db) : PageModel
     public MarketplaceTask? Selected { get; private set; }
     public List<SafetyReport> Reports { get; private set; } = [];
     public List<PostModerationAction> History { get; private set; } = [];
+    [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     public bool Unavailable { get; private set; }
     [TempData(Key = "AdminPosts.Notice")] public string? Notice { get; set; }
 
@@ -53,7 +54,7 @@ public class AdminPostsModel(ApplicationDbContext db) : PageModel
         if (!ModelState.IsValid || !confirmed || (!restore && (decision != "remove" || !Reasons.Contains(reason))))
         {
             Notice = "Choose a reason and confirm the action.";
-            return RedirectToPage(new { id });
+            return RedirectToPage(new { id, embedded = Embedded });
         }
 
         try
@@ -66,7 +67,7 @@ public class AdminPostsModel(ApplicationDbContext db) : PageModel
                 await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.Status == "accepted", ct))
             {
                 Notice = "This listing is no longer eligible for that action. Review its current status.";
-                return RedirectToPage(new { id });
+                return RedirectToPage(new { id, embedded = Embedded });
             }
 
             task.Status = restore ? "open" : "moderated";
@@ -86,6 +87,6 @@ public class AdminPostsModel(ApplicationDbContext db) : PageModel
         {
             Notice = "Moderation storage is unavailable. The listing was not changed.";
         }
-        return RedirectToPage(new { id, filter = restore ? "published" : "removed" });
+        return RedirectToPage(new { id, embedded = Embedded, filter = restore ? "published" : "removed" });
     }
 }

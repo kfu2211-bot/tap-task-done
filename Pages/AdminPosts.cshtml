@@ -14,13 +14,13 @@
 <title>Post Moderation · Tap, Task, Done</title>
 <link rel="stylesheet" href="/css/admin-posts.css" asp-append-version="true" />
 </head>
-<body>
+<body class="@(Model.Embedded ? "embedded" : null)">
 <main>
-    <header><a asp-page="/Admin">‹ Admin workspace</a><h1>Post Moderation</h1></header>
+    @if (!Model.Embedded) { <header><a asp-page="/Admin" asp-fragment="posts">‹ Admin workspace</a><h1>Post Moderation</h1></header> }
     @if (Model.Notice is { } notice) { <p role="status" class="notice">@notice</p> }
     <div class="review-layout">
         <section aria-label="Public task listings">
-            <form method="get" class="search">
+            <form method="get" class="search"><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
                 <label>Search posts<input type="search" name="q" value="@search" maxlength="120" /></label>
                 <label>Filter<select name="filter">
                     <option value="published" selected="@(filter is not ("reported" or "removed"))">Published</option>
@@ -34,7 +34,7 @@
                 <tbody>
                 @foreach (var post in Model.Posts)
                 {
-                    <tr><td><a asp-route-id="@post.Id" asp-route-filter="@filter" asp-route-q="@search" asp-fragment="review" aria-current="@(Model.Selected?.Id == post.Id ? "true" : null)">@post.Title</a><small>#@post.Id · @post.Category</small></td><td>@TaskProgress.Label(post.Status)</td></tr>
+                    <tr><td><a asp-route-id="@post.Id" asp-route-embedded="@Model.Embedded" asp-route-filter="@filter" asp-route-q="@search" asp-fragment="review" aria-current="@(Model.Selected?.Id == post.Id ? "true" : null)">@post.Title</a><small>#@post.Id · @post.Category</small></td><td>@TaskProgress.Label(post.Status)</td></tr>
                 }
                 @if (Model.Posts.Count == 0) { <tr><td colspan="2">No matching posts.</td></tr> }
                 </tbody>
@@ -50,7 +50,7 @@
             @if (Model.Reports.Count == 0) { <p>No linked reports.</p> }
             @foreach (var report in Model.Reports)
             {
-                <details><summary>@report.Reason · @report.Status</summary><p>@report.Description</p><a asp-page="/AdminReports" asp-route-recordId="@report.Id">Review report #@report.Id</a></details>
+                <details><summary>@report.Reason · @report.Status</summary><p>@report.Description</p><a asp-page="/AdminReports" asp-route-recordId="@report.Id" asp-route-embedded="@Model.Embedded">Review report #@report.Id</a></details>
             }
             <h3>Moderation history</h3>
             @if (Model.Unavailable) { <p>Moderation storage is unavailable.</p> }
@@ -63,7 +63,7 @@
             {
                 var restore = task.Status == "moderated";
                 <form method="post" asp-page-handler="Review" class="decision">
-                    <input type="hidden" name="id" value="@task.Id" />
+                    <input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" /><input type="hidden" name="id" value="@task.Id" />
                     <input type="hidden" name="decision" value="@(restore ? "restore" : "remove")" />
                     @if (!restore)
                     {
@@ -84,5 +84,15 @@
         </section>
     </div>
 </main>
+@if (Model.Embedded)
+{
+    <script>
+        const content = document.querySelector('main');
+        new ResizeObserver(() => {
+            const height = content.getBoundingClientRect().height;
+            if (height > 0) window.parent.postMessage({ type: 'admin-posts-height', height }, window.location.origin);
+        }).observe(content);
+    </script>
+}
 </body>
 </html>
