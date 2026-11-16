@@ -76,6 +76,47 @@ const specificAnswers = {
     login: ["Check your email and password. If you need to reset your password, select Forgot password? on the Log in page.", "Suriin ang iyong email at password. Kung kailangan mong palitan ang password, piliin ang Forgot password? sa pahina ng pagpasok.", "I-check ang email at password mo. Kung kailangan ng reset, pindutin ang Forgot password? sa Log in page."]
 };
 
+const appGuides = {
+    emailCorrection: ["On Verify your email, expand Change email. Enter the corrected address and your registration password. Select Send code to corrected email and verify the latest six-digit code.", "Sa Verify your email, buksan ang Change email. Ilagay ang tamang address at registration password. Pindutin ang Send code to corrected email at i-verify ang pinakabagong code.", "/Login"],
+    deviceSecurity: ["If sign-in asks for a device code, check your email and enter the latest code. To manage sessions after signing in, open Settings → Security & devices. When sign-in is rate limited, wait up to five minutes before trying again.", "Kung humingi ng device code, tingnan ang email at ilagay ang pinakabagong code. Para i-manage ang sessions, pumunta sa Settings → Security & devices. Kung may login cooldown, maghintay nang hanggang limang minuto bago ulitin.", "/Security"],
+    workPreferences: ["Open Settings → Work role. For Freelancer or Client & Freelancer, select your services and areas, enter rates if needed, and set availability. Select Save changes and accept any required agreements.", "Sa Settings → Work role, piliin ang Freelancer o Client & Freelancer. Piliin ang services at areas, ilagay ang rates kung kailangan, at i-set ang availability. Pindutin ang Save changes at tanggapin ang required agreements.", "/Settings#work-preferences"],
+    identityStatus: ["Open Identity Verification to check your status. If it says Pending, wait for review. If resubmission is requested, read the admin note and submit the requested ID and a new selfie.", "Buksan ang Identity Verification para makita ang status. Kung Pending, hintayin ang review. Kung kailangang mag-resubmit, basahin ang admin note at isumite ang hinihinging ID at bagong selfie.", "/IdentityVerification"],
+    serviceInquiry: ["Open the freelancer’s profile in Find a Freelancer, expand Ask about a service, and send your question. Your private chat opens in Messages. Use Request booking there when you’re ready.", "Sa Find a Freelancer, buksan ang profile at piliin ang Ask about a service. I-send ang tanong para magbukas ang private chat sa Messages. Kapag ready na, piliin ang Request booking doon.", "/FindPost"],
+    bookingDecision: ["In My Jobs → Booking requests, open the request. Discuss any missing details, then accept or decline it. If accepted, open Tracking and agree on the task terms.", "Sa My Jobs → Booking requests, buksan ang request. Linawin ang detalye, tapos tanggapin o i-decline. Kung accepted, buksan ang Tracking at kumpirmahin ang task terms.", "/MyJobs?view=requests"],
+    archivedChat: ["In Messages, open Archived to read conversations from completed or cancelled tasks. Archived task chats are read-only.", "Sa Messages, buksan ang Archived para balikan ang usapan ng completed o cancelled tasks. Read-only ang archived task chats.", "/Messages?archived=true"],
+    phoneSharing: ["Open the task conversation in Messages. When available, select Share my number to show it to the other participant. Use Stop sharing to remove their access.", "Sa task conversation sa Messages, piliin ang Share my number kung available. Makikita ito ng kausap mo. Gamitin ang Stop sharing para alisin ang access.", "/Messages"],
+    pinIssue: ["Select the service area and move the pin to the exact work location. Confirm this pin becomes available when the map lookup matches the selected area. If lookup is inconclusive, try another point at the same work location. Changing the address text does not verify the pin.", "Piliin ang service area at ilagay ang pin sa eksaktong work location. Available lang ang Confirm this pin kapag tugma ang map lookup sa area. Kung kulang ang resulta, subukan ang ibang point sa mismong lugar. Hindi sapat ang pag-edit ng address text.", "/FindPost?mode=post"],
+    arrivalInstructions: ["Add optional Arrival instructions under Work address when posting or requesting a booking. The client and assigned freelancer can read the note under Task location in Tracking.", "Ilagay ang optional na Arrival instructions sa ilalim ng Work address kapag nagpo-post o nagre-request ng booking. Makikita ito ng client at assigned freelancer sa Task location sa Tracking.", "/Tracking"],
+    taskTerms: ["Open the assigned task in Tracking and review scope, price, schedule and destination. Both participants must confirm the same version before travel. If you propose changes, review and confirm the new version.", "Sa Tracking, buksan ang assigned task at suriin ang scope, presyo, schedule, at destination. Parehong i-confirm ang iisang version bago mag-travel. Kapag may pagbabago, i-review at kumpirmahin ang bagong version.", "/Tracking"],
+    arrival: ["Keep Tracking open during travel and enable location sharing. I’ve arrived appears when a GPS fix is within 100 m, at most 45 seconds old, and accurate to 50 m or better. If GPS is weak, select Retry location or Ask client to confirm arrival.", "Panatilihing bukas ang Tracking habang nagta-travel at i-enable ang location sharing. Lalabas ang I’ve arrived kapag nasa loob ng 100 m ang GPS fix, hanggang 45 segundo ang edad, at 50 m o mas accurate. Kung mahina ang GPS, piliin ang Retry location o Ask client to confirm arrival.", "/Tracking"],
+    completion: ["The freelancer adds a completion note and selects Mark work finished. The client reviews it in Tracking and selects Confirm completion. After confirmation, eligible reviews become available.", "Maglalagay ang freelancer ng completion note at pipindot ng Mark work finished. Susuriin ito ng client sa Tracking at pipindutin ang Confirm completion. Pagkatapos, magiging available ang eligible reviews.", "/Tracking"],
+    warning: ["Check the official notice in Notifications or email. A second offense has a recovery target of 3 completed tasks; third and fourth offenses require 6 and 10 after suspension. Only distinct tasks confirmed Completed by the client during your recovery period count. Task Help cannot view or remove your case.", "Tingnan ang official notice sa Notifications o email. Ang second offense ay may target na 3 completed tasks; 6 at 10 naman pagkatapos ng suspension para sa third at fourth offense. Magkakaibang task na kinumpirma ng client bilang Completed sa recovery period lang ang bibilangin. Walang access ang Task Help sa case mo.", "/Notifications"],
+    accountDeletion: ["In Settings → Delete account, request a code and confirm it by email. Final deletion requires a 72-hour wait, admin approval and no unresolved commitments. You can cancel the request before final deletion.", "Sa Settings → Delete account, humingi ng email code at i-confirm ito. Kailangan ang 72-hour wait, admin approval, at walang unresolved commitments bago ang final deletion. Puwedeng i-cancel ang request bago ito ma-finalize.", "/AccountDeletion"]
+};
+
+const sensitiveHelpInput = /\b\d{6}\b|\b(?:password|passcode|otp|recovery code|verification code|api key|id number|token)\s*(?:[:=]|(?:is|ko ay|ay)\s+)\s*\S|\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b|\b(?:09\d{9}|639\d{9})\b/i;
+const helpPages = new Set(["landing", "login", "verifyemail", "verifylogin", "dashboard", "findpost", "markettasks", "myjobs", "messages", "tracking", "reviews", "identityverification", "reports", "settings", "security", "notifications", "accountdeletion"]);
+const pageName = location.pathname.split("/").filter(Boolean).pop()?.toLowerCase() || "landing";
+const helpPage = helpPages.has(pageName) ? pageName : null;
+
+const guidePatterns = [
+    ["warning", /\b(?:warning|suspension|offense|recovery target|my (?:acc|account).*reported|(?:acc|account) ko.*(?:report|suspend))\b/i],
+    ["emailCorrection", /(?:wrong|correct|change|mali|palit).*email|email.*(?:typo|mali)/i],
+    ["deviceSecurity", /new.device|device code|security.*devices|(?:login|sign.in).*429|(?:sign out|logout).*device/i],
+    ["identityStatus", /resubmit|pending.*(?:identity|verification)|verification.*status/i],
+    ["workPreferences", /service areas? sa settings|weekly availability|work preferences|agree and activate/i],
+    ["serviceInquiry", /ask about a service|(?:message|chat|tanong).*bago.*(?:book|request)|(?:chat|message).*before.*book/i],
+    ["bookingDecision", /booking requests|(?:accept|decline|tanggap).*booking/i],
+    ["archivedChat", /archiv.*(?:chat|message)|(?:chat|message).*archiv|read.only|(?:di|hindi|can.t).*send.*(?:completed|cancelled)/i],
+    ["phoneSharing", /share my number|stop sharing.*number|(?:share|show).*phone number/i],
+    ["arrivalInstructions", /arrival instructions|arrival note/i],
+    ["arrival", /i.ve arrived|retry location|confirm arrival|start travel|\bgps\b/i],
+    ["pinIssue", /confirm this pin|(?:pin|location).*(?:outside|verify|labas|ayaw)/i],
+    ["taskTerms", /task terms|work agreement|confirm work details/i],
+    ["completion", /confirm completion|mark work finished|completion note/i],
+    ["accountDeletion", /delete.*account|account.*deletion|(?:bura|tanggal).*account/i]
+];
+
 const followUp = {
     en: ["Sorry, I can only help with questions about Tap, Task, Done. I’m the app’s virtual assistant. Ask me about posting tasks, finding work, or using your account.", "What are you trying to do in Tap, Task, Done? Tell me which page or step you’re on."],
     fil: ["Pasensya na, virtual assistant ako ng Tap, Task, Done. Masasagot ko lang ang mga tanong tungkol sa paggamit ng app, gaya ng pag-post ng task o paghahanap ng trabaho.", "Ano ang sinusubukan mong gawin sa Tap, Task, Done? Sabihin mo kung saang page o hakbang ka na."],
@@ -83,6 +124,9 @@ const followUp = {
 };
 
 const helpHistory = taskHelp.querySelector(".task-help-history");
+const historyKey = "tts-task-help-history";
+const historyOwner = taskHelp.dataset.historyOwner;
+let savedMessages = [];
 const helpPrompt = taskHelp.querySelector("[data-help-prompt]");
 const helpTopics = taskHelp.querySelector(".task-help-topics");
 let conversationStarted = false;
@@ -96,7 +140,7 @@ function updateHelpView() {
 
 taskHelpInput.addEventListener("input", updateHelpView);
 
-function addHelpMessage(message, speaker, language) {
+function addHelpMessage(message, speaker, language, save = true) {
     const bubble = document.createElement("p");
     bubble.className = "task-help-bubble " + speaker;
     bubble.lang = language === "en" ? "en" : "fil";
@@ -107,7 +151,24 @@ function addHelpMessage(message, speaker, language) {
     updateHelpView();
     helpHistory.append(bubble);
     helpHistory.scrollTop = helpHistory.scrollHeight;
+    if (save) {
+        savedMessages.push({ message, speaker, language });
+        savedMessages = savedMessages.slice(-40);
+        try {
+            sessionStorage.setItem(historyKey, JSON.stringify({ owner: historyOwner, messages: savedMessages }));
+        } catch { /* Chat remains available on this page. */ }
+    }
 }
+
+try {
+    const history = JSON.parse(sessionStorage.getItem(historyKey));
+    if (history?.owner === historyOwner && Array.isArray(history.messages)) {
+        savedMessages = history.messages.slice(-40);
+        savedMessages.forEach(({ message, speaker, language }) => addHelpMessage(message, speaker, language, false));
+    } else {
+        sessionStorage.removeItem(historyKey);
+    }
+} catch { /* Start with an empty chat when storage is unavailable. */ }
 
 let previousHelpTopic;
 
@@ -116,7 +177,21 @@ function showTaskHelpAnswer(topic, language = "taglish", unclear = false) {
     taskHelpAnswer.lang = language === "en" ? "en" : "fil";
     taskHelpReport.hidden = topic !== "report" && topic !== "reportStatus";
     taskHelpAnswer.hidden = true;
+    taskHelpReport.href = taskHelp.dataset.reportUrl;
     if (topic) previousHelpTopic = topic;
+    if (Object.hasOwn(appGuides, topic)) {
+        const [en, fil, path] = appGuides[topic];
+        const publicGuide = topic === "emailCorrection" || topic === "deviceSecurity";
+        const signedIn = taskHelp.dataset.signedIn === "true";
+        const prefix = !signedIn && !publicGuide ? (language === "en" ? "Log in first. " : "Mag-log in muna. ") : "";
+        addHelpMessage(prefix + (language === "en" ? en : fil), "assistant", language);
+        taskHelpReport.href = signedIn || publicGuide ? (topic === "deviceSecurity" && !signedIn ? "/Login" : path) : "/Login";
+        taskHelpReport.textContent = signedIn || publicGuide
+            ? (language === "en" ? "Open relevant page" : "Buksan ang kaugnay na page")
+            : (language === "en" ? "Log in" : "Mag-log in");
+        taskHelpReport.hidden = false;
+        return;
+    }
     if (!taskHelpReport.hidden) {
         const signedIn = taskHelp.dataset.signedIn === "true";
         taskHelpReport.textContent = signedIn
@@ -192,10 +267,34 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
     const language = questionLanguage(question.toLowerCase());
     lastQuestionLanguage = language;
     button.disabled = true;
+    if (sensitiveHelpInput.test(question)) {
+        taskHelpInput.value = "";
+        addHelpMessage(language === "en"
+            ? "Please remove personal details or codes and ask again. Enter passwords and verification codes only in the app’s account forms."
+            : "Alisin muna ang personal na detalye o code at magtanong ulit. Sa account forms lang ilagay ang password at verification code.", "assistant", language);
+        button.disabled = false;
+        taskHelpInput.focus();
+        return;
+    }
     addHelpMessage(question, "visitor", language);
     taskHelpInput.value = "";
     taskHelpInput.focus();
     taskHelpReport.hidden = true;
+    const matchedGuide = guidePatterns.find(([, pattern]) => pattern.test(question));
+    if (matchedGuide) {
+        showTaskHelpAnswer(matchedGuide[0], language);
+        button.disabled = false;
+        return;
+    }
+    const reportedAccount = /\b(?:report(?:ed)?|ni-report|nireport|reported|warning|suspend(?:ed)?|restricted)\b/i.test(question) &&
+        /\b(?:my\s+(?:acc|account)|(?:acc|account)\s+ko|ako)\b/i.test(question);
+    if (reportedAccount) {
+        addHelpMessage(language === "en"
+            ? "If someone reported your account, Task Help can’t see the case or remove the report. Check the report or moderation notice you received in Notifications or by email. If your notice shows a recovery target of 3 completed tasks, complete 3 separate tasks after the warning and make sure the client confirms each as Completed. The warning clears automatically once you reach the target. If you received a restriction notice, follow its instructions. If you believe there’s a mistake and can still sign in, use Safety & Reports to explain what happened and include any relevant evidence."
+            : "Kung may nag-report sa account mo, walang access ang Task Help sa case at hindi nito matatanggal ang report. Tingnan ang report o moderation notice na natanggap mo sa Notifications o email. Kung nakalagay na 3 completed tasks ang recovery target mo, kailangan ng 3 magkakaibang task na kinumpirma ng client bilang Completed pagkatapos ma-issue ang warning. Awtomatikong mawawala ang warning kapag naabot ang target. Kung may restriction notice, sundin ang nakasaad doon. Kung sa tingin mo ay may pagkakamali at nakaka-sign in ka pa, gamitin ang Safety & Reports para ipaliwanag ang nangyari at magbigay ng ebidensiya.", "assistant", language);
+        button.disabled = false;
+        return;
+    }
     const asksWhere = /^(?:saan(?:\s+(?:po|yun|iyon|doon|dito))?(?:\s+(?:yan|iyan))?|where(?:\s+is\s+it)?)\s*[?!.]*$/i.test(question);
     const asksAboutRole = /\b(?:role|roles)\b/i.test(question) && /\b(?:saan|paano|pano|makikita|palitan|change|switch|where|select|choose|work)\b/i.test(question);
     if (asksAboutRole || (asksWhere && previousHelpTopic === "role")) {
@@ -203,7 +302,7 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
         button.disabled = false;
         return;
     }
-    if (asksWhere && (previousHelpTopic === "report" || previousHelpTopic === "reportStatus")) {
+    if (asksWhere && previousHelpTopic) {
         showTaskHelpAnswer(previousHelpTopic, language);
         button.disabled = false;
         return;
@@ -222,11 +321,15 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
         const response = await fetch("/api/task-help", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: question })
+            body: JSON.stringify({ text: question, page: helpPage, previousTopic: previousHelpTopic })
         });
         if (!response.ok) throw new Error("Task Help unavailable");
         const { topic } = await response.json();
-        const recognized = Object.hasOwn(english, topic) || Object.hasOwn(specificAnswers, topic);
+        if (topic === "sensitive") {
+            addHelpMessage(language === "en" ? "Remove personal details or codes and try again." : "Alisin ang personal na detalye o code at subukan ulit.", "assistant", language);
+            return;
+        }
+        const recognized = Object.hasOwn(appGuides, topic) || Object.hasOwn(english, topic) || Object.hasOwn(specificAnswers, topic);
         showTaskHelpAnswer(recognized ? topic : undefined, language, topic === "unclear");
     } catch {
         addHelpMessage(language === "en"
