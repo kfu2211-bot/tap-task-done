@@ -190,6 +190,10 @@
                     credentials: "same-origin"
                 });
                 const result = await response.json().catch(() => ({}));
+                if (response.status === 429) {
+                    loginStatus.textContent = "Too many sign-in requests. Please wait up to 5 minutes before trying again.";
+                    return;
+                }
                 if (!response.ok) {
                     loginStatus.textContent = result.message || "Unable to log in. Please try again.";
                     if (result.suspendedUntilUtc) {
