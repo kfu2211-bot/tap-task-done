@@ -212,3 +212,5 @@ html body button.task-help-launch:not([hidden]) {
         bottom: max(12px, env(safe-area-inset-bottom));
     }
 }
+
+.task-help-history .task-help-bubble { white-space: pre-line; }

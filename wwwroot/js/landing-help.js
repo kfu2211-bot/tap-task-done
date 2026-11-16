@@ -276,6 +276,58 @@ taskHelp.querySelectorAll("[data-topic]").forEach(button => {
         showTaskHelpAnswer(button.dataset.topic, languagePicker.value);
     });
 });
+async function answerMarketplaceQuestion(question, language) {
+    const en = language === "en";
+    if (/categor(?:y|ies)|kategorya/i.test(question) && /\b(?:ilan|how many|count)\b/i.test(question)) {
+        const count = taskHelp.dataset.serviceCategoryCount;
+        addHelpMessage(en ? 'There are ' + count + ' service categories, including Other / General.'
+            : 'May ' + count + ' service categories, kasama ang Other / General.', "assistant", language);
+        return true;
+    }
+
+    const top = /\b(?:top|highest.rated|best.rated|pinakamataas)\b/i.test(question) &&
+        (/provider|freelancer|rating/i.test(question) || previousHelpTopic === "topProviders");
+    const available = /\b(?:ilan|how many|count)\b/i.test(question) &&
+        /available|libre|bakante/i.test(question) && /freelancer|provider/i.test(question);
+    if (!top && !available) return false;
+    if (taskHelp.dataset.signedIn !== "true") {
+        addHelpMessage(en ? "Log in to see current freelancer rankings and availability."
+            : "Mag-log in para makita ang kasalukuyang ranking at availability ng freelancers.", "assistant", language);
+        taskHelpReport.href = "/Login";
+        taskHelpReport.textContent = en ? "Log in" : "Mag-log in";
+        taskHelpReport.hidden = false;
+        return true;
+    }
+    const topic = top ? "topProviders" : "availableProviders";
+    try {
+        const response = await fetch("/api/task-help/providers?topic=" + topic, { cache: "no-store" });
+        if (!response.ok || response.redirected) throw new Error("Provider data unavailable");
+        const data = await response.json();
+        previousHelpTopic = topic;
+        let answer;
+        if (top) {
+            const requested = Math.min(8, Math.max(1, Number(question.match(/\btop\s+(\d{1,2})\b/i)?.[1] ?? 3)));
+            const rows = data.slice(0, requested).map((provider, index) =>
+                (index + 1) + ". " + provider.name + " — " + provider.average.toFixed(1) + "/5 (" + provider.count + " " +
+                (provider.count === 1 ? "review" : "reviews") + ")");
+            answer = rows.length ? (en ? "Currently showing " : "May ") + rows.length +
+                (en ? " rated provider(s) in this ranking:" : " rated provider sa listahang ito:") + "\n" + rows.join("\n")
+                : (en ? "There are no rated providers yet." : "Wala pang rated service providers.");
+        } else {
+            answer = en ? "Available freelancers you can browse right now: " + data.count + "."
+                : "Mga available na freelancer na puwede mong makita ngayon: " + data.count + ".";
+        }
+        addHelpMessage(answer, "assistant", language);
+        taskHelpReport.href = top ? "/Dashboard" : "/FindPost";
+        taskHelpReport.textContent = top ? (en ? "Open Home" : "Buksan ang Home") : "Find a Freelancer";
+        taskHelpReport.hidden = false;
+    } catch {
+        addHelpMessage(en ? "I couldn’t load the current provider data. Try again or check Home and Find a Freelancer."
+            : "Hindi ko ma-load ang kasalukuyang provider data. Subukan ulit o tingnan ang Home at Find a Freelancer.", "assistant", language);
+    }
+    return true;
+}
+
 document.querySelector("#task-help-question").addEventListener("submit", async event => {
     event.preventDefault();
     const question = taskHelpInput.value.trim();
@@ -298,6 +350,12 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
     taskHelpInput.value = "";
     taskHelpInput.focus();
     taskHelpReport.hidden = true;
+    try {
+        if (await answerMarketplaceQuestion(question, language)) return;
+    } finally {
+        button.disabled = false;
+    }
+    button.disabled = true;
     const matchedGuide = guidePatterns.find(([, pattern]) => pattern.test(question));
     if (matchedGuide) {
         showTaskHelpAnswer(matchedGuide[0], language);
@@ -320,7 +378,7 @@ document.querySelector("#task-help-question").addEventListener("submit", async e
         button.disabled = false;
         return;
     }
-    if (asksWhere && previousHelpTopic) {
+    if (asksWhere && previousHelpTopic && !["topProviders", "availableProviders"].includes(previousHelpTopic)) {
         showTaskHelpAnswer(previousHelpTopic, language);
         button.disabled = false;
         return;

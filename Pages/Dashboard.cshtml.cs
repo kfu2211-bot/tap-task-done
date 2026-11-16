@@ -56,30 +56,34 @@ namespace tts.Pages
             { logger.LogError(ex, "Unable to load category counts"); CategoriesUnavailable = true; }
             try
             {
-                var rows = await (from review in db.MarketplaceReviews.AsNoTracking()
-                    join user in db.Users.AsNoTracking() on review.FreelancerId equals user.Id
-                    join profile in db.FreelancerProfiles.AsNoTracking() on user.Id equals profile.UserId into profiles
-                    from profile in profiles.DefaultIfEmpty()
-                    where user.Role != "deleted"
-                    select new { user.Id, user.FirstName, user.LastName, profile.Service, profile.Location,
-                        profile.WorkRole, profile.Availability, review.Rating }).ToListAsync(ct);
-                RatedProviders = rows.GroupBy(x => x.Id).Select(group =>
-                {
-                    var provider = group.First();
-                    var canRequest = (provider.WorkRole is "freelancer" or "both")
-                        && !string.IsNullOrWhiteSpace(provider.Service) && !string.IsNullOrWhiteSpace(provider.Location);
-                    return new RatedProvider(provider.Id, ($"{provider.FirstName} {provider.LastName}").Trim(),
-                        provider.Service ?? "", group.Average(x => x.Rating), group.Count())
-                    {
-                        CanRequest = canRequest,
-                        Availability = canRequest ? provider.Availability ?? "Unavailable" : "Unavailable"
-                    };
-                }).OrderByDescending(x => x.Average).ThenByDescending(x => x.Count).ThenBy(x => x.Name).Take(8).ToList();
+                RatedProviders = await LoadRatedProvidersAsync(db, 8, ct);
                 var active = await FreelancerAvailability.AssignmentsAsync(db, RatedProviders.Select(p => p.Id).ToArray(), ct);
                 RatedProviders = RatedProviders.Select(p => p.CanRequest ? p with { Availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.Id) ?? []) } : p).ToList();
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
             { logger.LogError(ex, "Unable to load ratings"); ReviewsUnavailable = true; }
+        }
+        public static async Task<List<RatedProvider>> LoadRatedProvidersAsync(ApplicationDbContext db, int limit, CancellationToken ct)
+        {
+            var rows = await (from review in db.MarketplaceReviews.AsNoTracking()
+                join user in db.Users.AsNoTracking() on review.FreelancerId equals user.Id
+                join profile in db.FreelancerProfiles.AsNoTracking() on user.Id equals profile.UserId into profiles
+                from profile in profiles.DefaultIfEmpty()
+                where user.Role != "deleted"
+                select new { user.Id, user.FirstName, user.LastName, profile.Service, profile.Location,
+                    profile.WorkRole, profile.Availability, review.Rating }).ToListAsync(ct);
+            return rows.GroupBy(x => x.Id).Select(group =>
+            {
+                var provider = group.First();
+                var canRequest = (provider.WorkRole is "freelancer" or "both")
+                    && !string.IsNullOrWhiteSpace(provider.Service) && !string.IsNullOrWhiteSpace(provider.Location);
+                return new RatedProvider(provider.Id, ($"{provider.FirstName} {provider.LastName}").Trim(),
+                    provider.Service ?? "", group.Average(x => x.Rating), group.Count())
+                {
+                    CanRequest = canRequest,
+                    Availability = canRequest ? provider.Availability ?? "Unavailable" : "Unavailable"
+                };
+            }).OrderByDescending(x => x.Average).ThenByDescending(x => x.Count).ThenBy(x => x.Name).Take(limit).ToList();
         }
     }
 }

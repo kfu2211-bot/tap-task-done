@@ -6,6 +6,7 @@
 </button>
 <dialog class="task-help" aria-labelledby="task-help-title"
         data-signed-in="@(User.Identity?.IsAuthenticated == true ? "true" : "false")"
+        data-service-category-count="@tts.Pages.SettingsModel.ServiceOptions.Length"
         data-history-owner="@(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "guest")"
         data-report-url="@Url.Page(User.Identity?.IsAuthenticated == true ? "/Reports" : "/Login")">
     <header>

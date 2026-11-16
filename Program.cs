@@ -245,6 +245,29 @@ app.MapGet("/api/providers/availability", async (HttpContext context, Applicatio
     return Results.Json(profiles.Select(p => new { id = p.UserId, availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.UserId) ?? []) }));
 }).RequireAuthorization();
 
+app.MapGet("/api/task-help/providers", async (string topic, HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var viewerId) || viewerId <= 0)
+        return Results.Unauthorized();
+    if (topic == "topProviders")
+    {
+        var ranking = await tts.Pages.DashboardModel.LoadRatedProvidersAsync(db, 8, ct);
+        return Results.Json(ranking.Select(p => new { p.Name, p.Average, p.Count }));
+    }
+    if (topic != "availableProviders") return Results.BadRequest();
+    var profiles = await (from profile in db.FreelancerProfiles.AsNoTracking()
+        join user in db.Users.AsNoTracking() on profile.UserId equals user.Id
+        where user.Role != "deleted" && profile.UserId != viewerId &&
+            (profile.WorkRole == "freelancer" || profile.WorkRole == "both") &&
+            profile.Service != "" && profile.Location != "" && profile.Availability == "Available"
+        select new { profile.UserId, profile.Location, profile.Availability }).ToListAsync(ct);
+    var listed = profiles.Where(p => tts.Pages.BacolorServiceAreas.InLocation(p.Location).Any()).ToArray();
+    var active = await FreelancerAvailability.AssignmentsAsync(db, listed.Select(p => p.UserId).ToArray(), ct);
+    var count = listed.Count(p => FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.UserId) ?? []) == "Available");
+    return Results.Json(new { count });
+}).RequireAuthorization();
+
 app.MapGet("/api/work-preferences", async (HttpContext context, ApplicationDbContext db) =>
 {
     if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
