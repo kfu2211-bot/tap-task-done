@@ -3,6 +3,20 @@ const freelancerPreferences = document.getElementById("freelancerPreferences");
 
 if (workRole && freelancerPreferences) {
     const form = workRole.form;
+    const availability = document.getElementById("availability");
+
+    function openLinkedAvailability() {
+        if (!(availability instanceof HTMLDetailsElement) || location.hash !== "#availability" || workRole.value === "client") return;
+        availability.open = true;
+        availability.scrollIntoView({ block: "start" });
+    }
+
+    window.addEventListener("hashchange", openLinkedAvailability);
+    openLinkedAvailability();
+    form.addEventListener("invalid", event => {
+        const section = event.target.closest(".settings-disclosure");
+        if (section) section.open = true;
+    }, true);
     const save = form.querySelector('button[type="submit"]');
     const help = document.getElementById("workRoleHelp");
     const agreementDialog = document.getElementById("roleAgreementDialog");

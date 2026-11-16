@@ -17,10 +17,13 @@
 var selected = Request.Query["view"].ToString(); if (selected != "active" && selected != "completed" && selected != "requests" && selected != "offers" && selected != "cancelled") selected = "requests";
 var pendingBookings = Model.Bookings.Where(b => b.Booking.Status == "pending").ToList();
 var cancelledBookings = Model.Bookings.Where(b => b.Booking.Status == "cancelled" && !Model.Jobs.Any(j => j.Task.Id == b.Task.Id)).ToList();
-var visible = Model.Jobs.Where(j => selected == "cancelled" ? j.Task.Status == "cancelled" : selected == "offers" ? j.Offer.Status != "accepted" && j.Task.Status != "cancelled" : selected == "active" ? j.Offer.Status == "accepted" && j.Task.Status != "completed" && j.Task.Status != "cancelled" : j.Offer.Status == "accepted" && j.Task.Status == "completed").ToList();
+var pendingOnly = selected == "offers" && Request.Query["pending"] == "1";
+var now = DateTime.UtcNow;
+var visible = Model.Jobs.Where(j => selected == "cancelled" ? j.Task.Status == "cancelled" : selected == "offers" ? (pendingOnly ? j.Offer.Status == "pending" && j.Task.Status == "open" && (j.Task.PostExpiresUtc == null || j.Task.PostExpiresUtc > now) : j.Offer.Status != "accepted" && j.Task.Status != "cancelled") : selected == "active" ? j.Offer.Status == "accepted" && j.Task.Status != "completed" && j.Task.Status != "cancelled" && j.Task.Status != "expired" : j.Offer.Status == "accepted" && j.Task.Status == "completed").ToList();
 @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <div class="job-notice" role="status">@Model.Notice</div> }
 <div class="jobs-section-heading"><h2>Work activity</h2><p>View your offers and accepted jobs.</p></div>
 <nav class="job-tabs" aria-label="Work activity"><a class="@(selected == "requests" ? "selected" : "")" href="/MyJobs?view=requests">Booking requests (@pendingBookings.Count)</a><a class="@(selected == "offers" ? "selected" : "")" href="/MyJobs?view=offers">My offers</a><a class="@(selected == "active" ? "selected" : "")" href="/MyJobs?view=active">My active jobs</a><a class="@(selected == "completed" ? "selected" : "")" href="/MyJobs?view=completed">Completed</a><a class="@(selected == "cancelled" ? "selected" : "")" href="/MyJobs?view=cancelled">Cancelled</a></nav>
+@if (pendingOnly) { <p>Pending offers · <a href="/MyJobs?view=offers">View all offers</a></p> }
 <div class="jobs-list">
 @if (Model.Unavailable) { <div class="jobs-empty"><h3>Jobs are unavailable</h3><p>Check the database connection and try again.</p></div> }
 else if (selected == "requests") {

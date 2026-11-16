@@ -13,6 +13,6 @@
         } catch { /* Keep the last successfully loaded status. */ }
         finally { pending = false; }
     }
-    setInterval(refresh, 15000);
+    setInterval(refresh, 5000);
     window.addEventListener('focus', refresh);
 })();

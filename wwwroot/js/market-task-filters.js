@@ -18,7 +18,19 @@
         const confirm = editor.closest('.task-card').querySelector('[data-confirm-task]');
         editor.addEventListener('toggle', () => { if (confirm) confirm.hidden = editor.open; });
     });
+    function openLinkedTask() {
+        const id = window.location.hash.slice(1);
+        const card = cards.find(task => task.id === id);
+        if (!card) return;
+
+        if (card.hidden) filters.querySelector('[data-filter="all"]').click();
+        card.querySelector('.task-disclosure').open = true;
+        card.scrollIntoView({ block: 'start' });
+    }
+
     filters.hidden = false;
+    window.addEventListener('hashchange', openLinkedTask);
+    openLinkedTask();
     filters.addEventListener('click', event => {
         const button = event.target.closest('button[data-filter]');
         if (!button || !filters.contains(button)) return;

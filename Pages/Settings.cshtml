@@ -134,8 +134,8 @@
                     <p>Manage your work preferences, availability, and account security.</p>
                 </div>
                 <div class="account-settings-grid">
-                <form method="post" id="profileForm" class="settings-card account-card" data-submit-pending="Saving…">
-                    <div class="account-role" id="work-preferences"><h3 id="workRoleTitle">Work role</h3><select aria-labelledby="workRoleTitle" aria-describedby="workRoleHelp" asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select><p id="workRoleHelp" class="form-message"></p></div>                    <dialog id="roleAgreementDialog" class="role-agreement-dialog" aria-labelledby="roleAgreementTitle">
+                <form method="post" id="profileForm" class="settings-preferences" data-submit-pending="Saving…">
+                    <div class="settings-card account-role" id="work-preferences"><h3 id="workRoleTitle">Work role</h3><select aria-labelledby="workRoleTitle" aria-describedby="workRoleHelp" asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select><p id="workRoleHelp" class="form-message"></p></div>                    <dialog id="roleAgreementDialog" class="role-agreement-dialog" aria-labelledby="roleAgreementTitle">
                         <h2 id="roleAgreementTitle" tabindex="-1" autofocus>Work role agreements</h2>
                         <p>Review the terms for your selected role, then scroll down to accept.</p>
                         <input type="hidden" name="AgreementVersion" value="@tts.Data.RoleAgreementAcceptance.CurrentVersion" />
@@ -167,8 +167,10 @@
                             <button type="button" data-agreement-confirm>Agree and activate</button>
                         </div>
                     </dialog>
-                    <div id="freelancerPreferences"><fieldset class="settings-group work-group">
-                        <legend>Service details</legend>
+                    <div id="freelancerPreferences">
+                    <details class="settings-card settings-disclosure" open>
+                        <summary>Service details</summary>
+                        <div class="settings-disclosure-content">
                         <div class="field-grid work-field-grid">
                             <div class="service-choice service-picker" role="group" aria-labelledby="servicesOfferedTitle">
                                 <strong id="servicesOfferedTitle">Services offered</strong>
@@ -215,10 +217,23 @@
                             
                             
                         </div>
-                    </fieldset>
-                    <fieldset class="settings-group"><legend>Availability</legend><div class="field-grid"><label>Availability preference<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label></div><div class="availability-summary"><span>Current status <strong class="account-status">@Model.EffectiveAvailability</strong></span><p>Your chosen availability returns after work is finished or cancelled. You can accept new work while awaiting client confirmation.</p></div>
-                    <h4>Weekly availability</h4><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> } <button type="button" id="selectAllDays" class="weekly-day">All</button></div></fieldset>
-                    </div><div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite">@Model.Message</p><button class="primary-button" type="submit">Save changes</button></div>
+                    </div>
+                    </details>
+                    <details id="availability" class="settings-card settings-disclosure">
+                        <summary>Availability <span>Work days and preferred hours</span></summary>
+                        <div class="settings-disclosure-content">
+                            <div class="field-grid"><label>Availability preference<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label></div><div class="availability-summary"><span>Current status <strong class="account-status">@Model.EffectiveAvailability</strong></span><p>Your chosen availability returns after work is finished or cancelled. You can accept new work while awaiting client confirmation.</p></div>
+                    <h4>Weekly availability</h4><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> } <button type="button" id="selectAllDays" class="weekly-day">All</button></div>
+                    <h4>Preferred hours</h4>
+                    <p class="form-message">Set your usual hours in Philippine time, or leave both blank.</p>
+                    <div class="field-grid">
+                        <label>Start time<input asp-for="PreferredStart" type="time" asp-format="{0:HH:mm}" /></label>
+                        <label>End time<input asp-for="PreferredEnd" type="time" asp-format="{0:HH:mm}" /></label>
+                    </div>
+                        </div>
+                    </details>
+                    </div>
+                    <div class="save-row"><p id="profileSavedMessage" class="form-message" aria-live="polite">@Model.Message</p><button class="primary-button" type="submit">Save changes</button></div>
                 </form>
                     <section class="settings-card account-shortcuts" aria-labelledby="accountShortcutsTitle">
                         <h3 id="accountShortcutsTitle">Account shortcuts</h3>

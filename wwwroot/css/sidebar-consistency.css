@@ -24,7 +24,7 @@ html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sid
     overflow: hidden !important;
     background: #e7f0e5 !important;
     border: 0 !important;
-    border-right: 1px solid #d1e1d2 !important;
+    border-inline-end: 0 !important;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif !important;
     z-index: 1000 !important;
 }
@@ -42,30 +42,35 @@ html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sid
     height: 68px !important;
     max-height: 68px !important;
     margin: 0 !important;
-    padding: 0 12px !important;
+    padding: 0 20px !important;
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
     border-bottom: 1px solid var(--sidebar-brand-divider, #d1e1d2) !important;
     color: var(--sidebar-brand-text, #193e30) !important;
     white-space: nowrap !important;
 }
 
-html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) :is(strong, span:not(.brand-icon):not(.logo-check):not(.mytasks-logo-check)) {
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) :is(strong, span):not(.mini-logo, .logo-check, .mytasks-logo-check, .logo-circle, .brand-icon) {
     color: var(--sidebar-brand-text, #193e30) !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
+    font: 700 14px/20px system-ui, sans-serif !important;
+    letter-spacing: normal !important;
+    margin: 0 !important;
 }
 
 html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(.mini-logo, .logo-check, .mytasks-logo-check, .logo-circle, .brand-icon) {
     box-sizing: border-box !important;
-    flex: 0 0 30px !important;
-    width: 30px !important;
-    min-width: 30px !important;
-    height: 30px !important;
-    min-height: 30px !important;
+    flex: 0 0 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
     display: grid !important;
     place-items: center !important;
+    font: 600 19px/1 system-ui, sans-serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
     border: 1px solid #b6d6bd !important;
     border-radius: 50% !important;
     background: #d4e9d7 !important;
@@ -254,4 +259,68 @@ html[data-theme="dark"] body .sidebar-account .account-more {
     width: auto;
     background: transparent !important;
     color: #a5edcc !important;
+}
+
+/* Signed-in workspace header and navigation. */
+html body:has(:is(.sidebar, .mytasks-sidebar)) :is(main > header, .topbar, .top-header, .mytasks-topbar, .market-header) {
+    background: #103d2c !important;
+    color: white !important;
+}
+html body:has(:is(.sidebar, .mytasks-sidebar)) :is(main > header, .topbar, .top-header, .mytasks-topbar, .market-header) h1 {
+    color: white !important;
+}
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) {
+    --sidebar-brand-text: white;
+    background: #103d2c !important;
+    border-bottom-color: transparent !important;
+}
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) :is(strong, span):not(.brand-icon, .logo-check, .mytasks-logo-check) {
+    color: white !important;
+}
+html body:has(:is(.sidebar, .mytasks-sidebar)) #headerAccountButton {
+    background: transparent;
+    border-color: transparent;
+    color: white;
+}
+html body:has(:is(.sidebar, .mytasks-sidebar)) #headerAccountButton:is(:hover, [aria-expanded="true"]) {
+    background: #ffffff1a;
+    border-color: #ffffff40;
+}
+html body:has(:is(.sidebar, .mytasks-sidebar)) #headerAccountButton .header-account-avatar {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border-radius: 50%;
+}
+#headerAccountButton .header-account-copy { display: none; }
+#headerAccountButton .header-account-chevron { color: white; }
+.sidebar .home-nav-heading, .mytasks-sidebar .home-nav-heading {
+    padding: 8px 12px 2px;
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+.sidebar .home-nav-heading:not(:first-child), .mytasks-sidebar .home-nav-heading:not(:first-child) {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #85a694;
+}
+
+@media (min-width: 701px) {
+    html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) {
+        position: relative;
+
+    }
+    html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand)::after {
+        content: "";
+        position: absolute;
+        inset-inline-end: 1px;
+        inset-block-start: 50%;
+        width: 1px;
+        height: 28px;
+        background: #ffffff70;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
 }

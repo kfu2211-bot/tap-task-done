@@ -8,7 +8,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" />
+<head><script defer src="/js/freelancer-home-summary.js" asp-append-version="true"></script><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" />
 
     <meta charset="utf-8" />
 
@@ -28,9 +28,10 @@
 
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/client-workspace.css" asp-append-version="true" />
 <partial name="_AccountTheme" /></head>
 
-<body class="dashboard-body">
+<body class="dashboard-body @(Model.FreelancerOnly ? "freelancer-home" : "client-workspace client-home")">
 
     <div class="dashboard">
 
@@ -57,7 +58,7 @@
 
             <!-- NAVIGATION -->
 
-            <nav class="navigation">
+            <nav class="navigation" data-home-view="@(Model.FreelancerOnly ? "freelancer" : "client")" aria-label="Workspace navigation">
 
                 <a asp-page="/Dashboard"
                    class="nav-item active">
@@ -230,7 +231,7 @@
 
             <!-- TOPBAR -->
 
-            <header class="topbar">
+            <header class="topbar home-topbar">
 
                 <h1>
                     Home
@@ -245,6 +246,13 @@
 
                 </button>
 
+                @if (Model.CanSwitchView)
+                {
+                    <nav class="home-view-switch" aria-label="Home view">
+                        <a asp-page="/Dashboard" asp-route-view="client" aria-current="@(!Model.FreelancerOnly ? "page" : null)">Client</a>
+                        <a asp-page="/Dashboard" asp-route-view="freelancer" aria-current="@(Model.FreelancerOnly ? "page" : null)">Freelancer</a>
+                    </nav>
+                }
             </header>
 
 
@@ -262,33 +270,28 @@
                      HERO
                 ================================================== -->
 
-                <section class="hero-card">
+                <section class="hero-card home-banner">
+                        <span class="client-location"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>@tts.Data.TaskLocationRules.PublicArea</span>
 
                     <div class="hero-text">
 
-                        <span class="hero-label">
-                            SIMPLE. FAST. TRUSTED.
-                        </span>
+
 
                         @if (Model.FreelancerOnly)
                         {
                             <h2>Find your next job</h2>
-                            <p>Browse open tasks and manage your offers and assigned work.</p>
+                            <p>Browse available tasks in Bacolor, Pampanga, and keep your jobs and availability up to date.</p>
                             <div class="hero-buttons">
-                                <a class="post-button" href="/FindPost?mode=jobs">Find jobs</a>
-                                <a class="find-button" href="/MyJobs">My Jobs</a>
+                                <a class="post-button" href="/FindPost?mode=jobs"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>Find Jobs</a>
+                                <a class="find-button" href="/MyJobs"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg>My Jobs</a>
                             </div>
                         }
                         else
                         {
-                        <h2>
-                            Find and manage<br />
-                            your one-time tasks.
-                        </h2>
+                        <h2>Manage your tasks</h2>
 
                         <p>
-                            Browse trusted service providers or post a task
-                            and let the right pro come to you.
+                            Post local service needs, review offers, and keep your bookings on track with trusted freelancers in Bacolor, Pampanga.
                         </p>
 
 
@@ -309,7 +312,7 @@
 
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2z"/></svg>
 
-                                Find a freelancer
+                                Find a Freelancer
 
                             </button>
 
@@ -321,10 +324,55 @@
                 </section>
 
 
-                <!-- =================================================
-                     CATEGORIES
-                ================================================== -->
+                @{
+                    var labels = Model.FreelancerOnly
+                        ? new[] { "Pending offers", "Active jobs", "Completed jobs" }
+                        : new[] { "Needs confirmation", "New offers", "Active bookings" };
+                }
+                <section class="home-overview" aria-label="Work overview" data-freelancer-summary="@(Model.FreelancerOnly ? Url.Page("/Dashboard", "FreelancerSummary") : null)">
+                    @{ var jobViews = new[] { "offers&pending=1", "active", "completed" }; }
+                    @for (var i = 0; i < labels.Length; i++)
+                    {
+                        <a class="home-metric" href="@(Model.FreelancerOnly ? "/MyJobs?view=" + jobViews[i] : "/MarketTasks?view=mine")">
+                            <span class="home-symbol" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    @if (i == 0 && !Model.FreelancerOnly) { <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/> }
+                                    else if ((i == 1 && !Model.FreelancerOnly) || (i == 0 && Model.FreelancerOnly)) { <path d="M3 4h8l10 10-7 7L3 10z"/><circle cx="7.5" cy="8" r=".6"/> }
+                                    else if (i == 2 && Model.FreelancerOnly) { <circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/> }
+                                    else { <rect x="4" y="6" width="16" height="15" rx="2"/><path d="M8 3v6m8-6v6M4 11h16"/> }
+                                </svg>
+                            </span>
+                            <span class="home-metric-copy"><span>@labels[i]</span><strong>@(Model.SummaryUnavailable ? "Unavailable" : Model.Summary[i].ToString())</strong></span>
+                            <span aria-hidden="true">›</span>
+                        </a>
+                    }
+                </section>
 
+                @if (!Model.FreelancerOnly)
+                {
+                    <section class="section home-panel" id="home-tasks">
+                        <div class="home-panel-heading"><h3>My Tasks</h3><a href="/MarketTasks?view=mine">View all tasks ›</a></div>
+                        <nav class="home-filters" aria-label="Filter recent tasks">
+                            @foreach (var (key, label, count) in new[] { ("all", "All", Model.TaskCounts[0]), ("confirm", "Needs confirmation", Model.TaskCounts[1]), ("active", "Active", Model.TaskCounts[2]), ("completed", "Completed", Model.TaskCounts[3]) })
+                            {
+                                <a asp-page="/Dashboard" asp-route-view="@(Model.CanSwitchView ? "client" : null)" asp-route-filter="@key" asp-fragment="home-tasks" aria-current="@(Model.TaskFilter == key ? "page" : null)">@label@if (!Model.SummaryUnavailable) { <text> (@count)</text> }</a>
+                            }
+                        </nav>
+                        @if (Model.RecentTasks.Count == 0)
+                        {
+                            <p>@(Model.SummaryUnavailable ? "Tasks are temporarily unavailable." : "No tasks in this view yet.")</p>
+                        }
+                        @foreach (var item in Model.RecentTasks)
+                        {
+                            <a class="home-task-row" href="/MarketTasks?view=mine#task-@item.Task.Id">
+                                <span class="home-row-copy"><strong>@item.Task.Title</strong><small>@item.Task.Category @if (!string.IsNullOrWhiteSpace(item.Task.ScheduleText)) { <text> · @item.Task.ScheduleText</text> } · @item.Offers pending offer@(item.Offers == 1 ? "" : "s")</small></span>
+                                <strong class="home-budget">@item.Task.BudgetDisplay</strong>
+                                <span class="home-status" data-status="@item.Task.Status">@tts.Data.TaskProgress.Label(item.Task.Status)</span>
+                                <span aria-hidden="true">›</span>
+                            </a>
+                        }
+                    </section>
+                }
                 @if (!Model.FreelancerOnly)
                 {
                 <section class="section dashboard-categories-section">
@@ -449,16 +497,6 @@
                      TOP SERVICE PROVIDERS
                 ================================================== -->
 
-                @if (Model.ShowAvailableTasks)
-                {
-                    <section class="section dashboard-task-section" aria-labelledby="availableTasksHeading">
-                        <div class="dashboard-task-heading"><div><h3 id="availableTasksHeading">Available tasks</h3><p>Recently posted work open for offers.</p></div><a href="/FindPost?mode=jobs" aria-label="View all jobs">View all</a></div>
-                        @if (Model.TasksUnavailable) { <p>Tasks are temporarily unavailable. Please try again later.</p> }
-                        else if (Model.AvailableTasks.Count == 0) { <p>No open tasks right now.</p> }
-                        else { <div class="dashboard-open-tasks" tabindex="0" aria-label="Available tasks">@foreach (var task in Model.AvailableTasks) { <a class="dashboard-open-task" href="/FindPost?mode=jobs"><span class="dashboard-task-category">@task.Category</span><strong>@task.Title</strong><span class="dashboard-task-location">@tts.Data.TaskLocationRules.PublicArea</span><span class="dashboard-task-budget">@task.BudgetDisplay</span></a> }</div> }
-                    </section>
-                }
-
                 @if (!Model.FreelancerOnly)
                 {
                 <section class="section providers-section">
@@ -486,7 +524,7 @@
                     </div>
 
 
-                    <div class="provider-grid" tabindex="0" aria-label="Top service providers">
+                    <div class="provider-grid" aria-label="Top service providers">
                         @if (Model.ReviewsUnavailable) { <p>Ratings are unavailable until the reviews database is ready.</p> }
                         else if (Model.RatedProviders.Count == 0) { <p>No rated service providers to show right now.</p> }
                         @foreach (var provider in Model.RatedProviders) { <div class="provider-card"><div class="provider-top"><div class="provider-avatar">@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "?")</div><div class="provider-name"><strong>@provider.Name</strong><span>@provider.Service</span><small class="provider-availability" data-provider-status="@(provider.CanRequest ? provider.Id.ToString() : null)">@provider.Availability</small></div></div><div class="provider-stats"><span class="rating">★ @provider.Average.ToString("0.0") <small>(@provider.Count reviews)</small></span></div><div class="provider-bottom">@if (provider.CanRequest && User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value != provider.Id.ToString()) { <a asp-page="/FindPost" asp-route-providerId="@provider.Id">Request work</a> }</div></div> }
@@ -722,6 +760,53 @@
                 </section>
                 }
 
+                @if (Model.ShowAvailableTasks)
+                {
+                    <div class="home-job-layout">
+                        <section class="section home-panel">
+                            <div class="home-panel-heading"><h3>Available tasks</h3><a href="/FindPost?mode=jobs">View all jobs ›</a></div>
+                            <p>Recently posted work open for offers.</p>
+                            @if (Model.TasksUnavailable || Model.AvailableTasks.Count == 0)
+                            {
+                                <p>@(Model.TasksUnavailable ? "Tasks are temporarily unavailable." : "No open tasks right now.")</p>
+                            }
+                            @foreach (var task in Model.AvailableTasks)
+                            {
+                                <a class="home-task-row" href="/MarketTasks?view=jobs#task-@task.Id">
+                                    <span class="home-row-copy"><strong>@task.Title</strong><small>@task.Category · @tts.Data.TaskLocationRules.PublicArea</small></span>
+                                    <strong class="home-budget">@task.BudgetDisplay</strong>
+                                    <span aria-hidden="true">›</span>
+                                </a>
+                            }
+                        </section>
+                        <div class="home-job-details">
+                            <section class="section home-panel">
+                                <div class="home-panel-heading"><h3>Scheduled job</h3></div>
+                                <div data-scheduled-details hidden="@(Model.ScheduledJob is null)">
+                                    <p><strong data-scheduled-title>@Model.ScheduledJob?.Title</strong><br /><span data-scheduled-time>@Model.ScheduledJob?.ScheduleText</span></p>
+                                    <a class="home-panel-action" data-scheduled-link href="@(Model.ScheduledJob is { } job ? Url.Page("/Tracking", new { taskId = job.Id }) : null)">View progress</a>
+                                </div>
+                                <p data-scheduled-empty hidden="@(Model.ScheduledJob is not null)">@(Model.SummaryUnavailable ? "Schedule is temporarily unavailable." : "No confirmed job schedule yet.")</p>
+                            </section>
+                            <section class="section home-panel">
+                                <div class="home-panel-heading"><h3>Your availability</h3></div>
+                                <p class="availability-intro">Let clients know when you’re free for work in Bacolor.</p>
+                                <form method="post" asp-page-handler="Availability" class="availability-strip">
+                                    <span><i aria-hidden="true"></i>@(Model.Availability == "Available" ? "Available for new jobs" : Model.Availability)</span>
+                                    <button type="submit" role="switch" aria-label="Accepting new jobs" aria-checked="@Model.AcceptingJobs.ToString().ToLowerInvariant()"
+                                            name="acceptingJobs" value="@((!Model.AcceptingJobs).ToString().ToLowerInvariant())" disabled="@(!Model.CanEditAvailability)"></button>
+                                </form>
+                                @if (Model.AvailabilityNotice is { } notice) { <p role="status">@notice</p> }
+                                <dl class="home-availability-details">
+                                    <div><dt><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5m10-5v5M3 10h18"/></svg>Work days</dt><dd>@(string.IsNullOrWhiteSpace(Model.AvailableDays) ? "Not set" : Model.AvailableDays.Replace(",", ", "))</dd></div>
+                                    <div><dt><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Preferred hours</dt><dd>@Model.PreferredHours</dd></div>
+                                    <div><dt><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>Service area</dt><dd>@(string.IsNullOrWhiteSpace(Model.ServiceArea) ? "Not set" : Model.ServiceArea)</dd></div>
+                                </dl>
+                                <a class="home-panel-action" href="/Settings#availability"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6 4 4M4 20l4-1L20 7l-3-3L5 16l-1 4Z"/></svg>Edit availability</a>
+                            </section>
+                        </div>
+                    </div>
+                }
             </div>
 
         </main>

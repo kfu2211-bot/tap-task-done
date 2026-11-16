@@ -1,0 +1,49 @@
+(() => {
+    const overview = document.querySelector('[data-freelancer-summary]');
+    const url = overview?.dataset.freelancerSummary;
+    if (!url) return;
+
+    const counts = overview.querySelectorAll('.home-metric-copy strong');
+    const scheduledDetails = document.querySelector('[data-scheduled-details]');
+    const scheduledEmpty = document.querySelector('[data-scheduled-empty]');
+    let refreshing = false;
+
+    async function refresh() {
+        if (refreshing || document.hidden) return;
+        refreshing = true;
+        try {
+            const response = await fetch(url, {
+                cache: 'no-store',
+                signal: AbortSignal.timeout(8000)
+            });
+            if (!response.ok || response.redirected) return;
+            const { counts: summary, scheduled } = await response.json();
+            if (!Array.isArray(summary) || summary.length !== counts.length) return;
+
+            counts.forEach((count, index) => {
+                const value = String(summary[index]);
+                if (count.textContent !== value) count.textContent = value;
+            });
+            if (scheduledDetails && scheduledEmpty) {
+                scheduledDetails.hidden = !scheduled;
+                scheduledEmpty.hidden = !!scheduled;
+                if (scheduled) {
+                    scheduledDetails.querySelector('[data-scheduled-title]').textContent = scheduled.title;
+                    scheduledDetails.querySelector('[data-scheduled-time]').textContent = scheduled.scheduleText;
+                    scheduledDetails.querySelector('[data-scheduled-link]').href = scheduled.url;
+                } else {
+                    scheduledEmpty.textContent = 'No confirmed job schedule yet.';
+                }
+            }
+        } catch {
+            // Preserve the last successful count during a temporary connection issue.
+        } finally {
+            refreshing = false;
+        }
+    }
+
+    window.addEventListener('focus', refresh);
+    window.addEventListener('pageshow', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    setInterval(refresh, 5000);
+})();

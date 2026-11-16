@@ -49,5 +49,5 @@
     });
     observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-account-id'],attributeOldValue:true});
     window.addEventListener('account-header-ready',schedule);window.addEventListener('focus',schedule);
-    setInterval(refresh,30000);refresh();
+    setInterval(refresh,5000);refresh();
 })();

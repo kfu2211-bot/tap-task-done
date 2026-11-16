@@ -9,5 +9,7 @@ public sealed class FreelancerProfile
     public int? RateMaximum { get; set; }
     public string WorkRole { get; set; } = "client";
     public string Availability { get; set; } = "Available";
+    public TimeOnly? PreferredStart { get; set; }
+    public TimeOnly? PreferredEnd { get; set; }
     public string AvailableDays { get; set; } = "";
 }

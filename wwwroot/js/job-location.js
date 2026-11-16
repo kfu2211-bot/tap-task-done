@@ -110,7 +110,7 @@
             await loadDestination();
             render();
         } catch (error) { setStatus(status, error.message, true); }
-        if (!disposed) pollTimer = setTimeout(poll, 15000);
+        if (!disposed) pollTimer = setTimeout(poll, 5000);
     }
     async function send(position) {
         if (!active || !sharing || sending || disposed || Date.now() - lastSent < 15000) return;

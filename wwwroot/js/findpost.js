@@ -447,6 +447,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const providerDetailPanel = document.getElementById("providerDetailPanel");
     const sendBookingRequestButton = document.getElementById("sendBookingRequestButton");
     let selectedProvider = null;
+    const bookingSchedule = document.getElementById("bookingSchedule");
+    const bookingScheduleHelp = document.getElementById("bookingScheduleHelp");
+
+    function updateBookingAvailability() {
+        if (!selectedProvider || !bookingSchedule) return;
+        const canRequest = selectedProvider.id > 0 && selectedProvider.savedAvailability === "Available";
+        const futureOnly = canRequest && selectedProvider.availability !== "Available";
+        const localNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
+        const tomorrow = new Date(localNow.getTime() + 24 * 60 * 60 * 1000);
+        bookingSchedule.min = futureOnly ? tomorrow.toISOString().slice(0, 10) + "T00:00" : localNow.toISOString().slice(0, 16);
+        if (bookingScheduleHelp) bookingScheduleHelp.textContent = futureOnly
+            ? "This freelancer is working now. Choose tomorrow or later (Philippine time)."
+            : "Choose a future date and time (Philippine time).";
+        if (sendBookingRequestButton) sendBookingRequestButton.disabled = !canRequest;
+    }
 
     freelancerList.addEventListener("click", function (event) {
                     const button = event.target.closest(".arrow-button");
@@ -456,7 +471,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const service = card.querySelector(".freelancer-info span").textContent.trim();
                     const rating = card.querySelector(".freelancer-rating strong").textContent.trim();
                     const price = card.querySelector(".freelancer-price").textContent.trim();
-                    selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", service: service, rating: rating, price: price, availability: card.dataset.availability || "", location: card.dataset.location || "" };
+                    selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", service: service, rating: rating, price: price, availability: card.dataset.availability || "", savedAvailability: card.dataset.savedAvailability || "", location: card.dataset.location || "" };
                     document.getElementById("selectedProviderName").textContent = name;
                     document.getElementById("selectedProviderName").dataset.accountId = card.dataset.id;
                     document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set");
@@ -478,7 +493,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (bookingBudget) bookingBudget.value = card.dataset.rate || "";
                     const bookingBudgetMaximum = document.getElementById("bookingBudgetMaximum");
                     if (bookingBudgetMaximum) bookingBudgetMaximum.value = card.dataset.rateMaximum || card.dataset.rate || "";
-                    if (sendBookingRequestButton) sendBookingRequestButton.disabled = selectedProvider.availability !== "Available" || !card.dataset.id;
+                    updateBookingAvailability();
                     if (sendBookingRequestButton) sendBookingRequestButton.textContent = "Send booking request to " + name;
                     const bookingPrivacyNotice = document.getElementById("bookingPrivacyNotice");
                     if (bookingPrivacyNotice) bookingPrivacyNotice.textContent = "Private booking: only " + name + " will receive this request. It will not appear in Find Jobs.";
@@ -487,29 +502,36 @@ document.addEventListener("DOMContentLoaded", function () {
                     providerDetailPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
 
+    let refreshingProviderAvailability = false;
     async function refreshProviderAvailability() {
-        if (document.hidden) return;
+        if (document.hidden || refreshingProviderAvailability) return;
+        refreshingProviderAvailability = true;
         try {
             const response = await fetch('/api/providers/availability', { credentials: 'same-origin', cache: 'no-store' });
             if (!response.ok || response.redirected) return;
-            const statuses = new Map((await response.json()).map(p => [Number(p.id), p.availability]));
+            const statuses = new Map((await response.json()).map(p => [Number(p.id), p]));
             freelancerCards.forEach(card => {
-                const next = statuses.get(Number(card.dataset.id));
+                const status = statuses.get(Number(card.dataset.id));
+                const next = status?.availability;
                 if (!next) return;
                 card.dataset.availability = next;
+                card.dataset.savedAvailability = status.savedAvailability;
                 const badge = card.querySelector('.provider-availability'); if (badge) badge.textContent = next;
                 const label = card.querySelector('.match-details');
                 if (label) label.textContent = 'Service area: ' + card.dataset.location + ' · ' + next;
             });
             if (selectedProvider && statuses.has(selectedProvider.id)) {
-                selectedProvider.availability = statuses.get(selectedProvider.id);
+                const status = statuses.get(selectedProvider.id);
+                selectedProvider.availability = status.availability;
+                selectedProvider.savedAvailability = status.savedAvailability;
                 document.getElementById('selectedProviderAvailability').textContent = selectedProvider.availability;
-                if (sendBookingRequestButton) sendBookingRequestButton.disabled = selectedProvider.availability !== 'Available';
+                updateBookingAvailability();
             }
             performSearch(true);
         } catch { /* Keep last-known labels when offline; booking is validated on the server. */ }
+        finally { refreshingProviderAvailability = false; }
     }
-    setInterval(refreshProviderAvailability, 15000);
+    setInterval(refreshProviderAvailability, 5000);
     window.addEventListener('focus', refreshProviderAvailability);
     const closeProviderDetail = document.getElementById("closeProviderDetail");
     if (closeProviderDetail) closeProviderDetail.addEventListener("click", function () { providerDetailPanel.classList.add("hidden"); });

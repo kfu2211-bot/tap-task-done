@@ -57,6 +57,8 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         .Select(x => x.Role).ToListAsync(HttpContext.RequestAborted);
 
     [BindProperty] public string WorkRole { get; set; } = "client";
+    [BindProperty] public TimeOnly? PreferredStart { get; set; }
+    [BindProperty] public TimeOnly? PreferredEnd { get; set; }
     [BindProperty] public string Availability { get; set; } = "Available";
     [BindProperty] public string[] Days { get; set; } = [];
     [TempData] public string? Message { get; set; }
@@ -77,7 +79,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
             var savedServices = Service.Split(", ", StringSplitOptions.RemoveEmptyEntries);
             Services = savedServices.Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) || !ServiceOptions.Contains(value) ? "Other/General" : value).Distinct().ToArray();
             OtherService = string.Join(", ", savedServices.Where(value => !ServiceOptions.Contains(value)).Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) ? value["Other/General: ".Length..] : value));
-            Areas = BacolorServiceAreas.InLocation(Location).ToArray(); Rate = profile.Rate; RateMaximum = profile.RateMaximum ?? profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
+            Areas = BacolorServiceAreas.InLocation(Location).ToArray(); Rate = profile.Rate; RateMaximum = profile.RateMaximum ?? profile.Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; PreferredStart = profile.PreferredStart; PreferredEnd = profile.PreferredEnd; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
         AcceptedRoles = await LoadAcceptedRolesAsync();
         EffectiveAvailability = await FreelancerAvailability.GetAsync(db, UserId, Availability, HttpContext.RequestAborted);
         return Page();
@@ -156,6 +158,12 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
              Areas.Length == 0 || Areas.Any(area => !BacolorServiceAreas.Names.Contains(area)) ||
              (Services.Contains("Other/General") && (string.IsNullOrWhiteSpace(OtherService) || OtherService.Length > 60 || OtherService.Contains(',')))))
         { Message = "Choose at least one service and area. For Other / General, enter a service name of up to 60 characters without commas."; return RedirectToPage(); }
+        if ((WorkRole is "freelancer" or "both") &&
+            (PreferredStart.HasValue != PreferredEnd.HasValue || PreferredStart >= PreferredEnd))
+        {
+            Message = "Enter both preferred times, with an end time after the start time, or leave both blank.";
+            return RedirectToPage();
+        }
         if (!await db.Users.AnyAsync(x => x.Id == UserId)) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
         var accepted = await LoadAcceptedRolesAsync();
         string[] required = WorkRole == "both" ? ["client", "freelancer"] : [WorkRole];
@@ -182,6 +190,8 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
             profile.Rate = Rate;
             profile.RateMaximum = RateMaximum;
             profile.Availability = Availability;
+            profile.PreferredStart = PreferredStart;
+            profile.PreferredEnd = PreferredEnd;
             profile.AvailableDays = string.Join(',', validDays.Where(Days.Contains));
         }
         try

@@ -58,7 +58,7 @@
         } catch { /* A temporary outage must not interrupt unsaved work. */ }
         finally { busy = false; }
     }
-    check(); setInterval(check, 15000);
+    check(); setInterval(check, 5000);
     window.addEventListener('focus', check);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
 })();

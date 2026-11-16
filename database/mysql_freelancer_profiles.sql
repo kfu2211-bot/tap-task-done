@@ -8,5 +8,7 @@ CREATE TABLE IF NOT EXISTS freelancer_profiles (
     WorkRole VARCHAR(16) NOT NULL DEFAULT 'client',
     Availability VARCHAR(16) NOT NULL DEFAULT 'Available',
     AvailableDays VARCHAR(40) NOT NULL DEFAULT '',
+    PreferredStart TIME NULL,
+    PreferredEnd TIME NULL,
     CONSTRAINT fk_freelancer_profile_user FOREIGN KEY (UserId) REFERENCES tbl_user(Id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

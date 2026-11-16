@@ -97,8 +97,10 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             var role = requesterProfile?.WorkRole ?? "client";
             var provider = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == freelancerId &&
                 (p.WorkRole == "freelancer" || p.WorkRole == "both") && p.Availability == "Available" && p.Service != "" && p.Location != "", ct);
-            if (!CanBook(role) || provider is null || await FreelancerAvailability.IsBusyAsync(db, freelancerId, ct))
+            if (!CanBook(role) || provider is null)
             { Notice = "Choose an available freelancer to send a booking."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
+            if (preferredTime.Date <= DateTime.UtcNow.AddHours(8).Date && await FreelancerAvailability.IsBusyAsync(db, freelancerId, ct))
+            { Notice = "This freelancer is working now. Choose tomorrow or a later date in Philippine time."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
             var duplicate = await db.MarketplaceBookings.AnyAsync(b => b.FreelancerId == freelancerId && b.Status == "pending" &&
                 db.MarketplaceTasks.Any(t => t.Id == b.TaskId && t.ClientId == UserId && t.Status == "booking-pending" &&
                     t.Title == title && t.Description == description && t.Location == location && t.ScheduleText == schedule && t.Budget == budget && t.BudgetMaximum == budgetMaximum), ct);

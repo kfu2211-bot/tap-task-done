@@ -9,7 +9,7 @@ namespace tts.Pages;
 [Authorize(Policy = "AdminOnly")]
 public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider protection, IdentityVerificationAvailability availability) : PageModel
 {
-    public record Item(long Id, string Name, string Status, string IdLast4, DateTime CreatedAt, bool HasCertification, bool HasSupporting) { public bool HasSelfie { get; init; } public string? GovernmentType { get; init; } }
+    public record Item(long Id, string Name, string Status, string IdLast4, DateTime CreatedAt, bool HasCertification, bool HasSupporting, bool IsLatest) { public bool HasSelfie { get; init; } public string? GovernmentType { get; init; } }
     public List<Item> Items { get; private set; } = [];
     public string Queue { get; private set; } = "pending";
     public bool DatabaseUnavailable { get; private set; }
@@ -23,7 +23,7 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
         Response.Headers.CacheControl = "no-store";
         if (!availability.Enabled) Notice = "Document review is paused until secure document storage is configured. Existing requests are listed below.";
         Queue = queue is "approved" or "rejected" ? queue : "pending";
-        try { Items = await (from r in db.IdentityRequests.AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id where recordId.HasValue ? r.Id == recordId.Value : Queue == "rejected" ? (r.Status == "rejected" || r.Status == "resubmit") : r.Status == Queue orderby r.Id descending select new Item(r.Id, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), r.Status, r.IdLast4, r.CreatedAt, r.Certification != null, r.SupportingDocument != null)).Take(100).ToListAsync(ct); }
+        try { Items = await (from r in db.IdentityRequests.AsNoTracking() join u in db.Users.AsNoTracking() on r.UserId equals u.Id where recordId.HasValue ? r.Id == recordId.Value : Queue == "rejected" ? (r.Status == "rejected" || r.Status == "resubmit") : r.Status == Queue orderby r.Id descending select new Item(r.Id, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), r.Status, r.IdLast4, r.CreatedAt, r.Certification != null, r.SupportingDocument != null, !db.IdentityRequests.Any(newer => newer.UserId == r.UserId && newer.Id > r.Id))).Take(100).ToListAsync(ct); }
         catch (MySqlConnector.MySqlException ex) when (ex.Number == 1146 && !availability.Enabled)
         { Notice = "No verification requests have been set up. Document submissions and review are paused until secure document storage is configured."; }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { DatabaseUnavailable = true; Notice = "Verification requests could not be loaded. Please check the database setup and try again."; }
@@ -61,6 +61,40 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
         var changed = await db.IdentityRequests.Where(x => x.Id == id && x.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, decision).SetProperty(x => x.ReviewNote, note).SetProperty(x => x.ReviewedAt, DateTime.UtcNow).SetProperty(x => x.ReviewReadAt, (DateTime?)null).SetProperty(x => x.ReviewedById, AdminId), ct);
         Notice = changed == 1 ? "Decision saved." : "Request was already reviewed or is unavailable."; return RedirectToPage(new { embedded = Embedded });
     }
+    public async Task<IActionResult> OnPostRenewAsync(long id, string? note, CancellationToken ct)
+    {
+        if (!availability.Enabled || AdminId <= 0) return NotFound();
+        note = (note ?? "").Trim();
+        if (note.Length is 0 or > 500)
+        {
+            Notice = "Explain which document needs renewal and why (up to 500 characters).";
+            return RedirectToPage(new { embedded = Embedded, queue = "approved", recordId = id });
+        }
+
+        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        var isCurrent = await db.IdentityRequests.AnyAsync(r => r.Id == id && r.Status == "approved" &&
+            !db.IdentityRequests.Any(newer => newer.UserId == r.UserId && newer.Id > r.Id), ct);
+        if (!isCurrent)
+        {
+            Notice = "This request is no longer the user's current approved verification.";
+            return RedirectToPage(new { embedded = Embedded, queue = "approved" });
+        }
+
+        var now = DateTime.UtcNow;
+        var changed = await db.IdentityRequests.Where(r => r.Id == id && r.Status == "approved")
+            .ExecuteUpdateAsync(update => update
+                .SetProperty(r => r.Status, "resubmit")
+                .SetProperty(r => r.ReviewNote, note)
+                .SetProperty(r => r.ReviewedAt, now)
+                .SetProperty(r => r.ReviewReadAt, (DateTime?)null)
+                .SetProperty(r => r.ReviewedById, AdminId), ct);
+        await transaction.CommitAsync(ct);
+        Notice = changed == 1
+            ? "Renewal requested. The user will see a notification and can submit updated documents."
+            : "This request is no longer the user's current approved verification.";
+        return RedirectToPage(new { embedded = Embedded, queue = changed == 1 ? "rejected" : "approved" });
+    }
+
     public async Task<IActionResult> OnGetDocumentAsync(long id, string kind, CancellationToken ct)
     {
         if (!availability.Enabled || kind is not ("id" or "certification" or "supporting" or "selfie")) return NotFound();

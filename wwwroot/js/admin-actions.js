@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
             checkingInbox = false;
         }
     }
-    setInterval(checkInbox, 15000);
+    setInterval(checkInbox, 5000);
     document.addEventListener("visibilitychange", () => {
         if (!document.hidden) {
             showNextReport();

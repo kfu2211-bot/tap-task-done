@@ -57,6 +57,7 @@
             document.head.appendChild(mobilePolish);
         }
         var account;
+        var identityApproved = false;
 
         try {
             account = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "null") || {};
@@ -76,7 +77,9 @@
             if (response.ok) {
                 var preferences = await response.json();
                 displayName = preferences.displayName?.trim() || displayName;
+                identityApproved = preferences.identityApproved === true;
                 account.role = preferences.role;
+                account.homeView = preferences.homeView;
                 account.service = preferences.service;
                 account.availability = preferences.availability;
                 localStorage.setItem('tapTaskDoneAccount', JSON.stringify(account));
@@ -108,33 +111,42 @@
         // Keep every page on the same predictable sidebar journey. Existing links are
         // moved into this sequence; only links missing from an older page are created.
         var role = String(account.role || "client").toLowerCase();
-        var isFreelancer = role === "freelancer" || role === "both";
-        var isClient = role === "client" || role === "both";
-        var sidebarFlow = [
-            { href: "/Dashboard", icon: "⌂", label: "Home" },
-            { href: isClient && !isFreelancer ? "/FindPost?mode=post" : isFreelancer && !isClient ? "/FindPost?mode=jobs" : "/FindPost", icon: "⌕", label: isClient && !isFreelancer ? "Post a Task" : isFreelancer && !isClient ? "Find Jobs" : "Find & Post" },
-            ...(isClient ? [{ href: "/MarketTasks?view=mine", icon: "▤", label: "My Tasks" }] : []),
-            ...(isFreelancer ? [{ href: "/MyJobs", icon: "▤", label: "My Jobs" }] : []),
+        var sharedItems = [
             { href: "/Messages", icon: "□", label: "Messages" },
             { href: "/Tracking", icon: "➤", label: "Tracking" },
             { href: "/Reviews", icon: "☆", label: "Reviews" },
-            { href: "/IdentityVerification", icon: "✓", label: "Identity Verification" },
+            ...(identityApproved ? [] : [{ href: "/IdentityVerification", icon: "✓", label: "Identity Verification" }]),
             { href: "/Reports", icon: "⚑", label: "Safety & Reports" }
         ];
 
-        // Keep the main action clear for the active role.  
-        sidebarFlow.forEach(function (item) {
-            if (item.href === "/FindPost") item.label = isFreelancer && !isClient ? "Find Jobs" : isClient && !isFreelancer ? "Post a Task" : "Find & Post";
-        });
-
         document.querySelectorAll(".sidebar-menu, .sidebar-nav, .sidebar-navigation, .navigation, .mytasks-navigation").forEach(function (nav) {
             if (nav.dataset.sidebarFlowNormalized === "true") return;
+            nav.querySelectorAll(".home-nav-heading").forEach(function (heading) { heading.remove(); });
             nav.dataset.sidebarFlowNormalized = "true";
 
             var sampleLink = nav.querySelector("a");
             var sampleIcon = sampleLink && sampleLink.querySelector("span");
 
-            sidebarFlow.forEach(function (item) {
+            var homeView = nav.dataset.homeView || (role === "freelancer" || (role === "both" && account.homeView === "freelancer") ? "freelancer" : "client");
+            var homeItems = homeView === "freelancer"
+                ? [
+                    { href: "/FindPost?mode=jobs", icon: "⌕", label: "Find Jobs" },
+                    { href: "/MyJobs", icon: "▤", label: "My Jobs" },
+                    { href: "/Settings#availability", icon: "▣", label: "My Availability" }
+                ]
+                : [
+                    { href: "/MarketTasks?view=mine", icon: "▤", label: "My Tasks" },
+                    { href: "/FindPost", icon: "⌕", label: "Find & Post" }
+                ];
+            var items = [{ href: "/Dashboard", icon: "⌂", label: "Home" }, ...homeItems, ...sharedItems];
+
+            items.forEach(function (item) {
+                if (item.href === "/Dashboard" || item.href === "/Messages") {
+                    var heading = document.createElement("div");
+                    heading.className = "home-nav-heading";
+                    heading.textContent = item.href === "/Messages" ? "Shared" : homeView;
+                    nav.appendChild(heading);
+                }
                 var link = nav.querySelector('a[href="' + item.href + '"]');
 
                 if (!link) {
@@ -159,7 +171,15 @@
                     link.appendChild(document.createTextNode(item.label));
                 }
 
-                link.classList.toggle("active", window.location.pathname.toLowerCase() === item.href.split("?")[0].toLowerCase());
+                var path = window.location.pathname.toLowerCase();
+                var query = new URLSearchParams(window.location.search);
+                var active = path === item.href.split("?")[0].toLowerCase();
+                if (path === "/findpost" && item.href === "/FindPost?mode=jobs") {
+                    active = active && (query.get("mode") || "jobs") === "jobs";
+                }
+                link.classList.toggle("active", active);
+                if (active) link.setAttribute("aria-current", "page");
+                else link.removeAttribute("aria-current");
                 decorateSidebarLink(link);
                 if (item.href === "/Messages" || item.href === "/MyJobs" || item.href.indexOf("/MarketTasks") === 0) {
                     var navBadge = link.querySelector(":scope > .sidebar-unread-badge") || document.createElement("span");
@@ -174,13 +194,9 @@
                 nav.appendChild(link);
             });
 
-            // Remove role-only entries left over from a page's original static sidebar.
-            nav.querySelectorAll('a[href="/MyTasks"]').forEach(function (link) { link.remove(); });
-            nav.querySelectorAll('a[href="/Notifications"]').forEach(function (link) { link.remove(); });
-            nav.querySelectorAll('a[href="/MyJobs"]').forEach(function (link) { if (!isFreelancer) link.remove(); });
-            nav.querySelectorAll('a[href="/FindPost"]').forEach(function (link) { if (isClient !== isFreelancer) link.remove(); });
-            nav.querySelectorAll('a[href="/FindPost?mode=post"]').forEach(function (link) { if (!isClient || isFreelancer) link.remove(); });
-            nav.querySelectorAll('a[href="/FindPost?mode=jobs"]').forEach(function (link) { if (!isFreelancer || isClient) link.remove(); });
+            nav.querySelectorAll("a").forEach(function (link) {
+                if (!items.some(function (item) { return item.href === link.getAttribute("href"); })) link.remove();
+            });
         });
 
         if (!document.querySelector('link[href*="/css/notification-popup.css"]')) {
@@ -345,7 +361,10 @@
             }, true);
         });
 
+        let updatingNotificationCount = false;
         async function updateNotificationCount() {
+            if (updatingNotificationCount || document.hidden) return;
+            updatingNotificationCount = true;
             try {
                 const response = await fetch("/api/notifications/unread-count", { credentials: "same-origin", cache: "no-store" });
                 if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) return;
@@ -369,9 +388,10 @@
                 });
                 return count;
             } catch (error) { console.warn("Notifications could not be refreshed.", error); }
+            finally { updatingNotificationCount = false; }
         }
         updateNotificationCount();
-        setInterval(updateNotificationCount, 30000);
+        setInterval(updateNotificationCount, 5000);
         window.addEventListener("pageshow", updateNotificationCount);
         window.addEventListener("focus", updateNotificationCount);
         window.addEventListener("message-read-state-changed", updateNotificationCount);
@@ -425,7 +445,7 @@
             } catch (_) { /* Keep the current page usable if the network is unavailable. */ }
             finally { toastBusy = false; showUpdateToast(); }
         }
-        checkLiveUpdates(); setInterval(checkLiveUpdates, 10000);
+        checkLiveUpdates(); setInterval(checkLiveUpdates, 5000);
         window.addEventListener('focus', checkLiveUpdates);
         document.addEventListener('visibilitychange', function () { if (!document.hidden) checkLiveUpdates(); });
 

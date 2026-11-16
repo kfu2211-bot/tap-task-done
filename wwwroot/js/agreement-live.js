@@ -19,5 +19,5 @@
             if(action&&newAction&&action.value===newAction.value){const button=action.closest('form').querySelector('button[type=submit]'),newButton=newAction.closest('form').querySelector('button[type=submit]');if(button&&newButton)button.disabled=newButton.disabled;}
         }catch{/* Keep unsaved proposals and current map during connection errors. */}finally{pending=false;}
     }
-    setInterval(refresh,10000);window.addEventListener('focus',refresh);
+    setInterval(refresh,5000);window.addEventListener('focus',refresh);
 })();

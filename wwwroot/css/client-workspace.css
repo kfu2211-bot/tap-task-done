@@ -1,0 +1,215 @@
+:is(.client-workspace, .freelancer-home) {
+    --client-active: #07572e;
+}
+
+html body:is(.client-home, .freelancer-home) .dashboard .home-banner {
+    position: relative;
+    min-height: 218px;
+    padding: 20px clamp(20px, 3vw, 44px);
+    border-radius: 18px;
+}
+html:not([data-theme="dark"]) body:is(.client-home, .freelancer-home) .dashboard .home-banner {
+    background: linear-gradient(90deg, #e9f4e6 45%, transparent 70%),
+        url('/images/client-home/bacolor.jpg') right bottom / auto 100% no-repeat,
+        #deefdf !important;
+}
+:is(.client-home, .freelancer-home) .hero-text { width: 100%; }
+html body:is(.client-home, .freelancer-home) .dashboard .hero-text h2 {
+    font-size: clamp(1.9rem, 2.45vw, 2.7rem);
+    line-height: 1.06;
+}
+:is(.client-home, .freelancer-home) .hero-text p { max-width: min(640px, 63%); }
+.client-location {
+    display: inline-flex;
+    width: fit-content;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: #f4faf3;
+    color: #123e29;
+    font-weight: 700;
+}
+:is(.client-home, .freelancer-home) .client-location { position: absolute; inset: 16px 24px auto auto; z-index: 3; align-items: center; gap: 6px; }
+html body:is(.client-home, .freelancer-home) .dashboard .home-banner .post-button {
+    background: var(--client-active) !important;
+    color: white !important;
+}
+:is(.client-home, .freelancer-home) .hero-buttons > :is(button, a) { min-width: min(200px, 100%); }
+:is(.client-home, .freelancer-home) .dashboard .home-overview { margin-block: 16px 20px; }
+:is(.client-home, .freelancer-home) .home-metric .home-symbol { width: 62px; height: 58px; }
+:is(.client-home, .freelancer-home) .home-metric .home-symbol svg { width: 32px; height: 32px; }
+:is(.client-home, .freelancer-home) .home-metric-copy strong { font-size: clamp(1.35rem, 2.5vw, 2.1rem); }
+:is(.client-home, .freelancer-home) .dashboard .home-panel-heading h3 { font-size: clamp(1.45rem, 2.25vw, 2rem); }
+.client-home .dashboard .home-filters { margin-bottom: 14px; }
+.client-home .dashboard .home-filters a {
+    padding-inline: 18px;
+    border: 1px solid var(--home-line);
+    background: var(--home-card);
+    color: inherit;
+}
+.client-home .dashboard .home-filters a[aria-current="page"] { background: var(--client-active); color: white; }
+.client-home .dashboard .home-task-row,
+.client-home .dashboard .home-task-row:last-child {
+    grid-template-columns: minmax(0, 1fr) minmax(75px, 14%) minmax(110px, 15%) auto;
+    min-height: 64px;
+    padding: 10px 14px;
+    margin-top: 4px;
+    border: 1px solid var(--home-line);
+    border-radius: 10px;
+}
+.client-home .home-row-copy strong, .client-home .home-budget { font-size: clamp(.95rem, 1.35vw, 1.2rem); }
+.client-home .home-status { justify-self: start; text-align: center; }
+
+@media (max-width: 940px) {
+    :is(.client-home, .freelancer-home) .hero-text p { max-width: 65%; }
+    :is(.client-home, .freelancer-home) .home-metric .home-symbol { width: 42px; height: 42px; }
+    :is(.client-home, .freelancer-home) .home-metric .home-symbol svg { width: 23px; height: 23px; }
+}
+@media (max-width: 760px) {
+    html body:is(.client-home, .freelancer-home) .dashboard .hero-card.home-banner {
+        --mobile-banner-photo-height: clamp(112px, 34vw, 190px);
+        min-height: 0;
+        padding: calc(var(--mobile-banner-photo-height) + 16px) 18px 18px !important;
+    }
+    html:not([data-theme="dark"]) body:is(.client-home, .freelancer-home) .dashboard .home-banner {
+        background: #e9f4e6 !important;
+    }
+    html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before {
+        inset: 0 0 auto;
+        width: 100%;
+        height: var(--mobile-banner-photo-height);
+        border-radius: 0;
+        background: #cfe8d5 url('/images/client-home/bacolor.jpg') right center / cover no-repeat;
+        opacity: 1;
+        transform: none;
+    }
+    html body:is(.client-home, .freelancer-home) .dashboard .home-banner::after { content: none; }
+    :is(.client-home, .freelancer-home) .client-location {
+        inset: 10px 10px auto auto;
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+    :is(.client-home, .freelancer-home) .hero-text p { max-width: 100%; }
+    html body:is(.client-home, .freelancer-home) .dashboard .home-banner .hero-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 134px), 1fr));
+    }
+    html body:is(.client-home, .freelancer-home) .dashboard .home-banner .hero-buttons > :is(button, a) {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        height: auto;
+        max-height: none;
+        padding: 8px 10px;
+        white-space: normal;
+    }
+    .client-home .dashboard .home-task-row,
+    .client-home .dashboard .home-task-row:last-child {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px 10px;
+    }
+    .client-home .dashboard .home-task-row > .home-budget { grid-area: 1 / 2; }
+    .client-home .dashboard .home-task-row > .home-status { grid-area: 2 / 1 / 3 / 3; }
+    .client-home .dashboard .home-task-row > :last-child { display: none; }
+}
+
+
+html body:is(.client-home, .freelancer-home) .dashboard .hero-card.home-banner {
+    margin-bottom: 18px !important;
+}
+.client-home #home-tasks { scroll-margin-top: 80px; }
+
+.client-location svg { width: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+.freelancer-home .home-job-layout { align-items: start; }
+.freelancer-home .dashboard .home-task-row,
+.freelancer-home .dashboard .home-task-row:last-child {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    min-height: 64px;
+    margin-top: 6px;
+    padding: 10px 14px;
+    border: 1px solid var(--home-line);
+    border-radius: 10px;
+}
+.freelancer-home .home-task-row .home-budget {
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--home-soft);
+    overflow-wrap: anywhere;
+}
+.freelancer-home .home-job-details .home-panel-action {
+    display: block;
+    padding: 10px 14px;
+    text-align: center;
+}
+.freelancer-home .home-job-details .home-status { margin-bottom: 0; }
+@media (max-width: 620px) {
+    .freelancer-home .dashboard .home-task-row > .home-budget {
+        grid-area: 1 / 2;
+        justify-self: end;
+        max-width: 14ch;
+    }
+}
+
+.freelancer-home .availability-intro { margin: 6px 0 10px; }
+.freelancer-home .availability-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 10px;
+    margin: 0;
+    border-radius: 9px;
+    color: var(--home-accent);
+    background: var(--home-soft);
+    font-weight: 700;
+}
+.availability-strip span { display: flex; align-items: center; gap: 8px; }
+.availability-strip i { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.freelancer-home .availability-strip button[role="switch"] {
+    position: relative;
+    flex: 0 0 44px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #657970;
+    color: white;
+    cursor: pointer;
+}
+.freelancer-home .availability-strip button[aria-checked="true"] { background: #07572e; }
+.availability-strip button::before {
+    content: "";
+    position: absolute;
+    inset: 6px auto 6px 5px;
+    width: 20px;
+    border-radius: 50%;
+    background: white;
+}
+.availability-strip button[aria-checked="true"]::before { inset-inline: auto 5px; }
+.availability-strip button:disabled { opacity: .6; cursor: default; }
+.freelancer-home .home-availability-details { margin-block: 6px 12px; }
+.freelancer-home .home-availability-details dt,
+.freelancer-home .home-panel-action:has(svg) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.freelancer-home .home-panel-action:has(svg) { justify-content: center; }
+.freelancer-home :is(.home-availability-details, .home-panel-action) svg {
+    flex: 0 0 17px;
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+@media (min-width: 761px) {
+    html[data-theme="dark"] body:is(.client-home, .freelancer-home) .dashboard .home-banner {
+        background: linear-gradient(90deg, #193a2d 43%, #193a2d50 78%, #193a2d22),
+            url('/images/client-home/bacolor.jpg') right bottom / auto 100% no-repeat,
+            #193a2d !important;
+    }
+}

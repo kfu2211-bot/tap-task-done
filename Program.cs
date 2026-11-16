@@ -242,7 +242,7 @@ app.MapGet("/api/providers/availability", async (HttpContext context, Applicatio
     var profiles = await db.FreelancerProfiles.AsNoTracking().Where(p => p.WorkRole == "freelancer" || p.WorkRole == "both")
         .Select(p => new { p.UserId, p.Availability }).ToListAsync(ct);
     var active = await FreelancerAvailability.AssignmentsAsync(db, profiles.Select(p => p.UserId).ToArray(), ct);
-    return Results.Json(profiles.Select(p => new { id = p.UserId, availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.UserId) ?? []) }));
+    return Results.Json(profiles.Select(p => new { id = p.UserId, savedAvailability = p.Availability, availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.UserId) ?? []) }));
 }).RequireAuthorization();
 
 app.MapGet("/api/task-help/providers", async (string topic, HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
@@ -278,7 +278,9 @@ app.MapGet("/api/work-preferences", async (HttpContext context, ApplicationDbCon
     var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == userId);
     var effective = await FreelancerAvailability.GetAsync(db, userId, profile?.Availability ?? "Available", context.RequestAborted);
     context.Response.Headers.CacheControl = "no-store";
-    return Results.Json(new { displayName = accountName, role = profile?.WorkRole ?? "client", service = profile?.Service ?? "", availability = effective, preferredAvailability = profile?.Availability ?? "Available" });
+    var homeView = profile?.WorkRole == "freelancer" || (profile?.WorkRole == "both" &&
+        context.Request.Cookies["tts-home-view-" + userId] == "freelancer") ? "freelancer" : "client";
+    return Results.Json(new { displayName = accountName, role = profile?.WorkRole ?? "client", homeView, service = profile?.Service ?? "", availability = effective, preferredAvailability = profile?.Availability ?? "Available", identityApproved = await IdentityWorkGate.IsApprovedAsync(db, userId, context.RequestAborted) });
 }).RequireAuthorization();
 
 app.MapGet("/api/account-warning", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>

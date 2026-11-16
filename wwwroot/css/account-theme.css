@@ -851,3 +851,63 @@ html[data-theme="dark"] body.messages-current-view :is(.conversation-link, .thre
 html[data-theme="dark"] body.messages-current-view :is(.conversation-link, .thread-task-link):hover { background: #294438; }
 html[data-theme="dark"] body.messages-current-view .thread-date::before,
 html[data-theme="dark"] body.messages-current-view .thread-date::after { background: var(--line); }
+
+/* Match the brand block and page header across signed-in workspaces. */
+html[data-theme="dark"] {
+    --workspace-header: #171f1b;
+    --workspace-header-line: #38483f;
+}
+html[data-theme="dark"] body:has(:is(.sidebar, .mytasks-sidebar))
+    :is(main > header, .topbar, .top-header, .mytasks-topbar, .market-header, .dashboard .topbar.home-topbar),
+html[data-theme="dark"] body
+    :is(.sidebar.sidebar.sidebar, .mytasks-sidebar.mytasks-sidebar.mytasks-sidebar)
+    > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) {
+    background: var(--workspace-header) !important;
+    border-color: var(--workspace-header-line) !important;
+    color: var(--text) !important;
+}
+html[data-theme="dark"] body:has(:is(.sidebar, .mytasks-sidebar)) #headerAccountButton {
+    background: transparent !important;
+    border-color: transparent !important;
+}
+html[data-theme="dark"] body:has(:is(.sidebar, .mytasks-sidebar)) #headerAccountButton:is(:hover, [aria-expanded="true"]) {
+    background: var(--surface-2) !important;
+    border-color: var(--workspace-header-line) !important;
+}
+html[data-theme="dark"] body .dashboard .home-topbar .home-view-switch {
+    background: var(--workspace-header);
+    border-color: #567264;
+}
+html[data-theme="dark"] body .dashboard .home-topbar .home-view-switch a[aria-current="page"] {
+    background: #a5edcc;
+    color: #10241a !important;
+}
+html[data-theme="dark"] body .dashboard .home-topbar .home-view-switch a:not([aria-current="page"]):hover {
+    background: var(--surface-2);
+}
+html[data-theme="dark"] body .dashboard .client-location {
+    background: #20392e;
+    color: #edf5ef;
+    border: 1px solid #567264;
+}
+html[data-theme="dark"] body .dashboard .home-panel .home-budget { color: var(--brand) !important; }
+html[data-theme="dark"] body .dashboard .home-panel .home-filters a:not([aria-current="page"]) {
+    background: var(--surface);
+    border-color: #567264;
+    color: var(--text) !important;
+}
+html[data-theme="dark"] body .dashboard .home-panel .home-filters a[aria-current="page"] {
+    background: #a5edcc;
+    border-color: #a5edcc;
+    color: #10241a !important;
+}
+html[data-theme="dark"] body .market-content .task-list-budget { color: var(--brand) !important; }
+html[data-theme="dark"] body .market-content .task-card .task-actions :is(.task-action-dispute, .cancel-task > summary) {
+    background: var(--surface-2) !important;
+    border-color: #567264 !important;
+    color: var(--text) !important;
+}
+html[data-theme="dark"] body .market-content .task-card .task-actions :is(.task-action-dispute, .cancel-task > summary):hover {
+    background: #304e3e !important;
+}
+html[data-theme="dark"] body .market-content .task-card .cancel-task p { color: var(--muted) !important; }

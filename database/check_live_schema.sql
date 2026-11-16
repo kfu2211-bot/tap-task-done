@@ -65,6 +65,8 @@ UNION ALL SELECT 'email_verification_requests' AS table_name, 'UserId' AS column
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Availability' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'AvailableDays' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Location' AS column_name
+UNION ALL SELECT 'freelancer_profiles' AS table_name, 'PreferredStart' AS column_name
+UNION ALL SELECT 'freelancer_profiles' AS table_name, 'PreferredEnd' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Rate' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'RateMaximum' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Service' AS column_name
