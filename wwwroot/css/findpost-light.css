@@ -181,46 +181,6 @@ html body #findJobsSection .jobs-card .jobs-meta {
     color: #40594d !important;
     font-size: 14px;
 }
-html body #findJobsSection .jobs-card > .jobs-offer-status {
-    justify-self: start;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: #e1efe3;
-    color: #15513a !important;
-    font-size: 14px;
-    font-weight: 700;
-}
-html[data-theme="dark"] body #findJobsSection .jobs-card > .jobs-offer-status {
-    background: #254537;
-    color: #edf5ef !important;
-}
-html body #findJobsSection .jobs-card .jobs-offer {
-    background: transparent !important;
-    border: 0;
-}
-@media (min-width: 1050px) {
-    #findJobsSection .jobs-card {
-        grid-template-columns: minmax(0, 1fr) auto auto;
-        align-items: center;
-    }
-    #findJobsSection .jobs-card-top { grid-column: 1 / -1; }
-    #findJobsSection .jobs-card > :is(h3, p, .jobs-meta) { grid-column: 1; }
-    #findJobsSection .jobs-card > form:not(.job-offer-editor) { grid-column: 2; grid-row: 3 / span 2; }
-    #findJobsSection .jobs-card > .jobs-offer { grid-column: 3; grid-row: 3 / span 2; }
-    #findJobsSection .jobs-card > .jobs-offer[open] {
-        grid-column: 1 / -1;
-        grid-row: auto;
-        justify-self: stretch;
-    }
-}
-
-html body #findJobsSection .jobs-offer[open] > form {
-    margin-top: 12px;
-    padding: 16px;
-    border: 1px solid var(--line, #d5e4d8);
-    border-radius: 10px;
-    background: var(--surface-2, #f2f7f1);
-}
 @media (max-width: 600px) { .jobs-category-filter { max-width: none; } }
 
 .service-inquiry {

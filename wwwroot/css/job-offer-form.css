@@ -20,17 +20,43 @@ html body :is(.job-offer-toggle, .job-offer-use-budget) {
 .job-offer-toggle[aria-expanded="true"]::after { content: "▴"; }
 html body form.job-offer-editor {
     display: grid;
-    gap: 12px;
-    width: min(100%, 440px);
-    margin-top: 12px;
-    padding: 16px;
-    border: 1px solid var(--line, #d5e4d8);
-    border-radius: 10px;
-    background: var(--surface-2, #f2f7f1);
+    gap: 8px;
+    width: min(100%, 690px);
+    margin: 4px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--line, #d5e4d8);
 }
-.job-offer-editor form p, .job-offer-editor > p { margin: 0; }
-.job-offer-editor label { display: grid; gap: 6px; }
+.job-offer-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    gap: 8px;
+}
+.job-offer-fields label { display: grid; gap: 4px; min-width: 0; }
+html body .job-offer-fields :is(input, textarea) {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid var(--line, #c9ddcd);
+    border-radius: 8px;
+    background: var(--surface, #fff);
+    color: var(--text, #15563f);
+    font: inherit;
+}
+html body .job-offer-fields textarea { height: 44px; resize: vertical; }
 .job-offer-editor :is(.job-offer-use-budget, button[type="submit"]) { justify-self: start; }
+.job-offer-actions { margin-top: 4px; }
+html body .job-offer-actions .jobs-offer-status {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--surface-2, #e1efe3);
+    color: var(--text, #15513a) !important;
+    font-weight: 700;
+}
+@media (min-width: 760px) {
+    .job-offer-fields { grid-template-columns: minmax(110px, .45fr) minmax(0, 1fr) auto; }
+}
 html body :is(.job-offer-actions, .job-offer-editor) .post-submit-button {
     min-height: 44px;
     padding: 8px 15px;
@@ -43,7 +69,3 @@ html body :is(.job-offer-actions, .job-offer-editor) .post-submit-button {
 }
 #findJobsSection .jobs-card[id] { scroll-margin-top: 90px; }
 #findJobsSection .jobs-card:target { outline: 2px solid var(--brand, #176b50); outline-offset: -2px; }
-@media (min-width: 1050px) {
-    #findJobsSection .jobs-card > .job-offer-actions { grid-column: 3; grid-row: 3 / span 2; }
-    #findJobsSection .jobs-card > .job-offer-editor { grid-column: 1 / -1; justify-self: end; }
-}
