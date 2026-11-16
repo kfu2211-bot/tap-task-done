@@ -91,6 +91,7 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
             "booking_request" => RedirectToPage("/MyJobs", new { view = "requests" }),
             "accepted" => RedirectToPage("/MyJobs", new { view = "active" }),
             "completed" or "on-the-way" or "arrived" or "started" or "finished" or "booking_accepted" or "completion_reminder" or "agreement" => RedirectToPage("/Tracking", new { taskId = item.TaskId }),
+            "moderation" => RedirectToPage("/MarketTasks", null, new { view = "mine" }, "task-" + item.TaskId),
             "cancelled" => RedirectToPage("/MyJobs", new { view = "cancelled" }),
             "offer" or "withdrawn" or "booking_declined" => RedirectToPage("/MarketTasks", new { view = "mine" }),
             "task_expired" => isTaskOwner ? RedirectToPage("/MarketTasks", new { view = "mine" }) : RedirectToPage("/MyJobs", new { view = "offers" }),

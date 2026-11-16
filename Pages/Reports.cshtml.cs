@@ -8,15 +8,16 @@ namespace tts.Pages;
 [Authorize]
 public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger) : PageModel
 {
-    private static readonly string[] Reasons = ["Scam or fake account", "No-show", "Harassment or inappropriate behavior", "Work quality or service issue", "Threat to safety", "Payment disagreement", "Scheduling disagreement", "Disagreement about agreed work", "Minor communication or service concern", "Other"];
+    private static readonly string[] Reasons = ["Fake or inappropriate task post", "Scam or fake account", "No-show", "Harassment or inappropriate behavior", "Work quality or service issue", "Threat to safety", "Payment disagreement", "Scheduling disagreement", "Disagreement about agreed work", "Minor communication or service concern", "Other"];
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public List<SafetyReport> Reports { get; private set; } = [];
     public List<ReportUpdate> Updates { get; private set; } = [];
     public record ReportUpdate(long ReportId, string Status, string Message, DateTime Time);
+    public long? SelectedTaskId { get; private set; }
     public List<MarketplaceTask> Tasks { get; private set; } = [];
     public Dictionary<long, string> FreelancerNames { get; private set; } = [];
     [TempData] public string? Notice { get; set; }
-    public async Task<IActionResult> OnGetAsync(CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(CancellationToken ct, long? taskId = null)
     {
         if (UserId <= 0 || !await db.Users.AnyAsync(u => u.Id == UserId, ct)) return Challenge();
         Reports = await db.SafetyReports.AsNoTracking().Where(r => r.ReporterId == UserId).OrderByDescending(r => r.Id).Take(100).ToListAsync(ct);
@@ -35,6 +36,14 @@ public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger)
         }
         Tasks = await db.MarketplaceTasks.AsNoTracking().Where(t => t.ClientId == UserId ||
             db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == UserId && o.Status == "accepted")).OrderByDescending(t => t.Id).Take(100).ToListAsync(ct);
+        if (taskId.HasValue && !Tasks.Any(t => t.Id == taskId))
+        {
+            var publicPost = await db.MarketplaceTasks.AsNoTracking().SingleOrDefaultAsync(t =>
+                t.Id == taskId && !t.IsPrivate && t.Status == "open" &&
+                (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
+            if (publicPost is not null) Tasks.Insert(0, publicPost);
+        }
+        SelectedTaskId = Tasks.Any(t => t.Id == taskId) ? taskId : null;
         var taskIds = Tasks.Select(t => t.Id).ToArray();
         var freelancers = await (from offer in db.MarketplaceOffers.AsNoTracking()
             join user in db.Users.AsNoTracking() on offer.FreelancerId equals user.Id
@@ -48,11 +57,29 @@ public class ReportsModel(ApplicationDbContext db, ILogger<ReportsModel> logger)
         });
         return Page();
     }
+    public async Task<IActionResult> OnGetProvidersAsync(string? q, CancellationToken ct)
+    {
+        if (UserId <= 0) return Challenge();
+        Response.Headers.CacheControl = "private, no-store";
+        var term = q?.Trim() ?? "";
+        if (term.Length is < 1 or > 80) return new JsonResult(Array.Empty<object>());
+
+        var matches = await (from profile in db.FreelancerProfiles.AsNoTracking()
+                            join user in db.Users.AsNoTracking() on profile.UserId equals user.Id
+                            where user.Id != UserId && user.Role != "deleted" &&
+                                (profile.WorkRole == "freelancer" || profile.WorkRole == "both") &&
+                                profile.Service != "" && profile.Location != ""
+                            let name = ((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim()
+                            where name.StartsWith(term) || (user.LastName ?? "").StartsWith(term)
+                            orderby name, user.Id
+                            select new { user.Id, Name = name, profile.Service }).Take(8).ToListAsync(ct);
+        return new JsonResult(matches);
+    }
     public async Task<IActionResult> OnPostAsync(string? target, string? reason, string? description, long? taskId, List<IFormFile>? evidence, CancellationToken ct, bool immediateDanger = false)
     {
         if (UserId <= 0) return Challenge();
         target = (target ?? "").Trim(); reason = (reason ?? "").Trim(); description = (description ?? "").Trim();
-        var taskAllowed = !taskId.HasValue || await db.MarketplaceTasks.AnyAsync(t => t.Id == taskId && (t.ClientId == UserId ||
+        var taskAllowed = !taskId.HasValue || await db.MarketplaceTasks.AnyAsync(t => t.Id == taskId && (t.ClientId == UserId || (reason == "Fake or inappropriate task post" && !t.IsPrivate && t.Status == "open" && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow)) ||
             db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == UserId && o.Status == "accepted")), ct);
         if (!ModelState.IsValid || target.Length is < 1 or > 80 || !Reasons.Contains(reason) || description.Length is < 1 or > 1000 || !taskAllowed)
         { Notice = "Please check your report details and choose a task belonging to you."; return RedirectToPage(); }

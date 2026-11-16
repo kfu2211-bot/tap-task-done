@@ -30,6 +30,7 @@
         }
         <button class="job-offer-toggle" type="button" aria-controls="@formId" aria-expanded="false" hidden>Make an offer</button>
     }
+    <a class="task-chat-action" asp-page="/Reports" asp-route-taskId="@task.Id">Report this task</a>
 </div>
 @if (Model.OfferStatus is null)
 {

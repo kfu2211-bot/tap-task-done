@@ -218,6 +218,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         profile.Property(x => x.PreferredStart).HasColumnType("time");
         profile.Property(x => x.PreferredEnd).HasColumnType("time");
         profile.Property(x => x.AvailableDays).HasMaxLength(40);
+        modelBuilder.Entity<PostModerationAction>();
         var task = modelBuilder.Entity<MarketplaceTask>();
         task.ToTable("marketplace_tasks");
         task.Property(x => x.SpecificService).HasMaxLength(60);

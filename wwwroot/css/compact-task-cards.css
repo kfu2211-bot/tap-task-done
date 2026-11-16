@@ -124,12 +124,23 @@ html body #findJobsSection .job-offer-editor { width: 100%; box-sizing: border-b
     html body #my-tasks-section .task-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Find Jobs uses a light banner in light mode and a dark surface in dark mode. */
-html body #findJobsSection .jobs-heading h2 {
-    color: #103d2c !important;
+html body #findJobsSection .jobs-workspace > .jobs-heading,
+html[data-theme="dark"] body #findJobsSection .jobs-workspace > .jobs-heading {
+    box-sizing: border-box;
+    min-height: 68px;
+    padding: 12px 20px;
+    margin-top: 0;
+    border: 0;
+    border-radius: 14px 14px 0 0;
+    background: #103d2c !important;
 }
-html[data-theme="dark"] body #findJobsSection .jobs-heading h2 {
-    color: #f1faf3 !important;
+html body #findJobsSection .jobs-workspace > .jobs-heading h2 {
+    color: #fff !important;
+    font-size: clamp(1.4rem, 2.1vw, 1.8rem);
+}
+html body #findJobsSection .jobs-heading .jobs-count {
+    background: #176b50;
+    color: #fff;
 }
 
 html body #my-tasks-section {

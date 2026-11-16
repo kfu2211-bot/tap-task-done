@@ -18,7 +18,7 @@ public static class TaskProgress
 {
     public static readonly string[] States = ["assigned", "on-the-way", "arrived", "in-progress", "awaiting-confirmation", "completed"];
     public static readonly string[] Labels = ["Booking accepted", "On the way", "Arrived", "Work in progress", "Awaiting client confirmation", "Completed"];
-    public static string Label(string status) => Array.IndexOf(States, status) is var i && i >= 0 ? Labels[i] : status == "disputed" ? "Paused" : status == "cancelled" ? "Cancelled" : status == "expired" ? "Expired" : status;
+    public static string Label(string status) => Array.IndexOf(States, status) is var i && i >= 0 ? Labels[i] : status == "disputed" ? "Paused" : status == "cancelled" ? "Cancelled" : status == "expired" ? "Expired" : status == "moderated" ? "Removed by moderation" : status;
     public static (string From, string To) Transition(string? action) => action switch
     {
         "travel" => ("assigned", "on-the-way"), "arrive" or "confirm-arrival" => ("on-the-way", "arrived"),

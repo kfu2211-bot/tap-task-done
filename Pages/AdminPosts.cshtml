@@ -1,0 +1,88 @@
+@page
+@model AdminPostsModel
+@using tts.Data
+@{
+    Layout = null;
+    var filter = Request.Query["filter"].ToString();
+    var search = Request.Query["q"].ToString();
+}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Post Moderation · Tap, Task, Done</title>
+<link rel="stylesheet" href="/css/admin-posts.css" asp-append-version="true" />
+</head>
+<body>
+<main>
+    <header><a asp-page="/Admin">‹ Admin workspace</a><h1>Post Moderation</h1></header>
+    @if (Model.Notice is { } notice) { <p role="status" class="notice">@notice</p> }
+    <div class="review-layout">
+        <section aria-label="Public task listings">
+            <form method="get" class="search">
+                <label>Search posts<input type="search" name="q" value="@search" maxlength="120" /></label>
+                <label>Filter<select name="filter">
+                    <option value="published" selected="@(filter is not ("reported" or "removed"))">Published</option>
+                    <option value="reported" selected="@(filter == "reported")">Reported</option>
+                    <option value="removed" selected="@(filter == "removed")">Removed</option>
+                </select></label>
+                <button>Search</button>
+            </form>
+            <table>
+                <thead><tr><th scope="col">Task</th><th scope="col">Status</th></tr></thead>
+                <tbody>
+                @foreach (var post in Model.Posts)
+                {
+                    <tr><td><a asp-route-id="@post.Id" asp-route-filter="@filter" asp-route-q="@search" asp-fragment="review" aria-current="@(Model.Selected?.Id == post.Id ? "true" : null)">@post.Title</a><small>#@post.Id · @post.Category</small></td><td>@TaskProgress.Label(post.Status)</td></tr>
+                }
+                @if (Model.Posts.Count == 0) { <tr><td colspan="2">No matching posts.</td></tr> }
+                </tbody>
+            </table>
+        </section>
+        <section id="review" aria-label="Post review">
+        @if (Model.Selected is { } task)
+        {
+            <h2>@task.Title</h2>
+            <p class="meta">#@task.Id · @task.Category · @TaskProgress.Label(task.Status)</p>
+            <p class="details">@task.Description</p>
+            <h3>Linked reports</h3>
+            @if (Model.Reports.Count == 0) { <p>No linked reports.</p> }
+            @foreach (var report in Model.Reports)
+            {
+                <details><summary>@report.Reason · @report.Status</summary><p>@report.Description</p><a asp-page="/AdminReports" asp-route-recordId="@report.Id">Review report #@report.Id</a></details>
+            }
+            <h3>Moderation history</h3>
+            @if (Model.Unavailable) { <p>Moderation storage is unavailable.</p> }
+            else if (Model.History.Count == 0) { <p>No actions recorded.</p> }
+            @foreach (var entry in Model.History)
+            {
+                <p><strong>@entry.Reason</strong><br /><small>Staff #@entry.ActorId · @DisplayTime.Philippine(entry.CreatedAtUtc)</small></p>
+            }
+            @if (!Model.Unavailable && (task.Status == "open" || (task.Status == "moderated" && User.IsInRole("admin"))))
+            {
+                var restore = task.Status == "moderated";
+                <form method="post" asp-page-handler="Review" class="decision">
+                    <input type="hidden" name="id" value="@task.Id" />
+                    <input type="hidden" name="decision" value="@(restore ? "restore" : "remove")" />
+                    @if (!restore)
+                    {
+                        <label>Reason<select name="reason" required><option value="">Choose a reason</option>
+                        @foreach (var reason in AdminPostsModel.Reasons) { <option>@reason</option> }
+                        </select></label>
+                    }
+                    <label class="confirmation"><input type="checkbox" name="confirmed" value="true" required /> Confirm @(restore ? "restoration" : "removal")</label>
+                    <button class="@(restore ? "" : "danger")">@(restore ? "Restore listing" : "Remove from listings")</button>
+                </form>
+            }
+            else if (task.Status is "assigned" or "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation")
+            {
+                <p>This task has an active assignment. Review its linked reports before taking action on the booking.</p>
+            }
+        }
+        else { <h2>Review a post</h2><p>Select a task to see its details and moderation history.</p> }
+        </section>
+    </div>
+</main>
+</body>
+</html>
