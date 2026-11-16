@@ -270,6 +270,17 @@
                             SIMPLE. FAST. TRUSTED.
                         </span>
 
+                        @if (Model.FreelancerOnly)
+                        {
+                            <h2>Find your next job</h2>
+                            <p>Browse open tasks and manage your offers and assigned work.</p>
+                            <div class="hero-buttons">
+                                <a class="post-button" href="/FindPost?mode=jobs">Find jobs</a>
+                                <a class="find-button" href="/MyJobs">My Jobs</a>
+                            </div>
+                        }
+                        else
+                        {
                         <h2>
                             Find and manage<br />
                             your one-time tasks.
@@ -304,6 +315,7 @@
 
                         </div>
 
+                        }
                     </div>
 
                 </section>

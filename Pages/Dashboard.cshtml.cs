@@ -14,6 +14,7 @@ namespace tts.Pages
         public bool CategoriesUnavailable { get; private set; }
         public List<MarketplaceTask> AvailableTasks { get; private set; } = [];
         public bool ShowAvailableTasks { get; private set; }
+        public bool FreelancerOnly { get; private set; }
         public bool TasksUnavailable { get; private set; }
         public async Task OnGetAsync(CancellationToken ct)
         {
@@ -22,6 +23,7 @@ namespace tts.Pages
                 var viewerId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
                 var role = await db.FreelancerProfiles.AsNoTracking().Where(p => p.UserId == viewerId).Select(p => p.WorkRole).SingleOrDefaultAsync(ct);
                 ShowAvailableTasks = role is "freelancer" or "both";
+                FreelancerOnly = role == "freelancer";
                 if (ShowAvailableTasks)
                     AvailableTasks = await db.MarketplaceTasks.AsNoTracking()
                         .Where(t => t.ClientId != viewerId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow))

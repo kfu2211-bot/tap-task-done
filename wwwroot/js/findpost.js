@@ -747,7 +747,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const requestedMode = new URLSearchParams(window.location.search).get("mode");
 
     if (findFreelancerButton.hidden) {
-        showPostTask();
+        if (postTaskButton.hidden) showFindJobs(); else showPostTask();
     }
     else if (requestedMode === "post") {
         showPostTask();

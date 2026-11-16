@@ -11,7 +11,7 @@
         mode = "freelancer";
     }
     if (mode == "jobs" && Model.WorkRole == "client") { mode = "freelancer"; }
-    if (mode == "post" && Model.WorkRole == "freelancer") { mode = "jobs"; }
+    if (Model.WorkRole == "freelancer") { mode = "jobs"; }
 }
 
 <!DOCTYPE html>
@@ -265,6 +265,7 @@
 
                     <button class="mode-button @(mode == "freelancer" ? "active" : "")"
                             id="findFreelancerButton"
+                            hidden="@(Model.WorkRole == "freelancer")"
                             type="button">
 
                         Find a Freelancer
