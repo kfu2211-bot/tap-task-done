@@ -126,3 +126,39 @@ html body.my-jobs-page .job-card .job-status { flex-shrink: 0; font-size: 13px; 
     border-radius: 8px;
     font-weight: 650;
 }
+
+html body .my-jobs-page .jobs-intro,
+html body.my-jobs-page .jobs-intro {
+    padding: clamp(18px, 3vw, 30px);
+    border-radius: 14px;
+    background: radial-gradient(ellipse at 103% 170%, #316749 0 41%, transparent 42%), #103d2c;
+    color: #fff;
+}
+html body.my-jobs-page .jobs-intro :is(h2, p) { color: #fff !important; }
+html body.my-jobs-page .jobs-intro .jobs-find-button { background: #edf7ee; color: #103d2c; }
+.my-jobs-page .jobs-activity {
+    margin-top: 18px;
+    padding: clamp(12px, 2vw, 22px);
+    border: 1px solid #cdded1;
+    border-radius: 14px;
+    background: #fff;
+}
+html[data-theme="dark"] .my-jobs-page .jobs-activity { background: #1d2d25; border-color: #42594c; }
+.my-jobs-page .jobs-activity .job-tabs {
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #879f90;
+}
+.my-jobs-page .jobs-section-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 14px;
+    margin: 0 0 12px;
+}
+.my-jobs-page .jobs-section-heading h2 { margin: 0; font-size: 1.25rem; }
+.my-jobs-page .jobs-section-heading a { font-weight: 650; }
+html body.my-jobs-page .jobs-activity .job-card { padding: clamp(12px, 2vw, 18px); border-radius: 10px; }
+.my-jobs-page .jobs-activity .job-card-head p { max-width: 90ch; margin-block: 6px; overflow-wrap: anywhere; }
+.my-jobs-page .jobs-activity .job-meta { margin: 10px 0 0; }
