@@ -13,7 +13,7 @@ html[data-theme="dark"] {
         .conversation-link:not(.selected), button.notification-item,
         .sidebar > nav > a:not(.active), .mytasks-sidebar > nav > a:not(.active)
     ):hover,
-    html body :is(.provider-card, .freelancer-card, .job-card, .db-tracking-card):has(:is(a[href], button:enabled, summary)):hover {
+    html body :is(.provider-card, .freelancer-card, .job-card):has(:is(a[href], button:enabled, summary)):hover {
         background-color: var(--workspace-hover) !important;
         box-shadow: inset 0 0 0 1px var(--workspace-focus);
     }

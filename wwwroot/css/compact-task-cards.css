@@ -123,3 +123,59 @@ html body #findJobsSection .job-offer-editor { width: 100%; box-sizing: border-b
 @media (max-width: 700px) {
     html body #my-tasks-section .task-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Find Jobs uses a light banner in light mode and a dark surface in dark mode. */
+html body #findJobsSection .jobs-heading h2 {
+    color: #103d2c !important;
+}
+html[data-theme="dark"] body #findJobsSection .jobs-heading h2 {
+    color: #f1faf3 !important;
+}
+
+html body #my-tasks-section {
+    padding: 0;
+    background: var(--surface, #fff);
+    border: 1px solid var(--line, #cdded1);
+}
+html body #my-tasks-section .market-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 18px;
+    border-radius: 14px 14px 0 0;
+    background: #103d2c;
+}
+#my-tasks-section .task-list-count { margin: 10px 18px 0; text-align: end; }
+#my-tasks-section .task-filters { padding: 0; margin: 8px 18px; background: transparent; }
+html body .market-content #my-tasks-section .task-card:has(> .task-disclosure) {
+    margin: 0 18px;
+    border: 0;
+    border-top: 1px solid var(--line, #cdded1);
+    border-radius: 0;
+    box-shadow: none;
+}
+html body #my-tasks-section .task-list-summary { padding-inline: 4px; }
+#my-tasks-section .task-filter-empty { color: inherit; margin-inline: 18px; }
+@media (max-width: 540px) {
+    html body #my-tasks-section .task-list-summary { grid-template-columns: minmax(0, 1fr) 18px; }
+    #my-tasks-section .task-list-budget { grid-row: 2; grid-column: 1; justify-self: start; }
+    #my-tasks-section .task-list-chevron { grid-row: 1; grid-column: 2; }
+}
+
+html body #my-tasks-section .task-workspace-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 16px;
+}
+html body #my-tasks-section .task-workspace-heading p {
+    margin: 0;
+    color: #e7f4ed !important;
+}
+html body #my-tasks-section .market-section-title { min-height: 68px; box-sizing: border-box; }
+html body #my-tasks-section .market-section-title .market-primary { flex-shrink: 0; }
+@media (max-width: 600px) {
+    html body #my-tasks-section .market-section-title { flex-wrap: wrap; }
+}

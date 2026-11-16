@@ -8,13 +8,13 @@ html body main > :is(.content,.page-content,.market-content,.settings-content,.r
     margin:0 !important;
     padding:22px 24px 30px !important;
 }
-html body main > :is(.content,.page-content,.market-content,.settings-content,.reviews-live,.reviews-content,.tracking-content,.mytasks-content) > :is(.page-intro,.page-heading,.market-intro,.jobs-intro,.reviews-live-heading) {
+html body main > :is(.content,.page-content,.market-content,.settings-content,.reviews-live,.reviews-content,.tracking-content,.mytasks-content) > :is(.page-intro,.page-heading,.market-intro,.reviews-live-heading) {
     margin-top:0 !important;
     margin-bottom:18px !important;
     padding-top:0 !important;
     padding-bottom:0 !important;
 }
-html body :is(.market-intro,.jobs-intro,.page-intro,.page-heading,.reviews-live-heading) h2 { margin-top:6px; margin-bottom:8px; }
+html body :is(.market-intro,.page-intro,.page-heading,.reviews-live-heading) h2 { margin-top:6px; margin-bottom:8px; }
 html body .dashboard .hero-card { padding:24px !important; margin-bottom:18px !important; }
 html body .dashboard .section { padding:20px !important; margin-bottom:18px !important; }
 html body .db-tracking .tracking-intro { padding:22px !important; margin-bottom:16px !important; }
