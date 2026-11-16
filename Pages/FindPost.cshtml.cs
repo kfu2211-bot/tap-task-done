@@ -7,7 +7,7 @@ namespace tts.Pages
 {
     public class FindPostModel(ApplicationDbContext db, ILogger<FindPostModel> logger) : PageModel
     {
-        public record Provider(int Id, string Name, string Service, string Location, int? Rate, int? RateMaximum, string SavedAvailability)
+        public record Provider(int Id, string Name, string Service, string Location, int? Rate, int? RateMaximum, string SavedAvailability, string? ServiceSpecialties)
         {
             public string Availability { get; init; } = SavedAvailability;
         }
@@ -49,7 +49,7 @@ namespace tts.Pages
                         && profile.Service != "" && profile.Location != ""
                     orderby user.FirstName, user.Id
                     select new Provider(user.Id, ((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim(),
-                        profile.Service, profile.Location, profile.Rate, profile.RateMaximum, profile.Availability)).ToListAsync(cancellationToken);
+                        profile.Service, profile.Location, profile.Rate, profile.RateMaximum, profile.Availability, profile.ServiceSpecialties)).ToListAsync(cancellationToken);
                 var active = await FreelancerAvailability.AssignmentsAsync(db, Providers.Select(p => p.Id).ToArray(), cancellationToken);
                 Providers = Providers.Select(p => p with { Availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.Id) ?? []) }).ToList();
                 try

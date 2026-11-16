@@ -1,3 +1,13 @@
+function populateTaskServices(select, field, category, emptyLabel) {
+    const catalog = JSON.parse(document.getElementById("specificServiceFilter").dataset.catalog);
+    const options = Object.hasOwn(catalog, category) ? catalog[category] : [];
+    select.replaceChildren(new Option(emptyLabel, ""));
+    options.forEach(service => select.add(new Option(service, service)));
+    if (options.length) select.add(new Option("Other " + category.toLowerCase(), "Other"));
+    select.disabled = options.length === 0;
+    field.hidden = select.disabled;
+}
+
 document.addEventListener("DOMContentLoaded", function () {
 
 
@@ -250,6 +260,10 @@ document.addEventListener("DOMContentLoaded", function () {
     ===================================================== */
 
     const serviceSearch = document.getElementById("serviceSearch");
+    const specificService = document.getElementById("specificServiceSearch");
+    const specificFilter = document.getElementById("specificServiceFilter");
+    const catalog = JSON.parse(specificFilter.dataset.catalog);
+    const updateSpecificServices = () => populateTaskServices(specificService, specificFilter, serviceSearch.value, "Any specific service");
     const locationInput = document.getElementById("locationInput");
     const budgetInput = document.getElementById("budgetInput");
     const availabilityFilter = document.getElementById("availabilityFilter");
@@ -268,7 +282,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (text.includes(term) || (term.length > 3 && term.endsWith("s") && text.includes(term.slice(0, -1)))) return true;
         return !!categoryTerms[term] && categoryTerms[term].some(function (word) { return text.includes(word); });
     }
+    const specialtiesByCard = new WeakMap();
     freelancerCards.forEach(function (card) {
+        try { specialtiesByCard.set(card, JSON.parse(card.dataset.specialties || "{}") || {}); }
+        catch { specialtiesByCard.set(card, {}); }
         const label = document.createElement("small");
         label.className = "match-details";
         label.textContent = "Service area: " + (card.dataset.location || "Not set") +
@@ -304,16 +321,22 @@ document.addEventListener("DOMContentLoaded", function () {
             const matchesAvailability = !availability || (availability === "available"
                 ? savedStatus === "available"
                 : availability === "busy" ? status.startsWith("busy") : status === availability);
-            const categorySearch = categoryFromHome && query === categoryFromHome.trim().toLowerCase();
-            const isOther = query === "other/general" || (otherCategory && !query);
+            const categorySearch = Object.hasOwn(catalog, serviceSearch.value);
+            const isOther = query === "other/general";
             const matchesOther = !isOther || service.includes("other/general") || !Object.values(categoryTerms).some(words => words.some(word => service.includes(word)));
-            const matches = matchesOther && (isOther || !query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
+            const group = specialtiesByCard.get(card)[serviceSearch.value];
+            const specialties = Array.isArray(group) ? group : [];
+            const matchesSpecific = !specificService.value || (specificService.value === "Other"
+                ? specialties.some(item => typeof item === "string" && item.startsWith("Other: "))
+                : specialties.includes(specificService.value));
+            const matches = matchesSpecific && matchesOther && (isOther || !query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
                 matchesLocation &&
                 (maximum === null || (rate > 0 && rate <= maximum)) &&
                 matchesAvailability;
             card.style.display = matches ? "flex" : "none";
             const reasons = [];
-            if (query && (matchesService(service, query) || name.includes(query))) reasons.push("service or name");
+            if (specificService.value && matchesSpecific) reasons.push(specificService.selectedOptions[0].text);
+            else if (query && (matchesService(service, query) || name.includes(query))) reasons.push("service or name");
             if (matchesLocation) reasons.push("service area: " + matchedAreas.map(place => Array.from(locationInput.options).find(option => option.value.toLowerCase() === place).text).join(", "));
             if (maximum !== null && rate > 0 && rate <= maximum) reasons.push("budget");
             if (availability && matchesAvailability) reasons.push("availability");
@@ -345,9 +368,10 @@ document.addEventListener("DOMContentLoaded", function () {
         input.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); performSearch(); } });
     });
     locationInput.addEventListener("change", performSearch);
-    serviceSearch.addEventListener("change", performSearch);
+    serviceSearch.addEventListener("change", () => { updateSpecificServices(); performSearch(); });
+    specificService.addEventListener("change", performSearch);
     availabilityFilter.addEventListener("change", performSearch);
-    const fromHome = searchParams.get("search") || (otherCategory ? "" : categoryFromHome);
+    const fromHome = searchParams.get("search") || (otherCategory ? "Other/General" : categoryFromHome);
     if (fromHome) {
         const option = Array.from(serviceSearch.options).find(item => item.value.toLowerCase() === fromHome.toLowerCase());
         if (!option) serviceSearch.add(new Option(fromHome, fromHome));
@@ -357,8 +381,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (otherCategory) {
         const notice = document.getElementById("otherCategoryNotice");
         if (notice) notice.hidden = false;
-        serviceSearch.placeholder = "e.g. balloon artist";
+
     }
+    updateSpecificServices();
     performSearch();
 
 
@@ -582,6 +607,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const databasePostTaskForm = document.getElementById("databasePostTaskForm");
+    if (databasePostTaskForm) {
+        const selector = document.getElementById("postSpecificService");
+        const field = document.getElementById("postSpecificServiceField");
+        function updatePostServices() {
+            const category = databasePostTaskForm.querySelector('input[name="category"]:checked')?.value || "";
+            populateTaskServices(selector, field, category, "General task");
+        }
+        databasePostTaskForm.addEventListener("change", event => {
+            if (event.target.matches('input[name="category"]')) updatePostServices();
+        });
+        databasePostTaskForm.addEventListener("reset", () => setTimeout(updatePostServices, 0));
+        updatePostServices();
+    }
     if (databasePostTaskForm && startPostTaskButton && cancelPostTaskButton) {
         startPostTaskButton.addEventListener("click", function () {
             postTaskStart.classList.add("hidden");
@@ -940,7 +978,13 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener('DOMContentLoaded', () => {
     const filter = document.getElementById('jobsCategoryFilter');
     if (!filter) return;
+    const specific = document.getElementById('jobsSpecificService');
+    const specificField = document.getElementById('jobsSpecificServiceField');
     const cards = [...document.querySelectorAll('#findJobsSection [data-job-category]')];
+    function updateJobServices() {
+        populateTaskServices(specific, specificField, filter.value, "Any specific service");
+        updateJobs();
+    }
     const count = document.getElementById('jobsFilterCount');
     const empty = document.getElementById('jobsFilterEmpty');
     const normalize = value => value.toLowerCase().replace(/\s*\/\s*/g, '/').trim();
@@ -948,17 +992,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const selected = normalize(filter.value);
         let visible = 0;
         for (const card of cards) {
-            const matches = !selected || normalize(card.dataset.jobCategory || '') === selected;
+            const matches = (!selected || normalize(card.dataset.jobCategory || '') === selected) &&
+                (!specific.value || card.dataset.jobSpecificService === specific.value);
             card.hidden = !matches;
             if (matches) visible++;
         }
         count.textContent = `${visible} open ${visible === 1 ? 'task' : 'tasks'}`;
         empty.hidden = !selected || visible !== 0 || cards.length === 0;
     }
-    filter.addEventListener('change', updateJobs);
+    filter.addEventListener('change', updateJobServices);
+    specific.addEventListener('change', updateJobs);
+    updateJobServices();
     document.getElementById('jobsFilterReset').addEventListener('click', () => {
         filter.value = '';
-        updateJobs();
+        updateJobServices();
         filter.focus();
     });
 });

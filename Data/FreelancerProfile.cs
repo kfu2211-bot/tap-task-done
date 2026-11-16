@@ -4,6 +4,7 @@ public sealed class FreelancerProfile
 {
     public int UserId { get; set; }
     public string Service { get; set; } = "";
+    public string? ServiceSpecialties { get; set; }
     public string Location { get; set; } = "";
     public int? Rate { get; set; }
     public int? RateMaximum { get; set; }

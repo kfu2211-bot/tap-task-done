@@ -173,7 +173,10 @@
                         <div class="settings-disclosure-content">
                         <div class="field-grid work-field-grid">
                             <div class="service-choice service-picker" role="group" aria-labelledby="servicesOfferedTitle">
-                                <strong id="servicesOfferedTitle">Services offered</strong>
+                                <div class="service-area-heading">
+                                    <strong id="servicesOfferedTitle">Services offered</strong>
+                                    <button type="button" id="selectAllServiceCategories" class="settings-select-all">Check all</button>
+                                </div>
                                 <span id="selectedServices" role="status"></span>
                                 <div class="service-checkboxes service-tiles">
                                     @foreach (var service in SettingsModel.ServiceOptions)
@@ -198,7 +201,35 @@
                                         </label>
                                     }
                                 </div>
-                                <label id="otherServiceField" hidden>Specify your service<input asp-for="OtherService" maxlength="60" /></label>
+                                <div class="specialty-groups">
+                                    <h4>Specific services</h4>
+                                    @foreach (var (category, options) in tts.Data.ServiceCatalog.Options)
+                                    {
+                                        var saved = Model.SavedSpecialties.GetValueOrDefault(category) ?? [];
+                                        var custom = tts.Data.ServiceCatalog.CustomName(saved);
+                                        <details name="service-specialties" data-specialty-category="@category" hidden="@(!Model.Services.Contains(category))">
+                                            <summary>@category <span data-specialty-count>@saved.Length selected</span></summary>
+                                            <div class="specialty-content">
+                                                <div class="service-checkboxes specialty-tiles" role="group" aria-label="@category services">
+                                                    @foreach (var option in options)
+                                                    {
+                                                        <label><input type="checkbox" name="SpecialtyChoices" value="@category|@option" checked="@saved.Contains(option)" /> @option</label>
+                                                    }
+                                                    <label><input type="checkbox" name="SpecialtyChoices" value="@category|Other" data-custom-specialty checked="@(custom is not null)" /> Other @category.ToLowerInvariant()</label>
+                                                </div>
+                                                <label class="specialty-custom" hidden="@(custom is null)">Custom service name
+                                                    <input type="text" name="CustomSpecialties[@category]" value="@custom" maxlength="60" />
+                                                </label>
+                                            </div>
+                                        </details>
+                                    }
+                                    <details name="service-specialties" id="otherServiceField" data-specialty-category="Other/General" hidden="@(!Model.Services.Contains("Other/General"))">
+                                        <summary>Other / General <span data-specialty-count>@(string.IsNullOrWhiteSpace(Model.OtherService) ? "Add service" : "Name entered")</span></summary>
+                                        <div class="specialty-content">
+                                            <label>Specify your service<input asp-for="OtherService" maxlength="60" /></label>
+                                        </div>
+                                    </details>
+                                </div>
                             </div>
                             <div class="service-choice service-area-picker" role="group" aria-labelledby="serviceAreasTitle">
                                 <div class="service-area-heading">

@@ -42,8 +42,11 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
     public bool ContactUnavailable { get; private set; }
     [BindProperty] public string? Service { get; set; }
     [BindProperty] public string? Location { get; set; }
-    public static readonly string[] ServiceOptions = ["Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other/General"];
+    public static readonly string[] ServiceOptions = [.. ServiceCatalog.Options.Keys, ServiceCatalog.OtherCategory];
     [BindProperty] public string[] Services { get; set; } = [];
+    [BindProperty] public string[] SpecialtyChoices { get; set; } = [];
+    [BindProperty] public Dictionary<string, string?> CustomSpecialties { get; set; } = [];
+    public Dictionary<string, string[]> SavedSpecialties { get; private set; } = [];
     [BindProperty] public string[] Areas { get; set; } = [];
     [BindProperty] public string? OtherService { get; set; }
     [BindProperty] public int? ServiceRate { get; set; }
@@ -77,7 +80,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
             PhoneNumber = contact?.PhoneNumber ?? ""; SharePhone = contact?.ShareWithAssignedUser ?? false;
         } catch (MySqlConnector.MySqlException ex) { logger.LogWarning(ex, "Contact storage unavailable"); ContactUnavailable = true; }
         var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId);
-        if (profile != null) { Service = profile.Service; Location = profile.Location;
+        if (profile != null) { Service = profile.Service; Location = profile.Location; SavedSpecialties = ServiceCatalog.Read(profile.ServiceSpecialties);
             var savedServices = Service.Split(", ", StringSplitOptions.RemoveEmptyEntries);
             Services = savedServices.Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) || !ServiceOptions.Contains(value) ? "Other/General" : value).Distinct().ToArray();
             OtherService = string.Join(", ", savedServices.Where(value => !ServiceOptions.Contains(value)).Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) ? value["Other/General: ".Length..] : value));
@@ -159,6 +162,9 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
              Areas.Length == 0 || Areas.Any(area => !BacolorServiceAreas.Names.Contains(area)) ||
              (Services.Contains("Other/General") && (string.IsNullOrWhiteSpace(OtherService) || OtherService.Length > 60 || OtherService.Contains(',')))))
         { Message = "Choose at least one service and area. For Other / General, enter a service name of up to 60 characters without commas."; return RedirectToPage(); }
+        string? specialties = null;
+        if ((WorkRole is "freelancer" or "both") && !ServiceCatalog.TryBuild(Services, SpecialtyChoices, CustomSpecialties, out specialties))
+        { Message = "Check the selected specific services and enter any custom service names (up to 60 characters)."; return RedirectToPage(); }
         if ((WorkRole is "freelancer" or "both") &&
             (PreferredStart.HasValue != PreferredEnd.HasValue || PreferredStart >= PreferredEnd))
         {
@@ -187,6 +193,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         if (WorkRole is "freelancer" or "both")
         {
             profile.Service = string.Join(", ", ServiceOptions.Where(Services.Contains).Select(service => service == "Other/General" ? $"Other/General: {OtherService}" : service));
+            profile.ServiceSpecialties = specialties;
             profile.Location = Areas.Distinct().Count() == BacolorServiceAreas.Names.Count ? BacolorServiceAreas.AllAreas : string.Join(", ", BacolorServiceAreas.Names.Where(Areas.Contains));
             var hasExistingRange = profile.Rate.HasValue && profile.RateMaximum > profile.Rate;
             if (ServiceRate.HasValue || !hasExistingRange)

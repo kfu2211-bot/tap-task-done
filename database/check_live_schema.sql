@@ -70,6 +70,7 @@ UNION ALL SELECT 'freelancer_profiles' AS table_name, 'PreferredEnd' AS column_n
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Rate' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'RateMaximum' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'Service' AS column_name
+UNION ALL SELECT 'freelancer_profiles' AS table_name, 'ServiceSpecialties' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'UserId' AS column_name
 UNION ALL SELECT 'freelancer_profiles' AS table_name, 'WorkRole' AS column_name
 UNION ALL SELECT 'identity_requests' AS table_name, 'Certification' AS column_name
@@ -128,6 +129,7 @@ UNION ALL SELECT 'marketplace_reviews' AS table_name, 'TaskId' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'Budget' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'CancellationReason' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'Category' AS column_name
+UNION ALL SELECT 'marketplace_tasks' AS table_name, 'SpecificService' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'ClientId' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'CreatedAt' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'Description' AS column_name

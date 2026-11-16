@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS marketplace_tasks (
     Title VARCHAR(120) NOT NULL,
     Description TEXT NOT NULL,
     Category VARCHAR(60) NOT NULL,
+    SpecificService VARCHAR(60) NULL,
     Location VARCHAR(120) NOT NULL,
     Budget DECIMAL(12,2) NOT NULL,
     ScheduleText VARCHAR(120) NOT NULL,

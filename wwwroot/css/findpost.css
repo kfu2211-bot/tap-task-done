@@ -1951,3 +1951,19 @@ html[data-theme="dark"] .identity-work-notice a { background:#172820; color:#a1e
             font-size: 17px;
         }
 }
+
+#specificServiceFilter[hidden] { display: none !important; }
+
+#postSpecificServiceField[hidden], #jobsSpecificServiceField[hidden] { display: none !important; }
+#postSpecificService, #jobsSpecificService {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 14px;
+    border: 1px solid var(--line, #b9d3c0);
+    border-radius: 8px;
+    background: var(--surface, #fff);
+    color: var(--text, #183b2e);
+    font: inherit;
+}
+#postSpecificServiceField { max-width: 410px; }
+#jobsSpecificServiceField { display: grid; gap: 8px; }

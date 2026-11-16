@@ -37,7 +37,7 @@
 <link rel="stylesheet" href="/css/findpost-light.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
-<link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-location-picker.css" asp-append-version="true" /><script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><script defer src="/js/task-location-picker.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/post-task-polish.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
+<link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-location-picker.css" asp-append-version="true" /><script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><script defer src="/js/task-location-picker.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/post-task-polish.css" asp-append-version="true" /><link rel="stylesheet" href="/css/job-offer-form.css" asp-append-version="true" /><script defer src="/js/job-offer-form.js" asp-append-version="true"></script><partial name="_AccountTheme" /></head>
 
 <body>
 
@@ -310,7 +310,7 @@
 
                     <aside class="filter-panel">
 
-                        <div id="otherCategoryNotice" hidden><strong>Others: unique skills</strong><p>Available services that do not match the listed categories. Search by a specific skill, or <a href="/FindPost">browse all services</a>.</p></div>
+                        <div id="otherCategoryNotice" hidden><strong>Others: unique skills</strong><p>Browse custom services outside the listed categories, or <a href="/FindPost">browse all services</a>.</p></div>
 
                         <div class="filter-group">
 
@@ -322,13 +322,20 @@
 
                                 <span class="provider-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="5.5"/><path d="m14 14 5 5"/></svg></span>
 
-                                <select id="serviceSearch" aria-label="Service category"><option value="">All services</option>@foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other/General" }) { <option value="@category">@category</option> }</select>
+                                <select id="serviceSearch" aria-label="Service category"><option value="">All services</option>@foreach (var category in SettingsModel.ServiceOptions) { <option value="@category">@category</option> }</select>
 
                             </div>
 
                         </div>
 
 
+
+                        <div class="filter-group" id="specificServiceFilter" hidden data-catalog="@System.Text.Json.JsonSerializer.Serialize(tts.Data.ServiceCatalog.Options)">
+                            <label for="specificServiceSearch">Specific service</label>
+                            <div class="input-wrapper">
+                                <select id="specificServiceSearch"><option value="">Any specific service</option></select>
+                            </div>
+                        </div>
 
                         <div class="filter-group">
 
@@ -428,8 +435,8 @@
                                  id="freelancerList">
                                 @foreach (var provider in Model.Providers)
                                 {
-                                    <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-location="@provider.Location" data-service-areas="@string.Join("|", tts.Pages.BacolorServiceAreas.InLocation(provider.Location))" data-rate="@provider.Rate" data-rate-maximum="@(provider.RateMaximum ?? provider.Rate)" data-availability="@provider.Availability" data-saved-availability="@provider.SavedAvailability">
-                                        <div class="freelancer-left"><div class="freelancer-avatar" style="position:relative;overflow:hidden"><img src="@Url.Page("/ProfilePhoto", new { providerId = provider.Id })" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.hidden=true" />@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong><span>@provider.Service</span><span class="provider-availability">@provider.Availability</span></div></div>
+                                    <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-specialties="@provider.ServiceSpecialties" data-location="@provider.Location" data-service-areas="@string.Join("|", tts.Pages.BacolorServiceAreas.InLocation(provider.Location))" data-rate="@provider.Rate" data-rate-maximum="@(provider.RateMaximum ?? provider.Rate)" data-availability="@provider.Availability" data-saved-availability="@provider.SavedAvailability">
+                                        <div class="freelancer-left"><div class="freelancer-avatar" style="position:relative;overflow:hidden"><img src="@Url.Page("/ProfilePhoto", new { providerId = provider.Id })" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.hidden=true" />@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong><span>@tts.Data.ServiceCatalog.Display(provider.Service, tts.Data.ServiceCatalog.Read(provider.ServiceSpecialties))</span><span class="provider-availability">@provider.Availability</span></div></div>
                                         <div class="freelancer-right"><div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count})" : "No ratings yet")</strong></div><div class="freelancer-price">@(provider.Rate.HasValue ? (provider.RateMaximum > provider.Rate ? $"₱{provider.Rate:N0} – ₱{provider.RateMaximum:N0}" : $"₱{provider.Rate:N0}") : "Rate not set")</div><button class="arrow-button" type="button" data-name="@provider.Name">View profile</button></div>
                                     </article>
                                 }
@@ -543,6 +550,13 @@
                             </div>
                         </fieldset>
 
+                        <label id="postSpecificServiceField" class="post-field" hidden>
+                            <span>Specific service (optional)</span>
+                            <select id="postSpecificService" name="specificService" disabled>
+                                <option value="">General task</option>
+                            </select>
+                        </label>
+
                         <label class="post-field">
                             <span>Work details</span>
                             <textarea id="taskDescriptionInput" name="description" maxlength="500" required placeholder="Describe the task, including important details or materials needed."></textarea>
@@ -550,10 +564,9 @@
 
                         <div class="post-work-details">
                             <label class="post-field">
-                                <span>Minimum budget (₱)</span>
-                                <span class="post-budget-control"><span aria-hidden="true">₱</span><input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 600" /></span><small>Your proposed minimum budget.</small>
+                                <span>Task Budget (₱)</span>
+                                <span class="post-budget-control"><span aria-hidden="true">₱</span><input id="taskBudgetInput" name="budget" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 800" aria-describedby="taskBudgetHelp" /></span><small id="taskBudgetHelp">Enter the total amount you’re offering for this task.</small>
                             </label>
-                            <label class="post-field"><span>Maximum budget (₱)</span><span class="post-budget-control"><span aria-hidden="true">₱</span><input name="budgetMaximum" type="number" min="1" max="9999999999" step="0.01" required placeholder="e.g. 1000" /></span><small>Must be at least the minimum budget.</small></label>
                             <label class="post-field post-duration"><span>Post closing date</span><input type="date" name="postEndDate" min="@MarketTasksModel.TodayInPhilippines.ToString("yyyy-MM-dd")" max="9999-12-30" required /><small>After publishing, your post stays open through this date (Philippine time).</small></label>
                             <partial name="_TaskLocationPicker" model="new tts.Data.TaskLocationInput(ShowArrivalInstructions: true)" />
                         </div>
@@ -626,7 +639,7 @@
                         @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
                         @if (!Model.DirectoryUnavailable && (Model.WorkRole is "freelancer" or "both")) {
                             <div class="jobs-category-filter">
-                                <label for="jobsCategoryFilter">Filter by service / profession</label>
+                                <label for="jobsCategoryFilter">Service category</label>
                                 <select id="jobsCategoryFilter">
                                     <option value="">All categories</option>
                                     @foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other / General" })
@@ -634,6 +647,10 @@
                                         <option value="@category">@category</option>
                                     }
                                 </select>
+                                <div id="jobsSpecificServiceField" hidden>
+                                    <label for="jobsSpecificService">Specific service</label>
+                                    <select id="jobsSpecificService" disabled><option value="">Any specific service</option></select>
+                                </div>
                             </div>
                         }
                         @if (Model.DirectoryUnavailable) { <div class="jobs-empty"><h3>Jobs are unavailable right now</h3><p>Please try again later.</p></div> }
@@ -642,11 +659,11 @@
                         @foreach (var item in Model.OpenTasks) {
                             var task = item.Task;
                             var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
-                            <article class="jobs-card" data-job-category="@task.Category"><div class="jobs-card-top"><span class="jobs-tag">@task.Category</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><form method="post" asp-page="/Messages" asp-page-handler="Start"><input type="hidden" name="taskId" value="@task.Id" /><button type="submit" class="task-chat-action"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z"/></svg>Ask about this task</button></form><div class="jobs-meta"><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: <span data-account-id="@task.ClientId">@item.ClientName</span></span></div>
+                            <article class="jobs-card" data-job-category="@task.Category" data-job-specific-service="@task.SpecificService"><div class="jobs-card-top"><span class="jobs-tag">@task.CategoryDisplay</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><form method="post" asp-page="/Messages" asp-page-handler="Start"><input type="hidden" name="taskId" value="@task.Id" /><button type="submit" class="task-chat-action"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z"/></svg>Ask about this task</button></form><div class="jobs-meta"><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: <span data-account-id="@task.ClientId">@item.ClientName</span></span></div>
                             @if (existing != null) { <p class="jobs-offer-status">Offer sent · @existing.Offer.Status</p> }
-                            else { <details class="jobs-offer"><summary>Make an offer</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Offer"><input type="hidden" name="id" value="@task.Id" /><label class="post-field">Your price (₱)<input type="number" name="price" min="1" max="9999999999" step="0.01" required /></label><label class="post-field">Message (optional)<textarea name="message" maxlength="500"></textarea></label><button class="post-submit-button" type="submit">Send offer</button></form></details> }</article>
+                            else { <partial name="_JobOfferForm" model="task" /> }</article>
                         }
-                        <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs in this category yet</h3><p>Choose another category or view all jobs.</p><button type="button" id="jobsFilterReset" class="task-chat-action">View all jobs</button></div>
+                        <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs match these filters</h3><p>Try another category or specific service, or view all jobs.</p><button type="button" id="jobsFilterReset" class="task-chat-action">View all jobs</button></div>
                         <section class="jobs-offers"><h3>My offers</h3>
                         @if (Model.Offers.Count == 0) { <p>Your sent offers will appear here so you can check their status.</p> }
                         @foreach (var sent in Model.Offers) { <div class="sent-offer"><div><strong>@(Model.OfferTaskTitles.TryGetValue(sent.Offer.TaskId, out var offerTitle) ? offerTitle : "Task details unavailable")</strong><span>Offer: ₱@sent.Offer.Price</span></div><span class="sent-offer-status">@sent.Offer.Status.Replace("-", " ")</span></div> }</section>

@@ -36,7 +36,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     private static DateTime? ClosingTimeUtc(DateOnly? date) =>
         date?.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc).AddHours(-8);
 
-    public async Task<IActionResult> OnPostEditAsync(long id, string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null)
+    public async Task<IActionResult> OnPostEditAsync(long id, string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null)
     {
         if (UserId <= 0) return Challenge();
         arrivalInstructions = arrivalInstructions?.Trim();
@@ -51,14 +51,15 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             return RedirectToPage(new { view = "mine" });
         }
 
-        if (!ModelState.IsValid || (postDurationDays is not (null or 3 or 7)) || (!ValidTaskDetails(title, description, category, location, budget, schedule) || !ValidBudgetMaximum(budget, budgetMaximum) || !TaskLocationRules.Valid(latitude, longitude)))
-        { Notice = "Check the task details. The maximum budget must be at least the minimum, and the location pin must be confirmed."; return RedirectToPage(new { view = "mine" }); }
+        if (!ModelState.IsValid || (postDurationDays is not (null or 3 or 7)) || (!ValidTaskDetails(title, description, category, location, budget, schedule) || !TaskLocationRules.Valid(latitude, longitude)))
+        { Notice = "Check the task details. Enter a valid task budget and confirm the location pin."; return RedirectToPage(new { view = "mine" }); }
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot edit tasks while suspended."; return RedirectToPage(new { view = "mine" }); }
         var tasks = await db.MarketplaceTasks.FromSqlInterpolated($"SELECT * FROM marketplace_tasks WHERE Id = {id} FOR UPDATE").ToListAsync(ct);
         var task = tasks.SingleOrDefault();
         if (task is null || !CanEditTask(task.Status, task.ClientId, UserId)) { Notice = "This task cannot be edited. It may already be confirmed or cancelled."; return RedirectToPage(new { view = "mine" }); }
-        task.Title = title; task.Description = description; task.Category = category; task.Location = location; task.Budget = budget; task.BudgetMaximum = budgetMaximum; task.ScheduleText = schedule;
+        if (!string.Equals(task.Category, category, StringComparison.OrdinalIgnoreCase)) task.SpecificService = null;
+        task.Title = title; task.Description = description; task.Category = category; task.Location = location; task.Budget = budget; task.BudgetMaximum = null; task.ScheduleText = schedule;
         task.PostDurationDays = postDurationDays;
         task.ArrivalInstructions = arrivalInstructions;
         task.PostExpiresUtc = ClosingTimeUtc(postEndDate);
@@ -137,7 +138,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
 
     public static bool ValidBudgetMaximum(decimal minimum, decimal? maximum) => maximum is null || maximum >= minimum && maximum <= 9999999999m && decimal.Round(maximum.Value, 2) == maximum;
 
-    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null)
+    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null, string? specificService = null)
     {
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim(); location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (UserId <= 0) return Challenge();
@@ -152,8 +153,16 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             return RedirectToPage(new { view = "mine" });
         }
 
-        if (!ModelState.IsValid || postDurationDays is not (null or 3 or 7) || !ValidTaskDetails(title, description, category, location, budget, schedule) || !ValidBudgetMaximum(budget, budgetMaximum) || !TaskLocationRules.Valid(latitude, longitude))
-        { Notice = "Complete the task details, ensure the maximum budget is at least the minimum, and confirm the destination pin."; return RedirectToPage(); }
+        if (!ModelState.IsValid || postDurationDays is not (null or 3 or 7) || !ValidTaskDetails(title, description, category, location, budget, schedule) || !TaskLocationRules.Valid(latitude, longitude))
+        { Notice = "Complete the task details, enter a valid task budget, and confirm the destination pin."; return RedirectToPage(); }
+        if (string.IsNullOrWhiteSpace(specificService)) specificService = null;
+        else if (!ServiceCatalog.Options.TryGetValue(category, out var services) ||
+            (specificService != ServiceCatalog.CustomOption && !services.Contains(specificService)))
+        {
+            Notice = "Choose a specific service that belongs to the selected category.";
+            return RedirectToPage("/FindPost", new { mode = "post" });
+        }
+
         var role = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
         if (role is not ("client" or "both")) { Notice = "Choose Client or Client & Freelancer in Settings to post tasks."; return RedirectToPage(); }
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
@@ -167,8 +176,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             join pin in db.Set<TaskDestination>().AsNoTracking() on draft.Id equals pin.TaskId
             where draft.ClientId == UserId && !draft.IsPrivate && draft.Status == "pending-confirmation" &&
                 draft.CreatedAt >= recent && draft.Title == title && draft.Description == description &&
-                draft.Category == category && draft.Location == location && draft.ArrivalInstructions == arrivalInstructions && draft.Budget == budget &&
-                draft.BudgetMaximum == budgetMaximum && draft.ScheduleText == schedule &&
+                draft.Category == category && draft.SpecificService == specificService && draft.Location == location && draft.ArrivalInstructions == arrivalInstructions && draft.Budget == budget &&
+                draft.BudgetMaximum == null && draft.ScheduleText == schedule &&
                 draft.PostDurationDays == duration && draft.PostExpiresUtc == closingTime &&
                 pin.Latitude == latitude!.Value && pin.Longitude == longitude!.Value
             select draft.Id).AnyAsync(ct);
@@ -177,7 +186,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             Notice = "This task was already saved. Review it below before publishing.";
             return RedirectToPage();
         }
-        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, Location = location, ArrivalInstructions = arrivalInstructions, Budget = budget, BudgetMaximum = budgetMaximum, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
+        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, SpecificService = specificService, Location = location, ArrivalInstructions = arrivalInstructions, Budget = budget, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
         db.MarketplaceTasks.Add(task); await db.SaveChangesAsync(ct);
         TaskLocationRules.Save(db, task.Id, null, latitude!.Value, longitude!.Value);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Task saved. Confirm it below to make it visible to freelancers."; return RedirectToPage();

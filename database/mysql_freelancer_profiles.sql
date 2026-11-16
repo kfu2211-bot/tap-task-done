@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS freelancer_profiles (
     UserId INT NOT NULL PRIMARY KEY,
     Service VARCHAR(200) NOT NULL DEFAULT '',
+    ServiceSpecialties TEXT NULL,
     Location VARCHAR(80) NOT NULL DEFAULT '',
     Rate INT NULL,
     RateMaximum INT NULL,

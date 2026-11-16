@@ -211,6 +211,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         profile.HasKey(x => x.UserId);
         profile.HasOne<AppUser>().WithOne().HasForeignKey<FreelancerProfile>(x => x.UserId);
         profile.Property(x => x.Service).HasMaxLength(200);
+        profile.Property(x => x.ServiceSpecialties).HasColumnType("text");
         profile.Property(x => x.Location).HasMaxLength(80);
         profile.Property(x => x.WorkRole).HasMaxLength(16);
         profile.Property(x => x.Availability).HasMaxLength(16);
@@ -219,6 +220,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         profile.Property(x => x.AvailableDays).HasMaxLength(40);
         var task = modelBuilder.Entity<MarketplaceTask>();
         task.ToTable("marketplace_tasks");
+        task.Property(x => x.SpecificService).HasMaxLength(60);
         task.HasKey(x => x.Id);
         task.Property(x => x.Budget).HasPrecision(12, 2);
         task.Property(x => x.BudgetMaximum).HasPrecision(12, 2);
