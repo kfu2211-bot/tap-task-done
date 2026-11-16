@@ -325,6 +325,8 @@
                      CATEGORIES
                 ================================================== -->
 
+                @if (!Model.FreelancerOnly)
+                {
                 <section class="section dashboard-categories-section">
 
                     <div class="section-title">
@@ -440,6 +442,7 @@
                     </div>
 
                 </section>
+                }
 
 
                 <!-- =================================================
@@ -456,6 +459,8 @@
                     </section>
                 }
 
+                @if (!Model.FreelancerOnly)
+                {
                 <section class="section providers-section">
 
 
@@ -715,6 +720,7 @@
                     </div>
 
                 </section>
+                }
 
             </div>
 

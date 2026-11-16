@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
 
     console.log("Home Dashboard loaded");
 
@@ -199,60 +199,6 @@
     // POST A TASK
     // =====================================================
 
-    const postTaskButton =
-        document.querySelector(".post-button");
-
-
-    // Keep the Home call-to-action readable even while an older Razor build is open.
-    if (postTaskButton) {
-        postTaskButton.textContent = "Post a task";
-        postTaskButton.setAttribute("aria-label", "Post a task");
-    }
-
-
-    if (postTaskButton) {
-
-        postTaskButton.addEventListener(
-            "click",
-            function (event) {
-
-                event.preventDefault();
-
-                window.location.href =
-                    "/FindPost?mode=post";
-
-            }
-        );
-
-    }
-
-
-    // =====================================================
-    // FIND A FREELANCER
-    // =====================================================
-
-    const findFreelancerButton =
-        document.querySelector(".find-button");
-
-
-    if (findFreelancerButton) {
-
-        findFreelancerButton.addEventListener(
-            "click",
-            function (event) {
-
-                event.preventDefault();
-
-                window.location.href =
-                    "/FindPost?mode=freelancer";
-
-            }
-        );
-
-    }
-
-
-    // =====================================================
     // SEARCH BAR
     // =====================================================
 

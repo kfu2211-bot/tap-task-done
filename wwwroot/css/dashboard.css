@@ -1650,3 +1650,10 @@ body {
 @media (max-width: 480px) { .category-carousel .category-grid { grid-auto-columns: 75%; } }
 @media (prefers-reduced-motion: reduce) { .category-carousel::before, .category-carousel::after { transition: none; } }
 
+
+.dashboard .hero-buttons > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
