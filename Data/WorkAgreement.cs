@@ -39,7 +39,7 @@ public static class TaskLocationRules
         BacolorBoundary.Contains(latitude.Value, longitude.Value);
 
     public static bool ValidServiceLocation(string? area, double? latitude, double? longitude) =>
-        area is not null && tts.Pages.BacolorServiceAreas.Names.Contains(area) && Valid(latitude, longitude);
+        (string.IsNullOrWhiteSpace(area) || tts.Pages.BacolorServiceAreas.Names.Contains(area)) && Valid(latitude, longitude);
     public static string PublicArea => "Bacolor, Pampanga";
     public static void Save(ApplicationDbContext db, long taskId, TaskDestination? existing, double latitude, double longitude)
     {

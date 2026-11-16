@@ -41,7 +41,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (UserId <= 0) return Challenge();
         arrivalInstructions = arrivalInstructions?.Trim();
         if (arrivalInstructions?.Length > 500 || !TaskLocationRules.ValidServiceLocation(serviceArea, latitude, longitude))
-        { Notice = "Choose a service area and confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
+        { Notice = "Confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim();
         location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (ModelState.TryGetValue(nameof(postEndDate), out var dateState) && dateState.Errors.Count > 0 ||
@@ -144,7 +144,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (UserId <= 0) return Challenge();
         arrivalInstructions = arrivalInstructions?.Trim();
         if (arrivalInstructions?.Length > 500 || !TaskLocationRules.ValidServiceLocation(serviceArea, latitude, longitude))
-        { Notice = "Choose a service area and confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
+        { Notice = "Confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
         if (ModelState.TryGetValue(nameof(postEndDate), out var dateState) && dateState.Errors.Count > 0 ||
             postEndDate is { } endDate && (endDate < TodayInPhilippines || endDate == DateOnly.MaxValue))
@@ -239,7 +239,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         return RedirectToPage("/Tracking", new { taskId = id });
     }
 
-    public async Task<IActionResult> OnPostOfferAsync(long id, decimal price, string? message, CancellationToken ct)
+    public async Task<IActionResult> OnPostOfferAsync(long id, decimal price, string? message, CancellationToken ct, bool applyAtPostedPay = false)
     {
         if (UserId <= 0) return Challenge();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
@@ -252,11 +252,16 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (await FreelancerAvailability.IsBusyAsync(db, UserId, ct)) { Notice = "Finish your current travel/work before sending a new offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId != UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         if (task is null || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct)) { Notice = "This task is unavailable or you already sent an offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        if (applyAtPostedPay && ((task.BudgetMaximum.HasValue && task.BudgetMaximum.Value != task.Budget) || price != task.Budget))
+        {
+            Notice = "The posted pay has changed. Review the latest budget before applying.";
+            return RedirectToPage("/FindPost", new { mode = "jobs" });
+        }
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This task cannot receive offers while an account is pending deletion or restricted."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         await AgreementRules.ConversationAsync(db, id, UserId, ct);
         db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = id, FreelancerId = UserId, Price = price, Message = message, Status = "pending", CreatedAt = DateTime.UtcNow });
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(task.ClientId, id, "offer", "A freelancer sent an offer for your task."));
-        try { await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct); Notice = "Offer sent to the client."; }
+        try { await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct); Notice = applyAtPostedPay ? "Application sent to the client at the posted pay." : "Offer sent to the client."; }
         catch (DbUpdateException) { Notice = "Your offer could not be saved. Please try again."; }
         return RedirectToPage("/FindPost", new { mode = "jobs" });
     }

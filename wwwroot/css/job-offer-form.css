@@ -1,7 +1,12 @@
-.job-offer-editor { margin-top: 16px; }
-html body .job-offer-editor > summary {
-    display: inline-flex;
+.job-offer-actions {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    gap: 8px;
+}
+.job-offer-actions > form { margin: 0; }
+.job-offer-editor[hidden], .job-offer-actions [hidden], .job-offer-editor [hidden] { display: none !important; }
+html body :is(.job-offer-toggle, .job-offer-use-budget) {
     min-height: 44px;
     padding: 8px 14px;
     border: 1px solid var(--line, #c9ddcd);
@@ -10,32 +15,23 @@ html body .job-offer-editor > summary {
     color: var(--text, #15563f);
     font-weight: 700;
     cursor: pointer;
-    list-style: none;
 }
-.job-offer-editor > summary::-webkit-details-marker { display: none; }
-.job-offer-editor:not([open]) .offer-close-label,
-.job-offer-editor[open] .offer-open-label,
-.job-offer-editor [hidden] { display: none !important; }
-html body .job-offer-editor form {
+.job-offer-toggle::after { content: "▾"; margin-inline-start: 7px; }
+.job-offer-toggle[aria-expanded="true"]::after { content: "▴"; }
+html body form.job-offer-editor {
     display: grid;
     gap: 12px;
-    max-width: 440px;
+    width: min(100%, 440px);
     margin-top: 12px;
+    padding: 16px;
+    border: 1px solid var(--line, #d5e4d8);
+    border-radius: 10px;
+    background: var(--surface-2, #f2f7f1);
 }
-.job-offer-editor form p { margin: 0; }
+.job-offer-editor form p, .job-offer-editor > p { margin: 0; }
 .job-offer-editor label { display: grid; gap: 6px; }
-html body .job-offer-editor .job-offer-use-budget {
-    justify-self: start;
-    min-height: 44px;
-    padding: 6px 12px;
-    border: 1px solid var(--line, #c9ddcd);
-    border-radius: 8px;
-    background: var(--surface-2, #e5f3e8);
-    color: var(--text, #15563f);
-    cursor: pointer;
-}
-html body .job-offer-editor form button[type="submit"] {
-    justify-self: start;
+.job-offer-editor :is(.job-offer-use-budget, button[type="submit"]) { justify-self: start; }
+html body :is(.job-offer-actions, .job-offer-editor) .post-submit-button {
     min-height: 44px;
     padding: 8px 15px;
     border: 0;
@@ -44,4 +40,10 @@ html body .job-offer-editor form button[type="submit"] {
     color: #fff;
     font-weight: 700;
     cursor: pointer;
+}
+#findJobsSection .jobs-card[id] { scroll-margin-top: 90px; }
+#findJobsSection .jobs-card:target { outline: 2px solid var(--brand, #176b50); outline-offset: -2px; }
+@media (min-width: 1050px) {
+    #findJobsSection .jobs-card > .job-offer-actions { grid-column: 3; grid-row: 3 / span 2; }
+    #findJobsSection .jobs-card > .job-offer-editor { grid-column: 1 / -1; justify-self: end; }
 }

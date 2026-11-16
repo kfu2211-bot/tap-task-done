@@ -772,7 +772,7 @@
                             }
                             @foreach (var task in Model.AvailableTasks)
                             {
-                                <a class="home-task-row" href="/MarketTasks?view=jobs#task-@task.Id">
+                                <a class="home-task-row" href="/FindPost?mode=jobs#task-@task.Id">
                                     <span class="home-row-copy"><strong>@task.Title</strong><small>@task.Category · @tts.Data.TaskLocationRules.PublicArea</small></span>
                                     <strong class="home-budget">@task.BudgetDisplay</strong>
                                     <span aria-hidden="true">›</span>

@@ -21,7 +21,7 @@
         let map, marker, candidate=lat.value&&lon.value ? [Number(lon.value),Number(lat.value)] : null;
         let searching=false, generation=0, mapFailed=false, searchTimer, reverseGeneration=0, reverseController;
         const serviceArea = root.querySelector("[data-location-area]");
-        let verifiedArea;
+        let pinVerified = !!candidate;
         const areas = Object.keys(areaCenters);
         const addressPlaceholder = address.placeholder;
         function setLookingUp(loading) {
@@ -29,15 +29,19 @@
             address.placeholder = loading ? 'Finding address for this pin…' : addressPlaceholder;
             address.setAttribute('aria-busy', String(loading));
             address.readOnly = loading;
-            confirm.disabled = loading || !verifiedArea || verifiedArea !== serviceArea.value;
+            confirm.disabled = loading || !pinVerified;
         }
-        if(candidate) status.textContent='Choose the service area to verify your saved pin.';
+        if (pinVerified) {
+            root.classList.add('location-confirmed');
+            confirm.textContent = 'Pin confirmed';
+            status.textContent = 'Your saved Bacolor pin is confirmed. Move it to change the work location.';
+        }
         function invalidate() { lat.value='';lon.value='';root.classList.remove('location-confirmed');confirm.textContent='Confirm this pin'; }
         function warn(message) { notice.textContent=message;notice.hidden=false;root.classList.add('location-needs-confirmation'); }
         function pick(point, label) {
             invalidate();
             notice.hidden = true;
-            verifiedArea = null;
+            pinVerified = false;
             reverseController?.abort();
             generation++; clearTimeout(searchTimer); results.replaceChildren();
             setLookingUp(true);
@@ -62,8 +66,8 @@
                             return;
                         }
                         if (place?.label) address.value = place.label;
-                        verifiedArea = serviceArea.value;
-                        status.textContent = !verifiedArea ? 'Choose a service area to continue.' :
+                        pinVerified = true;
+                        status.textContent =
                             address.value.trim() ? 'Pin is inside Bacolor. Review the work address before confirming.' :
                             'Pin is inside Bacolor. Enter the work address, then confirm the pin.';
                     })
@@ -75,7 +79,7 @@
                             return;
                         }
                         status.textContent = 'Address lookup could not be completed.';
-                        warn('Service area lookup is unavailable. Select the pin again to retry.');
+                        warn('Pin verification is unavailable. Select the pin again to retry.');
                     })
                     .finally(()=>{
                         clearTimeout(timeout);
@@ -107,36 +111,17 @@
         });
         let areaCenter;
         serviceArea.addEventListener('change', () => {
-            const area = serviceArea.value;
-            generation++;
-            reverseGeneration++;
-            reverseController?.abort();
-            clearTimeout(searchTimer);
-            results.replaceChildren();
-            areaCenter = null;
-            notice.hidden = true;
-            root.classList.remove('location-needs-confirmation');
-            invalidate();
-            candidate = null;
-            verifiedArea = null;
-            marker?.remove();
-            marker = null;
-            address.value = '';
-            setLookingUp(false);
-            if (!area) {
-                status.textContent = 'Choose a service area to continue.';
-                return;
-            }
-            areaCenter = areaCenters[area];
+            areaCenter = areaCenters[serviceArea.value];
+            if (!areaCenter) return;
             init();
-            if (map && areaCenter) {
+            if (map) {
                 map.resize();
                 map.jumpTo({ center: areaCenter, zoom: 16 });
             }
-            status.textContent = 'Place the pin at the exact work address in Bacolor.';
+            if (!candidate) status.textContent = 'Place the pin at the exact work address in Bacolor.';
         });
         confirm.addEventListener('click',()=>{
-            if (!verifiedArea || verifiedArea !== serviceArea.value) return;
+            if (!pinVerified) return;
             if(!candidate||!address.value.trim()){warn('Choose a location on the map or search for an address first, then confirm the pin.');return;}
             lat.value=candidate[1].toFixed(6);lon.value=candidate[0].toFixed(6);
             notice.hidden=true;root.classList.remove('location-needs-confirmation');root.classList.add('location-confirmed');confirm.textContent='Pin confirmed';

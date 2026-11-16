@@ -1,12 +1,12 @@
 @model tts.Data.TaskLocationInput
-@{ var key = "location-" + Guid.NewGuid().ToString("N"); var invariant = System.Globalization.CultureInfo.InvariantCulture; }
+@{ var key = "location-" + Guid.NewGuid().ToString("N"); var invariant = System.Globalization.CultureInfo.InvariantCulture; var savedPinValid = tts.Data.TaskLocationRules.Valid(Model.Latitude, Model.Longitude); }
 <section class="task-location-picker" data-location-picker>
     <div class="location-section-heading">
         <strong>Work location</strong>
-        <p>Choose a service area and pin the work address inside Bacolor, Pampanga.</p>
+        <p>Pin the exact work address inside Bacolor, Pampanga. Use the service area to jump to a nearby place.</p>
     </div>
-    <label for="@(key)-area">Service area</label>
-    <select id="@(key)-area" name="serviceArea" required data-location-area>
+    <label for="@(key)-area">Service area (optional)</label>
+    <select id="@(key)-area" name="serviceArea" data-location-area>
         <option value="">Choose a service area</option>
         @foreach (var area in tts.Pages.BacolorServiceAreas.Names)
         {
@@ -23,12 +23,12 @@
             <small>Shared with the assigned freelancer in Tracking.</small>
         </div>
     }
-    <input type="hidden" name="latitude" value="@(Model.Latitude?.ToString(invariant))" data-location-latitude />
-    <input type="hidden" name="longitude" value="@(Model.Longitude?.ToString(invariant))" data-location-longitude />
+    <input type="hidden" name="latitude" value="@(savedPinValid ? Model.Latitude?.ToString(invariant) : null)" data-location-latitude />
+    <input type="hidden" name="longitude" value="@(savedPinValid ? Model.Longitude?.ToString(invariant) : null)" data-location-longitude />
     <div class="location-picker-actions"><button type="button" data-location-search>Search location</button><button type="button" data-location-current>Use my current location</button></div>
     <div class="location-search-results" data-location-results></div>
     <div class="location-picker-map" data-location-map aria-label="Choose the exact work destination"></div>
-    <div class="location-confirmation"><div><strong>Confirm your work location</strong><span>Check the address and pin before continuing.</span></div><button type="button" data-location-confirm>Confirm this pin</button></div>
+    <div class="location-confirmation"><div><strong>Confirm your work location</strong><span>Check the address and pin before continuing.</span></div><button type="button" data-location-confirm disabled>Confirm this pin</button></div>
     <p class="location-confirmation-alert" data-location-alert role="alert" hidden></p>
     <p data-location-status role="status">Search, use your location, or click/drag the pin, then confirm the exact work destination.</p>
     <small>Current location is optional and needs permission. Confirm the work address, which may differ from where you are now. Search: Photon / © OpenStreetMap contributors.</small>

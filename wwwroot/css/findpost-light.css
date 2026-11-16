@@ -205,7 +205,7 @@ html body #findJobsSection .jobs-card .jobs-offer {
     }
     #findJobsSection .jobs-card-top { grid-column: 1 / -1; }
     #findJobsSection .jobs-card > :is(h3, p, .jobs-meta) { grid-column: 1; }
-    #findJobsSection .jobs-card > form { grid-column: 2; grid-row: 3 / span 2; }
+    #findJobsSection .jobs-card > form:not(.job-offer-editor) { grid-column: 2; grid-row: 3 / span 2; }
     #findJobsSection .jobs-card > .jobs-offer { grid-column: 3; grid-row: 3 / span 2; }
     #findJobsSection .jobs-card > .jobs-offer[open] {
         grid-column: 1 / -1;

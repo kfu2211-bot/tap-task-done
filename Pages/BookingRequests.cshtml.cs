@@ -76,7 +76,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
         arrivalInstructions = arrivalInstructions?.Trim();
         if (arrivalInstructions?.Length > 500 || !TaskLocationRules.ValidServiceLocation(serviceArea, latitude, longitude))
-        { Notice = "Choose a service area and confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
+        { Notice = "Confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
         title = (title ?? "").Trim(); description = (description ?? "").Trim();
         location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (!ModelState.IsValid || freelancerId <= 0 || freelancerId == UserId || title.Length is < 1 or > 120 ||
