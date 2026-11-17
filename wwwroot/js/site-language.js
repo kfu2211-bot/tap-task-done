@@ -202,6 +202,66 @@
         "Review the finished work": "Suriin ang natapos na trabaho", "Rate your task": "Bigyan ng rating ang task",
         "Enter your birthday": "Ilagay ang kaarawan mo", "Reset password": "Palitan ang password"
     });
+    Object.assign(labels, {
+        "Find jobs": "Maghanap ng trabaho", "Find a Freelancer": "Maghanap ng freelancer",
+        "Review booking requests, sent offers, and assigned work.": "Suriin ang mga kahilingan sa booking, ipinadalang alok, at nakatalagang trabaho.",
+        "Booking requests": "Mga kahilingan sa booking", "My active jobs": "Mga kasalukuyan kong trabaho",
+        "Scheduled jobs": "Mga naka-iskedyul na trabaho", "Cancelled jobs": "Mga kinanselang trabaho",
+        "Requests from clients will appear here.": "Dito lalabas ang mga kahilingan mula sa mga kliyente.",
+        "View all offers": "Tingnan lahat ng alok", "Client:": "Kliyente:", "Pending": "Naghihintay", "pending": "Naghihintay",
+        "Work days and preferred hours": "Mga araw ng trabaho at gustong oras",
+        "Availability preference": "Napiling availability", "Current status": "Kasalukuyang katayuan",
+        "Available": "Handang tumanggap ng trabaho", "Busy": "Abala", "Day off": "Araw ng pahinga", "Working": "Nagtatrabaho",
+        "Your chosen availability returns after work is finished or cancelled. You can accept new work while awaiting client confirmation.": "Babalik ang napili mong availability kapag natapos o nakansela ang trabaho. Maaari kang tumanggap ng bagong trabaho habang hinihintay ang kumpirmasyon ng kliyente.",
+        "Set your usual hours in Philippine time, or leave both blank.": "Ilagay ang karaniwang oras mo sa oras ng Pilipinas, o iwang blangko ang dalawang field.",
+        "Start time": "Oras ng simula", "End time": "Oras ng pagtatapos",
+        "Manage your display name and profile photo.": "Pamahalaan ang pangalang ipinapakita at larawan sa profile mo.",
+        "Profile photo": "Larawan sa profile", "Use a clear photo so people can recognize you.": "Gumamit ng malinaw na larawan para makilala ka.",
+        "Change photo": "Palitan ang larawan", "Remove photo": "Alisin ang larawan", "JPG, PNG or WEBP · Max 5 MB": "JPG, PNG o WEBP · Hanggang 5 MB",
+        "Personal details": "Personal na detalye", "Display name": "Pangalang ipinapakita", "Login email": "Email sa pag-sign in",
+        "Date of birth": "Petsa ng kapanganakan", "Phone number": "Numero ng telepono",
+        "Edit display name": "Baguhin ang pangalang ipinapakita", "Edit phone number": "Baguhin ang numero ng telepono",
+        "Crop profile photo": "I-crop ang larawan sa profile", "Save photo": "I-save ang larawan",
+        "Search conversations": "Maghanap ng pag-uusap", "Archived": "Naka-archive", "Service inquiry": "Tanong tungkol sa serbisyo",
+        "Ask about a task or discuss a booking to start a conversation.": "Magtanong tungkol sa task o talakayin ang booking para magsimula ng pag-uusap.",
+        "Find tasks and freelancers": "Maghanap ng mga task at freelancer",
+        "Discuss booking request": "Pag-usapan ang kahilingan sa booking", "Accept request": "Tanggapin ang kahilingan",
+        "Decline": "Tanggihan", "accepted": "Tinanggap", "declined": "Tinanggihan", "withdrawn": "Binawi",
+        "Open a conversation": "Magbukas ng pag-uusap", "Your inbox is empty": "Walang laman ang inbox mo",
+        "Choose a person from your inbox to see your messages and shared tasks.": "Pumili ng tao sa inbox para makita ang mga mensahe at task ninyo.",
+        "No archived conversations yet.": "Wala pang naka-archive na pag-uusap.",
+        "No active conversations yet. Ask about a task or discuss a booking to start one.": "Wala pang aktibong pag-uusap. Magtanong tungkol sa task o talakayin ang booking para magsimula.",
+        "Task budget": "Budget ng task", "Schedule": "Iskedyul", "To be arranged": "Pag-uusapan pa",
+        "Booking accepted": "Tinanggap ang booking", "Work in progress": "Ginagawa na ang trabaho",
+        "Awaiting client confirmation": "Hinihintay ang kumpirmasyon ng kliyente",
+        "The booking or offer has been accepted.": "Tinanggap na ang booking o alok.",
+        "The freelancer is travelling to the work location.": "Papunta na ang freelancer sa lugar ng trabaho.",
+        "The freelancer has confirmed arrival. Travel tracking stops.": "Kinumpirma ng freelancer na nakarating na siya. Huminto na ang pagsubaybay sa biyahe.",
+        "The freelancer is performing the agreed work.": "Ginagawa na ng freelancer ang napagkasunduang trabaho.",
+        "The client checks the completion note and finished work.": "Sinusuri ng kliyente ang tala at ang natapos na trabaho.",
+        "The client has confirmed completion. Reviews are available.": "Kinumpirma ng kliyente na tapos na ang trabaho. Maaari nang magbigay ng review.",
+        "Start work": "Simulan ang trabaho", "Start travel & share location": "Simulan ang biyahe at ibahagi ang lokasyon",
+        "I’ve arrived": "Nakarating na ako", "Mark work finished": "Markahang tapos ang trabaho",
+        "Open My Jobs": "Buksan ang mga trabaho ko", "Open My Tasks": "Buksan ang mga task ko",
+        "Assigned to this task": "Nakatalaga sa task na ito", "Message client": "Mensahe sa kliyente", "Message freelancer": "Mensahe sa freelancer",
+        "Mobile number": "Numero ng cellphone", "Task location": "Lokasyon ng task", "Location not provided": "Walang ibinigay na lokasyon",
+        "Search a place on the map": "Maghanap ng lugar sa mapa", "Bacolor address or landmark": "Address o palatandaan sa Bacolor",
+        "Search map": "Maghanap sa mapa",
+        "Search only changes your map view. To change the work destination, request changes in Confirm work details.": "Tanawin sa mapa lang ang binabago ng paghahanap. Para palitan ang lugar ng trabaho, humiling ng pagbabago sa Kumpirmahin ang detalye ng trabaho.",
+        "Confirm work details": "Kumpirmahin ang detalye ng trabaho",
+        "YOUR FEEDBACK": "MGA REVIEW MO", "Reviews that matter.": "Mga review na mahalaga.",
+        "Every completed task is a chance to build trust. See the feedback you've received and shared along the way.": "Bawat natapos na task ay pagkakataong makabuo ng tiwala. Tingnan ang mga review na natanggap at ibinigay mo.",
+        "View my tasks": "Tingnan ang mga task ko", "YOUR REPUTATION": "REPUTASYON MO", "FEEDBACK YOU'VE SHARED": "MGA REVIEW NA IBINIGAY MO",
+        "AVERAGE RATING": "KARANIWANG RATING", "Based on the reviews shown below.": "Batay sa mga review sa ibaba.",
+        "Your review history will appear here.": "Dito lalabas ang kasaysayan ng mga review mo.",
+        "Received": "Natanggap", "Given": "Ibinigay", "Reviews you received": "Mga review na natanggap mo",
+        "Reviews you gave": "Mga review na ibinigay mo", "Review received": "Natanggap na review", "Review given": "Ibinigay na review",
+        "Completed task": "Natapos na task", "No reviews received yet": "Wala pang natatanggap na review",
+        "No reviews given yet": "Wala pang naibibigay na review", "Go to My Tasks": "Pumunta sa mga task ko",
+        "After confirming a task is complete, open My Tasks to rate your freelancer.": "Pagkumpirma na tapos na ang task, buksan ang Mga task ko para bigyan ng rating ang freelancer.",
+        "Client feedback will appear here after they review a completed task.": "Dito lalabas ang review ng kliyente matapos niyang suriin ang natapos na task.",
+        "Reviews are temporarily unavailable. Please try again later.": "Pansamantalang hindi available ang mga review. Subukan ulit mamaya."
+    });
     const tracked = new WeakMap();
     let language = "en";
     try { language = localStorage.getItem("tts-language") === "fil" ? "fil" : "en"; } catch {}
@@ -248,6 +308,11 @@
         "#providerDetailPanel :is(label, button, .provider-service-groups dt, .provider-service-groups li, .provider-service-general), #selectedProviderPrice",
         "#findJobsSection :is(label, option[value], button, .jobs-tag), #postTaskSection :is(label, option[value], button, small)",
         ".filter-panel button, .jobs-category-filter button, .notification-filters button, .notification-card button, .thread-form button",
+        ".jobs-intro :is(p, a), .job-tabs :is(a, button), .jobs-empty p, .jobs-section-heading a, .jobs-meta, .job-meta, .job-actions button, .job-card > a, .sent-offer-status",
+        ".account-workspace :is(.availability-summary, .photo-settings-copy, .photo-file-note), .home-view-switch a, .home-filters a, .home-row-copy small",
+        ".conversations-toolbar label, .messages-inbox-tabs a, .inbox-welcome :is(p, a), .conversation-list-empty, .conversation-task, .messages-thread :is(p, label, button):not(.message-text, .message-bubble p)",
+        ".db-tracking-details span, .tracking-timeline li > div, .db-tracking-card :is(button, summary), .tracking-actions a, .tracking-panel p, .tracking-shared-phone strong, .tracking-location strong, .map-place-search :is(label, button, p)",
+        ".reviews-hero-copy, .reviews-action, .reviews-overview, .reviews-tabs a, .reviews-section-heading span, .review-person p, .review-task span, .reviews-empty",
         "button[data-toggle-specialties], [data-specialty-count], #selectedServices, #selectAllServiceAreas, #jobsFilterCount"
     ].join(", ");
 
@@ -255,10 +320,13 @@
         if (Object.hasOwn(labels, key)) return labels[key];
         return key
             .replace(/^(\d+) (?:tasks?|available)$/, (_, count) => count + (key.endsWith("available") ? " na available" : " na task"))
+            .replace(/^(\d+) reviews?$/, "$1 review")
+            .replace(/^(\d+) pending offers?$/, "$1 alok na naghihintay")
+            .replace(/^Busy · (.+)$/, (_, status) => "Abala · " + (labels[status] || status))
             .replace(/^(\d+) selected$/, "$1 ang napili")
             .replace(/^Select all (\d+)$/, "Piliin lahat ng $1")
             .replace(/^(\d+) open tasks?$/, "$1 bukas na task")
-            .replace(/^(All|Needs confirmation|Scheduled|Active|Completed) (\(\d+\))$/, (_, label, count) => labels[label] + " " + count);
+            .replace(/^(All|Needs confirmation|Scheduled|Active|Completed|Booking requests) (\(\d+\))$/, (_, label, count) => labels[label] + " " + count);
     }
     function translate() {
         const darkMode = document.querySelector("#headerAccountMenu .header-theme-toggle");
@@ -273,12 +341,15 @@
             [".task-filters", "aria-label", "Filter tasks by status"],
             ["#governmentId", "aria-label", "Upload government ID"],
             ["#idNumber", "placeholder", "Enter your government ID number"],
+            ["#conversationSearch", "placeholder", "Search conversations"],
+            [".map-place-search input", "placeholder", "Bacolor address or landmark"],
             [".availability-strip button", "aria-label", "Accepting new jobs"],
             ["#reportDescription", "placeholder", "Do not include passwords or sensitive identity details."]
         ]) {
-            const element = document.querySelector(selector);
             const value = language === "fil" ? labels[key] : key;
-            if (element && element.getAttribute(attribute) !== value) element.setAttribute(attribute, value);
+            document.querySelectorAll(selector).forEach(element => {
+                if (element.getAttribute(attribute) !== value) element.setAttribute(attribute, value);
+            });
         }
         document.documentElement.lang = language;
         document.querySelectorAll(interfaceSelectors).forEach(element => {

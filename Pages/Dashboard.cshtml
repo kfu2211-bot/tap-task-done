@@ -375,7 +375,7 @@
                         @foreach (var item in Model.RecentTasks)
                         {
                             <a class="home-task-row" href="/MarketTasks?view=mine#task-@item.Task.Id">
-                                <span class="home-row-copy"><strong>@item.Task.Title</strong><small>@item.Task.Category @if (!string.IsNullOrWhiteSpace(item.Task.ScheduleText)) { <text> · @item.Task.ScheduleText</text> } · @item.Offers pending offer@(item.Offers == 1 ? "" : "s")</small></span>
+                                <span class="home-row-copy"><strong>@item.Task.Title</strong><small><span>@item.Task.Category</span> @if (!string.IsNullOrWhiteSpace(item.Task.ScheduleText)) { <text> · @item.Task.ScheduleText</text> } · <span>@($"{item.Offers} pending {(item.Offers == 1 ? "offer" : "offers")}")</span></small></span>
                                 <strong class="home-budget">@item.Task.BudgetDisplay</strong>
                                 <span class="home-status" data-status="@item.Task.Status">@tts.Data.TaskSchedule.DisplayStatus(item.Task, DateTime.UtcNow)</span>
                                 <span aria-hidden="true">›</span>
@@ -783,7 +783,7 @@
                             @foreach (var task in Model.AvailableTasks)
                             {
                                 <a class="home-task-row" href="/FindPost?mode=jobs#task-@task.Id">
-                                    <span class="home-row-copy"><strong>@task.Title</strong><small>@task.Category · @tts.Data.TaskLocationRules.PublicArea</small></span>
+                                    <span class="home-row-copy"><strong>@task.Title</strong><small><span>@task.Category</span> · @tts.Data.TaskLocationRules.PublicArea</small></span>
                                     <strong class="home-budget">@task.BudgetDisplay</strong>
                                     <span aria-hidden="true">›</span>
                                 </a>
