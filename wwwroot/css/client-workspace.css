@@ -4,7 +4,7 @@
 
 html body:is(.client-home, .freelancer-home) .dashboard .home-banner {
     position: relative;
-    min-height: 218px;
+    min-height: clamp(240px, 20vw, 310px);
     padding: 20px clamp(20px, 3vw, 44px);
     border-radius: 18px;
 }
@@ -215,23 +215,38 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
     z-index: 3;
 }
 .home-service-slide {
+    --service-image: url('/images/client-home/service-photos.png');
+    --service-position: 0 0;
     position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity .65s ease-in-out;
+}
+.home-service-slide::before,
+.home-service-slide::after {
+    content: "";
+    position: absolute;
+    background: var(--service-image) var(--service-position) / 200% 200% no-repeat;
+}
+.home-service-slide::before {
+    inset: 0;
+    filter: blur(24px) saturate(.65);
+    opacity: .55;
+}
+.home-service-slide::after {
     inset: 50% 0 auto auto;
     width: min(100%, 150cqh);
     aspect-ratio: 3 / 2;
     transform: translateY(-50%);
-    opacity: 0;
-    filter: saturate(.72) contrast(.88);
-    transition: opacity .65s ease-in-out;
-    background: url('/images/client-home/service-photos.png') 0 0 / 200% 200% no-repeat;
-    mask-image: linear-gradient(90deg, transparent, #000 17%);
+    filter: saturate(.8) contrast(.92);
+    mask-image: linear-gradient(90deg, transparent, #000 16%);
 }
 .home-service-slide:is([data-service="errands"], [data-service="painting"], [data-service="tutoring"], [data-service="pet-care"]) {
-    background-image: url('/images/client-home/service-photos-extra.png');
+    --service-image: url('/images/client-home/service-photos-extra.png');
 }
-.home-service-slide:is([data-service="repairs"], [data-service="painting"]) { background-position: 100% 0; }
-.home-service-slide:is([data-service="gardening"], [data-service="tutoring"]) { background-position: 0 100%; }
-.home-service-slide:is([data-service="moving"], [data-service="pet-care"]) { background-position: 100% 100%; }
+.home-service-slide:is([data-service="repairs"], [data-service="painting"]) { --service-position: 100% 0; }
+.home-service-slide:is([data-service="gardening"], [data-service="tutoring"]) { --service-position: 0 100%; }
+.home-service-slide:is([data-service="moving"], [data-service="pet-care"]) { --service-position: 100% 100%; }
 .home-service-slide.is-current { opacity: 1; }
 .home-service-photos::after {
     content: "";
