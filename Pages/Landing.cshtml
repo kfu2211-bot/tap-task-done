@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="~/css/task-submit.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/site-language.css" asp-append-version="true" />
 <script defer src="~/js/site-language.js" asp-append-version="true"></script>
+    <script defer src="/js/home-service-photos.js" asp-append-version="true"></script>
 </head>
 <body>
     <header class="landing-header">
@@ -54,7 +55,13 @@
                     <a class="landing-button landing-outline" asp-page="@(signedIn ? "/FindPost" : "/Login")">Find a freelancer</a>
                 </div>
             </div>
-            <img class="hero-photo" src="/landing-gardener.png" asp-append-version="true" alt="A gardener trimming a hedge at a home" fetchpriority="high" />
+            <div class="hero-photo" data-service-carousel aria-hidden="true">
+                <img class="landing-service-slide is-current" src="/landing-gardener.png" asp-append-version="true" alt="" fetchpriority="high" />
+                @foreach (var category in new[] { "cleaning", "repairs", "moving", "errands", "painting", "tutoring", "pet-care" })
+                {
+                    <div class="landing-service-slide" data-service="@category"></div>
+                }
+            </div>
         </section>
         <section class="landing-section landing-services" aria-labelledby="services-title">
             <h2 id="services-title">What kind of help do you need?</h2>

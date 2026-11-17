@@ -245,7 +245,15 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
     --service-image: url('/images/client-home/service-photos-extra.png');
 }
 .home-service-slide:is([data-service="repairs"], [data-service="painting"]) { --service-position: 100% 0; }
-.home-service-slide:is([data-service="gardening"], [data-service="tutoring"]) { --service-position: 0 100%; }
+.home-service-slide[data-service="tutoring"] { --service-position: 0 100%; }
+.home-service-slide[data-service="gardening"] {
+    --service-image: url('/landing-gardener.png');
+}
+.home-service-slide[data-service="gardening"]::before,
+.home-service-slide[data-service="gardening"]::after {
+    background-size: cover;
+    background-position: 60% center;
+}
 .home-service-slide:is([data-service="moving"], [data-service="pet-care"]) { --service-position: 100% 100%; }
 .home-service-slide.is-current { opacity: 1; }
 .home-service-photos::after {

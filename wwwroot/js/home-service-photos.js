@@ -1,5 +1,5 @@
 (() => {
-    const slides = Array.from(document.querySelectorAll(".home-service-photos .home-service-slide"));
+    const slides = Array.from(document.querySelectorAll(".home-service-photos .home-service-slide, [data-service-carousel] .landing-service-slide"));
     if (slides.length < 2) return;
 
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
