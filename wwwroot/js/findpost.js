@@ -294,6 +294,19 @@ document.addEventListener("DOMContentLoaded", function () {
         if (text.includes(term) || (term.length > 3 && term.endsWith("s") && text.includes(term.slice(0, -1)))) return true;
         return !!categoryTerms[term] && categoryTerms[term].some(function (word) { return text.includes(word); });
     }
+    const legacyServiceCategories = {
+        plumber: "repairs", plumbing: "repairs", carpenter: "repairs", carpentry: "repairs",
+        electrician: "repairs", cleaner: "cleaning", gardener: "gardening",
+        painter: "painting", tutor: "tutoring", mover: "moving",
+        delivery: "errands", "pet sitter": "pet care", "dog walker": "pet care"
+    };
+    const customServiceName = entry => {
+        const category = normalizeServiceCategory(entry);
+        if (category.startsWith("other/general:")) return category.slice("other/general:".length).trim();
+        if (!category || isOtherServiceCategory(category) ||
+            Object.hasOwn(categoryTerms, category) || Object.hasOwn(legacyServiceCategories, category)) return null;
+        return category;
+    };
     const specialtiesByCard = new WeakMap();
     freelancerCards.forEach(function (card) {
         try { specialtiesByCard.set(card, JSON.parse(card.dataset.specialties || "{}") || {}); }
@@ -320,18 +333,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 ? savedStatus === "available"
                 : availability === "busy" ? status.startsWith("busy") : status === availability);
             const categorySearch = Object.hasOwn(catalog, serviceSearch.value);
+            const matchesLegacyCategory = service.split(",").some(entry =>
+                legacyServiceCategories[normalizeServiceCategory(entry)] === query);
             const matchesOther = !isOther || service.split(",").some(entry => {
-                const category = normalizeServiceCategory(entry);
-                if (!category || Object.hasOwn(categoryTerms, category)) return false;
-                const customName = category.replace(/^other\/general(?::\s*|$)/, "");
-                return normalizeServiceSearch(customName).includes(customQuery);
+                const customName = customServiceName(entry);
+                return customName !== null && normalizeServiceSearch(customName).includes(customQuery);
             });
             const group = specialtiesByCard.get(card)[serviceSearch.value];
             const specialties = Array.isArray(group) ? group : [];
             const matchesSpecific = !specificService.value || (specificService.value === "Other"
                 ? specialties.some(item => typeof item === "string" && item.startsWith("Other: "))
                 : specialties.includes(specificService.value));
-            const matches = matchesSpecific && matchesOther && (isOther || !query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
+            const matches = matchesSpecific && matchesOther && (isOther || !query || matchesService(service, query) || matchesLegacyCategory || (!categorySearch && name.includes(query))) &&
                 matchesLocation &&
                 matchesAvailability;
             card.style.display = matches ? "" : "none";

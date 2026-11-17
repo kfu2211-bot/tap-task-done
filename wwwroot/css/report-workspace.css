@@ -138,3 +138,14 @@ html body .safety-page .safety-form small { font-size:13px; line-height:1.45; }
 @media (max-width:760px) {
     .safety-page .report-history-grid { grid-template-columns:minmax(0, 1fr); }
 }
+
+html[data-theme="dark"] .related-task-status {
+    background: #493619;
+    color: #ffe0a0;
+    border: 1px solid #826039;
+}
+html[data-theme="dark"] .related-task-status[data-status="completed"] {
+    background: #234735;
+    color: #b6f0ce;
+    border-color: #527d62;
+}
