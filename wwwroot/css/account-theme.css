@@ -911,3 +911,9 @@ html[data-theme="dark"] body .market-content .task-card .task-actions :is(.task-
     background: #304e3e !important;
 }
 html[data-theme="dark"] body .market-content .task-card .cancel-task p { color: var(--muted) !important; }
+
+html[data-theme="dark"] body .market-content .notice {
+    background: #20392e !important;
+    color: #edf5ef !important;
+    border-color: #567264 !important;
+}

@@ -10,7 +10,18 @@
     list.className = 'related-task-options';
     picker.append(trigger, list);
 
-    const rows = Array.from(select.options, option => {
+    const clear = document.createElement("button");
+    clear.type = "button";
+    clear.className = "related-task-clear";
+    clear.textContent = "Clear selection";
+    clear.addEventListener("click", () => {
+        select.value = "";
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        picker.open = false;
+        trigger.focus();
+    });
+
+    const rows = Array.from(select.options).filter(option => option.value).map(option => {
         const row = document.createElement('button');
         row.type = 'button';
         const copy = document.createElement('span');
@@ -43,13 +54,21 @@
         return { row, option, title };
     });
     function update() {
+        trigger.textContent = select.options[0].textContent;
+        clear.hidden = !select.value;
         for (const { row, option, title } of rows) {
             row.setAttribute('aria-pressed', String(option.selected));
             if (option.selected) trigger.textContent = title.textContent;
         }
     }
 
-    select.after(picker);
+    clear.addEventListener("click", () => {
+        select.value = "";
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        picker.open = false;
+        trigger.focus();
+    });
+    select.after(picker, clear);
     select.hidden = true;
     select.classList.add('related-task-native');
     const label = document.querySelector('label[for="reportTask"]');

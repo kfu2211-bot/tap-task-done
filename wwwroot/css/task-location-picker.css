@@ -124,3 +124,31 @@ html[data-theme="dark"] .task-location-picker.location-looking-up [data-location
 @media (prefers-reduced-motion: reduce) {
     .task-location-picker.location-looking-up [data-location-status]::before { animation: none; }
 }
+
+html[data-theme="dark"] .completion-upload .completion-upload-picker,
+html[data-theme="dark"] .completion-upload-preview {
+    background: var(--surface, #202a25);
+    border-color: #567264;
+    color: var(--text, #edf5ef);
+}
+html[data-theme="dark"] .completion-upload .completion-upload-picker:hover,
+html[data-theme="dark"] .completion-upload .completion-upload-picker:focus-within {
+    background: var(--surface-2, #20392e);
+    border-color: var(--brand, #81dbb2);
+}
+html[data-theme="dark"] .completion-upload-picker svg {
+    color: var(--brand, #81dbb2);
+}
+html[data-theme="dark"] .completion-upload-heading span,
+html[data-theme="dark"] .completion-upload .completion-upload-preview small,
+html[data-theme="dark"] .completion-upload .completion-upload-picker small {
+    color: var(--muted, #aabdb3) !important;
+}
+html[data-theme="dark"] .completion-upload .completion-upload-preview button {
+    background: var(--surface-2, #20392e);
+    border-color: #567264;
+    color: var(--text, #edf5ef);
+}
+html[data-theme="dark"] .completion-upload .completion-upload-feedback {
+    color: #ffb4a5 !important;
+}

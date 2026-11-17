@@ -180,16 +180,16 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
                 draft.BudgetMaximum == null && draft.ScheduleText == schedule &&
                 draft.PostDurationDays == duration && draft.PostExpiresUtc == closingTime &&
                 pin.Latitude == latitude!.Value && pin.Longitude == longitude!.Value
-            select draft.Id).AnyAsync(ct);
-        if (duplicate)
+            select (long?)draft.Id).FirstOrDefaultAsync(ct);
+        if (duplicate.HasValue)
         {
-            Notice = "This task was already saved. Review it below before publishing.";
-            return RedirectToPage();
+            Notice = "This task was already saved. Confirm and open the task to publish it.";
+            return RedirectToPage("/MarketTasks", null, new { view = "mine", reviewTask = duplicate.Value }, $"task-{duplicate.Value}");
         }
         var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, SpecificService = specificService, Location = location, ArrivalInstructions = arrivalInstructions, Budget = budget, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
         db.MarketplaceTasks.Add(task); await db.SaveChangesAsync(ct);
         TaskLocationRules.Save(db, task.Id, null, latitude!.Value, longitude!.Value);
-        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Task saved. Confirm it below to make it visible to freelancers."; return RedirectToPage();
+        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Task saved for review. Select Confirm and open task to publish it for freelancers."; return RedirectToPage("/MarketTasks", null, new { view = "mine", reviewTask = task.Id }, $"task-{task.Id}");
     }
     public async Task<IActionResult> OnPostConfirmAsync(long id, CancellationToken ct)
     {

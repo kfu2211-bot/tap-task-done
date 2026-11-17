@@ -271,6 +271,12 @@
         "e.g. Event photography": "hal. Event photography",
         "No freelancers match this custom service. Try a broader keyword or post a task.": "Walang freelancer na tumutugma sa serbisyong ito. Gumamit ng mas pangkalahatang salita o mag-post ng task."
     });
+    Object.assign(labels, { "Clear selection": "Alisin ang napili" });
+    Object.assign(labels, {
+        "Task saved for review. Select Confirm and open task to publish it for freelancers.": "Na-save ang task para suriin. Piliin ang Kumpirmahin at buksan ang task para makita ito ng mga freelancer.",
+        "This task was already saved. Confirm and open the task to publish it.": "Na-save na ang task na ito. Kumpirmahin at buksan ito para ma-publish.",
+        "Confirm and open task": "Kumpirmahin at buksan ang task"
+    });
     const tracked = new WeakMap();
     let language = "en";
     try { language = localStorage.getItem("tts-language") === "fil" ? "fil" : "en"; } catch {}
@@ -308,11 +314,11 @@
 
     const selectors = ".landing-header nav a, .hero-copy h1, .hero-copy p, .hero-actions a, .landing-section h2, .landing-steps strong, .landing-steps span, .service-grid a, .sidebar nav a, .mytasks-sidebar nav a, .admin-sidebar nav a, .topbar h1, .market-header h1, .admin-topbar h1, #headerAccountMenu a, #headerAccountMenu button, #headerAccountButton span, .hero-text h1, .hero-text h2, .hero-text p, .hero-label, .hero-buttons button, .hero-buttons a, .category-card h4, .category-card p, .category-card strong, .section-heading h3, .section-heading p, .dashboard-task-heading, .provider-bottom a, .provider-availability, #loginForm label, #loginForm button, .login-subtitle, .create-account-text, .login-box h1, .login-eyebrow, .section h3, .section h3 + p, h1, h2, h3, h4, .task-workspace-heading p, .task-filters button, .task-filter-empty, #task-filter-count, .market-empty p, .market-empty a, .market-section-title > a, .identity-workspace label, .identity-workspace button, .identity-workspace small, .identity-workspace option:first-child, .identity-workspace .document-title, .selfie-section p, #task-help-title, .task-help-launch, .home-nav-heading, .task-filters + p, .identity-workspace .card-heading p, .identity-workspace .document-info p, .identity-guide strong, .identity-guide p, .task-status-badge, .offer-status, .job-status, .db-tracking-status";
     const interfaceSelectors = [
-        selectors,
+        selectors, ".market-content .notice, [data-confirm-task] button",
         ".home-metric-copy > span, .home-panel-heading a, .home-panel-action, .home-availability-details dt, .home-availability-details dd, .home-task-filters button",
         ".dashboard .home-panel p:not([data-scheduled-title]), .dashboard .home-panel small, .dashboard .home-panel span, .dashboard .home-panel button",
         ".page-intro p, .account-workspace :is(label, option[value], button, summary, small, dt, dd, p, a, strong)",
-        ".safety-emergency p, .safety-form :is(label, option[value], small, button), .report-guide :is(strong, p), .report-history-grid > section > p",
+        ".safety-emergency p, .safety-form :is(label, option[value], small, button), .related-task-picker summary, .report-guide :is(strong, p), .report-history-grid > section > p",
         "#findFreelancerSection :is(label, option[value], .provider-search-intro p, .freelancer-category-list li, .freelancer-price small, .freelancer-price span, .freelancer-rating strong, .arrow-button)",
         "#providerDetailPanel :is(label, button, .provider-service-groups dt, .provider-service-groups li, .provider-service-general), #selectedProviderPrice",
         "#findJobsSection :is(label, option[value], button, .jobs-tag), #postTaskSection :is(label, option[value], button, small)",

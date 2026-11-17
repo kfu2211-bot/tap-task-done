@@ -149,3 +149,15 @@ html[data-theme="dark"] .related-task-status[data-status="completed"] {
     color: #b6f0ce;
     border-color: #527d62;
 }
+
+.related-task-clear {
+    margin-top: 6px;
+    padding: 6px 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.related-task-clear[hidden] { display: none; }
