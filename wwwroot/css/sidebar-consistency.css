@@ -31,7 +31,11 @@ html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sid
 
 html[data-theme="dark"] {
     --sidebar-brand-text: #edf5ef;
-    --sidebar-brand-divider: #38483f;
+    --sidebar-brand-divider: var(--workspace-header-line, #38483f);
+    --sidebar-link-hover: #304e3e;
+    --sidebar-link-hover-text: #edf5ef;
+    --sidebar-link-active: #19533e;
+    --sidebar-link-active-hover: #245b46;
 }
 
 html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) {
@@ -143,16 +147,20 @@ html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sid
     stroke: currentColor;
 }
 
-html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a:not(.active):hover {
-    background: #d6e9db !important;
-    color: #153e2d !important;
+html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a:not(.active):is(:hover, :focus-visible) {
+    background: var(--sidebar-link-hover, #d6e9db) !important;
+    color: var(--sidebar-link-hover-text, #153e2d) !important;
 }
 
 html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) > nav > a.active {
-    background: #175a3f !important;
+    background: var(--sidebar-link-active, #175a3f) !important;
     color: #fff !important;
 }
 
+html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) > nav > a.active:is(:hover, :focus-visible) {
+    background: var(--sidebar-link-active-hover) !important;
+    color: var(--sidebar-link-hover-text) !important;
+}
 html body :is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar):is(.sidebar, .mytasks-sidebar) :is(a, [role="link"]):focus-visible {
     outline: 2px solid #19765a !important;
     outline-offset: -2px;

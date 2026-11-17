@@ -14,7 +14,7 @@ html[data-theme="dark"] body,
 html[data-theme="dark"] body :is(.app-shell,.settings-layout,.mytasks-app,.reviews-page,.messages-page,.tracking-page,.tracking-layout,.verification-page,.main-area,.main-content,.market-main,.mytasks-main) {
     background:#111614 !important; color:#edf5ef !important;
 }
-html[data-theme="dark"] body :is(.sidebar,.mytasks-sidebar,main > header,.topbar,.top-header,.mytasks-topbar,.market-header,#headerAccountMenu,#headerAccountButton,#notificationPopup,.notification-button,.mobile-menu,.settings-card,.profile-summary,.filter-panel,.input-wrapper,.provider-search-intro,.post-task-panel,.provider-detail-panel,.freelancer-card,.job-card,.jobs-card,.my-task-card,.task-card,.review-card,.verification-card,.tracking-card,.tracking-panel,.db-tracking-card,.map-card,.report-guide,.identity-guide,.messages-grid,.messages-conversations,.messages-thread,.thread-heading,.thread-messages,.thread-form,.thread-agreement,.conversations-toolbar,.notification-card,.notification-item,.related-task-options,.related-task-options button,.related-task-picker summary,.report-evidence-field,.selfie-section,.category-card,.provider-card,.dashboard .section,.report-card,.report-form-card,.account-card,.security-card,.security-other-sessions) {
+html[data-theme="dark"] body :is(#headerAccountMenu,#headerAccountButton,#notificationPopup,.notification-button,.mobile-menu,.settings-card,.profile-summary,.filter-panel,.input-wrapper,.provider-search-intro,.post-task-panel,.provider-detail-panel,.freelancer-card,.job-card,.jobs-card,.my-task-card,.task-card,.review-card,.verification-card,.tracking-card,.tracking-panel,.db-tracking-card,.map-card,.report-guide,.identity-guide,.messages-grid,.messages-conversations,.messages-thread,.thread-heading,.thread-messages,.thread-form,.thread-agreement,.conversations-toolbar,.notification-card,.notification-item,.related-task-options,.related-task-options button,.related-task-picker summary,.report-evidence-field,.selfie-section,.category-card,.provider-card,.dashboard .section,.report-card,.report-form-card,.account-card,.security-card,.security-other-sessions) {
     background:#202a25 !important; color:#edf5ef !important; border-color:#38483f !important;
 }
 html[data-theme="dark"] body :is(.profile-summary,.thread-agreement,.conversation-link.selected,.related-task-options button[aria-pressed="true"],.sidebar a.active) { background:#254537 !important; }
@@ -799,10 +799,7 @@ html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo
 html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) > :is(.sidebar-logo, .mytasks-logo, .logo-area, .brand) > :is(span, strong):not(.brand-icon, .logo-check, .mytasks-logo-check) {
     color: var(--text) !important;
 }
-html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) nav a:is(:hover, :focus-visible) {
-    background: var(--surface-2) !important;
-    color: var(--text) !important;
-}
+
 html[data-theme="dark"] body #findJobsSection .jobs-heading {
     background: linear-gradient(110deg, var(--surface), var(--surface-2)) !important;
     border-color: var(--line) !important;
@@ -859,9 +856,7 @@ html[data-theme="dark"] body
     background: var(--workspace-header) !important;
     border-color: var(--workspace-header-line) !important;
 }
-html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) nav a.active:not(:hover) {
-    background: #19533e !important;
-}
+
 html[data-theme="dark"] body:has(:is(.sidebar, .mytasks-sidebar))
     :is(main > header, .topbar, .top-header, .mytasks-topbar, .market-header, .dashboard .topbar.home-topbar),
 html[data-theme="dark"] body
