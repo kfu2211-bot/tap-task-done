@@ -361,24 +361,14 @@
 
 
 
-                        <div class="filter-group" hidden>
-
-                            <label for="budgetInput">
-                                Budget
-                            </label>
-
+                        <div class="filter-group">
+                            <label for="budgetInput">Maximum budget</label>
                             <div class="input-wrapper">
-
-                                <span>
-                                    ₱
-                                </span>
-
-                                <input type="text"
-                                       id="budgetInput"
-                                       placeholder="Maximum budget, e.g. 1500" inputmode="decimal" />
-
+                                <span aria-hidden="true">₱</span>
+                                <input type="number" id="budgetInput" min="1" step="0.01" inputmode="decimal"
+                                       placeholder="e.g. 1500" aria-describedby="freelancerBudgetHelp" />
                             </div>
-
+                            <small id="freelancerBudgetHelp">Shows freelancers whose rates start within your budget.</small>
                         </div>
 
 
@@ -435,13 +425,30 @@
                                  id="freelancerList">
                                 @foreach (var provider in Model.Providers)
                                 {
+                                    var categories = provider.Service.Split(", ", StringSplitOptions.RemoveEmptyEntries);
+                                    var specialties = tts.Data.ServiceCatalog.Read(provider.ServiceSpecialties);
                                     <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-specialties="@provider.ServiceSpecialties" data-location="@provider.Location" data-service-areas="@string.Join("|", tts.Pages.BacolorServiceAreas.InLocation(provider.Location))" data-rate="@provider.Rate" data-rate-maximum="@(provider.RateMaximum ?? provider.Rate)" data-availability="@provider.Availability" data-saved-availability="@provider.SavedAvailability">
-                                        <div class="freelancer-left"><div class="freelancer-avatar" style="position:relative;overflow:hidden"><img src="@Url.Page("/ProfilePhoto", new { providerId = provider.Id })" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.hidden=true" />@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong>
-                                            @{
-                                                var specialties = tts.Data.ServiceCatalog.Read(provider.ServiceSpecialties);
+                                        <div class="freelancer-left"><div class="freelancer-avatar" style="position:relative;overflow:hidden"><img src="@Url.Page("/ProfilePhoto", new { providerId = provider.Id })" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.hidden=true" />@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info">
+                                            <div class="freelancer-name-row">
+                                                <strong>@provider.Name</strong>
+                                                <span class="provider-availability">@provider.Availability</span>
+                                            </div>
+                                            @if (!string.IsNullOrWhiteSpace(provider.Location))
+                                            {
+                                                <p class="freelancer-service-area">@provider.Location</p>
                                             }
+                                            @if (categories.Length > 0)
+                                            {
+                                                <ul class="freelancer-category-list" aria-label="Service categories">
+                                                    @foreach (var category in categories)
+                                                    {
+                                                        <li>@category</li>
+                                                    }
+                                                </ul>
+                                            }
+                                            <template class="provider-service-template">
                                             <dl class="provider-service-groups">
-                                                @foreach (var category in provider.Service.Split(", ", StringSplitOptions.RemoveEmptyEntries))
+                                                @foreach (var category in categories)
                                                 {
                                                     <div class="provider-service-group">
                                                         <dt>@category</dt>
@@ -462,8 +469,15 @@
                                                         </dd>
                                                     </div>
                                                 }
-                                            </dl><span class="provider-availability">@provider.Availability</span></div></div>
-                                        <div class="freelancer-right"><div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count})" : "No ratings yet")</strong></div><div class="freelancer-price">@(provider.Rate.HasValue ? (provider.RateMaximum > provider.Rate ? $"₱{provider.Rate:N0} – ₱{provider.RateMaximum:N0}" : $"₱{provider.Rate:N0}") : "Rate not set")</div><button class="arrow-button" type="button" data-name="@provider.Name">View profile</button></div>
+                                            </dl>
+                                            </template>
+                                        </div></div>
+                                        <div class="freelancer-right">
+                                            <div class="freelancer-price">@(provider.Rate.HasValue ? (provider.RateMaximum > provider.Rate ? $"₱{provider.Rate:N0} – ₱{provider.RateMaximum:N0}" : $"₱{provider.Rate:N0}") : "Rate not set")</div>
+                                            <div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count} {(rating.Count == 1 ? "review" : "reviews")})" : "No ratings yet")</strong></div>
+                                            <button class="arrow-button" type="button" data-name="@provider.Name">View profile</button>
+                                        </div>
+
                                     </article>
                                 }
 

@@ -83,8 +83,6 @@
         "Identity Documents": "Mga dokumento ng pagkakakilanlan", "ID Number": "Numero ng ID",
         "Government photo ID type": "Uri ng government photo ID",
         "Valid Government ID": "Valid na government ID", "Select your ID type": "Piliin ang uri ng ID",
-        "Scan ID": "I-scan ang ID", "Retake ID photo": "Kunan muli ang ID",
-        "Capture ID": "Kunan ang ID", "Close camera": "Isara ang camera",
         "Upload government ID": "Mag-upload ng government ID",
         "Open camera": "Buksan ang camera", "Capture selfie": "Kumuha ng selfie", "Retake": "Kumuha muli",
         "Selfie verification": "Pagpapatunay gamit ang selfie", "Required": "Kailangan", "Optional": "Opsyonal",
@@ -99,8 +97,6 @@
         "Upload a valid government-issued identification card.": "Mag-upload ng valid na ID na inisyu ng gobyerno.",
         "Center your face in the circle": "Igitna ang mukha mo sa bilog",
         "Allow camera access when prompted. HTTPS or localhost is required.": "Payagan ang camera kapag hiningi. Kailangan ang HTTPS o localhost.",
-        "Select the ID type to continue.": "Piliin ang uri ng ID para magpatuloy.",
-        "Reading the ID number…": "Binabasa ang numero ng ID…",
         "Check the live preview and confirm the requirements to enable Capture selfie.": "Tingnan ang live preview at kumpirmahing nasunod ang mga kailangan para makakuha ng selfie."
     });
     const tracked = new WeakMap();
@@ -138,7 +134,7 @@
         accountLanguages.append(option);
     }
 
-    const selectors = ".landing-header nav a, .hero-copy h1, .hero-copy p, .hero-actions a, .landing-section h2, .landing-steps strong, .landing-steps span, .service-grid a, .sidebar nav a, .mytasks-sidebar nav a, .admin-sidebar nav a, .topbar h1, .market-header h1, .admin-topbar h1, #headerAccountMenu a, #headerAccountMenu button, #headerAccountButton span, .hero-text h1, .hero-text h2, .hero-text p, .hero-label, .hero-buttons button, .hero-buttons a, .category-card h4, .category-card p, .category-card strong, .section-heading h3, .section-heading p, .dashboard-task-heading, .provider-bottom a, .provider-availability, #loginForm label, #loginForm button, .login-subtitle, .create-account-text, .login-box h1, .login-eyebrow, .section h3, .section h3 + p, h1, h2, h3, h4, .task-workspace-heading p, .task-filters button, .task-filter-empty, #task-filter-count, .market-empty p, .market-empty a, .market-section-title > a, .identity-workspace label, .identity-workspace button, .identity-workspace small, .identity-workspace option:first-child, .identity-workspace .document-title, .selfie-section p, #idScanMessage, #task-help-title, .task-help-launch, .home-nav-heading, .task-filters + p, .identity-workspace .card-heading p, .identity-workspace .document-info p, .identity-guide strong, .identity-guide p, .task-status-badge, .offer-status, .job-status, .db-tracking-status";
+    const selectors = ".landing-header nav a, .hero-copy h1, .hero-copy p, .hero-actions a, .landing-section h2, .landing-steps strong, .landing-steps span, .service-grid a, .sidebar nav a, .mytasks-sidebar nav a, .admin-sidebar nav a, .topbar h1, .market-header h1, .admin-topbar h1, #headerAccountMenu a, #headerAccountMenu button, #headerAccountButton span, .hero-text h1, .hero-text h2, .hero-text p, .hero-label, .hero-buttons button, .hero-buttons a, .category-card h4, .category-card p, .category-card strong, .section-heading h3, .section-heading p, .dashboard-task-heading, .provider-bottom a, .provider-availability, #loginForm label, #loginForm button, .login-subtitle, .create-account-text, .login-box h1, .login-eyebrow, .section h3, .section h3 + p, h1, h2, h3, h4, .task-workspace-heading p, .task-filters button, .task-filter-empty, #task-filter-count, .market-empty p, .market-empty a, .market-section-title > a, .identity-workspace label, .identity-workspace button, .identity-workspace small, .identity-workspace option:first-child, .identity-workspace .document-title, .selfie-section p, #task-help-title, .task-help-launch, .home-nav-heading, .task-filters + p, .identity-workspace .card-heading p, .identity-workspace .document-info p, .identity-guide strong, .identity-guide p, .task-status-badge, .offer-status, .job-status, .db-tracking-status";
     function translate() {
         const darkMode = document.querySelector("#headerAccountMenu .header-theme-toggle");
         if (darkMode && darkMode.nextElementSibling !== accountLanguages) darkMode.after(accountLanguages);

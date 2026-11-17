@@ -286,29 +286,19 @@ document.addEventListener("DOMContentLoaded", function () {
     freelancerCards.forEach(function (card) {
         try { specialtiesByCard.set(card, JSON.parse(card.dataset.specialties || "{}") || {}); }
         catch { specialtiesByCard.set(card, {}); }
-        const label = document.createElement("small");
-        label.className = "match-details";
-        label.textContent = "Service area: " + (card.dataset.location || "Not set") +
-            " · " + (card.dataset.availability || "Availability not set") +
-            " · Database profile";
-        card.querySelector(".freelancer-info").append(label);
-        const reasons = document.createElement("small");
-        reasons.className = "search-match-reasons";
-        card.querySelector(".freelancer-info").append(reasons);
     });
 
     function performSearch(keepProfile = false) {
+        if (!budgetInput.validity.valid) {
+            if (keepProfile !== true) budgetInput.reportValidity();
+            return;
+        }
         const openProfile = document.getElementById("providerDetailPanel");
         if (openProfile && keepProfile !== true) openProfile.classList.add("hidden");
         const query = serviceSearch.value.trim().toLowerCase();
         const location = locationInput.value.trim().toLowerCase();
-        const maximum = null;
+        const maximum = budgetInput.value === "" ? null : budgetInput.valueAsNumber;
         const availability = availabilityFilter.value.toLowerCase();
-        if (maximum !== null && (!Number.isFinite(maximum) || maximum <= 0)) {
-            noResults.textContent = "Enter a valid maximum budget, for example 1500.";
-            noResults.classList.add("show");
-            return;
-        }
         let count = 0;
         freelancerCards.forEach(function (card) {
             const name = card.querySelector(".freelancer-info strong").textContent.toLowerCase();
@@ -333,15 +323,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 matchesLocation &&
                 (maximum === null || (rate > 0 && rate <= maximum)) &&
                 matchesAvailability;
-            card.style.display = matches ? "flex" : "none";
-            const reasons = [];
-            if (specificService.value && matchesSpecific) reasons.push(specificService.selectedOptions[0].text);
-            else if (query && (matchesService(service, query) || name.includes(query))) reasons.push("service or name");
-            if (matchesLocation) reasons.push("service area: " + matchedAreas.map(place => Array.from(locationInput.options).find(option => option.value.toLowerCase() === place).text).join(", "));
-            if (maximum !== null && rate > 0 && rate <= maximum) reasons.push("budget");
-            if (availability && matchesAvailability) reasons.push("availability");
-            const match = card.querySelector(".search-match-reasons");
-            if (match) match.textContent = matches && reasons.length ? "Matched: " + reasons.join(", ") : "";
+            card.style.display = matches ? "" : "none";
             if (matches) count++;
         });
         noResults.textContent = noResults.dataset.unavailable === "true" ? "The freelancer directory is temporarily unavailable. Please try again later." : "No freelancers match these filters in the supported areas. Try adjusting your filters or post a task.";
@@ -493,7 +475,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (!button || !freelancerList.contains(button)) return;
                     const name = String(button.dataset.name || "").replace(/[\u00ad\u200b]/g, "").trim();
                     const card = button.closest(".freelancer-card");
-                    const services = card.querySelector(".provider-service-groups");
+                    const services = card.querySelector(".provider-service-template").content;
                     const rating = card.querySelector(".freelancer-rating strong").textContent.trim();
                     const price = card.querySelector(".freelancer-price").textContent.trim();
                     selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", rating: rating, price: price, availability: card.dataset.availability || "", savedAvailability: card.dataset.savedAvailability || "", location: card.dataset.location || "" };
@@ -541,8 +523,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 card.dataset.availability = next;
                 card.dataset.savedAvailability = status.savedAvailability;
                 const badge = card.querySelector('.provider-availability'); if (badge) badge.textContent = next;
-                const label = card.querySelector('.match-details');
-                if (label) label.textContent = 'Service area: ' + card.dataset.location + ' · ' + next;
             });
             if (selectedProvider && statuses.has(selectedProvider.id)) {
                 const status = statuses.get(selectedProvider.id);
