@@ -208,7 +208,8 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
 .home-service-photos {
     position: absolute;
     inset: 0 0 0 auto;
-    width: 42%;
+    width: 46%;
+    isolation: isolate;
     overflow: hidden;
     z-index: 3;
 }
@@ -216,6 +217,7 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
     position: absolute;
     inset: 0;
     opacity: 0;
+    filter: saturate(.72) contrast(.88);
     transition: opacity .65s ease-in-out;
 }
 .home-service-slide::before {
@@ -225,6 +227,7 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
     left: 0;
     width: 200%;
     height: 200%;
+    min-height: 0;
     background: url('/images/client-home/service-photos.png') center / cover no-repeat;
 }
 .home-service-slide[data-service="repairs"]::before,
@@ -232,20 +235,32 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
 .home-service-slide[data-service="gardening"]::before,
 .home-service-slide[data-service="moving"]::before { top: auto; bottom: 0; }
 .home-service-slide.is-current { opacity: 1; }
+.home-service-photos::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #e9f4e6, #e9f4e62e 42%, #d9ebdf30);
+    pointer-events: none;
+}
+html[data-theme="dark"] .home-service-photos::after {
+    background: linear-gradient(90deg, #193a2d, #193a2d45 45%, #193a2d35);
+}
 .home-service-controls {
     position: absolute;
     inset: auto 14px 12px auto;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    z-index: 1;
 }
 .home-service-category,
 .home-service-toggle {
     padding: 7px 12px;
     border: 1px solid #ecf7ef;
     border-radius: 999px;
-    background: #103d2c;
+    background: #103d2ce8;
     color: #fff;
+    font-size: .8rem;
     font-weight: 700;
 }
 .home-service-toggle { cursor: pointer; min-height: 36px; }
@@ -254,6 +269,12 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
         inset: 0 0 auto;
         width: 100%;
         height: var(--mobile-banner-photo-height);
+    }
+}
+@media (max-width: 760px) {
+    .home-service-photos::after,
+    html[data-theme="dark"] .home-service-photos::after {
+        background: linear-gradient(0deg, #162f2440, #d9ebdf25);
     }
 }
 @media (prefers-reduced-motion: reduce) {
