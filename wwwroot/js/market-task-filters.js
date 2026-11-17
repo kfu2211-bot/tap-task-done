@@ -7,7 +7,7 @@
     const count = section.querySelector('#task-filter-count');
     const empty = section.querySelector('.task-filter-empty');
     const groups = {
-        'needs-action': ['pending-confirmation', 'awaiting-confirmation'],
+        'needs-confirmation': ['pending-confirmation', 'awaiting-confirmation'],
         open: ['open'],
         scheduled: ['scheduled'],
         active: ['booking-pending', 'assigned', 'on-the-way', 'arrived', 'in-progress', 'awaiting-confirmation', 'disputed'],
@@ -31,7 +31,7 @@
 
     filters.hidden = false;
     window.addEventListener('hashchange', openLinkedTask);
-    openLinkedTask();
+
     filters.addEventListener('click', event => {
         const button = event.target.closest('button[data-filter]');
         if (!button || !filters.contains(button)) return;
@@ -50,6 +50,12 @@
         const noTasks = section.querySelector('.market-empty');
         if (noTasks) noTasks.hidden = selected !== 'all';
     });
+    const requestedFilter = new URLSearchParams(location.search).get('filter');
+    const filterKey = requestedFilter === 'needs-action' ? 'needs-confirmation' : requestedFilter;
+    const initialButton = [...filters.querySelectorAll('button[data-filter]')]
+        .find(button => button.dataset.filter === filterKey);
+    initialButton?.click();
+    openLinkedTask();
 })();
 const cancelTaskDialog = document.getElementById("cancelTaskDialog");
 if (cancelTaskDialog) {

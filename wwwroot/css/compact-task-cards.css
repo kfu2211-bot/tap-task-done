@@ -221,3 +221,10 @@ html[data-theme="dark"] body #my-tasks-section .task-status-badge {
     color: #a4ebcd;
     font-weight: 650;
 }
+
+html[data-theme="dark"] body #my-tasks-section .task-status-badge[data-status="pending-confirmation"],
+html[data-theme="dark"] body .home-status[data-status="pending-confirmation"] {
+    background: #493619;
+    color: #ffe0a0 !important;
+    border: 1px solid #826039;
+}

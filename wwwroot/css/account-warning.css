@@ -4,3 +4,16 @@
 .offense-confirm { display:flex; align-items:flex-start; gap:9px; margin:12px 0; font-size:13px; }
 .offense-confirm input { width:18px; height:18px; flex-shrink:0; }
 .user-card input[name=incidentKey] { box-sizing:border-box; width:100%; padding:11px; border:1px solid #bed8c5; border-radius:8px; font:inherit; margin:6px 0 12px; }
+
+.account-warning-symbol > svg {
+    display: block !important;
+    flex: 0 0 17px !important;
+    width: 17px !important;
+    min-width: 17px !important;
+    height: 17px !important;
+    visibility: visible !important;
+}
+html[data-theme="dark"] .account-warning-symbol {
+    background: #493619;
+    border-color: #826039;
+}

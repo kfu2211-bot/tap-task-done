@@ -343,7 +343,7 @@
                     @{ var jobViews = new[] { "offers&pending=1", "active", "completed" }; }
                     @for (var i = 0; i < labels.Length; i++)
                     {
-                        <a class="home-metric" href="@(Model.FreelancerOnly ? "/MyJobs?view=" + jobViews[i] : "/MarketTasks?view=mine")">
+                        <a class="home-metric" href="@(Model.FreelancerOnly ? "/MyJobs?view=" + jobViews[i] : (i == 0 ? "/MarketTasks?view=mine&filter=needs-confirmation" : "/MarketTasks?view=mine"))">
                             <span class="home-symbol" aria-hidden="true">
                                 <svg viewBox="0 0 24 24">
                                     @if (i == 0 && !Model.FreelancerOnly) { <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/> }
