@@ -141,6 +141,14 @@
                     switcher.appendChild(option);
                 });
                 nav.before(switcher);
+                var workspaceHeader = document.querySelector("main > header, .topbar, .top-header, .mytasks-topbar, .market-header");
+                if (workspaceHeader && !document.querySelector(".desktop-view-switch")) {
+                    var desktopSwitcher = switcher.cloneNode(true);
+                    desktopSwitcher.className = "desktop-view-switch";
+                    var pageHeading = workspaceHeader.querySelector("h1, h2");
+                    if (pageHeading) pageHeading.after(desktopSwitcher);
+                    else workspaceHeader.prepend(desktopSwitcher);
+                }
             }
             var homeItems = homeView === "freelancer"
                 ? [
