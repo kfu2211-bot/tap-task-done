@@ -477,7 +477,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const card = button.closest(".freelancer-card");
                     const services = card.querySelector(".provider-service-template").content;
                     const rating = card.querySelector(".freelancer-rating strong").textContent.trim();
-                    const price = card.querySelector(".freelancer-price").textContent.trim();
+                    const price = card.querySelector(".freelancer-price span").textContent.trim();
                     selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", rating: rating, price: price, availability: card.dataset.availability || "", savedAvailability: card.dataset.savedAvailability || "", location: card.dataset.location || "" };
                     document.getElementById("selectedProviderName").textContent = name;
                     document.getElementById("selectedProviderName").dataset.accountId = card.dataset.id;
@@ -498,7 +498,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const query = new URLSearchParams(window.location.search);
                     if (bookingInquiryId) bookingInquiryId.value = query.get("providerId") === card.dataset.id ? query.get("inquiryId") || "" : "";
                     const bookingBudget = document.getElementById("bookingBudget");
-                    if (bookingBudget) bookingBudget.value = card.dataset.rate === card.dataset.rateMaximum ? card.dataset.rate : "";
+                    if (bookingBudget) bookingBudget.value = card.dataset.rate || "";
                     updateBookingAvailability();
                     if (sendBookingRequestButton) sendBookingRequestButton.textContent = "Send booking request to " + name;
                     const bookingPrivacyNotice = document.getElementById("bookingPrivacyNotice");
