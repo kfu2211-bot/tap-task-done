@@ -34,3 +34,24 @@ body .security-page { width: min(100% - 48px, 1700px); max-width: none; box-sizi
 .security-page .security-alert-list .security-row { padding-block: 12px; }
 .security-page .security-row small { line-height: 1.5; }
 .security-page .security-other-sessions { border-radius: 12px; }
+
+html body .security-page:has(> .security-workspace) > .security-page-header {
+    padding: clamp(16px, 2.4vw, 30px);
+    border: 1px solid #d5e4d8;
+    border-radius: 15px;
+    background: linear-gradient(110deg, #edf5ed, #f6f9f4);
+}
+.security-page:has(> .security-workspace) .security-return {
+    min-height: 44px;
+    color: #17664c;
+}
+.security-page:has(> .security-workspace) .security-return:hover {
+    background: #e5f3e8;
+}
+html[data-theme="dark"] body .security-page:has(> .security-workspace) > .security-page-header {
+    background: linear-gradient(110deg, #243a30, var(--surface)) !important;
+    border-color: var(--line) !important;
+}
+html[data-theme="dark"] body .security-page:has(> .security-workspace) .security-return:hover {
+    background: #304e3e !important;
+}

@@ -143,3 +143,19 @@ html[data-theme="dark"] .page .birth-date-error { background: #462727; color: #f
 .page.registration-page .right-side { width: 100%; flex: 1; min-height: 0; display: grid; place-items: center; }
 .login-logo { text-decoration: none; }
 .login-logo:focus-visible { outline: 2px solid #19765a; outline-offset: 5px; }
+
+html[data-theme="dark"] body .page.registration-page {
+    background: var(--page) !important;
+}
+html[data-theme="dark"] body .registration-page :is(.already, .dropdown-button .arrow) {
+    color: var(--muted) !important;
+}
+html[data-theme="dark"] body .registration-page .already a { color: var(--brand) !important; }
+html[data-theme="dark"] body .registration-page .dropdown-option {
+    background: var(--surface);
+    color: var(--text);
+}
+html[data-theme="dark"] body .registration-page .dropdown-option:is(:hover, .selected) {
+    background: var(--surface-2);
+    color: var(--text);
+}

@@ -13,7 +13,7 @@ html[data-theme="dark"] body,
 html[data-theme="dark"] body :is(.app-shell,.settings-layout,.mytasks-app,.reviews-page,.messages-page,.tracking-page,.tracking-layout,.verification-page,.main-area,.main-content,.market-main,.mytasks-main) {
     background:#111614 !important; color:#edf5ef !important;
 }
-html[data-theme="dark"] body :is(.sidebar,.mytasks-sidebar,main > header,.topbar,.top-header,.mytasks-topbar,.market-header,#headerAccountMenu,#headerAccountButton,#notificationPopup,.notification-button,.mobile-menu,.settings-card,.profile-summary,.filter-panel,.input-wrapper,.provider-search-intro,.post-task-panel,.provider-detail-panel,.freelancer-card,.job-card,.jobs-card,.my-task-card,.task-card,.review-card,.verification-card,.tracking-card,.tracking-panel,.db-tracking-card,.map-card,.report-guide,.identity-guide,.messages-grid,.messages-conversations,.messages-thread,.thread-heading,.thread-messages,.thread-form,.thread-agreement,.conversations-toolbar,.notification-card,.notification-item,.related-task-options,.related-task-options button,.related-task-picker summary,.report-evidence-field,.selfie-section,.hero-card,.category-card,.provider-card,.dashboard .section,.report-card,.report-form-card,.account-card,.security-card,.security-other-sessions) {
+html[data-theme="dark"] body :is(.sidebar,.mytasks-sidebar,main > header,.topbar,.top-header,.mytasks-topbar,.market-header,#headerAccountMenu,#headerAccountButton,#notificationPopup,.notification-button,.mobile-menu,.settings-card,.profile-summary,.filter-panel,.input-wrapper,.provider-search-intro,.post-task-panel,.provider-detail-panel,.freelancer-card,.job-card,.jobs-card,.my-task-card,.task-card,.review-card,.verification-card,.tracking-card,.tracking-panel,.db-tracking-card,.map-card,.report-guide,.identity-guide,.messages-grid,.messages-conversations,.messages-thread,.thread-heading,.thread-messages,.thread-form,.thread-agreement,.conversations-toolbar,.notification-card,.notification-item,.related-task-options,.related-task-options button,.related-task-picker summary,.report-evidence-field,.selfie-section,.category-card,.provider-card,.dashboard .section,.report-card,.report-form-card,.account-card,.security-card,.security-other-sessions) {
     background:#202a25 !important; color:#edf5ef !important; border-color:#38483f !important;
 }
 html[data-theme="dark"] body :is(.profile-summary,.thread-agreement,.conversation-link.selected,.related-task-options button[aria-pressed="true"],.sidebar a.active) { background:#254537 !important; }
@@ -471,7 +471,7 @@ html[data-theme="dark"] body #weeklyAvailability .weekly-day input {
     accent-color: var(--brand);
 }
 
-html[data-theme="dark"] body .security-page > .security-page-header {
+html[data-theme="dark"] body .security-page:not(:has(> .security-workspace)) > .security-page-header {
     background: transparent !important;
     border-color: transparent !important;
 }

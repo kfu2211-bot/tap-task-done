@@ -53,3 +53,11 @@
 .verification-trust small { display:block; font-size:12px; line-height:20px; color:#718578; font-weight:400; }
 @media(max-width:480px) { .email-verification-page { padding:20px 14px; } .email-verification-card { padding:24px 20px; border-radius:16px; } .verification-brand { font-size:18px; } .verification-heading { gap:12px; } .verification-heading h1 { font-size:25px; } .verification-envelope { width:45px; height:45px; border-radius:10px; } .verification-envelope svg { width:26px; height:26px; } .verification-code-cells { gap:7px; } .verification-code-cells input { height:49px; font-size:23px; } .verification-change summary { font-size:12px; } .verification-footer { font-size:11px; } }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto; } }
+
+html[data-theme="dark"] body .verification-code-form .verification-trust {
+    background: var(--surface-2) !important;
+    border-color: #567264 !important;
+}
+html[data-theme="dark"] body .verification-code-form .verification-trust small {
+    color: var(--muted) !important;
+}
