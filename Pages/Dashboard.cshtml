@@ -29,7 +29,7 @@
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/client-workspace.css" asp-append-version="true" />
-<partial name="_AccountTheme" /><script defer src="/js/home-service-photos.js" asp-append-version="true"></script></head>
+<partial name="_AccountTheme" /></head>
 
 <body class="dashboard-body @(Model.FreelancerOnly ? "freelancer-home" : "client-workspace client-home")">
 
@@ -271,22 +271,8 @@
                 ================================================== -->
 
                 <section class="hero-card home-banner">
-                    <div class="home-service-photos" aria-label="Featured services">
-                        <div class="home-service-slide is-current" data-service="cleaning" aria-hidden="true"></div>
-                        <div class="home-service-slide" data-service="repairs" aria-hidden="true"></div>
-                        <div class="home-service-slide" data-service="gardening" aria-hidden="true"></div>
-                        <div class="home-service-slide" data-service="moving" aria-hidden="true"></div>
-                        <div class="home-service-slide" data-service="errands" aria-hidden="true"></div>
-
-                        <div class="home-service-slide" data-service="painting" aria-hidden="true"></div>
-
-                        <div class="home-service-slide" data-service="tutoring" aria-hidden="true"></div>
-
-                        <div class="home-service-slide" data-service="pet-care" aria-hidden="true"></div>
-                        <div class="home-service-controls">
-                            <span class="home-service-category">Cleaning</span>
-                            <button type="button" class="home-service-toggle" hidden>Pause</button>
-                        </div>
+                    <div class="home-service-photos" aria-hidden="true">
+                        <div class="home-service-slide is-current" data-service="cleaning"></div>
                     </div>
                         <span class="client-location"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>@tts.Data.TaskLocationRules.PublicArea</span>
 

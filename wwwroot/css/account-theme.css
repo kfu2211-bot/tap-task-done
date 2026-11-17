@@ -6,6 +6,7 @@
 html[data-theme="dark"] {
     color-scheme:dark;
     --bg:#111614; --page:#111614; --panel:#202a25; --surface:#202a25; --surface-2:#20392e;
+    --workspace-header:#171f1c; --workspace-header-line:#38483f;
     --line:#38483f; --text:#edf5ef; --muted:#aabdb3; --brand:#81dbb2; --teal:#81dbb2;
     background:#111614 !important;
 }
@@ -29,9 +30,9 @@ html[data-theme="dark"] #headerAccountMenu :is(a,button):hover { background:#254
 /* Home dashboard palette */
 html[data-theme="dark"] body:has(.dashboard) {
     --home-bg: #111614;
-    --home-chrome: #171f1c;
+    --home-chrome: var(--workspace-header);
     --home-card: #202a25;
-    --home-border: #38483f;
+    --home-border: var(--workspace-header-line);
     --home-muted: #aabdb3;
     --home-mint: #81dbb2;
     background: var(--home-bg) !important;
@@ -853,9 +854,13 @@ html[data-theme="dark"] body.messages-current-view .thread-date::before,
 html[data-theme="dark"] body.messages-current-view .thread-date::after { background: var(--line); }
 
 /* Match the brand block and page header across signed-in workspaces. */
-html[data-theme="dark"] {
-    --workspace-header: #171f1b;
-    --workspace-header-line: #38483f;
+html[data-theme="dark"] body
+    :is(.sidebar.sidebar.sidebar, .mytasks-sidebar.mytasks-sidebar.mytasks-sidebar) {
+    background: var(--workspace-header) !important;
+    border-color: var(--workspace-header-line) !important;
+}
+html[data-theme="dark"] body :is(.sidebar, .mytasks-sidebar) nav a.active:not(:hover) {
+    background: #19533e !important;
 }
 html[data-theme="dark"] body:has(:is(.sidebar, .mytasks-sidebar))
     :is(main > header, .topbar, .top-header, .mytasks-topbar, .market-header, .dashboard .topbar.home-topbar),

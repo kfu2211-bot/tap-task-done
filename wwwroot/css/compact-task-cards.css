@@ -190,3 +190,34 @@ html body #my-tasks-section .market-section-title .market-primary { flex-shrink:
 @media (max-width: 600px) {
     html body #my-tasks-section .market-section-title { flex-wrap: wrap; }
 }
+
+/* Use the Home task list surfaces and badges in the full task workspace. */
+html[data-theme="dark"] body #my-tasks-section .market-section-title {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+}
+html[data-theme="dark"] body #my-tasks-section .task-filters button {
+    background: var(--surface) !important;
+    border-color: #526f61 !important;
+}
+html[data-theme="dark"] body #my-tasks-section .task-filters button[aria-pressed="true"] {
+    background: #a4ebcd !important;
+    border-color: #a4ebcd !important;
+    color: #14251e !important;
+}
+html[data-theme="dark"] body .market-content #my-tasks-section .task-card:has(> .task-disclosure) {
+    margin-block: 4px;
+    border: 1px solid #42594e !important;
+    border-radius: 10px;
+}
+html[data-theme="dark"] body #my-tasks-section .task-card:last-child {
+    margin-bottom: 18px;
+}
+html[data-theme="dark"] body #my-tasks-section .task-list-summary {
+    padding-inline: 14px;
+}
+html[data-theme="dark"] body #my-tasks-section .task-status-badge {
+    background: #304e40;
+    color: #a4ebcd;
+    font-weight: 650;
+}

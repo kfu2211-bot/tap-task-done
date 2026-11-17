@@ -19,7 +19,7 @@
         <div class="id-number-section">
             <label for="documentType">Government photo ID type <span>Required</span></label>
             <select id="documentType" name="documentType" required>
-                <option value="">Select your ID type</option>
+                <option value="" selected disabled hidden>Select your ID type</option>
                 @foreach (var type in tts.Data.IdentityDocumentTypes.Accepted)
                 {
                     <option value="@type">@type</option>
@@ -38,12 +38,10 @@
             <div class="document-title"><strong>Valid Government ID</strong><span class="required">Required</span></div>
             <p>Upload a valid government-issued identification card.</p>
         </div>
-        <div class="identity-id-actions">
+        <div class="identity-id-actions upload-area">
             <button type="button" id="scanGovernmentId" class="identity-scan-button">Scan ID</button>
-            <div class="upload-area">
-                <input type="file" id="governmentId" name="governmentId" accept=".jpg,.jpeg,.png,.pdf" aria-label="Upload government ID" aria-describedby="governmentIdHelp" required />
-                <small id="governmentIdHelp">JPG, PNG or PDF · Max. 5MB</small>
-            </div>
+            <input type="file" id="governmentId" name="governmentId" accept=".jpg,.jpeg,.png,.pdf" aria-label="Upload government ID" aria-describedby="governmentIdHelp" required />
+            <small id="governmentIdHelp">JPG, PNG or PDF · Max. 5MB</small>
         </div>
     </div>
 <div class="identity-scan-feedback">    <div id="idCamera" hidden>
