@@ -482,7 +482,7 @@
                                             </template>
                                         </div></div>
                                         <div class="freelancer-right">
-                                            <div class="freelancer-price"><small>Service rate</small><span>@(serviceRate is int rate ? $"₱{rate:N0}" : "Ask for a quote")</span></div>
+                                            <div class="freelancer-price"><small>Service rate</small><span>@(serviceRate is int rate ? $"₱{rate:N0}" : "Rate not set")</span></div>
                                             <div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count} {(rating.Count == 1 ? "review" : "reviews")})" : "No ratings yet")</strong></div>
                                             <button class="arrow-button" type="button" data-name="@provider.Name">View profile</button>
                                         </div>
