@@ -50,9 +50,8 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
     [BindProperty] public string[] Areas { get; set; } = [];
     [BindProperty] public string? OtherService { get; set; }
     [BindProperty] public int? ServiceRate { get; set; }
-    public int? Rate { get; private set; }
-    public int? RateMaximum { get; private set; }
-    public bool HasRateRange => Rate.HasValue && RateMaximum > Rate;
+    public int? SavedServiceRate { get; private set; }
+    public bool HasRateRange { get; private set; }
     public List<string> AcceptedRoles { get; private set; } = [];
     [BindProperty] public string[] AcceptedAgreements { get; set; } = [];
     [BindProperty] public int AgreementVersion { get; set; }
@@ -84,7 +83,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
             var savedServices = Service.Split(", ", StringSplitOptions.RemoveEmptyEntries);
             Services = savedServices.Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) || !ServiceOptions.Contains(value) ? "Other/General" : value).Distinct().ToArray();
             OtherService = string.Join(", ", savedServices.Where(value => !ServiceOptions.Contains(value)).Select(value => value.StartsWith("Other/General: ", StringComparison.Ordinal) ? value["Other/General: ".Length..] : value));
-            Areas = BacolorServiceAreas.InLocation(Location).ToArray(); Rate = profile.Rate; RateMaximum = profile.RateMaximum; ServiceRate = HasRateRange ? null : Rate; WorkRole = profile.WorkRole; Availability = profile.Availability; PreferredStart = profile.PreferredStart; PreferredEnd = profile.PreferredEnd; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
+            Areas = BacolorServiceAreas.InLocation(Location).ToArray(); HasRateRange = profile.Rate.HasValue && profile.RateMaximum > profile.Rate; SavedServiceRate = FreelancerProfile.GetServiceRate(profile.Rate, profile.RateMaximum); ServiceRate = SavedServiceRate; WorkRole = profile.WorkRole; Availability = profile.Availability; PreferredStart = profile.PreferredStart; PreferredEnd = profile.PreferredEnd; Days = profile.AvailableDays.Split(',', StringSplitOptions.RemoveEmptyEntries); }
         AcceptedRoles = await LoadAcceptedRolesAsync();
         EffectiveAvailability = await FreelancerAvailability.GetAsync(db, UserId, Availability, HttpContext.RequestAborted);
         return Page();

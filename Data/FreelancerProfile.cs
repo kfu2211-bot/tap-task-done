@@ -8,6 +8,9 @@ public sealed class FreelancerProfile
     public string Location { get; set; } = "";
     public int? Rate { get; set; }
     public int? RateMaximum { get; set; }
+    public static int? GetServiceRate(int? rate, int? rateMaximum) =>
+        rate is > 0 && !(rateMaximum > rate) ? rate : null;
+
     public string WorkRole { get; set; } = "client";
     public string Availability { get; set; } = "Available";
     public TimeOnly? PreferredStart { get; set; }

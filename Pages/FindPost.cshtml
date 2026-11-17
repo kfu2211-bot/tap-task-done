@@ -427,7 +427,7 @@
                                 {
                                     var categories = provider.Service.Split(", ", StringSplitOptions.RemoveEmptyEntries);
                                     var specialties = tts.Data.ServiceCatalog.Read(provider.ServiceSpecialties);
-                                    var serviceRate = provider.Rate is > 0 && !(provider.RateMaximum > provider.Rate) ? provider.Rate : null;
+                                    var serviceRate = tts.Data.FreelancerProfile.GetServiceRate(provider.Rate, provider.RateMaximum);
                                     <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-specialties="@provider.ServiceSpecialties" data-location="@provider.Location" data-service-areas="@string.Join("|", tts.Pages.BacolorServiceAreas.InLocation(provider.Location))" data-rate="@serviceRate" data-availability="@provider.Availability" data-saved-availability="@provider.SavedAvailability">
                                         <div class="freelancer-left"><div class="freelancer-avatar" style="position:relative;overflow:hidden"><img src="@Url.Page("/ProfilePhoto", new { providerId = provider.Id })" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.hidden=true" />@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info">
                                             <div class="freelancer-name-row">
