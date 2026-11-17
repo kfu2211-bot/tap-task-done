@@ -70,7 +70,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
     }
 
     public async Task<IActionResult> OnPostDirectAsync(int freelancerId, string? title, string? description,
-        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, decimal? budgetMaximum = null, long? inquiryId = null, string? serviceArea = null, string? arrivalInstructions = null)
+        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, long? inquiryId = null, string? serviceArea = null, string? arrivalInstructions = null)
     {
         if (UserId <= 0) return Challenge();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
@@ -81,8 +81,8 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (!ModelState.IsValid || freelancerId <= 0 || freelancerId == UserId || title.Length is < 1 or > 120 ||
             description.Length is < 1 or > 5000 || location.Length is < 1 or > 120 || schedule.Length is < 1 or > 120 ||
-            budget is < 1 or > 9999999999m || decimal.Round(budget, 2) != budget || !MarketTasksModel.ValidBudgetMaximum(budget, budgetMaximum) || !TaskLocationRules.Valid(latitude, longitude))
-        { Notice = "Complete the work details and confirm the location. The maximum budget must be at least the minimum."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
+            budget is < 1 or > 9999999999m || decimal.Round(budget, 2) != budget || !TaskLocationRules.Valid(latitude, longitude))
+        { Notice = "Complete the work details and confirm the location. Enter a valid proposed budget."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
         if (!DateTime.TryParseExact(schedule, "yyyy-MM-dd'T'HH:mm", System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.None, out var preferredTime) ||
             new DateTimeOffset(DateTime.SpecifyKind(preferredTime, DateTimeKind.Unspecified), TimeSpan.FromHours(8)).UtcDateTime <= DateTime.UtcNow)
@@ -103,7 +103,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             { Notice = "This freelancer is working now. Choose tomorrow or a later date in Philippine time."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
             var duplicate = await db.MarketplaceBookings.AnyAsync(b => b.FreelancerId == freelancerId && b.Status == "pending" &&
                 db.MarketplaceTasks.Any(t => t.Id == b.TaskId && t.ClientId == UserId && t.Status == "booking-pending" &&
-                    t.Title == title && t.Description == description && t.Location == location && t.ScheduleText == schedule && t.Budget == budget && t.BudgetMaximum == budgetMaximum), ct);
+                    t.Title == title && t.Description == description && t.Location == location && t.ScheduleText == schedule && t.Budget == budget && t.BudgetMaximum == null), ct);
             if (duplicate)
             { Notice = "This booking request has already been sent. Check My Tasks for its status."; return RedirectToPage("/MarketTasks", new { view = "mine" }); }
             MarketplaceTask? work = null;
@@ -132,7 +132,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             work.ArrivalInstructions = arrivalInstructions;
             work.ScheduleText = schedule;
             work.Budget = budget;
-            work.BudgetMaximum = budgetMaximum;
+            work.BudgetMaximum = null;
             work.Category = provider.Service;
             work.Status = "booking-pending";
             await db.SaveChangesAsync(ct);

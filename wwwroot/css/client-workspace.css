@@ -10,7 +10,6 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner {
 }
 html:not([data-theme="dark"]) body:is(.client-home, .freelancer-home) .dashboard .home-banner {
     background: linear-gradient(90deg, #e9f4e6 45%, transparent 70%),
-        url('/images/client-home/bacolor.jpg') right bottom / auto 100% no-repeat,
         #deefdf !important;
 }
 :is(.client-home, .freelancer-home) .hero-text { width: 100%; }
@@ -28,7 +27,7 @@ html body:is(.client-home, .freelancer-home) .dashboard .hero-text h2 {
     color: #123e29;
     font-weight: 700;
 }
-:is(.client-home, .freelancer-home) .client-location { position: absolute; inset: 16px 24px auto auto; z-index: 3; align-items: center; gap: 6px; }
+:is(.client-home, .freelancer-home) .client-location { position: absolute; inset: 16px 24px auto auto; z-index: 4; align-items: center; gap: 6px; }
 html body:is(.client-home, .freelancer-home) .dashboard .home-banner .post-button {
     background: var(--client-active) !important;
     color: white !important;
@@ -72,15 +71,6 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner .post-butto
     }
     html:not([data-theme="dark"]) body:is(.client-home, .freelancer-home) .dashboard .home-banner {
         background: #e9f4e6 !important;
-    }
-    html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before {
-        inset: 0 0 auto;
-        width: 100%;
-        height: var(--mobile-banner-photo-height);
-        border-radius: 0;
-        background: #cfe8d5 url('/images/client-home/bacolor.jpg') right center / cover no-repeat;
-        opacity: 1;
-        transform: none;
     }
     html body:is(.client-home, .freelancer-home) .dashboard .home-banner::after { content: none; }
     :is(.client-home, .freelancer-home) .client-location {
@@ -209,7 +199,63 @@ html body:is(.client-home, .freelancer-home) .dashboard .hero-card.home-banner {
 @media (min-width: 761px) {
     html[data-theme="dark"] body:is(.client-home, .freelancer-home) .dashboard .hero-card.home-banner {
         background: linear-gradient(90deg, #193a2d 43%, #193a2d50 78%, #193a2d22),
-            url('/images/client-home/bacolor.jpg') right bottom / auto 100% no-repeat,
             #193a2d !important;
     }
+}
+
+html body:is(.client-home, .freelancer-home) .dashboard .home-banner .hero-text { position: relative; z-index: 2; }
+html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { content: none; }
+.home-service-photos {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 42%;
+    overflow: hidden;
+    z-index: 3;
+}
+.home-service-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity .65s ease-in-out;
+}
+.home-service-slide::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    background: url('/images/client-home/service-photos.png') center / cover no-repeat;
+}
+.home-service-slide[data-service="repairs"]::before,
+.home-service-slide[data-service="moving"]::before { left: auto; right: 0; }
+.home-service-slide[data-service="gardening"]::before,
+.home-service-slide[data-service="moving"]::before { top: auto; bottom: 0; }
+.home-service-slide.is-current { opacity: 1; }
+.home-service-controls {
+    position: absolute;
+    inset: auto 14px 12px auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.home-service-category,
+.home-service-toggle {
+    padding: 7px 12px;
+    border: 1px solid #ecf7ef;
+    border-radius: 999px;
+    background: #103d2c;
+    color: #fff;
+    font-weight: 700;
+}
+.home-service-toggle { cursor: pointer; min-height: 36px; }
+@media (max-width: 760px) {
+    .home-service-photos {
+        inset: 0 0 auto;
+        width: 100%;
+        height: var(--mobile-banner-photo-height);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .home-service-slide { transition: none; }
 }

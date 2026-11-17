@@ -515,9 +515,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const query = new URLSearchParams(window.location.search);
                     if (bookingInquiryId) bookingInquiryId.value = query.get("providerId") === card.dataset.id ? query.get("inquiryId") || "" : "";
                     const bookingBudget = document.getElementById("bookingBudget");
-                    if (bookingBudget) bookingBudget.value = card.dataset.rate || "";
-                    const bookingBudgetMaximum = document.getElementById("bookingBudgetMaximum");
-                    if (bookingBudgetMaximum) bookingBudgetMaximum.value = card.dataset.rateMaximum || card.dataset.rate || "";
+                    if (bookingBudget) bookingBudget.value = card.dataset.rate === card.dataset.rateMaximum ? card.dataset.rate : "";
                     updateBookingAvailability();
                     if (sendBookingRequestButton) sendBookingRequestButton.textContent = "Send booking request to " + name;
                     const bookingPrivacyNotice = document.getElementById("bookingPrivacyNotice");

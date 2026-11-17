@@ -479,8 +479,7 @@
                                     <label for="bookingSchedule">Preferred date and time (Philippine time)</label>
                                     <input id="bookingSchedule" name="schedule" type="datetime-local" step="60" min="@DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required aria-describedby="bookingScheduleHelp" />
                                     <small id="bookingScheduleHelp">Choose a date from the calendar and select a time. Schedule uses Philippine time (UTC+8).</small>
-                                    <label for="bookingBudget">Minimum proposed budget (₱)</label><input id="bookingBudget" name="budget" type="number" min="1" max="9999999999" step="0.01" required />
-                                    <label for="bookingBudgetMaximum">Maximum proposed budget (₱)</label><input id="bookingBudgetMaximum" name="budgetMaximum" type="number" min="1" max="9999999999" step="0.01" required />
+                                    <label for="bookingBudget">Proposed budget (₱)</label><input id="bookingBudget" name="budget" type="number" min="1" max="9999999999" step="0.01" required />
                                     <p>The freelancer’s rate is a guide. Discuss and confirm the final price together before travel.</p>
                                     </div>
                                     <div class="booking-location">
