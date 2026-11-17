@@ -14,7 +14,7 @@
             slides[index].classList.remove("is-current");
             index = (index + 1) % slides.length;
             slides[index].classList.add("is-current");
-        }, 5000);
+        }, 3000);
     }
 
     motion.addEventListener("change", updateRotation);
