@@ -128,6 +128,20 @@
             var sampleIcon = sampleLink && sampleLink.querySelector("span");
 
             var homeView = nav.dataset.homeView || (role === "freelancer" || (role === "both" && account.homeView === "freelancer") ? "freelancer" : "client");
+            if (role === "both") {
+                var switcher = document.createElement("div");
+                switcher.className = "sidebar-view-switch";
+                switcher.setAttribute("role", "group");
+                switcher.setAttribute("aria-label", "Workspace view");
+                ["client", "freelancer"].forEach(function (view) {
+                    var option = document.createElement("a");
+                    option.href = "/Dashboard?view=" + view;
+                    option.textContent = view === "client" ? "Client" : "Freelancer";
+                    if (view === homeView) option.setAttribute("aria-current", "page");
+                    switcher.appendChild(option);
+                });
+                nav.before(switcher);
+            }
             var homeItems = homeView === "freelancer"
                 ? [
                     { href: "/FindPost?mode=jobs", icon: "⌕", label: "Find Jobs" },
