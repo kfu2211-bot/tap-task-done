@@ -917,3 +917,9 @@ html[data-theme="dark"] body .market-content .notice {
     color: #edf5ef !important;
     border-color: #567264 !important;
 }
+
+html[data-theme="dark"] body .home-status[data-status="pending-confirmation"] {
+    background: #493619 !important;
+    color: #ffe0a0 !important;
+    border: 1px solid #826039;
+}

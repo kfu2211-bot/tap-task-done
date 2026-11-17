@@ -17,3 +17,11 @@ html[data-theme="dark"] .account-warning-symbol {
     background: #493619;
     border-color: #826039;
 }
+
+html body.my-jobs-page .job-card .job-meta .account-warning-symbol {
+    box-sizing: border-box;
+    padding: 0 !important;
+    min-width: 22px;
+    flex: 0 0 22px;
+    overflow: visible;
+}
