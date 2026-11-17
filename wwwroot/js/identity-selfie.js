@@ -14,22 +14,47 @@
     ready.addEventListener("change", updateCapture);
     video.addEventListener("loadeddata", updateCapture);
     let stream, selfieUrl, idUrl, reviewed = false, opening = false;
-    function stop() { stream?.getTracks().forEach(t => t.stop()); stream = null; video.srcObject = null; video.hidden = true; capture.hidden = true; readiness.hidden = true; ready.checked = false; updateCapture(); el('selfieCamera').hidden = preview.hidden; }
+    let cameraVersion = 0;
+    function stop() {
+        cameraVersion++;
+        stream?.getTracks().forEach(track => track.stop());
+        stream = null;
+        video.srcObject = null;
+        video.hidden = true;
+        capture.hidden = true;
+        readiness.hidden = true;
+        ready.checked = false;
+        updateCapture();
+        el('selfieCamera').hidden = preview.hidden;
+        el('openCamera').hidden = !preview.hidden;
+        el('retakeSelfie').hidden = preview.hidden;
+    }
     function invalidate() { reviewed = false; review.hidden = true; el('reviewIdentity').hidden = false; }
     async function open() {
         if (opening) return;
         if (!el('selfieConsent').checked) { message.textContent = 'Please agree to identity review before opening the camera.'; return; }
+        stop();
         opening = true;
+        const version = cameraVersion;
         try {
-            stop();
             if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
             const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 720 } }, audio: false });
-            if (!el('selfieConsent').checked || document.hidden) { next.getTracks().forEach(t => t.stop()); return; }
+            if (version !== cameraVersion || !consent.checked || document.hidden) { next.getTracks().forEach(t => t.stop()); return; }
             stream = next; video.srcObject = stream; video.hidden = false; el('selfieCamera').hidden = false; await video.play();
+            if (version !== cameraVersion) return;
+            if (!next.active || !consent.checked || document.hidden) { stop(); return; }
+            next.getVideoTracks().forEach(track => track.addEventListener("ended", () => {
+                if (stream !== next) return;
+                stop();
+                message.textContent = "Camera disconnected. Open the camera to try again.";
+            }, { once: true }));
             preview.hidden = true; file.value = ''; invalidate();
             capture.hidden = false; readiness.hidden = false; updateCapture(); el('openCamera').hidden = true; el('retakeSelfie').hidden = true;
             message.textContent = 'Check the live preview and confirm the requirements to enable Capture selfie.';
-        } catch { stop(); el('openCamera').hidden = false; message.textContent = 'Camera could not open. Check camera permission and use HTTPS (or localhost). You can also open this page in your phone’s browser.'; }
+        } catch {
+            if (version !== cameraVersion) return;
+            stop();
+            message.textContent = 'Camera could not open. Check camera permission and use HTTPS (or localhost). You can also open this page in your phone’s browser.'; }
         finally { opening = false; }
     }
     el('openCamera').addEventListener('click', open);
@@ -57,7 +82,7 @@
     form.addEventListener('input', invalidate);
     form.addEventListener('change', invalidate);
     el('selfieConsent').addEventListener('change', () => {
-        if (!el('selfieConsent').checked) { preview.hidden = true; stop(); file.value = ''; el('openCamera').hidden = false; el('retakeSelfie').hidden = true; }
+        if (!consent.checked) { preview.hidden = true; file.value = ''; stop(); }
     });
     el('reviewIdentity').addEventListener('click', () => {
         if (!form.reportValidity()) return;
@@ -78,5 +103,8 @@
         stop(); el('submitIdentity').disabled = true; el('submitIdentity').textContent = 'Submitting…';
     });
     window.addEventListener('pagehide', stop);
-    document.addEventListener('visibilitychange', () => { if (document.hidden) { stop(); if (!file.files.length) el('openCamera').hidden = false; } });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && (stream || opening)) {
+            stop();
+            message.textContent = 'Camera paused. Open the camera again to continue.';
+        } });
 })();
