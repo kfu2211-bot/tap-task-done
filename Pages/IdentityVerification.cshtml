@@ -62,7 +62,10 @@
 <label class="selfie-consent"><input type="checkbox" name="consent" value="true" id="selfieConsent" required /> I agree to the encrypted storage of my ID and selfie for identity review by authorized admins. Documents are removed 30 days after review while the service is running; the decision and consent record are retained.</label>
 <div class="selfie-camera" id="selfieCamera" hidden><div class="selfie-frame"><video id="selfieVideo" autoplay muted playsinline hidden></video><img id="selfiePreview" alt="Your captured selfie" hidden /><div class="selfie-guide" aria-hidden="true"></div></div><p class="selfie-frame-hint">Center your face in the circle</p></div>
 <input type="file" name="selfie" id="selfieFile" accept="image/jpeg,image/png" hidden />
-<div class="selfie-actions"><button type="button" id="openCamera">Open camera</button><button type="button" id="captureSelfie" hidden>Capture selfie</button><button type="button" id="retakeSelfie" hidden>Retake</button></div>
+<div id="selfieReadiness" hidden>
+    <label class="selfie-consent"><input type="checkbox" id="selfieReady" /> I removed my glasses and face mask, and my full face is centered and clearly visible in good light.</label>
+</div>
+<div class="selfie-actions"><button type="button" id="openCamera">Open camera</button><button type="button" id="captureSelfie" hidden disabled>Capture selfie</button><button type="button" id="retakeSelfie" hidden>Retake</button></div>
 <p id="selfieMessage" role="status" aria-live="polite">Allow camera access when prompted. HTTPS or localhost is required.</p>
 </section>
 <div class="submit-area"><button type="button" id="reviewIdentity">Review submission</button></div>

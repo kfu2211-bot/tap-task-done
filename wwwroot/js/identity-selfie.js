@@ -4,8 +4,17 @@
     const el = id => document.getElementById(id);
     const video = el('selfieVideo'), preview = el('selfiePreview'), file = el('selfieFile');
     const review = el('identityReview'), message = el('selfieMessage');
+    const consent = el("selfieConsent"), ready = el("selfieReady"), capture = el("captureSelfie");
+    const readiness = el("selfieReadiness");
+    let encoding = false;
+    function canCapture() {
+        return Boolean(stream?.active && video.videoWidth && consent.checked && ready.checked && !encoding);
+    }
+    function updateCapture() { capture.disabled = !canCapture(); }
+    ready.addEventListener("change", updateCapture);
+    video.addEventListener("loadeddata", updateCapture);
     let stream, selfieUrl, idUrl, reviewed = false, opening = false;
-    function stop() { stream?.getTracks().forEach(t => t.stop()); stream = null; video.srcObject = null; video.hidden = true; el('captureSelfie').hidden = true; el('selfieCamera').hidden = preview.hidden; }
+    function stop() { stream?.getTracks().forEach(t => t.stop()); stream = null; video.srcObject = null; video.hidden = true; capture.hidden = true; readiness.hidden = true; ready.checked = false; updateCapture(); el('selfieCamera').hidden = preview.hidden; }
     function invalidate() { reviewed = false; review.hidden = true; el('reviewIdentity').hidden = false; }
     async function open() {
         if (opening) return;
@@ -18,21 +27,27 @@
             if (!el('selfieConsent').checked || document.hidden) { next.getTracks().forEach(t => t.stop()); return; }
             stream = next; video.srcObject = stream; video.hidden = false; el('selfieCamera').hidden = false; await video.play();
             preview.hidden = true; file.value = ''; invalidate();
-            el('captureSelfie').hidden = false; el('openCamera').hidden = true; el('retakeSelfie').hidden = true;
-            message.textContent = 'Keep your full face in frame, then capture your selfie.';
+            capture.hidden = false; readiness.hidden = false; updateCapture(); el('openCamera').hidden = true; el('retakeSelfie').hidden = true;
+            message.textContent = 'Check the live preview and confirm the requirements to enable Capture selfie.';
         } catch { stop(); el('openCamera').hidden = false; message.textContent = 'Camera could not open. Check camera permission and use HTTPS (or localhost). You can also open this page in your phone’s browser.'; }
         finally { opening = false; }
     }
     el('openCamera').addEventListener('click', open);
     el('retakeSelfie').addEventListener('click', open);
     el('captureSelfie').addEventListener('click', async () => {
-        if (!stream || !video.videoWidth) return;
+        if (!canCapture()) return;
+        const capturedStream = stream;
+        encoding = true;
+        updateCapture();
         const canvas = document.createElement('canvas');
         const scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
         canvas.width = Math.round(video.videoWidth * scale); canvas.height = Math.round(video.videoHeight * scale);
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .88));
-        if (!blob || !el('selfieConsent').checked) return;
+        encoding = false;
+        updateCapture();
+        if (stream !== capturedStream || !canCapture()) return;
+        if (!blob) { message.textContent = 'Could not capture your selfie. Try again.'; return; }
         const transfer = new DataTransfer(); transfer.items.add(new File([blob], 'selfie.jpg', { type: 'image/jpeg' })); file.files = transfer.files;
         if (selfieUrl) URL.revokeObjectURL(selfieUrl);
         selfieUrl = URL.createObjectURL(blob); preview.src = selfieUrl; preview.hidden = false;
