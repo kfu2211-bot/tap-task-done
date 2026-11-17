@@ -54,7 +54,7 @@ const filipino = {
 
 function questionLanguage(question) {
     if (question.split(/\s+/).length === 1 && /^(settings|tracking|messages|verification|report|help|offers|booking)\W*$/.test(question)) return lastQuestionLanguage;
-    const hasFilipino = /\b(paano|pano|ba|dito|saan|ano|bakit|kailan|ako|ko|ninyo|maghanap|trabaho|gawain|sumbong|reklamo|pagkakakilanlan|mensahe|paraan|puwede|pwede)\b/.test(question) ||
+    const hasFilipino = /\b(paano|pano|ba|dito|saan|ano|bakit|kailan|ako|ko|ninyo|maghanap|trabaho|gawain|sumbong|reklamo|pagkakakilanlan|mensahe|paraan|puwede|pwede|ayaw|gumagana|nawala|lumalabas|palitan|gusto|kailangan|tulong|kumusta|salamat|hindi|wala|naman|kasi|yung|ung|nyo)\b/.test(question) ||
         /\b(?:mag|i|na|pa)-[a-z]+/.test(question);
     if (!hasFilipino) return "en";
     const hasEnglish = /\b(report|post|task|job|jobs|verify|verification|password|review|feedback|message|chat|tracking|role|settings|notification|notifications|available|scam|account|payment|payments|pay)\b/.test(question);
@@ -246,13 +246,12 @@ if (helpPlacement) {
 taskHelpLaunch.hidden = false;
 taskHelpLaunch.addEventListener("click", () => taskHelp.showModal());
 taskHelp.addEventListener("close", () => taskHelpLaunch.focus());
-const languagePicker = taskHelp.querySelector("[data-help-language]");
+
 const helpCopy = {
     en: ["What would you like to do?", "Type your question", "Send", "You can ask questions in English, Filipino, or Taglish.", "Post a task", "Find jobs", "Verify my identity", "Service areas", "Report an issue"],
     fil: ["Ano ang gusto mong gawin?", "I-type ang tanong mo", "Ipadala", "Magtanong sa English, Filipino, o Taglish.", "Mag-post ng task", "Maghanap ng trabaho", "Magpa-verify", "Saan available?", "Mag-report"]
 };
-languagePicker.addEventListener("change", () => {
-    const language = languagePicker.value;
+function setHelpInterfaceLanguage(language) {
     const [prompt, inputLabel, send, hint, ...topics] = helpCopy[language];
     lastQuestionLanguage = language;
     taskHelp.lang = language;
@@ -268,12 +267,15 @@ languagePicker.addEventListener("change", () => {
     });
     taskHelpAnswer.hidden = true;
     taskHelpReport.hidden = true;
-});
+}
+const interfaceLanguage = () => document.documentElement.lang === "fil" ? "fil" : "en";
+setHelpInterfaceLanguage(interfaceLanguage());
+window.addEventListener("site-language-changed", () => setHelpInterfaceLanguage(interfaceLanguage()));
 taskHelp.querySelectorAll("[data-topic]").forEach(button => {
     button.addEventListener("click", () => {
         if (taskHelp.querySelector(".task-help-input-row button").disabled) return;
-        addHelpMessage(button.textContent, "visitor", languagePicker.value);
-        showTaskHelpAnswer(button.dataset.topic, languagePicker.value);
+        addHelpMessage(button.textContent, "visitor", interfaceLanguage());
+        showTaskHelpAnswer(button.dataset.topic, interfaceLanguage());
     });
 });
 async function answerMarketplaceQuestion(question, language) {

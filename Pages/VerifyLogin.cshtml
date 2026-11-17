@@ -23,14 +23,14 @@
     </div>
     @if(Model.ErrorMessage is not null) { <p class="verification-error" role="alert">@Model.ErrorMessage</p> }
     @if(Model.Notice is not null) { <p class="verification-success" role="status">@Model.Notice</p> }
-    <form method="post" class="verification-code-form" data-code-form>
+    <form method="post" asp-page="/VerifyLogin" class="verification-code-form" data-code-form>
         <label id="verification-code-label" for="Code">Verification code</label>
         <input asp-for="Code" data-code-source inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="verification-expiry" required autofocus />
         <p id="verification-expiry" class="verification-expiry">Code expires in 10 minutes. Never share your code.</p>
         <label class="verification-trust"><input asp-for="TrustDevice" /><span><strong>Trust this browser for 30 days</strong><small>Only select this on your own device.</small></span></label>
         <button type="submit" class="verification-primary">Verify and sign in</button>
     </form>
-    <form method="post" asp-page-handler="Resend" class="verification-resend" data-resend-seconds="@Model.ResendSeconds">
+    <form method="post" asp-page="/VerifyLogin" asp-page-handler="Resend" class="verification-resend" data-resend-seconds="@Model.ResendSeconds">
         <button type="submit" disabled="@(Model.ResendSeconds > 0)">Resend code</button>
         <span class="verification-resend-divider" aria-hidden="true"></span>
         <small role="status" data-resend-label>@(Model.ResendSeconds > 0 ? $"Available in 00:{Model.ResendSeconds:D2}" : "Didn't receive a code?")</small>

@@ -12,7 +12,7 @@ public sealed class VerifyLoginModel(ApplicationDbContext db, IConfiguration con
     [BindProperty] public string Code { get; set; } = "";
     [BindProperty] public bool TrustDevice { get; set; }
     public string? ErrorMessage { get; set; }
-    public string? Notice { get; set; }
+    [TempData(Key = "VerifyLogin.ResendNotice")] public string? Notice { get; set; }
     public int ResendSeconds { get; private set; }
     public async Task OnGetAsync(CancellationToken ct) { Response.Headers.CacheControl = "no-store"; await LoadCooldownAsync(ct); }
     private async Task LoadCooldownAsync(CancellationToken ct)
@@ -35,7 +35,8 @@ public sealed class VerifyLoginModel(ApplicationDbContext db, IConfiguration con
             var user = challenge is null ? null : await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Id == challenge.UserId, ct);
             if (user is null) return RedirectToPage("/Login");
             await LoginSecurity.BeginAsync(db, HttpContext, user, config, ct, token);
-            ResendSeconds = 60; Notice = "A new code has been sent. Use the latest email; your previous code no longer works.";
+            Notice = "A new code has been sent. Use the latest email; your previous code no longer works.";
+            return RedirectToPage("/VerifyLogin");
         }
         catch (Exception ex) when (ex is System.Net.Mail.SmtpException or MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException)
         {

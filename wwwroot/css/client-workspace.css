@@ -207,7 +207,7 @@ html body:is(.client-home, .freelancer-home) .dashboard .hero-card.home-banner {
 }
 
 @media (min-width: 761px) {
-    html[data-theme="dark"] body:is(.client-home, .freelancer-home) .dashboard .home-banner {
+    html[data-theme="dark"] body:is(.client-home, .freelancer-home) .dashboard .hero-card.home-banner {
         background: linear-gradient(90deg, #193a2d 43%, #193a2d50 78%, #193a2d22),
             url('/images/client-home/bacolor.jpg') right bottom / auto 100% no-repeat,
             #193a2d !important;

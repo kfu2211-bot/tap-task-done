@@ -114,16 +114,12 @@
                 }
             }
         });
-        const help = document.querySelector("[data-help-language]");
-        if (help && help.value !== language) {
-            help.value = language;
-            help.dispatchEvent(new Event("change"));
-        }
     }
     function setLanguage(value) {
         language = value;
         try { localStorage.setItem("tts-language", language); } catch {}
         translate();
+        window.dispatchEvent(new Event("site-language-changed"));
     }
     translate();
     new MutationObserver(translate).observe(document.body, { childList: true, subtree: true, characterData: true });
