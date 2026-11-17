@@ -436,7 +436,33 @@
                                 @foreach (var provider in Model.Providers)
                                 {
                                     <article class="freelancer-card" data-id="@provider.Id" data-service="@provider.Service" data-specialties="@provider.ServiceSpecialties" data-location="@provider.Location" data-service-areas="@string.Join("|", tts.Pages.BacolorServiceAreas.InLocation(provider.Location))" data-rate="@provider.Rate" data-rate-maximum="@(provider.RateMaximum ?? provider.Rate)" data-availability="@provider.Availability" data-saved-availability="@provider.SavedAvailability">
-                                        <div class="freelancer-left"><div class="freelancer-avatar" style="position:relative;overflow:hidden"><img src="@Url.Page("/ProfilePhoto", new { providerId = provider.Id })" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.hidden=true" />@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong><span>@tts.Data.ServiceCatalog.Display(provider.Service, tts.Data.ServiceCatalog.Read(provider.ServiceSpecialties))</span><span class="provider-availability">@provider.Availability</span></div></div>
+                                        <div class="freelancer-left"><div class="freelancer-avatar" style="position:relative;overflow:hidden"><img src="@Url.Page("/ProfilePhoto", new { providerId = provider.Id })" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.hidden=true" />@(provider.Name.Length > 0 ? provider.Name.Substring(0, 1).ToUpperInvariant() : "F")</div><div class="freelancer-info"><strong>@provider.Name</strong>
+                                            @{
+                                                var specialties = tts.Data.ServiceCatalog.Read(provider.ServiceSpecialties);
+                                            }
+                                            <dl class="provider-service-groups">
+                                                @foreach (var category in provider.Service.Split(", ", StringSplitOptions.RemoveEmptyEntries))
+                                                {
+                                                    <div class="provider-service-group">
+                                                        <dt>@category</dt>
+                                                        <dd>
+                                                            @if (specialties.TryGetValue(category, out var services) && services is { Length: > 0 })
+                                                            {
+                                                                <ul>
+                                                                    @foreach (var service in services)
+                                                                    {
+                                                                        <li>@tts.Data.ServiceCatalog.DisplayServiceName(service)</li>
+                                                                    }
+                                                                </ul>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="provider-service-general">General service</span>
+                                                            }
+                                                        </dd>
+                                                    </div>
+                                                }
+                                            </dl><span class="provider-availability">@provider.Availability</span></div></div>
                                         <div class="freelancer-right"><div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count})" : "No ratings yet")</strong></div><div class="freelancer-price">@(provider.Rate.HasValue ? (provider.RateMaximum > provider.Rate ? $"₱{provider.Rate:N0} – ₱{provider.RateMaximum:N0}" : $"₱{provider.Rate:N0}") : "Rate not set")</div><button class="arrow-button" type="button" data-name="@provider.Name">View profile</button></div>
                                     </article>
                                 }
@@ -454,7 +480,7 @@
                             </div>
 
                             <section id="providerDetailPanel" class="provider-detail-panel hidden" aria-live="polite">
-                                <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
+                                <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p><div id="selectedProviderServices"></div></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
                                 <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span id="selectedProviderAvailability" class="available-now">Availability —</span></div>
                                 @if (tts.Pages.BookingRequestsModel.CanBook(Model.WorkRole)) {
                                 <details class="service-inquiry">

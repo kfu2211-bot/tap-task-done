@@ -58,9 +58,12 @@ public static class ServiceCatalog
         return true;
     }
 
+    public static string DisplayServiceName(string service) =>
+        service.StartsWith(CustomPrefix, StringComparison.Ordinal) ? service[CustomPrefix.Length..] : service;
+
     public static string Display(string categories, IReadOnlyDictionary<string, string[]> specialties) =>
         string.Join(" · ", categories.Split(", ").Select(category =>
             specialties.TryGetValue(category, out var services)
-                ? $"{category}: {string.Join(", ", services.Select(service => service.StartsWith(CustomPrefix, StringComparison.Ordinal) ? service[CustomPrefix.Length..] : service))}"
+                ? $"{category}: {string.Join(", ", services.Select(DisplayServiceName))}"
                 : category));
 }

@@ -493,13 +493,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (!button || !freelancerList.contains(button)) return;
                     const name = String(button.dataset.name || "").replace(/[\u00ad\u200b]/g, "").trim();
                     const card = button.closest(".freelancer-card");
-                    const service = card.querySelector(".freelancer-info span").textContent.trim();
+                    const services = card.querySelector(".provider-service-groups");
                     const rating = card.querySelector(".freelancer-rating strong").textContent.trim();
                     const price = card.querySelector(".freelancer-price").textContent.trim();
-                    selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", service: service, rating: rating, price: price, availability: card.dataset.availability || "", savedAvailability: card.dataset.savedAvailability || "", location: card.dataset.location || "" };
+                    selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", rating: rating, price: price, availability: card.dataset.availability || "", savedAvailability: card.dataset.savedAvailability || "", location: card.dataset.location || "" };
                     document.getElementById("selectedProviderName").textContent = name;
                     document.getElementById("selectedProviderName").dataset.accountId = card.dataset.id;
-                    document.getElementById("selectedProviderMeta").textContent = service + " · " + (selectedProvider.location || "Location not set");
+                    document.getElementById("selectedProviderMeta").textContent = selectedProvider.location || "Location not set";
+                    document.getElementById("selectedProviderServices").replaceChildren(services.cloneNode(true));
                     document.getElementById("selectedProviderRating").textContent = rating;
                     document.getElementById("selectedProviderPrice").textContent = price;
                     document.getElementById("selectedProviderAvailability").textContent = selectedProvider.availability || "Availability not set";
