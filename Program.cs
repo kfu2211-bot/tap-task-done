@@ -190,6 +190,11 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.Use(async (context, next) =>
 {
+    if (context.Request.Path.Equals("/Logout", StringComparison.OrdinalIgnoreCase))
+    {
+        await next();
+        return;
+    }
     var admin = await context.AuthenticateAsync("AdminCookie");
     var principal = admin.Succeeded ? admin.Principal : context.User;
     if (principal?.Identity?.IsAuthenticated == true && int.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id))

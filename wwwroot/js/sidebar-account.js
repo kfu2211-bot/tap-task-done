@@ -522,19 +522,22 @@
                 logout.disabled = true;
                 accountMenu.querySelector(".header-account-status").textContent = "Logging out…";
                 try {
-                    var settingsResponse = await fetch("/Settings", { credentials: "same-origin", cache: "no-store" });
-                    if (!settingsResponse.ok || settingsResponse.redirected) throw new Error("Session unavailable");
-                    var settings = new DOMParser().parseFromString(await settingsResponse.text(), "text/html");
-                    var token = settings.querySelector('input[name="__RequestVerificationToken"]');
+                    var tokenResponse = await fetch("/Logout", { credentials: "same-origin", cache: "no-store" });
+                    if (!tokenResponse.ok || tokenResponse.redirected) throw new Error("Logout unavailable");
+                    var token = (await tokenResponse.json()).token;
                     if (!token) throw new Error("Missing logout token");
-                    var logoutResponse = await fetch("/Settings?handler=Logout", { method: "POST", credentials: "same-origin", body: new URLSearchParams({ __RequestVerificationToken: token.value }) });
-                    if (!logoutResponse.ok || new URL(logoutResponse.url).pathname.toLowerCase() !== "/login") throw new Error("Logout failed");
+                    var logoutResponse = await fetch("/Logout", {
+                        method: "POST",
+                        credentials: "same-origin",
+                        body: new URLSearchParams({ __RequestVerificationToken: token })
+                    });
+                    if (logoutResponse.status !== 204) throw new Error("Logout failed");
                     try {
                         localStorage.removeItem("tts-task-help-signed-in-history");
                         sessionStorage.removeItem("tts-task-help-history");
                     } catch (storageError) { /* Storage may be disabled. */ }
                     try { Object.keys(sessionStorage).filter(function (key) { return key.indexOf("tts-location-sharing:") === 0; }).forEach(function (key) { sessionStorage.removeItem(key); }); } catch (storageError) { /* Storage may be disabled. */ }
-                    localStorage.removeItem("tapTaskDoneAccount");
+                    try { localStorage.removeItem("tapTaskDoneAccount"); } catch (storageError) { /* Storage may be disabled. */ }
                     window.location.replace("/Login");
                 } catch (error) { logout.disabled = false; accountMenu.querySelector(".header-account-status").textContent = "Could not log out. Please try again."; }
             });
