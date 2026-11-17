@@ -52,11 +52,11 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
         }
         return Page();
     }
-    public async Task<IActionResult> OnPostReviewAsync(long id, string? decision, string? note, bool matchConfirmed, CancellationToken ct)
+    public async Task<IActionResult> OnPostReviewAsync(long id, string? decision, string? note, bool matchConfirmed, bool faceVisibleConfirmed, CancellationToken ct)
     {
         if (!availability.Enabled) return NotFound(); note = (note ?? "").Trim();
         if (AdminId <= 0 || decision is not ("approved" or "rejected" or "resubmit") || note.Length > 500 || (decision != "approved" && string.IsNullOrWhiteSpace(note))) { Notice = "Add a reason when rejecting or requesting a new submission (up to 500 characters)."; return RedirectToPage(new { embedded = Embedded }); }
-        if (decision == "approved" && !matchConfirmed) { Notice = "Compare the ID and selfie, then confirm your manual review before approving."; return RedirectToPage(new { embedded = Embedded }); }
+        if (decision == "approved" && (!matchConfirmed || !faceVisibleConfirmed)) { Notice = "Confirm that the photos show the same person and that the selfie clearly shows the full face without glasses or a face mask."; return RedirectToPage(new { embedded = Embedded }); }
         if (decision == "approved" && !await db.IdentityResources.AnyAsync(x => x.IdentityRequestId == id && x.Kind == "selfie", ct)) { Notice = "This request has no selfie. Request a new submission with a selfie before approving."; return RedirectToPage(new { embedded = Embedded }); }
         var changed = await db.IdentityRequests.Where(x => x.Id == id && x.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, decision).SetProperty(x => x.ReviewNote, note).SetProperty(x => x.ReviewedAt, DateTime.UtcNow).SetProperty(x => x.ReviewReadAt, (DateTime?)null).SetProperty(x => x.ReviewedById, AdminId), ct);
         Notice = changed == 1 ? "Decision saved." : "Request was already reviewed or is unavailable."; return RedirectToPage(new { embedded = Embedded });

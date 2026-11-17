@@ -40,6 +40,7 @@
         message.textContent = 'Selfie captured. Retake if unclear, or review your submission.';
     });
     form.addEventListener('input', invalidate);
+    form.addEventListener('change', invalidate);
     el('selfieConsent').addEventListener('change', () => {
         if (!el('selfieConsent').checked) { preview.hidden = true; stop(); file.value = ''; el('openCamera').hidden = false; el('retakeSelfie').hidden = true; }
     });

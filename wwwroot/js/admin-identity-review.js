@@ -1,5 +1,16 @@
 document.querySelectorAll('.identity-review').forEach(form => {
     let submitting = false;
+    const approve = form.querySelector('button[value="approved"]');
+    const match = form.elements.namedItem('matchConfirmed');
+    const faceVisible = form.elements.namedItem('faceVisibleConfirmed');
+    if (approve && match && faceVisible && !match.disabled) {
+        const updateApproval = () => {
+            approve.disabled = submitting || !match.checked || !faceVisible.checked;
+        };
+        match.addEventListener('change', updateApproval);
+        faceVisible.addEventListener('change', updateApproval);
+        updateApproval();
+    }
     form.addEventListener('submit', event => {
         if (submitting) { event.preventDefault(); return; }
         const button = event.submitter;
