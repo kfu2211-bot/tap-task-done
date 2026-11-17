@@ -230,11 +230,14 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
 }
 .home-service-slide::before {
     inset: 0;
-    display: none;
+    display: block;
+    background-size: 200% 200%;
+    filter: blur(24px) saturate(.65);
+    opacity: .35;
 }
 .home-service-slide::after {
     inset: 50% 0 auto auto;
-    width: max(100%, 150cqh);
+    width: 150cqh;
     aspect-ratio: 3 / 2;
     transform: translateY(-50%);
     filter: saturate(.8) contrast(.92);
@@ -250,8 +253,9 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
 }
 .home-service-slide[data-service="gardening"]::before,
 .home-service-slide[data-service="gardening"]::after {
-    background-size: cover;
-    background-position: 60% center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 .home-service-slide:is([data-service="moving"], [data-service="pet-care"]) { --service-position: 100% 100%; }
 .home-service-slide.is-current { opacity: 1; }
