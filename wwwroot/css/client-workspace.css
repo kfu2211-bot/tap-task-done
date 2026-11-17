@@ -207,8 +207,8 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner .hero-text 
 html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { content: none; }
 .home-service-photos {
     position: absolute;
-    inset: 0;
-    width: 100%;
+    inset: 0 0 0 auto;
+    width: 46%;
     container-type: size;
     isolation: isolate;
     overflow: hidden;
@@ -231,16 +231,16 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
 .home-service-slide::before {
     inset: 0;
     display: block;
-    background-size: 200% 200%;
     filter: blur(24px) saturate(.65);
-    opacity: .35;
+    opacity: .55;
 }
 .home-service-slide::after {
     inset: 50% 0 auto auto;
-    width: 150cqh;
+    width: min(100%, 150cqh);
     aspect-ratio: 3 / 2;
     transform: translateY(-50%);
     filter: saturate(.8) contrast(.92);
+    mask-image: linear-gradient(90deg, transparent, #000 16%);
 
 }
 .home-service-slide:is([data-service="errands"], [data-service="painting"], [data-service="tutoring"], [data-service="pet-care"]) {
@@ -263,11 +263,11 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, #e9f4e6fa 0%, #e9f4e6ed 30%, #e9f4e69c 52%, #e9f4e620 75%, transparent);
+    background: linear-gradient(90deg, #e9f4e6, #e9f4e62e 42%, #d9ebdf30);
     pointer-events: none;
 }
 html[data-theme="dark"] .home-service-photos::after {
-    background: linear-gradient(90deg, #102f25fa 0%, #102f25ed 30%, #102f259c 52%, #102f2520 75%, #102f2510);
+    background: linear-gradient(90deg, #193a2d, #193a2d45 45%, #193a2d35);
 }
 .home-service-controls {
     position: absolute;
