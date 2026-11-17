@@ -137,7 +137,7 @@ html body .account-workspace .service-checkboxes input[type="checkbox"] {
     justify-content: space-between;
     gap: 8px;
 }
-.account-workspace :is(#selectAllServiceAreas, #selectAllServiceCategories) {
+.account-workspace :is(#selectAllServiceAreas, #selectAllServiceCategories, .specialty-bulk-button) {
     min-height: 44px;
     padding: 6px 12px;
     border: 1px solid var(--line, #a9cbb0);
@@ -151,7 +151,7 @@ html body .account-workspace .service-area-list > label { border-color: transpar
 html body .account-workspace .service-checkboxes > label:is(:hover, :focus-within) {
     border-color: var(--brand, #176b50);
 }
-.account-workspace :is(#selectAllServiceAreas, #selectAllServiceCategories):hover { background: var(--surface-2, #e5f1e6); }
+.account-workspace :is(#selectAllServiceAreas, #selectAllServiceCategories, .specialty-bulk-button):hover { background: var(--surface-2, #e5f1e6); }
 @media (max-width: 700px) {
     html body .account-workspace .work-field-grid { grid-template-columns: minmax(0, 1fr); }
 }
@@ -220,6 +220,7 @@ html body .account-workspace .service-checkboxes > label:is(:hover, :focus-withi
     font-size: 12px;
     font-weight: 400;
 }
+.specialty-bulk-button { margin: 8px 0; }
 .specialty-content { padding: 0 10px 10px; }
 .account-workspace .specialty-tiles {
     margin-top: 0;

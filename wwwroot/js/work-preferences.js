@@ -84,6 +84,16 @@ if (workRole && freelancerPreferences) {
         update();
     });
 
+    const listedSpecialties = group => [...group.querySelectorAll('input[name="SpecialtyChoices"]:not([data-custom-specialty])')];
+    for (const group of specialtyGroups) {
+        group.querySelector("[data-toggle-specialties]")?.addEventListener("click", () => {
+            const listed = listedSpecialties(group);
+            const select = listed.some(input => !input.checked);
+            const choices = select ? listed : group.querySelectorAll('input[name="SpecialtyChoices"]');
+            choices.forEach(input => { input.checked = select; });
+            update();
+        });
+    }
     function update() {
         if (selectAllDays) selectAllDays.textContent = days.every(day => day.checked) ? "Clear all" : "Select all";
         freelancerPreferences.hidden = workRole.value === "client";
@@ -99,6 +109,8 @@ if (workRole && freelancerPreferences) {
                 count.textContent = otherInput.value.trim() ? "Name entered" : "Add service";
                 continue;
             }
+            group.querySelector("[data-toggle-specialties]").textContent =
+                listedSpecialties(group).every(input => input.checked) ? "Clear all" : "Select all";
             const custom = group.querySelector(".specialty-custom");
             custom.hidden = !group.querySelector("[data-custom-specialty]").checked;
             custom.querySelector("input").required = !freelancerPreferences.hidden && !group.hidden && !custom.hidden;

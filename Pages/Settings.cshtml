@@ -210,6 +210,7 @@
                                         <details name="service-specialties" data-specialty-category="@category" hidden="@(!Model.Services.Contains(category))">
                                             <summary>@category <span data-specialty-count>@saved.Length selected</span></summary>
                                             <div class="specialty-content">
+                                                <button type="button" class="specialty-bulk-button" data-toggle-specialties>Select all</button>
                                                 <div class="service-checkboxes specialty-tiles" role="group" aria-label="@category services">
                                                     @foreach (var option in options)
                                                     {

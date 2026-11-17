@@ -1,7 +1,10 @@
 function populateTaskServices(select, field, category, emptyLabel) {
     const catalog = JSON.parse(document.getElementById("specificServiceFilter").dataset.catalog);
     const options = Object.hasOwn(catalog, category) ? catalog[category] : [];
-    select.replaceChildren(new Option(emptyLabel, ""));
+    const placeholder = new Option(emptyLabel, "", true, true);
+    placeholder.disabled = true;
+    placeholder.hidden = true;
+    select.replaceChildren(placeholder);
     options.forEach(service => select.add(new Option(service, service)));
     if (options.length) select.add(new Option("Other " + category.toLowerCase(), "Other"));
     select.disabled = options.length === 0;
@@ -265,7 +268,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const catalog = JSON.parse(specificFilter.dataset.catalog);
     const updateSpecificServices = () => populateTaskServices(specificService, specificFilter, serviceSearch.value, "Any specific service");
     const locationInput = document.getElementById("locationInput");
-    const budgetInput = document.getElementById("budgetInput");
     const availabilityFilter = document.getElementById("availabilityFilter");
     const searchButton = document.getElementById("searchButton");
     const noResults = document.getElementById("noResults");
@@ -289,15 +291,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function performSearch(keepProfile = false) {
-        if (!budgetInput.validity.valid) {
-            if (keepProfile !== true) budgetInput.reportValidity();
-            return;
-        }
         const openProfile = document.getElementById("providerDetailPanel");
         if (openProfile && keepProfile !== true) openProfile.classList.add("hidden");
         const query = serviceSearch.value.trim().toLowerCase();
         const location = locationInput.value.trim().toLowerCase();
-        const maximum = budgetInput.value === "" ? null : budgetInput.valueAsNumber;
         const availability = availabilityFilter.value.toLowerCase();
         let count = 0;
         freelancerCards.forEach(function (card) {
@@ -305,7 +302,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const service = String(card.dataset.service || "").toLowerCase();
             const matchedAreas = (card.dataset.serviceAreas || "").toLowerCase().split("|").filter(Boolean);
             const matchesLocation = location ? matchedAreas.includes(location) : matchedAreas.length > 0;
-            const rate = Number(card.dataset.rate);
             const status = String(card.dataset.availability || "").toLowerCase();
             const savedStatus = (card.dataset.savedAvailability || "").toLowerCase();
             const matchesAvailability = !availability || (availability === "available"
@@ -321,7 +317,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 : specialties.includes(specificService.value));
             const matches = matchesSpecific && matchesOther && (isOther || !query || matchesService(service, query) || (!categorySearch && name.includes(query))) &&
                 matchesLocation &&
-                (maximum === null || (rate > 0 && rate <= maximum)) &&
                 matchesAvailability;
             card.style.display = matches ? "" : "none";
             if (matches) count++;
@@ -346,8 +341,12 @@ document.addEventListener("DOMContentLoaded", function () {
         noResults.classList.toggle("show", count === 0);
     }
     searchButton.addEventListener("click", performSearch);
-    [serviceSearch, budgetInput].forEach(function (input) {
-        input.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); performSearch(); } });
+    document.getElementById("freelancerFilterReset").addEventListener("click", () => {
+        serviceSearch.value = "";
+        locationInput.value = "";
+        availabilityFilter.value = "";
+        updateSpecificServices();
+        performSearch();
     });
     locationInput.addEventListener("change", performSearch);
     serviceSearch.addEventListener("change", () => { updateSpecificServices(); performSearch(); });

@@ -322,7 +322,7 @@
 
                                 <span class="provider-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="5.5"/><path d="m14 14 5 5"/></svg></span>
 
-                                <select id="serviceSearch" aria-label="Service category"><option value="">All services</option>@foreach (var category in SettingsModel.ServiceOptions) { <option value="@category">@category</option> }</select>
+                                <select id="serviceSearch" aria-label="Service category"><option value="" selected disabled hidden>All services</option>@foreach (var category in SettingsModel.ServiceOptions) { <option value="@category">@category</option> }</select>
 
                             </div>
 
@@ -333,7 +333,7 @@
                         <div class="filter-group" id="specificServiceFilter" hidden data-catalog="@System.Text.Json.JsonSerializer.Serialize(tts.Data.ServiceCatalog.Options)">
                             <label for="specificServiceSearch">Specific service</label>
                             <div class="input-wrapper">
-                                <select id="specificServiceSearch"><option value="">Any specific service</option></select>
+                                <select id="specificServiceSearch"><option value="" selected disabled hidden>Any specific service</option></select>
                             </div>
                         </div>
 
@@ -348,7 +348,7 @@
                                 <span class="provider-filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
 
                                 <select id="locationInput" aria-label="Service area" style="width:100%;min-width:0">
-                                    <option value="">All 5 supported areas</option>
+                                    <option value="" selected disabled hidden>All 5 supported areas</option>
                                     @foreach (var area in tts.Pages.BacolorServiceAreas.Names)
                                     {
                                         <option value="@area">@area</option>
@@ -357,18 +357,6 @@
 
                             </div>
 
-                        </div>
-
-
-
-                        <div class="filter-group">
-                            <label for="budgetInput">Maximum budget</label>
-                            <div class="input-wrapper">
-                                <span aria-hidden="true">₱</span>
-                                <input type="number" id="budgetInput" min="1" step="0.01" inputmode="decimal"
-                                       placeholder="e.g. 1500" aria-describedby="freelancerBudgetHelp" />
-                            </div>
-                            <small id="freelancerBudgetHelp">Shows freelancers with a listed service rate within your budget.</small>
                         </div>
 
 
@@ -385,6 +373,7 @@
                             Search
 
                         </button>
+                        <button type="button" id="freelancerFilterReset" class="task-chat-action">Clear filters</button>
 
 
                     </aside>
@@ -400,7 +389,7 @@
                             @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
                             <span>Find a trusted provider</span>
                             <h2>Compare freelancers before you send a request.</h2>
-                            <p>Search profiles by service, location, budget, and availability.</p>
+                            <p>Search profiles by service, location, and availability.</p>
                             @if (!string.IsNullOrEmpty(Model.Notice) && mode != "jobs") { <p role="status">@Model.Notice</p> }
                         </section>
 
@@ -689,7 +678,7 @@
                             <div class="jobs-category-filter">
                                 <label for="jobsCategoryFilter">Service category</label>
                                 <select id="jobsCategoryFilter">
-                                    <option value="">All categories</option>
+                                    <option value="" selected disabled hidden>All categories</option>
                                     @foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other / General" })
                                     {
                                         <option value="@category">@category</option>
@@ -697,8 +686,9 @@
                                 </select>
                                 <div id="jobsSpecificServiceField" hidden>
                                     <label for="jobsSpecificService">Specific service</label>
-                                    <select id="jobsSpecificService" disabled><option value="">Any specific service</option></select>
+                                    <select id="jobsSpecificService" disabled><option value="" selected disabled hidden>Any specific service</option></select>
                                 </div>
+                                <button type="button" id="jobsFilterReset" class="task-chat-action">Clear filters</button>
                             </div>
                         }
                         @if (Model.DirectoryUnavailable) { <div class="jobs-empty"><h3>Jobs are unavailable right now</h3><p>Please try again later.</p></div> }
@@ -710,7 +700,7 @@
                             <article class="jobs-card" id="task-@task.Id" data-job-category="@task.Category" data-job-specific-service="@task.SpecificService"><div class="jobs-card-top"><span class="jobs-tag">@task.CategoryDisplay</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: <span data-account-id="@task.ClientId">@item.ClientName</span></span></div>
                             <partial name="_JobOfferForm" model="(task, existing?.Offer.Status)" /></article>
                         }
-                        <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs match these filters</h3><p>Try another category or specific service, or view all jobs.</p><button type="button" id="jobsFilterReset" class="task-chat-action">View all jobs</button></div>
+                        <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs match these filters</h3><p>Try another category or specific service, or view all jobs.</p></div>
                         <section class="jobs-offers"><h3>My offers</h3>
                         @if (Model.Offers.Count == 0) { <p>Your sent offers will appear here so you can check their status.</p> }
                         @foreach (var sent in Model.Offers) { <div class="sent-offer"><div><strong>@(Model.OfferTaskTitles.TryGetValue(sent.Offer.TaskId, out var offerTitle) ? offerTitle : "Task details unavailable")</strong><span>Offer: ₱@sent.Offer.Price</span></div><span class="sent-offer-status">@sent.Offer.Status.Replace("-", " ")</span></div> }</section>
