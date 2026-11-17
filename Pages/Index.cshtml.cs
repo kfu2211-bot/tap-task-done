@@ -42,12 +42,14 @@ namespace tts.Pages
 
             var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0 || parts[0].Length > 45 || string.Join(' ', parts.Skip(1)).Length > 45 ||
-                email.Length == 0 || email.Length > 45 || !new EmailAddressAttribute().IsValid(email) ||
-                password.Length < 8 || password.Length > 256)
+                email.Length == 0 || email.Length > 45 || !new EmailAddressAttribute().IsValid(email))
             {
-                ErrorMessage = "Enter a valid name and email, and a password of at least 8 characters.";
+                ErrorMessage = "Enter a valid name and email.";
                 return Page();
             }
+
+            if (!tts.Data.NewPasswordPolicy.IsValid(password))
+            { ErrorMessage = tts.Data.NewPasswordPolicy.Requirements; return Page(); }
 
             if (!BirthYear.HasValue || !BirthMonth.HasValue || !BirthDay.HasValue ||
                 BirthYear < 1900 || BirthYear > 9999 || BirthMonth < 1 || BirthMonth > 12 ||

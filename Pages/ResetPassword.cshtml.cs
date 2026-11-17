@@ -23,8 +23,8 @@ public class ResetPasswordModel(ApplicationDbContext db, AccountStore accounts, 
         Response.Headers["Referrer-Policy"] = "no-referrer";
         var hash = TokenHash();
         if (hash is null) { ErrorMessage = "This reset link is invalid or expired. Request a new link."; return Page(); }
-        if (Password is null || Password.Length < 8 || Password.Length > 256 || Password != ConfirmPassword)
-        { ErrorMessage = "Passwords must match and contain at least 8 characters."; return Page(); }
+        if (Password is null || !tts.Data.NewPasswordPolicy.IsValid(Password) || Password != ConfirmPassword)
+        { ErrorMessage = Password != ConfirmPassword ? "The passwords do not match." : tts.Data.NewPasswordPolicy.Requirements; return Page(); }
         try
         {
             await using var transaction = await db.Database.BeginTransactionAsync(ct);

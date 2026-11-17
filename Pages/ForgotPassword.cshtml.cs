@@ -103,7 +103,7 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
     public async Task<IActionResult> OnPostResetAsync(CancellationToken ct)
     {
         NoStore(); Step = "password";
-        if (Password is null || Password.Length < 8 || Password.Length > 256 || Password != ConfirmPassword) { ErrorMessage = "Passwords must match and contain at least 8 characters."; return Page(); }
+        if (Password is null || !tts.Data.NewPasswordPolicy.IsValid(Password) || Password != ConfirmPassword) { ErrorMessage = Password != ConfirmPassword ? "The passwords do not match." : tts.Data.NewPasswordPolicy.Requirements; return Page(); }
         var challenge = ResetChallenge;
         if (challenge is null) { Step = "email"; ErrorMessage = "Your reset session expired. Request a new code."; return Page(); }
         try

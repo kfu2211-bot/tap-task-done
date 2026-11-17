@@ -21,7 +21,7 @@
         <span class="verification-envelope" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg></span>
         <div><h1>Confirm it's you</h1><p>Enter the 6-digit code sent to your registered email to finish signing in.</p></div>
     </div>
-    @if(Model.ErrorMessage is not null) { <p class="verification-error" role="alert">@Model.ErrorMessage</p> }
+    @if ((Model.ErrorMessage ?? Model.ResendError) is { } error) { <p class="verification-error" role="alert">@error</p> }
     @if(Model.Notice is not null) { <p class="verification-success" role="status">@Model.Notice</p> }
     <form method="post" asp-page="/VerifyLogin" class="verification-code-form" data-code-form>
         <label id="verification-code-label" for="Code">Verification code</label>

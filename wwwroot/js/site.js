@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
 
     // =========================================
     // PASSWORD POPUP + PASSWORD STRENGTH
@@ -132,7 +132,7 @@
             /[0-9]/.test(password);
 
         const specialOK =
-            /[^A-Za-z0-9]/.test(password);
+            /[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]/.test(password);
 
 
         const commonOK =
