@@ -148,7 +148,7 @@
     });
     input.addEventListener('change', () => {
         closeCamera();
-        scan.textContent = 'Scan ID with camera';
+        scan.textContent = 'Scan ID';
         if (input.files[0]?.name === 'government-id.jpg') scan.textContent = 'Retake ID photo';
         void inspect();
     });
