@@ -262,6 +262,12 @@
         "Client feedback will appear here after they review a completed task.": "Dito lalabas ang review ng kliyente matapos niyang suriin ang natapos na task.",
         "Reviews are temporarily unavailable. Please try again later.": "Pansamantalang hindi available ang mga review. Subukan ulit mamaya."
     });
+    Object.assign(labels, {
+        "Search custom services": "Maghanap ng ibang serbisyo",
+        "Search custom jobs": "Maghanap ng ibang trabaho",
+        "e.g. Event photography": "hal. Event photography",
+        "No freelancers match this custom service. Try a broader keyword or post a task.": "Walang freelancer na tumutugma sa serbisyong ito. Gumamit ng mas pangkalahatang salita o mag-post ng task."
+    });
     const tracked = new WeakMap();
     let language = "en";
     try { language = localStorage.getItem("tts-language") === "fil" ? "fil" : "en"; } catch {}
@@ -307,7 +313,7 @@
         "#findFreelancerSection :is(label, option[value], .provider-search-intro p, .freelancer-category-list li, .freelancer-price small, .freelancer-price span, .freelancer-rating strong, .arrow-button)",
         "#providerDetailPanel :is(label, button, .provider-service-groups dt, .provider-service-groups li, .provider-service-general), #selectedProviderPrice",
         "#findJobsSection :is(label, option[value], button, .jobs-tag), #postTaskSection :is(label, option[value], button, small)",
-        ".filter-panel button, .jobs-category-filter button, .notification-filters button, .notification-card button, .thread-form button",
+        "#noResults, .filter-panel button, .jobs-category-filter button, .notification-filters button, .notification-card button, .thread-form button",
         ".jobs-intro :is(p, a), .job-tabs :is(a, button), .jobs-empty p, .jobs-section-heading a, .jobs-meta, .job-meta, .job-actions button, .job-card > a, .sent-offer-status",
         ".account-workspace :is(.availability-summary, .photo-settings-copy, .photo-file-note), .home-view-switch a, .home-filters a, .home-row-copy small",
         ".conversations-toolbar label, .messages-inbox-tabs a, .inbox-welcome :is(p, a), .conversation-list-empty, .conversation-task, .messages-thread :is(p, label, button):not(.message-text, .message-bubble p)",
@@ -341,6 +347,7 @@
             [".task-filters", "aria-label", "Filter tasks by status"],
             ["#governmentId", "aria-label", "Upload government ID"],
             ["#idNumber", "placeholder", "Enter your government ID number"],
+            ["#otherFreelancerService, #otherJobService", "placeholder", "e.g. Event photography"],
             ["#conversationSearch", "placeholder", "Search conversations"],
             [".map-place-search input", "placeholder", "Bacolor address or landmark"],
             [".availability-strip button", "aria-label", "Accepting new jobs"],

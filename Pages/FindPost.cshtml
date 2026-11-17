@@ -330,6 +330,12 @@
 
 
 
+                        <div class="filter-group" id="otherFreelancerServiceField" hidden>
+                            <label for="otherFreelancerService">Search custom services</label>
+                            <div class="input-wrapper">
+                                <input id="otherFreelancerService" type="search" maxlength="60" placeholder="e.g. Event photography" />
+                            </div>
+                        </div>
                         <div class="filter-group" id="specificServiceFilter" hidden data-catalog="@System.Text.Json.JsonSerializer.Serialize(tts.Data.ServiceCatalog.Options)">
                             <label for="specificServiceSearch">Specific service</label>
                             <div class="input-wrapper">
@@ -687,6 +693,10 @@
                                 <div id="jobsSpecificServiceField" hidden>
                                     <label for="jobsSpecificService">Specific service</label>
                                     <select id="jobsSpecificService" disabled><option value="" selected disabled hidden>Any specific service</option></select>
+                                </div>
+                                <div id="otherJobServiceField" hidden>
+                                    <label for="otherJobService">Search custom jobs</label>
+                                    <input id="otherJobService" type="search" maxlength="120" placeholder="e.g. Event photography" />
                                 </div>
                                 <button type="button" id="jobsFilterReset" class="task-chat-action">Clear filters</button>
                             </div>
