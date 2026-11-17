@@ -278,3 +278,37 @@ html[data-theme="dark"] .home-service-photos::after {
 @media (prefers-reduced-motion: reduce) {
     .home-service-slide { transition: none; }
 }
+
+html body .dashboard .home-schedule-job-title {
+    margin: 8px 0 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+.dashboard .home-schedule-time {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--home-line);
+    border-radius: 10px;
+    background: var(--home-soft);
+    color: var(--home-accent);
+}
+.dashboard .home-schedule-time svg {
+    flex: 0 0 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+}
+.dashboard .home-schedule-time span,
+.dashboard .home-schedule-time strong { display: block; }
+.dashboard .home-schedule-time span { font-size: .82rem; }
+.dashboard .home-schedule-time strong {
+    font-size: clamp(1rem, 2.2vw, 1.25rem);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
