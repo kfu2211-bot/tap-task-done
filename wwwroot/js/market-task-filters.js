@@ -9,6 +9,7 @@
     const groups = {
         'needs-action': ['pending-confirmation', 'awaiting-confirmation'],
         open: ['open'],
+        scheduled: ['scheduled'],
         active: ['booking-pending', 'assigned', 'on-the-way', 'arrived', 'in-progress', 'awaiting-confirmation', 'disputed'],
         completed: ['completed'],
         cancelled: ['cancelled', 'expired']

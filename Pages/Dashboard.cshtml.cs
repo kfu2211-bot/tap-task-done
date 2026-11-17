@@ -23,7 +23,7 @@ namespace tts.Pages
         public record TaskPreview(MarketplaceTask Task, int Offers);
         public List<TaskPreview> RecentTasks { get; private set; } = [];
         public string TaskFilter { get; private set; } = "all";
-        public int[] TaskCounts { get; private set; } = new int[4];
+        public int[] TaskCounts { get; private set; } = new int[5];
         public bool AcceptingJobs { get; private set; }
         public bool CanEditAvailability { get; private set; }
         public string PreferredHours { get; private set; } = "Not set";
@@ -91,45 +91,31 @@ namespace tts.Pages
         private async Task<int[]> LoadFreelancerSummaryAsync(int userId, CancellationToken ct)
         {
             var now = DateTime.UtcNow;
-            var buckets = from offer in db.MarketplaceOffers.AsNoTracking()
-                          join task in db.MarketplaceTasks.AsNoTracking() on offer.TaskId equals task.Id
-                          where offer.FreelancerId == userId
-                          select offer.Status == "pending" && task.Status == "open" &&
-                              (task.PostExpiresUtc == null || task.PostExpiresUtc > now) ? 0
-                              : offer.Status == "accepted" && task.Status != "cancelled" && task.Status != "expired"
-                                  ? (task.Status == "completed" ? 2 : 1) : -1;
-            var counts = await buckets.Where(bucket => bucket >= 0).GroupBy(bucket => bucket)
-                .Select(group => new { Index = group.Key, Count = group.Count() }).ToListAsync(ct);
-            var summary = new int[3];
-            foreach (var count in counts) summary[count.Index] = count.Count;
-            return summary;
+            var jobs = await (from offer in db.MarketplaceOffers.AsNoTracking()
+                              join task in db.MarketplaceTasks.AsNoTracking() on offer.TaskId equals task.Id
+                              where offer.FreelancerId == userId &&
+                                  (offer.Status == "pending" || offer.Status == "accepted")
+                              select new { Task = task, offer.Status }).ToListAsync(ct);
+            return [
+                jobs.Count(j => j.Status == "pending" && j.Task.Status == "open" &&
+                    (j.Task.PostExpiresUtc == null || j.Task.PostExpiresUtc > now)),
+                jobs.Count(j => j.Status == "accepted" && j.Task.Status is not ("completed" or "cancelled" or "expired") &&
+                    !TaskSchedule.IsUpcoming(j.Task, now)),
+                jobs.Count(j => j.Status == "accepted" && j.Task.Status == "completed")
+            ];
         }
 
         private async Task<ScheduledWork?> LoadScheduledWorkAsync(int userId, CancellationToken ct)
         {
-            var candidates = await (
-                from agreement in db.Set<WorkAgreement>().AsNoTracking()
-                join task in db.MarketplaceTasks.AsNoTracking() on agreement.TaskId equals task.Id
-                where task.Status == "assigned" && agreement.ClientConfirmedAtUtc != null &&
-                    agreement.FreelancerConfirmedAtUtc != null && agreement.ScheduleText != "" &&
-                    !db.Set<WorkAgreement>().Any(next => next.TaskId == task.Id && next.Version > agreement.Version) &&
-                    db.MarketplaceOffers.Any(o => o.TaskId == task.Id && o.FreelancerId == userId && o.Status == "accepted")
-                orderby agreement.ClientConfirmedAtUtc descending, agreement.Id descending
-                select new ScheduledWork(task.Id, task.Title, agreement.ScheduleText)).ToListAsync(ct);
-            var now = DateTime.UtcNow.AddHours(8);
-            var schedules = candidates.Where(job => !string.IsNullOrWhiteSpace(job.ScheduleText) &&
-                !string.Equals(job.ScheduleText.Trim(), "To be agreed", StringComparison.OrdinalIgnoreCase))
-                .Select(job => (Job: job, Start: ParseSchedule(job.ScheduleText))).ToList();
-            return schedules.Where(entry => entry.Start >= now).OrderBy(entry => entry.Start)
-                .Select(entry => entry.Job).FirstOrDefault()
-                ?? schedules.FirstOrDefault(entry => entry.Start is null).Job;
+            var candidates = await (from task in db.MarketplaceTasks.AsNoTracking()
+                                    join offer in db.MarketplaceOffers.AsNoTracking() on task.Id equals offer.TaskId
+                                    where task.Status == "assigned" && offer.Status == "accepted" && offer.FreelancerId == userId
+                                    select new ScheduledWork(task.Id, task.Title, task.ScheduleText)).ToListAsync(ct);
+            var now = DateTime.UtcNow;
+            return candidates.Select(job => (Job: job, Start: TaskSchedule.StartUtc(job.ScheduleText)))
+                .Where(entry => entry.Start > now).OrderBy(entry => entry.Start).ThenBy(entry => entry.Job.Id)
+                .Select(entry => entry.Job).FirstOrDefault();
         }
-
-        private static DateTime? ParseSchedule(string text) =>
-            DateTime.TryParseExact(text.Trim(),
-                ["MMM d, yyyy 'at' h:mm tt '(PHT)'", "MMM d, yyyy, h:mm tt", "yyyy-MM-dd'T'HH:mm"],
-                System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var date)
-                ? date : null;
 
         public async Task OnGetAsync(CancellationToken ct, string? view = null, string? filter = null)
         {
@@ -170,8 +156,12 @@ namespace tts.Pages
                 else
                 {
                     var tasks = db.MarketplaceTasks.AsNoTracking().Where(t => t.ClientId == viewer && t.Status != "inquiry");
-                    TaskFilter = filter is "confirm" or "active" or "completed" ? filter : "all";
-                    var activeTasks = tasks.Where(t => t.Status == "assigned" || t.Status == "on-the-way" ||
+                    TaskFilter = filter is "confirm" or "active" or "completed" or "scheduled" ? filter : "all";
+                    var now = DateTime.UtcNow;
+                    var assigned = await tasks.Where(t => t.Status == "assigned").ToListAsync(ct);
+                    var scheduledIds = assigned.Where(t => TaskSchedule.IsUpcoming(t, now)).Select(t => t.Id).ToArray();
+                    var scheduledTasks = tasks.Where(t => scheduledIds.Contains(t.Id));
+                    var activeTasks = tasks.Where(t => (t.Status == "assigned" && !scheduledIds.Contains(t.Id)) || t.Status == "on-the-way" ||
                         t.Status == "arrived" || t.Status == "in-progress" || t.Status == "awaiting-confirmation");
                     var confirmationTasks = tasks.Where(t => t.Status == "pending-confirmation");
                     var completedTasks = tasks.Where(t => t.Status == "completed");
@@ -179,20 +169,19 @@ namespace tts.Pages
                     {
                         "confirm" => confirmationTasks,
                         "active" => activeTasks,
+                        "scheduled" => scheduledTasks,
                         "completed" => completedTasks,
                         _ => tasks
                     };
                     TaskCounts = [await tasks.CountAsync(ct), await confirmationTasks.CountAsync(ct),
-                        await activeTasks.CountAsync(ct), await completedTasks.CountAsync(ct)];
+                        await activeTasks.CountAsync(ct), await completedTasks.CountAsync(ct), scheduledIds.Length];
                     RecentTasks = await recent.OrderByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id).Take(4)
                         .Select(t => new TaskPreview(t, db.MarketplaceOffers.Count(o => o.TaskId == t.Id && o.Status == "pending")))
                         .ToListAsync(ct);
                     Summary[0] = TaskCounts[1];
                     Summary[1] = await db.MarketplaceOffers.CountAsync(o => o.Status == "pending" &&
                         tasks.Any(t => t.Id == o.TaskId && t.Status == "open"), ct);
-                    Summary[2] = await tasks.CountAsync(t => t.IsPrivate && (
-                        t.Status == "assigned" || t.Status == "on-the-way" || t.Status == "arrived" ||
-                        t.Status == "in-progress" || t.Status == "awaiting-confirmation"), ct);
+                    Summary[2] = await activeTasks.CountAsync(t => t.IsPrivate);
                 }
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)

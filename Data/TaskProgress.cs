@@ -88,6 +88,8 @@ public static class TaskProgress
         }
         if (action == "arrive" && !await NearDestinationAsync(db, id, freelancer.Value, ct))
             return new(false, "A recent, accurate location near the task pin is needed. Retry location or ask the client to confirm.");
+        if (action == "travel" && TaskSchedule.IsUpcoming(task, DateTime.UtcNow))
+            return new(false, $"Travel opens at the scheduled time: {task.ScheduleText}.");
         if (action == "travel" && !await db.Set<TaskDestination>().AnyAsync(x => x.TaskId == id, ct))
             return new(false, "Ask the client to save the exact destination pin before starting travel.");
         if (action is "travel" or "start" && await FreelancerAvailability.ActiveTasks(db, freelancer.Value).AnyAsync(t => t.Id != id, ct))

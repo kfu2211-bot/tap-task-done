@@ -276,6 +276,13 @@
                         <div class="home-service-slide" data-service="repairs" aria-hidden="true"></div>
                         <div class="home-service-slide" data-service="gardening" aria-hidden="true"></div>
                         <div class="home-service-slide" data-service="moving" aria-hidden="true"></div>
+                        <div class="home-service-slide" data-service="errands" aria-hidden="true"></div>
+
+                        <div class="home-service-slide" data-service="painting" aria-hidden="true"></div>
+
+                        <div class="home-service-slide" data-service="tutoring" aria-hidden="true"></div>
+
+                        <div class="home-service-slide" data-service="pet-care" aria-hidden="true"></div>
                         <div class="home-service-controls">
                             <span class="home-service-category">Cleaning</span>
                             <button type="button" class="home-service-toggle" hidden>Pause</button>
@@ -363,7 +370,7 @@
                     <section class="section home-panel" id="home-tasks">
                         <div class="home-panel-heading"><h3>My Tasks</h3><a href="/MarketTasks?view=mine">View all tasks ›</a></div>
                         <nav class="home-filters" aria-label="Filter recent tasks">
-                            @foreach (var (key, label, count) in new[] { ("all", "All", Model.TaskCounts[0]), ("confirm", "Needs confirmation", Model.TaskCounts[1]), ("active", "Active", Model.TaskCounts[2]), ("completed", "Completed", Model.TaskCounts[3]) })
+                            @foreach (var (key, label, count) in new[] { ("all", "All", Model.TaskCounts[0]), ("confirm", "Needs confirmation", Model.TaskCounts[1]), ("scheduled", "Scheduled", Model.TaskCounts[4]), ("active", "Active", Model.TaskCounts[2]), ("completed", "Completed", Model.TaskCounts[3]) })
                             {
                                 <a asp-page="/Dashboard" asp-route-view="@(Model.CanSwitchView ? "client" : null)" asp-route-filter="@key" asp-fragment="home-tasks" aria-current="@(Model.TaskFilter == key ? "page" : null)">@label@if (!Model.SummaryUnavailable) { <text> (@count)</text> }</a>
                             }
@@ -377,7 +384,7 @@
                             <a class="home-task-row" href="/MarketTasks?view=mine#task-@item.Task.Id">
                                 <span class="home-row-copy"><strong>@item.Task.Title</strong><small>@item.Task.Category @if (!string.IsNullOrWhiteSpace(item.Task.ScheduleText)) { <text> · @item.Task.ScheduleText</text> } · @item.Offers pending offer@(item.Offers == 1 ? "" : "s")</small></span>
                                 <strong class="home-budget">@item.Task.BudgetDisplay</strong>
-                                <span class="home-status" data-status="@item.Task.Status">@tts.Data.TaskProgress.Label(item.Task.Status)</span>
+                                <span class="home-status" data-status="@item.Task.Status">@tts.Data.TaskSchedule.DisplayStatus(item.Task, DateTime.UtcNow)</span>
                                 <span aria-hidden="true">›</span>
                             </a>
                         }
@@ -796,7 +803,7 @@
                                     <p><strong data-scheduled-title>@Model.ScheduledJob?.Title</strong><br /><span data-scheduled-time>@Model.ScheduledJob?.ScheduleText</span></p>
                                     <a class="home-panel-action" data-scheduled-link href="@(Model.ScheduledJob is { } job ? Url.Page("/Tracking", new { taskId = job.Id }) : null)">View progress</a>
                                 </div>
-                                <p data-scheduled-empty hidden="@(Model.ScheduledJob is not null)">@(Model.SummaryUnavailable ? "Schedule is temporarily unavailable." : "No confirmed job schedule yet.")</p>
+                                <p data-scheduled-empty hidden="@(Model.ScheduledJob is not null)">@(Model.SummaryUnavailable ? "Schedule is temporarily unavailable." : "No upcoming accepted jobs.")</p>
                             </section>
                             <section class="section home-panel">
                                 <div class="home-panel-heading"><h3>Your availability</h3></div>

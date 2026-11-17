@@ -623,7 +623,7 @@
                 @foreach (var item in Model.Tasks.Where(x => x.Task.Id == selectedTask)) {
                     var task = item.Task;
                     var status = Array.IndexOf(TaskProgress.States, task.Status);
-                    var label = TaskProgress.Label(task.Status);
+                    var label = TaskSchedule.DisplayStatus(task, DateTime.UtcNow);
                     var steps = TaskProgress.Labels;
                     <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><span class="db-tracking-status">@label</span></div>
                     <div class="db-tracking-details"><div><span>Client</span><strong>@item.Client</strong></div><div><span>Freelancer</span><strong>@item.Freelancer</strong></div><div><span>Task budget</span><strong>@task.BudgetDisplay</strong></div><div><span>Schedule</span><strong>@(string.IsNullOrWhiteSpace(task.ScheduleText) ? "To be arranged" : task.ScheduleText)</strong></div></div>
@@ -677,7 +677,8 @@
         }
     </section>
 }
-@if (!Model.ProgressUnavailable && !item.IsClient && task.Status is "assigned" or "arrived" or "in-progress") {
+@if (tts.Data.TaskSchedule.IsUpcoming(task, DateTime.UtcNow)) { <p>Scheduled for <strong>@task.ScheduleText</strong>. Travel opens at the scheduled time.</p> }
+else if (!Model.ProgressUnavailable && !item.IsClient && task.Status is "assigned" or "arrived" or "in-progress") {
 var action = task.Status switch { "assigned" => "travel", "on-the-way" => "arrive", "arrived" => "start", _ => "finish" };
 var button = action switch { "travel" => "Start travel & share location", "arrive" => "I’ve arrived", "start" => "Start work", _ => "Mark work finished" };
 <form method="post" asp-page-handler="Advance" enctype="multipart/form-data" class="tracking-progress-form"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="@action" />
@@ -689,7 +690,7 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
 @if (task.Status == "disputed") { <p>This older task is paused. Contact support through Safety &amp; Reports.</p> }
 @if (task.Status == "cancelled") { <p>This task was cancelled.</p> }
 
-<a href="@(item.IsClient ? "/MarketTasks?view=mine" : "/MyJobs?view=active")">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a>
+<a href="@(item.IsClient ? "/MarketTasks?view=mine" : (TaskSchedule.IsUpcoming(task, DateTime.UtcNow) ? "/MyJobs?view=scheduled" : "/MyJobs?view=active"))">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a>
 </div>
 @if (task.Status == "completed")
 {

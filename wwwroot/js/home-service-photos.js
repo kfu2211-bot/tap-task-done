@@ -19,7 +19,7 @@
             index = (index + 1) % slides.length;
             slides[index].classList.add("is-current");
             const category = slides[index].dataset.service;
-            label.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+            label.textContent = category.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
         }, 5000);
     }
 

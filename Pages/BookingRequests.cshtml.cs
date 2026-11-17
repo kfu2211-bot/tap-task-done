@@ -201,6 +201,6 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         Notice = decision == "accept" ? "Booking accepted. Open Tracking to follow the job." : "Booking request declined.";
-        return RedirectToPage("/MyJobs", new { view = decision == "accept" ? "active" : "requests" });
+        return RedirectToPage("/MyJobs", new { view = decision == "accept" ? (TaskSchedule.IsUpcoming(task, DateTime.UtcNow) ? "scheduled" : "active") : "requests" });
     }
 }
