@@ -9,6 +9,7 @@
 <title>@Model.DisplayName - Reviews</title>
 <link rel="stylesheet" href="/css/review-profile.css" asp-append-version="true" />
 <partial name="_AccountTheme" />
+<script defer src="/js/provider-status.js" asp-append-version="true"></script>
 </head>
 <body>
 <main class="review-profile">
@@ -24,9 +25,13 @@
     </div>
     @if (Model.ProfileRole == "Freelancer")
     {
+        <p class="provider-availability" data-provider-status="@Model.ProfileId">@Model.Availability</p>
         <p class="review-profile-services">@Model.Service</p>
         <p>Service rate <strong>@(Model.ServiceRate is int rate ? $"₱{rate:N0}" : "Rate not set")</strong></p>
-        <a class="review-profile-action" href="/FindPost?providerId=@Model.ProfileId">View booking details</a>
+        @if (Model.CanOpenBooking)
+        {
+            <a class="review-profile-action" href="/FindPost?providerId=@Model.ProfileId">View booking details</a>
+        }
     }
 </section>
 <section class="review-profile-card">

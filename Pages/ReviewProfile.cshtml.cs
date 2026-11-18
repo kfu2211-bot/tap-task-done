@@ -11,6 +11,8 @@ public class ReviewProfileModel(ApplicationDbContext db) : PageModel
 {
     public string DisplayName { get; private set; } = "";
     public string ProfileRole { get; private set; } = "";
+    public string Availability { get; private set; } = "";
+    public bool CanOpenBooking { get; private set; }
     public string Service { get; private set; } = "";
     public int? ServiceRate { get; private set; }
     public int ProfileId { get; private set; }
@@ -31,6 +33,8 @@ public class ReviewProfileModel(ApplicationDbContext db) : PageModel
             if (profile is null) return NotFound();
             Service = ServiceCatalog.Display(profile.Service, ServiceCatalog.Read(profile.ServiceSpecialties));
             ServiceRate = FreelancerProfile.GetServiceRate(profile.Rate, profile.RateMaximum);
+            Availability = await FreelancerAvailability.GetAsync(db, id, profile.Availability, ct);
+            CanOpenBooking = profile.WorkRole is "freelancer" or "both";
         }
         try
         {

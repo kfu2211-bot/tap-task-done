@@ -231,6 +231,7 @@ namespace tts.Pages
                 where user.Role != "deleted"
                 select new { user.Id, user.FirstName, user.LastName, profile.Service, profile.Location,
                     profile.WorkRole, profile.Availability, review.Rating }).ToListAsync(ct);
+            var assignments = await FreelancerAvailability.AssignmentsAsync(db, rows.Select(x => x.Id).Distinct().ToArray(), ct);
             return rows.GroupBy(x => x.Id).Select(group =>
             {
                 var provider = group.First();
@@ -240,7 +241,8 @@ namespace tts.Pages
                     provider.Service ?? "", group.Average(x => x.Rating), group.Count())
                 {
                     CanRequest = canRequest,
-                    Availability = canRequest ? provider.Availability ?? "Unavailable" : "Unavailable"
+                    Availability = canRequest ? FreelancerAvailability.Effective(provider.Availability ?? "Unavailable",
+                        assignments.GetValueOrDefault(provider.Id) ?? []) : "Unavailable"
                 };
             }).OrderByDescending(x => x.Average).ThenByDescending(x => x.Count).ThenBy(x => x.Name).Take(limit).ToList();
         }

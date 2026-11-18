@@ -38,7 +38,9 @@
         const selected = button.dataset.filter;
         let visible = 0;
         for (const card of cards) {
-            const matches = selected === 'all' || (groups[selected] || []).includes(card.dataset.taskStatus);
+            const matches = selected === 'all' ||
+                (selected === 'new-offers' ? card.dataset.pendingOffers === 'true' :
+                    (groups[selected] || []).includes(card.dataset.taskStatus));
             card.hidden = !matches;
             if (matches) visible++;
         }
@@ -55,6 +57,11 @@
     const initialButton = [...filters.querySelectorAll('button[data-filter]')]
         .find(button => button.dataset.filter === filterKey);
     initialButton?.click();
+    if (filterKey === "new-offers" || filterKey === "needs-confirmation") {
+        cards.filter(card => !card.hidden).forEach(card => {
+            card.querySelector(".task-disclosure").open = true;
+        });
+    }
     openLinkedTask();
 })();
 const cancelTaskDialog = document.getElementById("cancelTaskDialog");
