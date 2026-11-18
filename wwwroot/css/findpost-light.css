@@ -394,3 +394,38 @@ html body #findJobsSection #otherJobService {
     outline-offset: 2px;
 }
 #findJobsSection #otherJobService::placeholder { color: var(--muted, #526c5d); opacity: 1; }
+
+#providerDetailPanel #selectedProviderReviews {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    margin-top: 12px;
+    padding: 8px 16px;
+    box-sizing: border-box;
+    border: 1px solid #aac7b6;
+    border-radius: 9px;
+    background: var(--surface-2, #edf5ee);
+    color: #175a3f;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    text-decoration: none;
+}
+#providerDetailPanel #selectedProviderReviews:hover {
+    background: #dceee1;
+    border-color: #176b50;
+}
+html[data-theme="dark"] #providerDetailPanel #selectedProviderReviews {
+    background: #293d32;
+    color: #a4ebcd;
+    border-color: #567264;
+}
+html[data-theme="dark"] #providerDetailPanel #selectedProviderReviews:hover {
+    background: #304e3e;
+    border-color: #a4ebcd;
+}
+#providerDetailPanel #selectedProviderReviews:focus-visible {
+    outline: 2px solid var(--brand, #176b50);
+    outline-offset: 3px;
+}

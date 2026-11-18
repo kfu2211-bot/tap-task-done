@@ -7,46 +7,80 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>@Model.DisplayName - Reviews</title>
-<link rel="stylesheet" href="/css/review-profile.css" asp-append-version="true" />
 <partial name="_AccountTheme" />
+<link rel="stylesheet" href="/css/review-profile.css" asp-append-version="true" />
 <script defer src="/js/provider-status.js" asp-append-version="true"></script>
 </head>
 <body>
 <main class="review-profile">
-<header><a href="/Dashboard">Tap, Task, Done</a><h1>@(Model.ProfileRole == "Client" ? "Client profile" : "Freelancer profile")</h1></header>
-<a href="@(Model.ProfileRole == "Client" ? "/FindPost?mode=jobs" : "/FindPost")">@(Model.ProfileRole == "Client" ? "Find Jobs" : "Find a freelancer")</a>
-<section class="review-profile-card">
-    <div class="review-profile-heading">
-        <div><h2>@Model.DisplayName</h2><p>@Model.ProfileRole</p></div>
+<header class="profile-topbar">
+    <a class="profile-brand" href="/Dashboard"><span aria-hidden="true">✓</span> Tap, Task, Done</a>
+    <h1>@(Model.ProfileRole == "Client" ? "Client profile" : "Freelancer profile")</h1>
+</header>
+<a class="profile-back" href="@(Model.ProfileRole == "Client" ? "/FindPost?mode=jobs" : "/FindPost")"><span aria-hidden="true">←</span> @(Model.ProfileRole == "Client" ? "Find Jobs" : "Find a freelancer")</a>
+<div class="profile-layout">
+<div class="profile-main">
+<section class="review-profile-card profile-overview">
+    <div class="profile-identity">
+        <div class="profile-avatar" aria-hidden="true">@Model.DisplayName.FirstOrDefault()</div>
+        <div><h2>@Model.DisplayName</h2><p class="profile-role">@Model.ProfileRole</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Location)) { <p class="profile-location">@Model.Location</p> }
+        </div>
+    </div>
+    <div class="profile-rating-summary">
         @if (!Model.Unavailable && Model.Reviews.Count > 0)
         {
-            <div><strong class="review-profile-score">★ @Model.Reviews.Average(r => r.Rating).ToString("0.0")</strong><p>@Model.Reviews.Count reviews</p></div>
+            <strong class="review-profile-score"><span aria-hidden="true">★</span> @Model.Reviews.Average(r => r.Rating).ToString("0.0")</strong>
+            <p>@Model.Reviews.Count reviews</p>
         }
+        else { <p>@(Model.Unavailable ? "Ratings unavailable" : "No reviews yet.")</p> }
     </div>
-    @if (Model.ProfileRole == "Freelancer")
-    {
-        <p class="provider-availability" data-provider-status="@Model.ProfileId">@Model.Availability</p>
-        <p class="review-profile-services">@Model.Service</p>
-        <p>Service rate <strong>@(Model.ServiceRate is int rate ? $"₱{rate:N0}" : "Rate not set")</strong></p>
-        @if (Model.CanOpenBooking)
-        {
-            <a class="review-profile-action" href="/FindPost?providerId=@Model.ProfileId">View booking details</a>
-        }
-    }
 </section>
-<section class="review-profile-card">
-<h2>@(Model.ProfileRole == "Client" ? "Reviews from freelancers" : "Reviews from clients")</h2>
+<section class="review-profile-card profile-review-list">
+<div class="profile-section-heading"><h2>@(Model.ProfileRole == "Client" ? "Reviews from freelancers" : "Reviews from clients")</h2></div>
 @if (Model.Unavailable) { <p role="status">Reviews are temporarily unavailable. Please try again later.</p> }
-else if (Model.Reviews.Count == 0) { <p>No reviews yet.</p> }
+else if (Model.Reviews.Count == 0) { <p class="profile-empty">No reviews yet.</p> }
 @foreach (var review in Model.Reviews)
 {
     <article class="review-profile-entry">
-        <div><strong>@review.Name</strong><time>@tts.Data.DisplayTime.PhilippineDate(review.CreatedAt)</time></div>
-        <p class="review-profile-stars" aria-label="@review.Rating out of 5 stars">@(new string('★', review.Rating))@(new string('☆', 5 - review.Rating))</p>
+        <div class="profile-review-author">
+            <span class="review-author-avatar" aria-hidden="true">@review.Name.FirstOrDefault()</span>
+            <div><strong>@review.Name</strong><p>@(Model.ProfileRole == "Client" ? "Freelancer" : "Client")</p></div>
+            <time>@tts.Data.DisplayTime.PhilippineDate(review.CreatedAt)</time>
+        </div>
+        <p class="review-profile-stars" aria-label="@review.Rating out of 5 stars">@(new string('★', review.Rating))<span>@(new string('☆', 5 - review.Rating))</span><small>@review.Rating / 5</small></p>
         @if (!string.IsNullOrWhiteSpace(review.Feedback)) { <p class="review-profile-feedback">@review.Feedback</p> }
     </article>
 }
 </section>
+</div>
+@if (Model.ProfileRole == "Freelancer")
+{
+<aside class="profile-aside">
+<section class="review-profile-card profile-booking">
+    <h2>Service rate</h2>
+    <strong class="profile-rate">@(Model.ServiceRate is int rate ? $"₱{rate:N0}" : "Rate not set")</strong>
+    <p class="profile-availability" data-provider-status="@Model.ProfileId">@Model.Availability</p>
+    @if (Model.CanOpenBooking)
+    {
+        <a class="review-profile-action" href="/FindPost?providerId=@Model.ProfileId">View booking details <span aria-hidden="true">→</span></a>
+    }
+</section>
+@if (Model.ServiceGroups.Count > 0)
+{
+<section class="review-profile-card profile-services">
+    <h2>Services offered</h2>
+    @foreach (var group in Model.ServiceGroups)
+    {
+        <div class="profile-service-group"><h3>@group.Key</h3>
+        @if (group.Value.Length > 0) { <ul>@foreach (var service in group.Value) { <li>@service</li> }</ul> }
+        </div>
+    }
+</section>
+}
+</aside>
+}
+</div>
 </main>
 </body>
 </html>

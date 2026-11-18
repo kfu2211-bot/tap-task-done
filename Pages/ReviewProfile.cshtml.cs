@@ -13,7 +13,8 @@ public class ReviewProfileModel(ApplicationDbContext db) : PageModel
     public string ProfileRole { get; private set; } = "";
     public string Availability { get; private set; } = "";
     public bool CanOpenBooking { get; private set; }
-    public string Service { get; private set; } = "";
+    public string Location { get; private set; } = "";
+    public Dictionary<string, string[]> ServiceGroups { get; private set; } = [];
     public int? ServiceRate { get; private set; }
     public int ProfileId { get; private set; }
     public List<Item> Reviews { get; private set; } = [];
@@ -31,7 +32,15 @@ public class ReviewProfileModel(ApplicationDbContext db) : PageModel
         {
             var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == id, ct);
             if (profile is null) return NotFound();
-            Service = ServiceCatalog.Display(profile.Service, ServiceCatalog.Read(profile.ServiceSpecialties));
+            Location = profile.Location;
+            var specialties = ServiceCatalog.Read(profile.ServiceSpecialties);
+            foreach (var category in profile.Service.Split(", ", StringSplitOptions.RemoveEmptyEntries))
+            {
+                var custom = category.StartsWith("Other/General: ", StringComparison.Ordinal);
+                var label = custom ? "Other / General" : category;
+                ServiceGroups[label] = custom ? [category["Other/General: ".Length..]] :
+                    (specialties.GetValueOrDefault(category) ?? []).Select(ServiceCatalog.DisplayServiceName).ToArray();
+            }
             ServiceRate = FreelancerProfile.GetServiceRate(profile.Rate, profile.RateMaximum);
             Availability = await FreelancerAvailability.GetAsync(db, id, profile.Availability, ct);
             CanOpenBooking = profile.WorkRole is "freelancer" or "both";
