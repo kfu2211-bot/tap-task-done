@@ -253,9 +253,17 @@ html body:is(.client-home, .freelancer-home) .dashboard .home-banner::before { c
 }
 .home-service-slide[data-service="gardening"]::before,
 .home-service-slide[data-service="gardening"]::after {
-    background-size: contain;
+    background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
+}
+.home-service-slide[data-service="gardening"]::after {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    transform: none;
+    background-position: 60% center;
 }
 .home-service-slide:is([data-service="moving"], [data-service="pet-care"]) { --service-position: 100% 100%; }
 .home-service-slide.is-current { opacity: 1; }

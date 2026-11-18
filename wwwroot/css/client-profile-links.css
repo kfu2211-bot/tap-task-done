@@ -34,3 +34,51 @@ html body a.client-profile-link .client-profile-copy { display:grid; gap:0; padd
 html body a.client-profile-link .client-profile-arrow { padding:0; background:transparent !important; margin-left:5px; }
 html body a.client-profile-link:hover { border-color:var(--brand, #176b50); background:var(--surface-2, #edf5ee); }
 .client-profile-link:focus-visible { outline:2px solid var(--brand, #176b50); outline-offset:3px; }
+
+/* Keep task metadata compact when a client profile is present. */
+html body :is(.job-meta, .jobs-meta):has(.client-profile-link) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+html body.my-jobs-page .job-card .job-meta > span:has(.client-profile-link),
+html body .jobs-meta > span:has(.client-profile-link) {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    background: transparent !important;
+}
+html body.my-jobs-page .job-card .job-meta > span:not(:has(.client-profile-link)),
+html body .jobs-meta > span:not(:has(.client-profile-link)) {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    min-height: 34px;
+    padding: 4px 10px;
+    box-sizing: border-box;
+    border-radius: 7px;
+    line-height: 1.5;
+}
+html body :is(.job-meta, .jobs-meta) a.client-profile-link {
+    padding: 6px 10px;
+    gap: 8px;
+    min-height: 52px;
+    border-radius: 10px;
+}
+html body :is(.job-meta, .jobs-meta) a.client-profile-link .client-profile-avatar {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+}
+html body :is(.job-meta, .jobs-meta) a.client-profile-link .client-profile-copy {
+    padding: 0 !important;
+}
+html body :is(.job-meta, .jobs-meta) a.client-profile-link .client-profile-arrow {
+    margin-left: 8px;
+    padding: 0 !important;
+}
+@media(max-width:540px) {
+    html body :is(.job-meta, .jobs-meta):has(.client-profile-link) { gap: 8px; }
+    html body :is(.job-meta, .jobs-meta) > span:has(.client-profile-link) { flex-basis: 100%; }
+}
