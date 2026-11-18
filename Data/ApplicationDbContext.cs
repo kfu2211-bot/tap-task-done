@@ -239,7 +239,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         var review = modelBuilder.Entity<MarketplaceReview>();
         review.ToTable("marketplace_reviews");
         review.HasKey(x => x.Id);
-        review.HasIndex(x => x.TaskId).IsUnique();
+        review.HasIndex(x => new { x.TaskId, x.ByFreelancer }).IsUnique();
         review.Property(x => x.Feedback).HasMaxLength(1000);
         review.HasOne<MarketplaceTask>().WithMany().HasForeignKey(x => x.TaskId);
         review.HasOne<AppUser>().WithMany().HasForeignKey(x => x.ClientId);

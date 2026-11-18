@@ -498,7 +498,7 @@
                             </div>
 
                             <section id="providerDetailPanel" class="provider-detail-panel hidden" aria-live="polite">
-                                <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p><div id="selectedProviderServices"></div></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
+                                <div class="provider-detail-heading"><div><span>Selected provider</span><h2 id="selectedProviderName">Provider</h2><p id="selectedProviderMeta">Choose a provider to see details.</p><a id="selectedProviderReviews" href="/Reviews">View review history</a><div id="selectedProviderServices"></div></div><button id="closeProviderDetail" type="button" aria-label="Close provider details">×</button></div>
                                 <div class="provider-detail-stats"><span id="selectedProviderRating">★ —</span><span id="selectedProviderPrice">Price —</span><span id="selectedProviderAvailability" class="available-now">Availability —</span></div>
                                 @if (tts.Pages.BookingRequestsModel.CanBook(Model.WorkRole)) {
                                 <details class="service-inquiry">
@@ -710,7 +710,7 @@
                         @foreach (var item in Model.OpenTasks) {
                             var task = item.Task;
                             var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
-                            <article class="jobs-card" id="task-@task.Id" data-job-category="@task.Category" data-job-specific-service="@task.SpecificService"><div class="jobs-card-top"><span class="jobs-tag">@task.CategoryDisplay</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: <span data-account-id="@task.ClientId">@item.ClientName</span></span></div>
+                            <article class="jobs-card" id="task-@task.Id" data-job-category="@task.Category" data-job-specific-service="@task.SpecificService"><div class="jobs-card-top"><span class="jobs-tag">@task.CategoryDisplay</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span>Client: <a asp-page="/ReviewProfile" asp-route-id="@task.ClientId" asp-route-role="client">@item.ClientName</a></span></div>
                             <partial name="_JobOfferForm" model="(task, existing?.Offer.Status)" /></article>
                         }
                         <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs match these filters</h3><p>Try another category or specific service, or view all jobs.</p></div>

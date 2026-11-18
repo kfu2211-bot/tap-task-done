@@ -224,7 +224,7 @@ namespace tts.Pages
         }
         public static async Task<List<RatedProvider>> LoadRatedProvidersAsync(ApplicationDbContext db, int limit, CancellationToken ct)
         {
-            var rows = await (from review in db.MarketplaceReviews.AsNoTracking()
+            var rows = await (from review in db.MarketplaceReviews.AsNoTracking().Where(r => !r.ByFreelancer)
                 join user in db.Users.AsNoTracking() on review.FreelancerId equals user.Id
                 join profile in db.FreelancerProfiles.AsNoTracking() on user.Id equals profile.UserId into profiles
                 from profile in profiles.DefaultIfEmpty()

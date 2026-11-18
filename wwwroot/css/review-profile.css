@@ -1,0 +1,18 @@
+:root { --surface:#fff; --text:#193e30; --line:#c8ddcd; --muted:#526c5d; }
+body { margin:0; background:#f6f7f3; color:var(--text); font:16px/1.5 Inter,system-ui,sans-serif; }
+.review-profile { max-width:1100px; padding:24px; margin:auto; }
+.review-profile header, .review-profile-heading, .review-profile-entry > div { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
+.review-profile header { margin-bottom:24px; }
+.review-profile h1 { font-size:22px; }
+.review-profile h2 { margin:0 0 8px; }
+.review-profile a { color:inherit; }
+.review-profile-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:24px; margin-top:18px; }
+.review-profile-score { font-size:30px; }
+.review-profile-entry { border-top:1px solid var(--line); padding-block:18px; }
+.review-profile-entry time { font-size:13px; color:var(--muted); }
+.review-profile-stars { color:#ac7200; margin:8px 0; }
+.review-profile-feedback { white-space:pre-wrap; overflow-wrap:anywhere; }
+.review-profile-services { overflow-wrap:anywhere; }
+.review-profile-action { display:inline-block; padding:10px 16px; border:1px solid var(--line); border-radius:8px; }
+html[data-theme="dark"] .review-profile-stars { color:#f4c369; }
+@media(max-width:600px) { .review-profile { padding:16px; } .review-profile-card { padding:18px; } }

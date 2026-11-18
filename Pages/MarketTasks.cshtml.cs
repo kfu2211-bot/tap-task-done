@@ -98,7 +98,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             join u in db.Users.AsNoTracking() on b.FreelancerId equals u.Id
             where t.ClientId == UserId
             select new BookingItem(b, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).ToListAsync(ct);
-        try { Reviews = await db.MarketplaceReviews.AsNoTracking().Where(r => r.ClientId == UserId).ToDictionaryAsync(r => r.TaskId, ct); }
+        try { Reviews = await db.MarketplaceReviews.AsNoTracking().Where(r => r.ClientId == UserId && !r.ByFreelancer).ToDictionaryAsync(r => r.TaskId, ct); }
         catch (MySqlException) { ReviewsUnavailable = true; }
         var view = Request.Query["view"].ToString();
         if (view is not ("jobs" or "post") && ownIds.Length > 0)
@@ -120,13 +120,20 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         { Notice = "Choose a rating from 1 to 5 and check your feedback."; return ReviewReturn(); }
         try
         {
-            var freelancerId = await (from task in db.MarketplaceTasks.AsNoTracking()
+            var assignment = await (from task in db.MarketplaceTasks.AsNoTracking()
                 join offer in db.MarketplaceOffers.AsNoTracking() on task.Id equals offer.TaskId
-                where task.Id == id && task.ClientId == UserId && task.Status == "completed" && offer.Status == "accepted"
-                select (int?)offer.FreelancerId).SingleOrDefaultAsync(ct);
-            if (freelancerId is null || freelancerId == UserId || await db.MarketplaceReviews.AnyAsync(r => r.TaskId == id, ct))
-            { Notice = "This task cannot be reviewed, or already has a review."; return ReviewReturn(); }
-            db.MarketplaceReviews.Add(new MarketplaceReview { TaskId = id, ClientId = UserId, FreelancerId = freelancerId.Value, Rating = rating, Feedback = feedback, CreatedAt = DateTime.UtcNow });
+                where task.Id == id && task.Status == "completed" && offer.Status == "accepted" &&
+                    (task.ClientId == UserId || offer.FreelancerId == UserId)
+                select new { task.ClientId, offer.FreelancerId }).SingleOrDefaultAsync(ct);
+            if (assignment is null || assignment.ClientId == assignment.FreelancerId)
+            { Notice = "This task cannot be reviewed."; return ReviewReturn(); }
+            var byFreelancer = assignment.FreelancerId == UserId;
+            if (await db.MarketplaceReviews.AnyAsync(r => r.TaskId == id && r.ByFreelancer == byFreelancer, ct))
+            { Notice = "You already reviewed this task."; return ReviewReturn(); }
+            db.MarketplaceReviews.Add(new MarketplaceReview {
+                TaskId = id, ClientId = assignment.ClientId, FreelancerId = assignment.FreelancerId,
+                ByFreelancer = byFreelancer, Rating = rating, Feedback = feedback, CreatedAt = DateTime.UtcNow
+            });
             await db.SaveChangesAsync(ct); Notice = "Review saved. Thank you for your feedback.";
             if (fromTracking) return ReviewReturn();
             return RedirectToPage("/Reviews", new { view = "given" });

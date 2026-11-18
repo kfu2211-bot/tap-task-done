@@ -29,8 +29,8 @@ public class ReviewsModel(ApplicationDbContext db) : PageModel
         {
             var query = from r in db.MarketplaceReviews.AsNoTracking()
                         join task in db.MarketplaceTasks.AsNoTracking() on r.TaskId equals task.Id
-                        join person in db.Users.AsNoTracking() on (View == "given" ? r.FreelancerId : r.ClientId) equals person.Id
-                        where View == "given" ? r.ClientId == userId : r.FreelancerId == userId
+                        join person in db.Users.AsNoTracking() on (View == "given" ? (r.ByFreelancer ? r.ClientId : r.FreelancerId) : (r.ByFreelancer ? r.FreelancerId : r.ClientId)) equals person.Id
+                        where View == "given" ? (r.ByFreelancer ? r.FreelancerId : r.ClientId) == userId : (r.ByFreelancer ? r.ClientId : r.FreelancerId) == userId
                         orderby r.CreatedAt descending, r.Id descending
                         select new { Review = r, task.Title, person.FirstName, person.LastName };
             var rows = await query.ToListAsync(ct);

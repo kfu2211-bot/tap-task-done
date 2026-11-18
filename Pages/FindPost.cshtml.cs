@@ -54,7 +54,7 @@ namespace tts.Pages
                 Providers = Providers.Select(p => p with { Availability = FreelancerAvailability.Effective(p.Availability, active.GetValueOrDefault(p.Id) ?? []) }).ToList();
                 try
                 {
-                    var reviews = await db.MarketplaceReviews.AsNoTracking().Select(r => new { r.FreelancerId, r.Rating }).ToListAsync(cancellationToken);
+                    var reviews = await db.MarketplaceReviews.AsNoTracking().Where(r => !r.ByFreelancer).Select(r => new { r.FreelancerId, r.Rating }).ToListAsync(cancellationToken);
                     Ratings = reviews.GroupBy(r => r.FreelancerId).ToDictionary(g => g.Key, g => new RatingSummary(g.Average(r => r.Rating), g.Count()));
                 }
                 catch (MySqlConnector.MySqlException) { RatingsUnavailable = true; logger.LogWarning("Review ratings are unavailable"); }

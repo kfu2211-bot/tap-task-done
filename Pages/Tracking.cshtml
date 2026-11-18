@@ -694,14 +694,14 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
 </div>
 @if (task.Status == "completed")
 {
-    var canReviewFreelancer = item.IsClient && item.FreelancerId > 0 && !await Model.HasReviewAsync(task.Id);
+    var canReviewFreelancer = item.FreelancerId > 0 && !await Model.HasReviewAsync(task.Id, !item.IsClient);
     var canReviewCommunity = await Model.CanWriteCommunityReviewAsync();
     if (canReviewFreelancer || canReviewCommunity)
     {
     <section id="completed-reviews" class="tracking-completed-reviews">
         <h4>Leave a review</h4>
 @if (canReviewFreelancer) {
-    <details class="tracking-review tracking-actions"><summary>Review your freelancer</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Review"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="fromTracking" value="true" /><label>Rating<select name="rating" required><option value="">Choose a rating</option>@for (var rating = 5; rating >= 1; rating--) { <option value="@rating">@rating / 5</option> }</select></label><label>Feedback (optional)<textarea name="feedback" maxlength="1000" rows="3"></textarea></label><button type="submit" class="tracking-primary">Submit review</button></form></details>
+    <details class="tracking-review tracking-actions"><summary>@(item.IsClient ? "Review your freelancer" : "Review your client")</summary><form method="post" asp-page="/MarketTasks" asp-page-handler="Review"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="fromTracking" value="true" /><label>Rating<select name="rating" required><option value="">Choose a rating</option>@for (var rating = 5; rating >= 1; rating--) { <option value="@rating">@rating / 5</option> }</select></label><label>Feedback (optional)<textarea name="feedback" maxlength="1000" rows="3"></textarea></label><button type="submit" class="tracking-primary">Submit review</button></form></details>
 }
         @if (canReviewCommunity)
         {
@@ -726,7 +726,7 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
     }
 }
 </section>
-                    <aside class="tracking-aside"><section class="tracking-panel"><h4>@(item.IsClient ? "Freelancer" : "Client")</h4><div class="tracking-person" data-account-id="@(item.IsClient ? item.FreelancerId : task.ClientId)">@(item.IsClient ? item.Freelancer : item.Client)</div><p>Assigned to this task</p>@if (Model.SharedPhones.TryGetValue(task.Id, out var sharedPhone)) { <p class="tracking-shared-phone"><strong>Mobile number</strong> <bdi dir="ltr" style="user-select: all">@sharedPhone</bdi></p> }<div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a></div></section><section class="tracking-location"><strong>Task location</strong><span>@(string.IsNullOrWhiteSpace(task.Location) ? "Location not provided" : task.Location)</span>
+                    <aside class="tracking-aside"><section class="tracking-panel"><h4>@(item.IsClient ? "Freelancer" : "Client")</h4><a asp-page="/ReviewProfile" asp-route-id="@(item.IsClient ? item.FreelancerId : task.ClientId)" asp-route-role="@(item.IsClient ? "freelancer" : "client")" class="tracking-person" data-account-id="@(item.IsClient ? item.FreelancerId : task.ClientId)">@(item.IsClient ? item.Freelancer : item.Client)</a><p>Assigned to this task</p>@if (Model.SharedPhones.TryGetValue(task.Id, out var sharedPhone)) { <p class="tracking-shared-phone"><strong>Mobile number</strong> <bdi dir="ltr" style="user-select: all">@sharedPhone</bdi></p> }<div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a></div></section><section class="tracking-location"><strong>Task location</strong><span>@(string.IsNullOrWhiteSpace(task.Location) ? "Location not provided" : task.Location)</span>
 @if (!string.IsNullOrWhiteSpace(task.ArrivalInstructions))
 {
     <div class="tracking-arrival location-arrival-note">

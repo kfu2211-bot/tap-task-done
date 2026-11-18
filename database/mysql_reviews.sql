@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS marketplace_reviews (
     TaskId BIGINT NOT NULL,
     ClientId INT NOT NULL,
     FreelancerId INT NOT NULL,
+    ByFreelancer TINYINT(1) NOT NULL DEFAULT 0,
     Rating INT NOT NULL,
     Feedback VARCHAR(1000) NOT NULL DEFAULT '',
     CreatedAt DATETIME(6) NOT NULL,
@@ -12,6 +13,6 @@ CREATE TABLE IF NOT EXISTS marketplace_reviews (
     CONSTRAINT fk_marketplace_review_client FOREIGN KEY (ClientId) REFERENCES tbl_user(Id),
     CONSTRAINT fk_marketplace_review_freelancer FOREIGN KEY (FreelancerId) REFERENCES tbl_user(Id),
     CONSTRAINT ck_marketplace_review_rating CHECK (Rating BETWEEN 1 AND 5),
-    UNIQUE KEY uq_marketplace_review_task (TaskId),
+    UNIQUE KEY uq_marketplace_review_direction (TaskId, ByFreelancer),
     INDEX ix_marketplace_review_freelancer (FreelancerId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

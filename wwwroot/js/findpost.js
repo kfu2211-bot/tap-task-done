@@ -510,6 +510,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const services = card.querySelector(".provider-service-template").content;
                     const rating = card.querySelector(".freelancer-rating strong").textContent.trim();
                     const price = card.querySelector(".freelancer-price span").textContent.trim();
+                    document.getElementById("selectedProviderReviews").href = "/ReviewProfile?id=" + encodeURIComponent(card.dataset.id) + "&role=freelancer";
                     selectedProvider = { id: Number(card.dataset.id), name: name, email: card.dataset.email || "", rating: rating, price: price, availability: card.dataset.availability || "", savedAvailability: card.dataset.savedAvailability || "", location: card.dataset.location || "" };
                     document.getElementById("selectedProviderName").textContent = name;
                     document.getElementById("selectedProviderName").dataset.accountId = card.dataset.id;
