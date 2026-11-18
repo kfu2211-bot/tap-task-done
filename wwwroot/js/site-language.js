@@ -289,6 +289,11 @@
         "View review history": "Tingnan ang kasaysayan ng review",
         "View booking details": "Tingnan ang detalye ng booking"
     });
+    Object.assign(labels, {
+        "No reviews yet.": "Wala pang review.",
+        "Feedback from freelancers will appear here after a completed task.": "Dito lalabas ang feedback ng mga freelancer pagkatapos makumpleto ang task.",
+        "Feedback from clients will appear here after a completed task.": "Dito lalabas ang feedback ng mga kliyente pagkatapos makumpleto ang task."
+    });
     const tracked = new WeakMap();
     let language = "en";
     try { language = localStorage.getItem("tts-language") === "fil" ? "fil" : "en"; } catch {}

@@ -12,7 +12,7 @@
 <script defer src="/js/provider-status.js" asp-append-version="true"></script>
 </head>
 <body>
-<main class="review-profile">
+<main class="review-profile @(Model.ProfileRole == "Client" ? "client-review-profile" : "")">
 <header class="profile-topbar">
     <a class="profile-brand" href="/Dashboard"><span aria-hidden="true">✓</span> Tap, Task, Done</a>
     <h1>@(Model.ProfileRole == "Client" ? "Client profile" : "Freelancer profile")</h1>
@@ -33,13 +33,23 @@
             <strong class="review-profile-score"><span aria-hidden="true">★</span> @Model.Reviews.Average(r => r.Rating).ToString("0.0")</strong>
             <p>@Model.Reviews.Count reviews</p>
         }
-        else { <p>@(Model.Unavailable ? "Ratings unavailable" : "No reviews yet.")</p> }
+        else if (Model.Unavailable) { <p>Ratings unavailable</p> }
+        else { <strong class="profile-unrated">—</strong><p>No ratings yet</p> }
     </div>
 </section>
 <section class="review-profile-card profile-review-list">
 <div class="profile-section-heading"><h2>@(Model.ProfileRole == "Client" ? "Reviews from freelancers" : "Reviews from clients")</h2></div>
 @if (Model.Unavailable) { <p role="status">Reviews are temporarily unavailable. Please try again later.</p> }
-else if (Model.Reviews.Count == 0) { <p class="profile-empty">No reviews yet.</p> }
+else if (Model.Reviews.Count == 0)
+{
+    <div class="profile-empty-state">
+        <span class="profile-empty-icon" aria-hidden="true">☆</span>
+        <h3>No reviews yet.</h3>
+        <p>@(Model.ProfileRole == "Client"
+            ? "Feedback from freelancers will appear here after a completed task."
+            : "Feedback from clients will appear here after a completed task.")</p>
+    </div>
+}
 @foreach (var review in Model.Reviews)
 {
     <article class="review-profile-entry">

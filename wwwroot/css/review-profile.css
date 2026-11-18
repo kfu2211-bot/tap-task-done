@@ -56,3 +56,29 @@ html[data-theme="dark"] .review-profile .review-profile-action { color:#14251e; 
 .profile-review-author { flex-wrap:wrap; }
 .profile-review-author time { width:100%; margin:0 0 0 52px; }
 }
+
+.client-review-profile { max-width: 1000px; }
+.client-review-profile .profile-overview { padding-block: 26px; }
+.profile-unrated { display: block; font-size: 28px; line-height: 1.2; color: var(--profile-muted); }
+.profile-empty-state {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding: 32px 18px 38px;
+    border-top: 1px solid var(--profile-border);
+    text-align: center;
+}
+.profile-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 6px;
+    border-radius: 14px;
+    background: var(--profile-soft);
+    color: var(--profile-accent);
+    font-size: 30px;
+}
+.profile-empty-state h3 { margin: 0; font-size: 17px; }
+.profile-empty-state p { max-width: 400px; margin: 0; color: var(--profile-muted); font-size: 14px; }
+@media(max-width:540px) { .profile-empty-state { padding-inline: 0; } }
