@@ -45,6 +45,13 @@ public class ProfilePhotoModel(ApplicationDbContext db, IDataProtectionProvider 
         return await ReadPhotoAsync(ownerId, ct);
     }
 
+    public async Task<IActionResult> OnGetClientAsync(int userId, CancellationToken ct)
+    {
+        PrivateResponse();
+        if (UserId <= 0) return Challenge();
+        return await ReadPhotoAsync(userId, ct);
+    }
+
     public async Task<IActionResult> OnGetStaffAsync(int userId, CancellationToken ct)
     {
         PrivateResponse();
