@@ -11,3 +11,4 @@ appsettings.Gmail.json
 .local-secrets/
 
 appsettings.Testing.json
+*.md
