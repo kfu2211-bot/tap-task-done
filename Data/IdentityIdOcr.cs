@@ -14,24 +14,35 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
     private sealed record Receipt(int UserId, string Type, string Number, string Hash, DateTime Expires);
     private static readonly Dictionary<string, (string Heading, string Label)> Rules = new()
     {
-        ["Philippine National ID"] = (@"PAMBANSANG\s+PAGKAKAKILANLAN|PHILIPPINE\s+IDENTIFICATION|PHILSYS", @"\b(?:PCN|PSN|PHILSYS\s+CARD\s+NUMBER|CARD\s+NUMBER)\b"),
-        ["Philippine Passport"] = (@"PASSPORT|PASAPORTE", @"\bPASSPORT\s*(?:NO\.?|NUMBER)\b"),
+        ["Philippine National ID"] = (@"PAMBANSANG\s+PAGKAKAKILANLAN|PHILIPPINE\s+IDENTIFICATION|PHILSYS", @"\b(?:PCN|PHILSYS\s+CARD\s+NUMBER|CARD\s+NUMBER)\b"),
+        ["Philippine Passport"] = (@"PASSPORT|PASAPORTE", @"\b(?:PASSPORT\s*(?:NO\.?|NUMBER)|PASAPORTE\s*(?:BLG\.?|NO\.?))\b"),
         ["Driver's License"] = (@"LAND\s+TRANSPORTATION\s+OFFICE|DRIVER.?S?\s+LICEN[CS]E", @"\bLICEN[CS]E\s*(?:NO\.?|NUMBER)\b"),
         ["UMID"] = (@"UNIFIED\s+MULTI.?PURPOSE|UMID", @"\b(?:CRN|COMMON\s+REFERENCE\s+NUMBER)\b"),
-        ["PRC ID"] = (@"PROFESSIONAL\s+REGULATION\s+COMMISSION|PROFESSIONAL\s+IDENTIFICATION", @"\b(?:REGISTRATION|LICENSE|LICENCE)\s*(?:NO\.?|NUMBER)\b"),
-        ["Postal ID"] = (@"POSTAL\s+ID|PHILIPPINE\s+POSTAL", @"\b(?:PRN|POSTAL\s+REFERENCE\s+NUMBER|ID\s*(?:NO\.?|NUMBER))\b")
+        ["PRC ID"] = (@"PROFESSIONAL\s+REGULATION\s+COMMISSION|PROFESSIONAL\s+IDENTIFICATION", @"\bREGISTRATION\s*(?:NO\.?|NUMBER)\b"),
+        ["Postal ID"] = (@"POSTAL\s+ID|PHILIPPINE\s+POSTAL", @"\b(?:PRN|POSTAL\s+REFERENCE\s*(?:NO\.?|NUMBER))\b")
     };
     public static bool Matches(string type, string number, IEnumerable<string> lines)
     {
         if (!IdentityDocumentTypes.ValidNumber(number) || !Rules.TryGetValue(type, out var rule)) return false;
+        if (type == "Philippine National ID" && !Regex.IsMatch(IdentityDocumentTypes.NormalizeNumber(number), @"^[0-9]{16}$")) return false;
         var text = lines.Take(400).Select(s => s.ToUpperInvariant()).ToArray();
         if (!Regex.IsMatch(string.Join('\n', text), rule.Heading, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1))) return false;
+        // The PCN can be printed on the front without an explicit PCN label.
+        // Accept its complete, standalone 16-digit line only on a National ID.
+        if (type == "Philippine National ID" && text.Any(line => Regex.IsMatch(line.Trim(), @"^[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}$") && IdentityDocumentTypes.NormalizeNumber(line) == IdentityDocumentTypes.NormalizeNumber(number))) return true;
         for (var i = 0; i < text.Length; i++)
         {
             var label = Regex.Match(text[i], rule.Label, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
             if (!label.Success) continue;
             var value = text[i][(label.Index + label.Length)..].TrimStart(' ', '.', ':', '#');
             if (!value.Any(c => c is >= '0' and <= '9') && i + 1 < text.Length) value = text[i + 1].Trim();
+            // LTO cards can place the license number, expiry and agency code in
+            // adjacent columns. Keep a clearly delimited expiry out of the number.
+            if (type == "Driver's License" && Regex.IsMatch(text[i], @"EXPIR(?:ATION|Y)\s+DATE"))
+            {
+                var columns = Regex.Match(value, @"^(?<number>[A-Z][ -]?[0-9]{2}[ -]?[0-9]{2}[ -]?[0-9]{6})\s+[0-9]{4}[-/][0-9]{2}[-/][0-9]{2}(?:\s|$)");
+                if (columns.Success && IdentityDocumentTypes.NormalizeNumber(columns.Groups["number"].Value) == IdentityDocumentTypes.NormalizeNumber(number)) return true;
+            }
             // Read one complete printed number, never a substring or digits
             // taken from unrelated dates, names, or another field.
             var candidate = Regex.Match(value, @"^[A-Z0-9]*[0-9][A-Z0-9-]*(?:[ -]+[0-9][A-Z0-9-]*)*", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
@@ -70,7 +81,7 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
             }
             var tsv = await Run("tesseract", [input, "stdout", "-l", "eng", "--psm", "11", "tsv"], timeout.Token);
             var lines = ConfidentLines(tsv);
-            if (!Matches(type, number, lines)) return new(false, "ID details could not be matched. Check the full number and upload a clear front photo of the selected ID.");
+            if (!Matches(type, number, lines)) return new(false, $"Could not match the {IdentityDocumentTypes.NumberFor(type).Label}. Check the number and upload a clear photo of the selected ID.");
             var receipt = new Receipt(userId, type, IdentityDocumentTypes.NormalizeNumber(number), Convert.ToHexString(SHA256.HashData(bytes)), DateTime.UtcNow.AddMinutes(20));
             return new(true, "ID details matched. You can open the camera.", protection.CreateProtector("tts.identity.ocr.v1").Protect(JsonSerializer.Serialize(receipt)));
         }

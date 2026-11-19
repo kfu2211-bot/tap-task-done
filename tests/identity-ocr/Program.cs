@@ -10,6 +10,16 @@ Check(!IdentityIdOcr.Matches("Driver's License", "99999999999", driver), "random
 Check(!IdentityIdOcr.Matches("Driver's License", "456789", driver), "partial number blocked");
 Check(!IdentityIdOcr.Matches("UMID", "A0123456789", driver), "wrong ID type blocked");
 Check(!IdentityIdOcr.Matches("Driver's License", "19990101", [.. driver, "DATE OF BIRTH 19990101"]), "matching digits in birth date do not count as an ID number");
+Check(IdentityDocumentTypes.NumberFor("Driver's License").Label == "License No.", "driver's license uses its License No. field");
+Check(IdentityIdOcr.Matches("Driver's License", "A0123456789", ["DRIVER'S LICENSE", "License No. Expiration Date Agency Code", "A01-23-456789 2030/06/01 N01"]), "LTO expiry and agency columns are not merged into the license number");
+Check(!IdentityIdOcr.Matches("Driver's License", "20300601", ["DRIVER'S LICENSE", "License No. Expiration Date Agency Code", "A01-23-456789 2030/06/01 N01"]), "adjacent expiry cannot be submitted as License No.");
+Check(!IdentityIdOcr.Matches("Driver's License", "12345678901", ["DRIVER'S LICENSE", "LTO CLIENT ID 12345678901", "CARD SERIAL NO. 12345678901"]), "LTO client ID and card serial are not license numbers");
+Check(IdentityIdOcr.Matches("Philippine National ID", "1234567890123456", ["PAMBANSANG PAGKAKAKILANLAN", "1234-5678-9012-3456"]), "unlabelled standalone PCN on National ID supported");
+Check(!IdentityIdOcr.Matches("Philippine National ID", "123456789012", ["PHILSYS", "PSN 1234-5678-9012"]), "private PSN is not accepted as PCN");
+Check(IdentityIdOcr.Matches("UMID", "123456789012", ["UNIFIED MULTI-PURPOSE ID", "CRN 1234-5678901-2"]), "UMID CRN label supported");
+Check(!IdentityIdOcr.Matches("UMID", "1234567890", ["UMID", "SSS NUMBER 1234567890"]), "SSS membership number is not UMID CRN");
+Check(IdentityIdOcr.Matches("PRC ID", "1234567", ["PROFESSIONAL REGULATION COMMISSION", "REGISTRATION NO. 1234567"]), "PRC registration number supported");
+Check(IdentityIdOcr.Matches("Postal ID", "123456789012", ["PHILIPPINE POSTAL", "POSTAL REFERENCE NO. 123456789012"]), "Postal Reference No. label supported");
 Check(!IdentityIdOcr.Matches("Driver's License", "A0123456789", ["RANDOM PICTURE A01-23-456789"]), "unrelated picture with digits blocked");
 Check(IdentityIdOcr.Matches("Philippine Passport", "P1234567A", ["PASSPORT", "Passport No.", "P1234567A"]), "number below its label supported");
 Check(!IdentityIdOcr.Matches("Philippine Passport", "P1234567A", ["PASSPORT", "Passport No. P1234567A/1234"]), "number prefix before slash blocked");

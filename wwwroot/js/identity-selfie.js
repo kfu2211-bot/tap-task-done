@@ -17,6 +17,15 @@
     let cameraVersion = 0;
     let checkingId = false, checkedFile, checkedNumber, checkedType;
     const idNumber = el('idNumber'), documentType = el('documentType'), governmentId = el('governmentId');
+    function updateNumberField() {
+        const option = documentType.selectedOptions[0];
+        const label = option?.dataset.numberLabel || 'ID number';
+        el('idNumberLabel').textContent = label;
+        idNumber.placeholder = `Enter your ${label}`;
+        el('idNumberHelp').textContent = option?.dataset.numberHelp || 'Select your ID type to see which number to enter.';
+    }
+    documentType.addEventListener('change', updateNumberField);
+    updateNumberField();
     function idChecked() {
         return !!el('idCheckToken').value && checkedFile === governmentId.files[0] && checkedNumber === idNumber.value && checkedType === documentType.value;
     }
@@ -38,7 +47,22 @@
             data.set('governmentId', selectedFile); data.set('idNumber', number); data.set('documentType', type); data.set('consent', 'true');
             const url = new URL(form.action); url.searchParams.set('handler', 'CheckId');
             const response = await fetch(url, { method: 'POST', body: data, credentials: 'same-origin', signal: controller.signal });
-            if (!response.headers.get('content-type')?.includes('application/json')) throw new Error();
+            if (!response.headers.get('content-type')?.includes('application/json')) {
+                const messages = {
+                    400: 'Your page session expired. Reload the page and try again.',
+                    401: 'Your sign-in session expired. Sign in again.',
+                    403: 'Your session cannot check this ID. Reload the page or sign in again.',
+                    413: 'The upload is too large. Choose an ID file no larger than 5 MB.',
+                    429: 'Too many requests. Wait a moment and try again.',
+                    502: 'The ID-checking server is unavailable. Wait a moment and try again.',
+                    503: 'The ID-checking server is busy. Wait a moment and try again.',
+                    504: 'The server took too long to read your ID. Try a smaller, clear JPG or PNG.'
+                };
+                const error = new Error();
+                error.userMessage = response.redirected ? 'Your sign-in session may have expired. Reload the page and sign in again.'
+                    : messages[response.status] || 'The server could not complete the ID check. Reload the page and try again.';
+                throw error;
+            }
             const result = await response.json();
             if (selectedFile !== governmentId.files[0] || number !== idNumber.value || type !== documentType.value || !consent.checked) return false;
             el('idCheckMessage').textContent = result.message;
@@ -46,7 +70,11 @@
             if (!response.ok || !result.success || !result.token) return false;
             checkedFile = selectedFile; checkedNumber = number; checkedType = type; el('idCheckToken').value = result.token;
             return true;
-        } catch { el('idCheckMessage').textContent = 'Could not check your ID. Check your connection and try again.'; el('idCheckMessage').dataset.state = 'error'; return false; }
+        } catch (error) {
+            el('idCheckMessage').textContent = error.name === 'AbortError' ? 'ID reading took too long. Try a smaller, clear JPG or PNG and open the camera again.'
+                : error.userMessage || 'Could not reach the ID-checking server. Check your connection and try again.';
+            el('idCheckMessage').dataset.state = 'error'; return false;
+        }
         finally { clearTimeout(checkTimeout); checkingId = false; el('openCamera').disabled = false; el('openCamera').textContent = 'Open camera'; }
     }
     [idNumber, documentType, governmentId].forEach(input => input.addEventListener('input', () => {

@@ -26,15 +26,16 @@
                 <option value="" selected disabled hidden>Select your ID type</option>
                 @foreach (var type in tts.Data.IdentityDocumentTypes.Accepted)
                 {
-                    <option value="@type">@type</option>
+                    var numberField = tts.Data.IdentityDocumentTypes.NumberFor(type);
+                    <option value="@type" data-number-label="@numberField.Label" data-number-help="@numberField.Help">@type</option>
                 }
             </select>
             <small>Select the type that matches your document. File acceptance does not establish document authenticity; an admin reviews the ID and selfie.</small>
         </div>
         <div class="id-number-section">
-            <label for="idNumber">ID Number <span>Required</span></label>
+            <label for="idNumber"><span id="idNumberLabel">ID number</span> <span>Required</span></label>
             <input type="text" id="idNumber" name="idNumber" minlength="4" maxlength="50" pattern="[A-Za-z0-9 \-]{4,50}" title="Use the letters and digits printed on your ID. Spaces and hyphens are allowed." required autocomplete="off" spellcheck="false" aria-describedby="idNumberHelp" placeholder="Enter your government ID number" />
-            <small id="idNumberHelp">Enter the full number beside the ID-number label on your document. We automatically read the upload and block numbers that do not match. Your full number is encrypted for admin review.</small>
+            <small id="idNumberHelp">Select your ID type to see which number to enter.</small>
         </div>
     </div>
     <div class="document-row">
