@@ -216,7 +216,7 @@
                        asp-page="/Messages" asp-route-conversationId="@conversation.Id"
                        aria-current="@(Model.Selected?.OtherId == conversation.OtherId ? "page" : null)"
                        data-search="@($"{conversation.OtherName} {conversation.Title}".ToLowerInvariant())">
-                        <span class="conversation-avatar" aria-hidden="true">@MessagesModel.Initials(conversation.OtherName)</span>
+                        <span class="conversation-avatar" data-photo-user-id="@conversation.OtherId" aria-hidden="true">@MessagesModel.Initials(conversation.OtherName)</span>
                         <span class="conversation-copy">
                             <span class="conversation-row-heading">
                                 <strong data-account-id="@conversation.OtherId">@(string.IsNullOrWhiteSpace(conversation.OtherName) ? "User" : conversation.OtherName)</strong>
@@ -251,7 +251,7 @@
                 else {
                     <div class="thread-heading">
                         <a class="thread-back" asp-page="/Messages" aria-label="Back to conversations"><span aria-hidden="true">‹</span></a>
-                        <span class="conversation-avatar" aria-hidden="true">@MessagesModel.Initials(Model.Selected.OtherName)</span>
+                        <span class="conversation-avatar" data-photo-user-id="@Model.Selected.OtherId" aria-hidden="true">@MessagesModel.Initials(Model.Selected.OtherName)</span>
                         <div class="thread-heading-copy">
                             <h3 data-account-id="@Model.Selected.OtherId">@(string.IsNullOrWhiteSpace(Model.Selected.OtherName) ? "User" : Model.Selected.OtherName)</h3>
                             @if (Model.SelectedTasks.Count == 1) { <p>@Model.Selected.Title · Task #@Model.Selected.TaskId</p> }

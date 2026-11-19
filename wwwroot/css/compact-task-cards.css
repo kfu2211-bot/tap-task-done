@@ -228,3 +228,46 @@ html[data-theme="dark"] body .home-status[data-status="pending-confirmation"] {
     color: #ffe0a0 !important;
     border: 1px solid #826039;
 }
+
+/* Keep task actions content-sized even when shared mobile rules use columns. */
+html body #my-tasks-section .task-card .task-actions {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+}
+html body #my-tasks-section .task-actions > :is(a, details, form) {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+}
+html body #my-tasks-section .task-actions > a,
+html body #my-tasks-section .task-actions > details > summary,
+html body #my-tasks-section .task-actions > form > button {
+    min-height: 46px;
+    height: auto;
+    padding: 12px 18px;
+    border-radius: 10px;
+}
+html body #my-tasks-section .task-actions > .cancel-task[open],
+html body #my-tasks-section .task-actions > .edit-task[open] {
+    flex-basis: 100%;
+    width: 100%;
+}
+@media (max-width: 700px) {
+    html body #my-tasks-section .task-actions > :is(a, details, form) {
+        flex: 0 0 100%;
+        width: 100%;
+    }
+    html body #my-tasks-section .task-actions > .task-closing {
+        flex-basis: 100%;
+    }
+    html body #my-tasks-section .task-actions > a,
+    html body #my-tasks-section .task-actions > details > summary {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    html body #my-tasks-section .task-actions > .cancel-task > summary {
+        background: transparent;
+    }
+}
