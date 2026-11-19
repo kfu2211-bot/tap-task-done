@@ -28,6 +28,11 @@ html[data-theme="dark"] .selfie-section .id-check-status[data-state="manual"] { 
 #selfieMessage:empty { display:none; }
 .selfie-actions #openCamera { background:#18765b; border-color:#18765b; color:#fff; }
 .selfie-actions #openCamera:enabled:hover { background:#125c46; }
+.selfie-actions #continueManualId { background:#18765b; border-color:#18765b; color:#fff; }
+.selfie-actions #continueManualId:enabled:hover { background:#125c46; }
+.selfie-actions #openCamera[data-id-action="retry"] { background:transparent; color:inherit; border-color:#9bc6aa; }
+.selfie-section .selfie-countdown { position:absolute; z-index:2; bottom:12%; left:50%; transform:translateX(-50%); max-width:88%; padding:8px 12px; border-radius:10px; text-align:center; color:#175b3e; background:#e8f5ec; font-size:20px; line-height:1.3; white-space:nowrap; font-weight:700; font-variant-numeric:tabular-nums; pointer-events:none; }
+html[data-theme="dark"] .selfie-section .selfie-countdown { background:#1d3d2e; color:#b7edcb; }
 html[data-theme="dark"] .selfie-requirements li { background:#253d31; border-color:#476a55; color:#d5efde; }
 html[data-theme="dark"] .selfie-privacy summary { color:#9edab6; }
 html[data-theme="dark"] .selfie-section :is(.selfie-short-guide,.selfie-privacy p,#selfieMessage) { color:#c7dace; }
@@ -72,12 +77,12 @@ html[data-theme="dark"] .selfie-camera { background:#1b2923; border-color:#36524
 .identity-comparison :is(img,object) { display:block; width:100%; height:300px; object-fit:contain; background:#f1f6f1; border:1px solid #d9e8dc; border-radius:10px; margin-top:12px; }
 @media(max-width:650px) { .identity-comparison { grid-template-columns:1fr; } .selfie-section { padding:18px; } }
 
-html[data-theme="dark"] .selfie-actions button:not(#captureSelfie):not(#openCamera):not([type="submit"]) {
+html[data-theme="dark"] .selfie-actions button:not(#captureSelfie):not(#openCamera):not(#continueManualId):not([type="submit"]) {
     background: var(--surface, #202a25);
     border-color: #567264;
     color: var(--text, #edf5ef);
 }
-html[data-theme="dark"] .selfie-actions button:not(#captureSelfie):not(#openCamera):not([type="submit"]):enabled:hover {
+html[data-theme="dark"] .selfie-actions button:not(#captureSelfie):not(#openCamera):not(#continueManualId):not([type="submit"]):enabled:hover {
     background: var(--surface-2, #20392e);
     border-color: #81dbb2;
 }

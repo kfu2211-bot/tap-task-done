@@ -15,10 +15,18 @@ let removed=0, ready=true;
 global.document={getElementById:()=>({replaceChildren(){removed++;}})};
 const state={index:5,frames:[1,2,3,4,5],onReady:v=>{ready=v;},update(){}};
 FaceGuide.prototype.block.call(state,'Remove your face mask');
-assert.equal(state.index,0);assert.equal(state.frames.length,0);assert.equal(ready,false);assert.equal(removed,1);
+assert.equal(state.index,5);assert.equal(state.frames.length,5);assert.equal(ready,false);assert.equal(removed,0);
 state.index=3;state.frames=[1,2,3];
 FaceGuide.prototype.block.call(state,'Keep both eyes open and visible.');
 assert.equal(state.index,3,'a natural blink pauses without deleting valid earlier movement photos');
+FaceGuide.prototype.block.call(state,'No clear face detected.');
+assert.equal(state.index,3,'brief face loss preserves accepted steps');
+assert.equal(state.frames.length,3);
+let resets=0,resumedTicks=0;
+const resumable={index:2,frames:[1,2],stop(){},reset(){resets++;this.index=0;this.frames=[];},tick(){resumedTicks++;}};
+FaceGuide.prototype.start.call(resumable,true);
+assert.equal(resets,0);assert.equal(resumable.index,2);assert.equal(resumedTicks,1);
+FaceGuide.prototype.start.call(resumable,false);assert.equal(resets,1,'explicit restart still clears accepted steps');
 (async()=>{
  let encoded=false, blocked=false;
  const capture={running:true,complete:true,version:1,saving:false,onReady(){},inspect:async()=>({error:'Remove your eyeglasses'}),block(){blocked=true;},snapshot:async()=>{encoded=true;return {};}};
@@ -29,5 +37,5 @@ assert.equal(state.index,3,'a natural blink pauses without deleting valid earlie
  let finish;encoded=false;capture.inspect=()=>new Promise(resolve=>{finish=resolve;});
  const pending=FaceGuide.prototype.captureSelfie.call(capture);capture.version++;finish({error:'',p:{yaw:0,roll:0}});
  assert.equal(await pending,null);assert(!encoded,'stopped/restarted session must not capture after an async check');
- console.log('PASS: glasses/mask/sunglasses, uncertainty, eye visibility, hand overlap, progress reset, capture blocking and session cancellation');
+ console.log('PASS: glasses/mask/sunglasses, uncertainty, eye visibility, hand overlap, progress preserved, capture blocking and session cancellation');
 })().catch(error=>{console.error(error);process.exitCode=1;});

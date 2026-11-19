@@ -11,7 +11,7 @@ function fixture(result){
  const document={hidden:false,getElementById:node,addEventListener(){}};
  class Guide{constructor(v,steps,ready){this.ready=ready;}stop(){this.ready(false);}reset(){}async load(){}start(){}}
  class Form{set(){}}
- vm.runInNewContext(fs.readFileSync('wwwroot/js/identity-selfie.js','utf8'),{document,window:{IdentityFaceGuide:Guide,addEventListener(){}},navigator:{mediaDevices:{getUserMedia:async()=>{camera++;return{active:true,getTracks:()=>[],getVideoTracks:()=>[{addEventListener(){}}]};}}},FormData:Form,URL,AbortController,setTimeout,clearTimeout,fetch:async()=>({ok:true,headers:{get:()=> 'application/json'},json:async()=>result})});
+ vm.runInNewContext(fs.readFileSync('wwwroot/js/identity-selfie.js','utf8'),{document,window:{IdentityCaptureCountdown:require('../wwwroot/js/identity-capture-countdown.js'),IdentityFaceGuide:Guide,addEventListener(){}},navigator:{mediaDevices:{getUserMedia:async()=>{camera++;return{active:true,getTracks:()=>[],getVideoTracks:()=>[{addEventListener(){}}]};}}},FormData:Form,URL,AbortController,setTimeout,clearTimeout,fetch:async()=>({ok:true,headers:{get:()=> 'application/json'},json:async()=>result})});
  return{node,get camera(){return camera;},async click(id){for(const fn of node(id).listeners.click||[])await fn();},async input(id){for(const fn of node(id).listeners.input||[])await fn();}};
 }
 (async()=>{

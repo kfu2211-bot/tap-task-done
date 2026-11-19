@@ -59,13 +59,20 @@
             document.getElementById('captureFiles').replaceChildren();
             this.update('Center your face and look straight ahead.');
         }
-        start() { this.reset(); this.running = true; this.tick(); }
+        start(resume = false) {
+            if (!resume || !Array.isArray(this.frames) || this.index !== this.frames.length) this.reset();
+            else {
+                this.stop(); this.heldSince = null; this.saving = false;
+                this.started = performance.now(); this.lastVideoTime = -1;
+            }
+            this.running = true; this.tick();
+        }
         stop() { this.running = false; this.version = (this.version || 0) + 1; cancelAnimationFrame(this.animation); this.onReady(false); }
         update(text) {
             const instruction = document.getElementById('faceInstruction');
             if (instruction.textContent !== text) instruction.textContent = text;
             document.getElementById('faceProgress').value = this.index;
-            document.getElementById('faceStepCount').textContent = `${this.index} of ${this.steps.length} movements completed`;
+            document.getElementById('faceStepCount').textContent = `${this.index} of ${this.steps.length} steps saved`;
             document.getElementById('faceTarget').dataset.pose = this.steps[this.index] || 'front';
         }
         async snapshot() {
@@ -98,13 +105,11 @@
             if (handCoversFace(this.hands.detectForVideo(this.scan, now).landmarks, face)) return { error: 'Move your hands away from your face. Keep your eyes, nose and mouth visible.' };
             return { error: await this.visibility.check(this.scan, face), p };
         }
-        block(error, resetProgress = !error.startsWith('Keep both eyes open')) {
+        block(error) {
             this.onReady(false); this.heldSince = null;
-            // Do not keep completed evidence when a covering or lost face appears.
-            if (resetProgress) {
-                this.index = 0; this.frames = [];
-                document.getElementById('captureFiles').replaceChildren();
-            }
+            // Earlier frames already passed checks. Pause the current step and
+            // final capture without throwing away those accepted frames.
+            this.lastPassedAt = 0;
             this.update(error);
         }
         async captureSelfie() {
@@ -134,7 +139,8 @@
             this.lastDetection = performance.now();
             this.lastVideoTime = this.video.currentTime;
             if (performance.now() - this.started > 120000) {
-                this.stop(); this.update('Session paused. Choose Restart movements to try again.'); return;
+                this.started = performance.now(); this.heldSince = null;
+                this.onReady(false); this.update('Take a moment, then face the camera. Your completed steps are saved.'); return;
             }
             const checkVersion = this.version;
             try {
@@ -144,8 +150,10 @@
                 if (!this.running || version !== this.version) return;
                 if (error) { this.block(error); return; }
                 if (this.index === this.steps.length) {
-                    this.onReady(matches('front', p));
-                    this.update(matches('front', p) ? 'Face checks passed. Look forward and capture your selfie.' : 'Look straight ahead to enable Capture selfie.');
+                    const ready = matches('front', p);
+                    this.lastPassedAt = ready ? performance.now() : 0;
+                    this.onReady(ready);
+                    this.update(ready ? 'Movements saved. Hold still for your automatic selfie.' : 'Look straight ahead. Your completed steps are saved.');
                     return;
                 }
                 const step = this.steps[this.index];

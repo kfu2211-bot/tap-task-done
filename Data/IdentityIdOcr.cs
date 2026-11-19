@@ -57,8 +57,15 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
             }
             // Read one complete printed number, never a substring or digits
             // taken from unrelated dates, names, or another field.
-            var candidate = Regex.Match(value, @"^[A-Z0-9]*[0-9][A-Z0-9-]*(?:[ -]+[0-9][A-Z0-9-]*)*", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
-            if (candidate.Success && (candidate.Length == value.Length || !"/._".Contains(value[candidate.Length]))) yield return IdentityDocumentTypes.NormalizeNumber(candidate.Value);
+            var candidate = Regex.Match(value, @"^(?:[A-Z]{1,3}[ -]+)?[A-Z0-9]*[0-9][A-Z0-9-]*(?:[ -]+[0-9][A-Z0-9-]*)*", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+            if (!candidate.Success) continue;
+            var completeValue = candidate.Value; var length = candidate.Length;
+            if (char.IsAsciiDigit(completeValue[^1]))
+            {
+                var suffix = Regex.Match(value[length..], @"^[ -]+[A-Z](?![A-Z0-9])");
+                if (suffix.Success) { completeValue += suffix.Value; length += suffix.Length; }
+            }
+            if (length == value.Length || !"/._".Contains(value[length])) yield return IdentityDocumentTypes.NormalizeNumber(completeValue);
         }
     }
     public bool ValidReceipt(string? token, int userId, string type, string number, byte[] bytes) => ReceiptMode(token, userId, type, number, bytes) == "matched";
@@ -105,8 +112,15 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
             var tsv = await Timed("tesseract", [prepared, "stdout", "-l", "eng", "--psm", "11", "tsv"], "text-read", timeout.Token);
             var lines = ConfidentLines(tsv);
             var outcome = Assess(type, number, lines);
+            // Sparse text can split an ID's labels and numbers into separate
+            // blocks. Try a block-layout pass once, within the same deadline.
+            if (outcome == "unreadable" && total.Elapsed < TimeSpan.FromSeconds(18))
+            {
+                var blockTsv = await Timed("tesseract", [prepared, "stdout", "-l", "eng", "--psm", "6", "tsv"], "text-read-block", timeout.Token);
+                outcome = Assess(type, number, ConfidentLines(blockTsv));
+            }
             if (outcome == "mismatch") return new(false, $"The selected ID type or {IdentityDocumentTypes.NumberFor(type).Label} does not match the readable details. Correct it before continuing.");
-            if (outcome == "unreadable") return Manual("We could not read the ID clearly. Upload a clearer photo, or continue with manual review.");
+            if (outcome == "unreadable") return Manual($"Could not read the {IdentityDocumentTypes.NumberFor(type).Label}. If the photo is clear, continue to the camera for manual ID review.");
             return new(true, "ID details matched. You can open the camera.", Token("matched"));
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
@@ -132,9 +146,12 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
         .Select(line => line.TrimEnd('\r').Split('\t', 12))
         .Where(parts => parts.Length == 12 && parts[0] == "5")
         .GroupBy(parts => string.Join(':', parts.Take(5)))
-        // Discard the entire line if any word is uncertain, so a missing digit
-        // cannot accidentally turn a longer number into a shorter matching one.
-        .Where(group => group.All(parts => double.TryParse(parts[10], NumberStyles.Float, CultureInfo.InvariantCulture, out var score) && score >= 65))
+        // A faint alphabetic label must not discard a clearly read number.
+        // Keep original words; never remove an uncertain numeric group or a
+        // standalone prefix/suffix letter and accidentally match a partial ID.
+        .Where(group => group.All(parts =>
+            !(parts[11].Any(char.IsAsciiDigit) || parts[11].Length == 1 && char.IsAsciiLetter(parts[11][0])) ||
+            double.TryParse(parts[10], NumberStyles.Float, CultureInfo.InvariantCulture, out var score) && score >= 65))
         .Select(group => string.Join(' ', group.Select(parts => parts[11]))).ToArray();
     private static async Task<string> Run(string executable, string[] arguments, CancellationToken ct, string temporaryDirectory)
     {

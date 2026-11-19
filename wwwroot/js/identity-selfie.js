@@ -6,12 +6,27 @@
     const review = el('identityReview'), message = el('selfieMessage');
     const consent = el("selfieConsent"), capture = el("captureSelfie");
     let guideReady = false;
+    let autoCountdown;
     const guide = new window.IdentityFaceGuide(video, JSON.parse(el('captureSteps').value), value => { guideReady = value; updateCapture(); });
     let encoding = false;
     function canCapture() {
-        return Boolean(stream?.active && video.videoWidth && consent.checked && guideReady && guide.complete && !encoding);
+        return Boolean(stream?.active && video.videoWidth && consent.checked && guideReady && guide.complete && (!guide.lastPassedAt || performance.now() - guide.lastPassedAt < 1500) && !encoding);
     }
-    function updateCapture() { capture.disabled = !canCapture(); }
+    function updateCapture() {
+        const ready = canCapture();
+        autoCountdown?.update(ready);
+        capture.disabled = !ready || Boolean(autoCountdown?.active);
+    }
+    autoCountdown = new window.IdentityCaptureCountdown({
+        canCapture,
+        onTick: seconds => {
+            const indicator = el('selfieCountdown');
+            indicator.hidden = seconds === null;
+            indicator.textContent = seconds === null ? '' : `Hold still — ${seconds}`;
+            capture.textContent = seconds === null ? 'Capture selfie' : `Capturing in ${seconds}…`;
+        },
+        onCapture: () => takeSelfie()
+    });
     video.addEventListener("loadeddata", updateCapture);
     let stream, selfieUrl, idUrl, reviewed = false, opening = false;
     let cameraVersion = 0;
@@ -83,11 +98,17 @@
                 : error.userMessage || 'Could not reach the ID-checking server. Check your connection and try again.';
             el('idCheckMessage').dataset.state = 'error'; return false;
         }
-        finally { clearTimeout(checkTimeout); checkingId = false; el('openCamera').disabled = false; el('openCamera').textContent = 'Open camera'; }
+        finally {
+            clearTimeout(checkTimeout); checkingId = false; el('openCamera').disabled = false;
+            const offered = checkedMode === 'manual' && el('manualIdReview').value !== 'true' && !!el('idCheckToken').value;
+            el('openCamera').textContent = offered ? 'Retry ID check' : 'Open camera';
+            el('openCamera').dataset.idAction = offered ? 'retry' : 'camera';
+        }
     }
     [idNumber, documentType, governmentId].forEach(input => input.addEventListener('input', () => {
         el('idCheckToken').value = ''; checkedFile = null; checkedMode = null;
         el('manualIdReview').value = 'false'; el('continueManualId').hidden = true;
+        el('openCamera').textContent = 'Open camera'; el('openCamera').dataset.idAction = 'camera';
         preview.hidden = true; file.value = ''; stop(); guide.reset(); invalidate();
         el('idCheckMessage').textContent = 'ID details changed. Open camera to check them again.';
         el('idCheckMessage').dataset.state = 'neutral';
@@ -106,17 +127,18 @@
         el('retakeSelfie').hidden = preview.hidden;
     }
     function invalidate() { reviewed = false; review.hidden = true; el('reviewIdentity').hidden = false; }
-    async function open() {
+    async function open(restart = false) {
         if (opening) return;
         if (!el('selfieConsent').checked) { message.textContent = 'Please agree to identity review before opening the camera.'; return; }
         stop();
         opening = true;
         const version = cameraVersion;
+        const resume = !restart && (guide.frames?.length || 0) > 0;
         try {
             if (!await checkId()) return;
             if (version !== cameraVersion || !consent.checked || document.hidden) return;
             message.textContent = 'Loading automatic face, glasses, mask and hand checks on your device. The first load may take a moment.';
-            preview.hidden = true; file.value = ''; invalidate(); guide.reset();
+            preview.hidden = true; file.value = ''; invalidate();
             await guide.load();
             if (version !== cameraVersion || !consent.checked || document.hidden) return;
             if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
@@ -132,7 +154,7 @@
             }, { once: true }));
             preview.hidden = true; file.value = ''; invalidate();
             capture.hidden = false; updateCapture(); el('openCamera').hidden = true; el('retakeSelfie').hidden = true;
-            guide.start();
+            guide.start(resume);
             message.textContent = 'Keep your hands away from your face and follow the circle.';
         } catch {
             if (version !== cameraVersion) return;
@@ -140,21 +162,22 @@
             message.textContent = 'Camera or face tracking could not start. Check camera permission, use HTTPS (or localhost), and try a recent Chrome, Edge or Safari browser.'; }
         finally { opening = false; }
     }
-    el('openCamera').addEventListener('click', open);
+    el('openCamera').addEventListener('click', () => open());
     el('continueManualId').addEventListener('click', () => {
         if (!el('idCheckToken').value || !consent.checked) return;
         el('manualIdReview').value = 'true';
         el('continueManualId').hidden = true;
+        el('openCamera').textContent = 'Open camera'; el('openCamera').dataset.idAction = 'camera';
         el('idCheckMessage').dataset.state = 'manual';
         el('idCheckMessage').textContent = 'Manual review selected. An admin must check your ID number before approval.';
         return open();
     });
-    el('retakeSelfie').addEventListener('click', open);
+    el('retakeSelfie').addEventListener('click', () => open());
     el('restartFaceGuide').addEventListener('click', () => {
         if (!stream?.active || preview.hidden === false) return;
         guide.start(); invalidate(); message.textContent = 'Movements restarted. Follow the new prompts.';
     });
-    el('captureSelfie').addEventListener('click', async () => {
+    async function takeSelfie() {
         if (!canCapture()) return;
         const capturedStream = stream;
         encoding = true;
@@ -171,7 +194,8 @@
         selfieUrl = URL.createObjectURL(blob); preview.src = selfieUrl; preview.hidden = false;
         stop(); invalidate(); el('retakeSelfie').hidden = false;
         message.textContent = 'Selfie captured. Retake if unclear, or review your submission.';
-    });
+    }
+    el('captureSelfie').addEventListener('click', takeSelfie);
     form.addEventListener('input', invalidate);
     form.addEventListener('change', invalidate);
     el('selfieConsent').addEventListener('change', () => {
@@ -199,6 +223,6 @@
     window.addEventListener('pagehide', stop);
     document.addEventListener('visibilitychange', () => { if (document.hidden && (stream || opening)) {
             stop();
-            message.textContent = 'Camera paused. Open the camera again to continue.';
+            message.textContent = 'Camera paused. Your steps are saved; open the camera to continue.';
         } });
 })();

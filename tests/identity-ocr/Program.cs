@@ -24,9 +24,14 @@ Check(!IdentityIdOcr.Matches("Driver's License", "A0123456789", ["RANDOM PICTURE
 Check(IdentityIdOcr.Matches("Philippine Passport", "P1234567A", ["PASSPORT", "Passport No.", "P1234567A"]), "number below its label supported");
 Check(!IdentityIdOcr.Matches("Philippine Passport", "P1234567A", ["PASSPORT", "Passport No. P1234567A/1234"]), "number prefix before slash blocked");
 Check(!IdentityIdOcr.Matches("Philippine Passport", "P1234567A", ["PASSPORT", "Passport No. P1234567A 1234"]), "number prefix before spaced digits blocked");
+Check(IdentityIdOcr.Matches("Philippine Passport", "P1234567A", ["PASSPORT", "Passport No. P 1234567 A"]), "OCR-separated passport prefix and suffix are preserved");
+Check(!IdentityIdOcr.Matches("Philippine Passport", "P1234567", ["PASSPORT", "Passport No. P1234567 A"]), "standalone suffix cannot be dropped to match a partial passport number");
 var tsv="level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"+
 "5\t1\t1\t1\t1\t1\t0\t0\t0\t0\t99\t1234\n5\t1\t1\t1\t1\t2\t0\t0\t0\t0\t20\t5678\n";
 Check(IdentityIdOcr.ConfidentLines(tsv).Length == 0, "low confidence digit discards entire OCR line");
+var faintLabel = "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"+
+"5\t1\t1\t1\t1\t1\t0\t0\t20\t20\t40\tLicense\n5\t1\t1\t1\t1\t2\t0\t0\t20\t20\t99\tNo.\n5\t1\t1\t1\t1\t3\t0\t0\t20\t20\t99\tA01-23-456789\n";
+Check(IdentityIdOcr.Matches("Driver's License","A0123456789", ["DRIVER'S LICENSE",..IdentityIdOcr.ConfidentLines(faintLabel)]),"faint alphabetic label no longer discards a clear complete number");
 var protection = new EphemeralDataProtectionProvider();
 var ocr = new IdentityIdOcr(protection, NullLogger<IdentityIdOcr>.Instance);
 var bytes = new byte[]{1,2,3};
@@ -66,3 +71,10 @@ Check(ocr.ReceiptMode(manual.Token,43,"Driver's License","A0123456789",bytes) is
 var timeout=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(_,_,_)=>throw new OperationCanceledException());
 var timed=await timeout.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
 Check(timed.CanManualReview && !timed.Success && ocr.ReceiptMode(timed.Token,42,"Driver's License","A0123456789",bytes)=="manual","OCR timeout offers manual-only evidence");
+var sparsePasses=0;
+var retry=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(tool,arguments,ct)=>{
+ if(tool!="tesseract")return Task.FromResult("");
+ sparsePasses++;return Task.FromResult(arguments.Contains("6")?OcrTsv(driver):"");
+});
+var retried=await retry.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
+Check(retried.Success && sparsePasses==2,"unreadable sparse result retries block-layout OCR once");
