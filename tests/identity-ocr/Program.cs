@@ -1,0 +1,33 @@
+using tts.Data;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Logging.Abstractions;
+using System.Security.Cryptography;
+using System.Text.Json;
+void Check(bool pass, string label) { if (!pass) throw new Exception(label); Console.WriteLine("PASS: " + label); }
+string[] driver = ["LAND TRANSPORTATION OFFICE", "DRIVER'S LICENSE", "License No. A01-23-456789"];
+Check(IdentityIdOcr.Matches("Driver's License", "A0123456789", driver), "full printed number matches ignoring separators");
+Check(!IdentityIdOcr.Matches("Driver's License", "99999999999", driver), "random number blocked");
+Check(!IdentityIdOcr.Matches("Driver's License", "456789", driver), "partial number blocked");
+Check(!IdentityIdOcr.Matches("UMID", "A0123456789", driver), "wrong ID type blocked");
+Check(!IdentityIdOcr.Matches("Driver's License", "19990101", [.. driver, "DATE OF BIRTH 19990101"]), "matching digits in birth date do not count as an ID number");
+Check(!IdentityIdOcr.Matches("Driver's License", "A0123456789", ["RANDOM PICTURE A01-23-456789"]), "unrelated picture with digits blocked");
+Check(IdentityIdOcr.Matches("Philippine Passport", "P1234567A", ["PASSPORT", "Passport No.", "P1234567A"]), "number below its label supported");
+Check(!IdentityIdOcr.Matches("Philippine Passport", "P1234567A", ["PASSPORT", "Passport No. P1234567A/1234"]), "number prefix before slash blocked");
+Check(!IdentityIdOcr.Matches("Philippine Passport", "P1234567A", ["PASSPORT", "Passport No. P1234567A 1234"]), "number prefix before spaced digits blocked");
+var tsv="level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"+
+"5\t1\t1\t1\t1\t1\t0\t0\t0\t0\t99\t1234\n5\t1\t1\t1\t1\t2\t0\t0\t0\t0\t20\t5678\n";
+Check(IdentityIdOcr.ConfidentLines(tsv).Length == 0, "low confidence digit discards entire OCR line");
+var protection = new EphemeralDataProtectionProvider();
+var ocr = new IdentityIdOcr(protection, NullLogger<IdentityIdOcr>.Instance);
+var bytes = new byte[]{1,2,3};
+string Token(DateTime expiry) => protection.CreateProtector("tts.identity.ocr.v1").Protect(JsonSerializer.Serialize(new {UserId=42,Type="Driver's License",Number="A0123456789",Hash=Convert.ToHexString(SHA256.HashData(bytes)),Expires=expiry}));
+var token=Token(DateTime.UtcNow.AddMinutes(1));
+Check(ocr.ValidReceipt(token,42,"Driver's License","A01-23-456789",bytes), "signed receipt accepts unchanged upload");
+Check(!ocr.ValidReceipt(token,42,"Driver's License","A0123456789",[1,2,4]), "swapping uploaded ID invalidates receipt");
+Check(!ocr.ValidReceipt(token,43,"Driver's License","A0123456789",bytes), "receipt cannot be reused by another account");
+Check(!ocr.ValidReceipt(token,42,"UMID","A0123456789",bytes), "changing ID type invalidates receipt");
+Check(!ocr.ValidReceipt(token,42,"Driver's License","99999999999",bytes), "changing number invalidates receipt");
+Check(!ocr.ValidReceipt(Token(DateTime.UtcNow.AddSeconds(-1)),42,"Driver's License","A0123456789",bytes), "expired receipt rejected");
+Check(!ocr.ValidReceipt("invalid",42,"Driver's License","A0123456789",bytes), "unsigned receipt rejected");
+var invalid = await ocr.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/png",default);
+Check(!invalid.Success && invalid.Token is null, "missing engine or invalid image blocks rather than issuing an unchecked receipt");

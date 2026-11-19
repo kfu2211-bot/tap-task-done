@@ -15,6 +15,7 @@
     <p>Upload clear and readable copies of your documents.</p>
 </div>
 <form id="identityForm" method="post" enctype="multipart/form-data">
+    <input type="hidden" id="idCheckToken" name="idCheckToken" value="" />
     <input type="hidden" name="captureToken" value="@Model.CaptureToken" />
     <input type="hidden" id="captureSteps" value="@Model.CaptureSteps" />
     <div id="captureFiles" hidden></div>
@@ -33,7 +34,7 @@
         <div class="id-number-section">
             <label for="idNumber">ID Number <span>Required</span></label>
             <input type="text" id="idNumber" name="idNumber" minlength="4" maxlength="50" pattern="[A-Za-z0-9 \-]{4,50}" title="Use the letters and digits printed on your ID. Spaces and hyphens are allowed." required autocomplete="off" spellcheck="false" aria-describedby="idNumberHelp" placeholder="Enter your government ID number" />
-            <small id="idNumberHelp">Enter the exact number printed on this ID. The full number is encrypted for comparison during review and removed with your documents after review.</small>
+            <small id="idNumberHelp">Enter the full number beside the ID-number label on your document. We automatically read the upload and block numbers that do not match. Your full number is encrypted for admin review.</small>
         </div>
     </div>
     <div class="document-row">
@@ -54,7 +55,8 @@
 <div class="selfie-camera" id="selfieCamera" hidden><div class="selfie-frame"><video id="selfieVideo" autoplay muted playsinline hidden></video><img id="selfiePreview" alt="Your captured selfie" hidden /><div class="selfie-guide" aria-hidden="true"></div><span id="faceTarget" class="face-target" aria-hidden="true"></span></div><p class="selfie-frame-hint" id="faceInstruction" role="status" aria-live="polite">Center your face in the circle</p><progress id="faceProgress" max="5" value="0" aria-label="Camera movements completed"></progress><p id="faceStepCount">0 of 5 movements completed</p><button type="button" id="restartFaceGuide">Restart movements</button></div>
 <input type="file" name="selfie" id="selfieFile" accept="image/jpeg,image/png" hidden />
 <p class="face-auto-notice">Automatic checks: no eyeglasses, sunglasses or face mask; both eyes visible; no hands covering your face. Follow the camera instruction if a check pauses. Detection can make mistakes; an admin still reviews your photos.</p>
-<div class="selfie-actions"><button type="button" id="openCamera">Open camera</button><button type="button" id="captureSelfie" hidden disabled>Capture selfie</button><button type="button" id="retakeSelfie" hidden>Retake</button></div>
+<p id="idCheckMessage" role="status" aria-live="polite">Your uploaded ID type and number must pass automatic reading before the camera opens. This does not establish document authenticity.</p>
+<div class="selfie-actions"><button type="button" id="checkIdDetails">Check ID details</button><button type="button" id="openCamera">Open camera</button><button type="button" id="captureSelfie" hidden disabled>Capture selfie</button><button type="button" id="retakeSelfie" hidden>Retake</button></div>
 <p id="selfieMessage" role="status" aria-live="polite">Allow camera access when prompted. HTTPS or localhost is required.</p>
 </section>
 <div class="submit-area"><button type="button" id="reviewIdentity">Review submission</button></div>

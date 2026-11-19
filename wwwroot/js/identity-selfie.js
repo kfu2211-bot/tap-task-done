@@ -15,6 +15,43 @@
     video.addEventListener("loadeddata", updateCapture);
     let stream, selfieUrl, idUrl, reviewed = false, opening = false;
     let cameraVersion = 0;
+    let checkingId = false, checkedFile, checkedNumber, checkedType;
+    const idNumber = el('idNumber'), documentType = el('documentType'), governmentId = el('governmentId');
+    function idChecked() {
+        return !!el('idCheckToken').value && checkedFile === governmentId.files[0] && checkedNumber === idNumber.value && checkedType === documentType.value;
+    }
+    async function checkId() {
+        if (checkingId) return false;
+        if (idChecked()) return true;
+        if (!documentType.reportValidity() || !idNumber.reportValidity() || !governmentId.reportValidity() || !consent.reportValidity()) return false;
+        const selectedFile = governmentId.files[0], number = idNumber.value, type = documentType.value;
+        checkingId = true; el('checkIdDetails').disabled = true; el('openCamera').disabled = true;
+        el('idCheckMessage').textContent = 'Reading your uploaded ID and checking its full number…';
+        el('idCheckToken').value = '';
+        const controller = new AbortController();
+        const checkTimeout = setTimeout(() => controller.abort(), 35000);
+        try {
+            const data = new FormData();
+            data.set('__RequestVerificationToken', form.elements.namedItem('__RequestVerificationToken').value);
+            data.set('governmentId', selectedFile); data.set('idNumber', number); data.set('documentType', type); data.set('consent', 'true');
+            const url = new URL(form.action); url.searchParams.set('handler', 'CheckId');
+            const response = await fetch(url, { method: 'POST', body: data, credentials: 'same-origin', signal: controller.signal });
+            if (!response.headers.get('content-type')?.includes('application/json')) throw new Error();
+            const result = await response.json();
+            if (selectedFile !== governmentId.files[0] || number !== idNumber.value || type !== documentType.value || !consent.checked) return false;
+            el('idCheckMessage').textContent = result.message;
+            if (!response.ok || !result.success || !result.token) return false;
+            checkedFile = selectedFile; checkedNumber = number; checkedType = type; el('idCheckToken').value = result.token;
+            return true;
+        } catch { el('idCheckMessage').textContent = 'ID checking could not complete. Check your connection and try again. The camera stays locked until the ID matches.'; return false; }
+        finally { clearTimeout(checkTimeout); checkingId = false; el('checkIdDetails').disabled = false; el('openCamera').disabled = false; }
+    }
+    el('checkIdDetails').addEventListener('click', checkId);
+    [idNumber, documentType, governmentId].forEach(input => input.addEventListener('input', () => {
+        el('idCheckToken').value = ''; checkedFile = null;
+        preview.hidden = true; file.value = ''; stop(); guide.reset(); invalidate();
+        el('idCheckMessage').textContent = 'ID details changed. Check your ID again before taking a selfie.';
+    }));
     function stop() {
         cameraVersion++;
         guide.stop();
@@ -36,6 +73,8 @@
         opening = true;
         const version = cameraVersion;
         try {
+            if (!await checkId()) return;
+            if (version !== cameraVersion || !consent.checked || document.hidden) return;
             message.textContent = 'Loading automatic face, glasses, mask and hand checks on your device. The first load may take a moment.';
             preview.hidden = true; file.value = ''; invalidate(); guide.reset();
             await guide.load();

@@ -42,6 +42,7 @@ if (!verificationEnabled && builder.Configuration.GetValue<bool>("IdentityVerifi
     verificationEnabled = true;
 }
 builder.Services.AddSingleton(new IdentityVerificationAvailability(verificationEnabled));
+builder.Services.AddSingleton<IdentityIdOcr>();
 
 // Hosting services such as Render provide the port at runtime. This keeps the
 // local development address unchanged while making the deployed app reachable.

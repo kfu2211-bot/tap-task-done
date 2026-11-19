@@ -8,7 +8,7 @@ using tts.Data;
 namespace tts.Pages;
 [Authorize]
 [RequestSizeLimit(28 * 1024 * 1024)]
-public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionProvider protection, IdentityVerificationAvailability availability, IWebHostEnvironment environment, ILogger<IdentityVerificationModel> logger) : PageModel
+public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionProvider protection, IdentityVerificationAvailability availability, IWebHostEnvironment environment, ILogger<IdentityVerificationModel> logger, IdentityIdOcr idOcr) : PageModel
 {
     public bool IsDevelopment => environment.IsDevelopment();
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
@@ -28,7 +28,21 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { logger.LogWarning(ex, "Identity verification unavailable"); Notice = "Verification is temporarily unavailable. Please try again later."; }
         return Page();
     }
-    public async Task<IActionResult> OnPostAsync(string? idNumber, IFormFile? governmentId, IFormFile? certification, IFormFile? supportingDocument, IFormFile? selfie, bool consent, string? documentType, string? captureToken, CancellationToken ct)
+    public async Task<IActionResult> OnPostCheckIdAsync(string? idNumber, string? documentType, IFormFile? governmentId, bool consent, CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+        if (!availability.Enabled) return NotFound();
+        if (UserId <= 0 || !consent || !IdentityDocumentTypes.Supports(documentType) || !IdentityDocumentTypes.ValidNumber(idNumber) || governmentId is null)
+            return new JsonResult(new { success = false, message = "Choose your ID type, enter its printed number, upload the ID and agree to identity review first." }) { StatusCode = 422 };
+        try
+        {
+            var file = await ReadFile(governmentId, ct);
+            var result = await idOcr.CheckAsync(UserId, documentType!, idNumber!, file.Bytes, file.Type, ct);
+            return new JsonResult(new { success = result.Success, message = result.Message, token = result.Token }) { StatusCode = result.Success ? 200 : 422 };
+        }
+        catch (ArgumentException) { return new JsonResult(new { success = false, message = "Choose a valid JPG, PNG or PDF no larger than 5 MB." }) { StatusCode = 422 }; }
+    }
+    public async Task<IActionResult> OnPostAsync(string? idNumber, IFormFile? governmentId, IFormFile? certification, IFormFile? supportingDocument, IFormFile? selfie, bool consent, string? documentType, string? captureToken, string? idCheckToken, CancellationToken ct)
     {
         if (!availability.Enabled) return NotFound();
         if (!IdentityDocumentTypes.Supports(documentType)) { Notice = "Choose a supported government photo ID type. Other images are not accepted as identity documents."; return RedirectToPage(); }
@@ -51,6 +65,11 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
             var selfieFile = await ReadFile(selfie, ct);
             if (selfieFile.Type is not ("image/jpeg" or "image/png")) throw new ArgumentException();
             var idFile = await ReadFile(governmentId, ct); (byte[] Bytes, string Type)? cert = certification is null || certification.Length == 0 ? null : await ReadFile(certification, ct); (byte[] Bytes, string Type)? other = supportingDocument is null || supportingDocument.Length == 0 ? null : await ReadFile(supportingDocument, ct);
+            if (!idOcr.ValidReceipt(idCheckToken, UserId, documentType!, idNumber, idFile.Bytes))
+            {
+                var check = await idOcr.CheckAsync(UserId, documentType!, idNumber, idFile.Bytes, idFile.Type, ct);
+                if (!check.Success) { Notice = check.Message; return RedirectToPage(); }
+            }
             // TiDB does not support SERIALIZABLE. Lock the stable owner row to
             // serialize this user's submissions, including their first request.
             await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
