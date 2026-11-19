@@ -1,19 +1,32 @@
 (() => {
     const section = document.querySelector('.messages-current');
     if (!section) return;
-    // Load the other participant's saved photo; preserve initials on missing/error responses.
-    section.querySelectorAll('.conversation-avatar[data-photo-user-id]').forEach(avatar => {
-        const userId = avatar.dataset.photoUserId;
-        if (!/^\d+$/.test(userId || '')) return;
-        const image = new Image();
-        image.alt = '';
-        image.decoding = 'async';
-        image.addEventListener('load', () => {
-            avatar.replaceChildren(image);
-            avatar.classList.add('has-profile-photo');
-        }, { once: true });
-        image.src = '/ProfilePhoto?handler=Client&userId=' + encodeURIComponent(userId);
-    });
+    // Reuse loaded photos when polling replaces conversation rows.
+    const participantPhotos = new Map();
+    function loadParticipantPhotos(root = section) {
+        root.querySelectorAll('.conversation-avatar[data-photo-user-id]').forEach(avatar => {
+            const userId = avatar.dataset.photoUserId;
+            if (!/^\d+$/.test(userId || '') || avatar.dataset.photoRequested) return;
+            avatar.dataset.photoRequested = 'true';
+            function showPhoto(image) {
+                avatar.replaceChildren(image.cloneNode(true));
+                avatar.classList.add('has-profile-photo');
+            }
+            if (participantPhotos.has(userId)) {
+                showPhoto(participantPhotos.get(userId));
+                return;
+            }
+            const image = new Image();
+            image.alt = '';
+            image.decoding = 'async';
+            image.addEventListener('load', () => {
+                participantPhotos.set(userId, image);
+                showPhoto(image);
+            }, { once: true });
+            image.src = '/ProfilePhoto?handler=Client&userId=' + encodeURIComponent(userId);
+        });
+    }
+    loadParticipantPhotos();
     let updating = false;
     const search = section.querySelector('#conversationSearch');
     function filterConversations() {
@@ -53,6 +66,7 @@
             const updatedList = page.querySelector('.conversation-results');
             if (list && updatedList && list.innerHTML !== updatedList.innerHTML) {
                 list.replaceChildren(...Array.from(updatedList.childNodes, node => document.importNode(node, true)));
+                loadParticipantPhotos(list);
                 filterConversations();
             }
             const count = section.querySelector('.conversation-count');
