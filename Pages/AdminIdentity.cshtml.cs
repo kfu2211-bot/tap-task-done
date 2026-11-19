@@ -98,10 +98,14 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
             return RedirectToPage(new { embedded = Embedded, queue = "approved", recordId = id });
         }
 
-        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
-        var isCurrent = await db.IdentityRequests.AnyAsync(r => r.Id == id && r.Status == "approved" &&
-            !db.IdentityRequests.Any(newer => newer.UserId == r.UserId && newer.Id > r.Id), ct);
-        if (!isCurrent)
+        var ownerId = await db.IdentityRequests.Where(r => r.Id == id).Select(r => (int?)r.UserId).SingleOrDefaultAsync(ct);
+        if (ownerId is null) { Notice = "Verification request is unavailable."; return RedirectToPage(new { embedded = Embedded, queue = "approved" }); }
+        // Use the same owner-first lock order as submission, without requiring
+        // SERIALIZABLE (unsupported by TiDB).
+        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
+        await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {ownerId.Value} FOR UPDATE").AsNoTracking().ToListAsync(ct);
+        var latest = (await db.IdentityRequests.FromSqlInterpolated($"SELECT * FROM identity_requests WHERE UserId = {ownerId.Value} ORDER BY Id DESC LIMIT 1 FOR UPDATE").AsNoTracking().ToListAsync(ct)).SingleOrDefault();
+        if (latest?.Id != id || latest.Status != "approved")
         {
             Notice = "This request is no longer the user's current approved verification.";
             return RedirectToPage(new { embedded = Embedded, queue = "approved" });

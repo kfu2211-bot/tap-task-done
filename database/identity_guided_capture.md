@@ -16,6 +16,10 @@ The admin must read and enter the full number and ID type from the uploaded docu
 
 New evidence uses the existing `identity_resources` table; no migration is needed. The existing retention worker removes all evidence other than consent 30 days after review. Only the last four ID characters remain in request metadata.
 
+## TiDB deployment compatibility
+
+Submission and admin renewal use `REPEATABLE READ`, with `SELECT ... FOR UPDATE` on the account row followed by a locking read of the latest verification request. The account lock also serializes first-time submissions when there is no request row yet. Both paths acquire locks in the same order. TiDB rejects `SERIALIZABLE`, which previously caused the generic save error after a valid camera submission. Deploy the updated application; no schema change or `tidb_skip_isolation_level_check` setting is required.
+
 ## Limits
 
 Browser pose/accessory checks and uploaded frames are untrusted evidence for manual review. A client can fabricate uploads. Model predictions can miss thin glasses, unusual coverings, or partially hidden features and can reject clear faces, especially in poor lighting or turned poses. Unknown coverings are not guaranteed to be detected. This flow does not provide certified liveness, presentation attack/deepfake detection, automated face identity matching, OCR, or verification against government records. Passing the camera guide never automatically approves an account or proves that a document is genuine. Do not describe it as a certified identity verification service.

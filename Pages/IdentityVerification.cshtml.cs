@@ -51,8 +51,15 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
             var selfieFile = await ReadFile(selfie, ct);
             if (selfieFile.Type is not ("image/jpeg" or "image/png")) throw new ArgumentException();
             var idFile = await ReadFile(governmentId, ct); (byte[] Bytes, string Type)? cert = certification is null || certification.Length == 0 ? null : await ReadFile(certification, ct); (byte[] Bytes, string Type)? other = supportingDocument is null || supportingDocument.Length == 0 ? null : await ReadFile(supportingDocument, ct);
-            await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
-            var latest = await db.IdentityRequests.Where(x => x.UserId == UserId).OrderByDescending(x => x.Id).Select(x => x.Status).FirstOrDefaultAsync(ct);
+            // TiDB does not support SERIALIZABLE. Lock the stable owner row to
+            // serialize this user's submissions, including their first request.
+            await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
+            var owner = await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {UserId} FOR UPDATE").AsNoTracking().ToListAsync(ct);
+            if (owner.Count != 1) { Notice = "Your account could not be found. Sign in again before submitting."; return RedirectToPage(); }
+            // A locking read sees the latest committed request after waiting for
+            // the owner lock, rather than an older repeatable-read snapshot.
+            var current = await db.IdentityRequests.FromSqlInterpolated($"SELECT * FROM identity_requests WHERE UserId = {UserId} ORDER BY Id DESC LIMIT 1 FOR UPDATE").AsNoTracking().ToListAsync(ct);
+            var latest = current.SingleOrDefault()?.Status;
             if (latest is "pending" or "approved") { Notice = "A request is already pending or approved."; return RedirectToPage(); }
             var protector = protection.CreateProtector("tts.identity.documents.v1");
             var request = new IdentityRequest { UserId = UserId, IdLast4 = idNumber[^4..], Status = "pending", CreatedAt = DateTime.UtcNow };
