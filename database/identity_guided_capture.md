@@ -1,12 +1,13 @@
 # Free guided identity capture
 
-This flow uses locally hosted MediaPipe face landmarks. It requires no paid API, provider account, or API key. All model assets under `wwwroot/vendor/mediapipe` must be included when publishing. `Program.cs` serves `.task` files as binary model data.
+This flow uses locally hosted MediaPipe face/hand landmarks and FaceAttribNet for glasses, sunglasses, mask and eye visibility checks. It requires no paid API, provider account, or API key. All assets under `wwwroot/vendor/mediapipe`, `wwwroot/vendor/face-attributes` and `wwwroot/vendor/onnxruntime` must be included when publishing. `Program.cs` serves `.task` and `.onnx` files as binary model data. The additional local models/runtime add approximately 62 MB to the first camera load; browser caching can reduce subsequent loads.
 
 ## User flow
 
 - Choose the actual government ID type and enter the number printed on it.
 - Consent to encrypted storage of the full number, ID, selfie and movement photos.
-- Complete five guided poses: front, a randomized order of left/right/tilt, and front again. The browser checks one visible face, framing, basic lighting and pose stability before capturing each frame.
+- Complete five guided poses: front, a randomized order of left/right/tilt, and front again. The browser checks one visible face, framing, basic lighting, pose stability, glasses, sunglasses, mask, eye openness and detected hand overlap before capturing each frame. The former readiness checkbox has been removed.
+- Accessory predictions >=0.5 block with a specific removal instruction; predictions >=0.2 are uncertain and also block. Both eye-open scores must be >=0.65. These are application policy thresholds, not calibrated guarantees. A blink pauses progress without discarding earlier valid frames. Face loss, accessory detection, uncertain accessories or hand coverage reset the movement evidence. The final selfie is checked afresh and encoded from the exact checked frame.
 - Capture the final selfie and review the submission. HTTPS or localhost and a compatible camera browser are required. A two-minute movement timeout can be restarted; the signed submission session expires after twenty minutes, requiring a page reload.
 
 ## Review
@@ -17,4 +18,6 @@ New evidence uses the existing `identity_resources` table; no migration is neede
 
 ## Limits
 
-Browser pose checks and uploaded frames are untrusted evidence for manual review. A client can fabricate uploads. This flow does not provide certified liveness, presentation attack/deepfake detection, automated face identity matching, OCR, or verification against government records. Passing the camera guide never automatically approves an account or proves that a document is genuine. Do not describe it as a certified identity verification service.
+Browser pose/accessory checks and uploaded frames are untrusted evidence for manual review. A client can fabricate uploads. Model predictions can miss thin glasses, unusual coverings, or partially hidden features and can reject clear faces, especially in poor lighting or turned poses. Unknown coverings are not guaranteed to be detected. This flow does not provide certified liveness, presentation attack/deepfake detection, automated face identity matching, OCR, or verification against government records. Passing the camera guide never automatically approves an account or proves that a document is genuine. Do not describe it as a certified identity verification service.
+
+Verification: `node tests/identity-face-visibility.cjs` covers accessory and uncertainty gates, hand overlap, progress clearing, exact-frame capture blocking and async session cancellation. Browser inference on the upstream public test samples blocked all eight covered/closed-eye samples, and the clear face in the group sample passed the visibility classifier. This small sample does not measure production accuracy. Actual camera testing on supported phones/laptops remains necessary.

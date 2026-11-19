@@ -4,16 +4,14 @@
     const el = id => document.getElementById(id);
     const video = el('selfieVideo'), preview = el('selfiePreview'), file = el('selfieFile');
     const review = el('identityReview'), message = el('selfieMessage');
-    const consent = el("selfieConsent"), ready = el("selfieReady"), capture = el("captureSelfie");
-    const readiness = el("selfieReadiness");
+    const consent = el("selfieConsent"), capture = el("captureSelfie");
     let guideReady = false;
     const guide = new window.IdentityFaceGuide(video, JSON.parse(el('captureSteps').value), value => { guideReady = value; updateCapture(); });
     let encoding = false;
     function canCapture() {
-        return Boolean(stream?.active && video.videoWidth && consent.checked && ready.checked && guideReady && guide.complete && !encoding);
+        return Boolean(stream?.active && video.videoWidth && consent.checked && guideReady && guide.complete && !encoding);
     }
     function updateCapture() { capture.disabled = !canCapture(); }
-    ready.addEventListener("change", updateCapture);
     video.addEventListener("loadeddata", updateCapture);
     let stream, selfieUrl, idUrl, reviewed = false, opening = false;
     let cameraVersion = 0;
@@ -25,8 +23,6 @@
         video.srcObject = null;
         video.hidden = true;
         capture.hidden = true;
-        readiness.hidden = true;
-        ready.checked = false;
         updateCapture();
         el('selfieCamera').hidden = preview.hidden;
         el('openCamera').hidden = !preview.hidden;
@@ -40,7 +36,7 @@
         opening = true;
         const version = cameraVersion;
         try {
-            message.textContent = 'Loading face tracking on your device. The first load may take a moment.';
+            message.textContent = 'Loading automatic face, glasses, mask and hand checks on your device. The first load may take a moment.';
             preview.hidden = true; file.value = ''; invalidate(); guide.reset();
             await guide.load();
             if (version !== cameraVersion || !consent.checked || document.hidden) return;
@@ -56,9 +52,9 @@
                 message.textContent = "Camera disconnected. Open the camera to try again.";
             }, { once: true }));
             preview.hidden = true; file.value = ''; invalidate();
-            capture.hidden = false; readiness.hidden = false; updateCapture(); el('openCamera').hidden = true; el('retakeSelfie').hidden = true;
+            capture.hidden = false; updateCapture(); el('openCamera').hidden = true; el('retakeSelfie').hidden = true;
             guide.start();
-            message.textContent = 'Follow each movement prompt, then confirm your face is clear to capture your selfie.';
+            message.textContent = 'Remove glasses and any face covering, keep your hands away, and follow each prompt. Capture unlocks after automatic checks pass.';
         } catch {
             if (version !== cameraVersion) return;
             stop();
@@ -76,15 +72,13 @@
         const capturedStream = stream;
         encoding = true;
         updateCapture();
-        const canvas = document.createElement('canvas');
-        const scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
-        canvas.width = Math.round(video.videoWidth * scale); canvas.height = Math.round(video.videoHeight * scale);
-        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .88));
+        const version = cameraVersion;
+        message.textContent = 'Checking this selfie for glasses, face covering and visible eyes…';
+        const blob = await guide.captureSelfie();
         encoding = false;
         updateCapture();
-        if (stream !== capturedStream || !canCapture()) return;
-        if (!blob) { message.textContent = 'Could not capture your selfie. Try again.'; return; }
+        if (stream !== capturedStream || cameraVersion !== version || !consent.checked) return;
+        if (!blob) { message.textContent = 'Selfie blocked. Follow the camera instruction and complete the face checks again.'; return; }
         const transfer = new DataTransfer(); transfer.items.add(new File([blob], 'selfie.jpg', { type: 'image/jpeg' })); file.files = transfer.files;
         if (selfieUrl) URL.revokeObjectURL(selfieUrl);
         selfieUrl = URL.createObjectURL(blob); preview.src = selfieUrl; preview.hidden = false;

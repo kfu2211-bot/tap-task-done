@@ -184,6 +184,7 @@ if (!lanPreview)
 }
 var staticContentTypes = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
 staticContentTypes.Mappings[".task"] = "application/octet-stream";
+staticContentTypes.Mappings[".onnx"] = "application/octet-stream";
 app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = staticContentTypes });
 
 app.UseRouting();

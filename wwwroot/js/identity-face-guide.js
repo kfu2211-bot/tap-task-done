@@ -21,22 +21,37 @@
         if (step === 'right') return p.yaw < -.26 && p.yaw > -.85 && Math.abs(p.roll) < .22;
         return step === 'tilt' && Math.abs(p.roll) > .22 && Math.abs(p.roll) < .5 && Math.abs(p.yaw) < .2;
     }
+    function handCoversFace(hands, face) {
+        const xs = oval.map(i => face[i].x), ys = oval.map(i => face[i].y);
+        const x1 = Math.min(...xs), x2 = Math.max(...xs), y1 = Math.min(...ys), y2 = Math.max(...ys);
+        return hands.some(hand => {
+            const hx = hand.map(p => p.x), hy = hand.map(p => p.y);
+            return Math.max(...hx) >= x1 && Math.min(...hx) <= x2 && Math.max(...hy) >= y1 && Math.min(...hy) <= y2;
+        });
+    }
     class FaceGuide {
         constructor(video, steps, onReady) {
             this.video = video; this.steps = steps; this.onReady = onReady;
             this.canvas = document.createElement('canvas');
             this.light = document.createElement('canvas'); this.light.width = this.light.height = 32;
             this.lightContext = this.light.getContext('2d', { willReadFrequently: true });
+            this.visibility = new window.IdentityFaceVisibility();
+            this.scan = document.createElement('canvas');
         }
         async load() {
-            if (this.detector) return;
-            const { FaceLandmarker, FilesetResolver } = await import('/vendor/mediapipe/vision_bundle.mjs');
+            if (this.detector && this.hands && this.visibility.session) return;
+            const { FaceLandmarker, HandLandmarker, FilesetResolver } = await import('/vendor/mediapipe/vision_bundle.mjs');
             const files = await FilesetResolver.forVisionTasks('/vendor/mediapipe');
-            this.detector = await FaceLandmarker.createFromOptions(files, {
+            this.detector ??= await FaceLandmarker.createFromOptions(files, {
                 baseOptions: { modelAssetPath: '/vendor/mediapipe/face_landmarker.task', delegate: 'CPU' },
                 runningMode: 'VIDEO', numFaces: 2, minFaceDetectionConfidence: .7,
                 minFacePresenceConfidence: .7, minTrackingConfidence: .7
             });
+            this.hands ??= await HandLandmarker.createFromOptions(files, {
+                baseOptions: { modelAssetPath: '/vendor/mediapipe/hand_landmarker.task', delegate: 'CPU' },
+                runningMode: 'VIDEO', numHands: 2, minHandDetectionConfidence: .5, minHandPresenceConfidence: .5
+            });
+            await this.visibility.load();
         }
         reset() {
             this.stop(); this.index = 0; this.frames = []; this.heldSince = null;
@@ -54,42 +69,83 @@
             document.getElementById('faceTarget').dataset.pose = this.steps[this.index] || 'front';
         }
         async snapshot() {
-            const scale = Math.min(1, 640 / Math.max(this.video.videoWidth, this.video.videoHeight));
-            this.canvas.width = Math.round(this.video.videoWidth * scale);
-            this.canvas.height = Math.round(this.video.videoHeight * scale);
-            this.canvas.getContext('2d').drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+            this.canvas.width = this.scan.width;
+            this.canvas.height = this.scan.height;
+            this.canvas.getContext('2d').drawImage(this.scan, 0, 0);
             return new Promise(resolve => this.canvas.toBlob(resolve, 'image/jpeg', .85));
         }
         brightEnough() {
-            const w = this.video.videoWidth, h = this.video.videoHeight, side = Math.min(w, h) * .5;
-            this.lightContext.drawImage(this.video, (w - side) / 2, (h - side) / 2, side, side, 0, 0, 32, 32);
+            const w = this.scan.width, h = this.scan.height, side = Math.min(w, h) * .5;
+            this.lightContext.drawImage(this.scan, (w - side) / 2, (h - side) / 2, side, side, 0, 0, 32, 32);
             const pixels = this.lightContext.getImageData(0, 0, 32, 32).data;
             let total = 0;
             for (let i = 0; i < pixels.length; i += 4) total += .2126 * pixels[i] + .7152 * pixels[i + 1] + .0722 * pixels[i + 2];
             const average = total / (pixels.length / 4);
             return average > 35 && average < 235;
         }
-        tick() {
+        async inspect() {
+            const scale = Math.min(1, 640 / Math.max(this.video.videoWidth, this.video.videoHeight));
+            this.scan.width = Math.round(this.video.videoWidth * scale);
+            this.scan.height = Math.round(this.video.videoHeight * scale);
+            this.scan.getContext('2d').drawImage(this.video, 0, 0, this.scan.width, this.scan.height);
+            const now = performance.now();
+            const result = this.detector.detectForVideo(this.scan, now);
+            if (result.faceLandmarks.length !== 1) return { error: result.faceLandmarks.length ? 'Only one person should be in the camera.' : 'No clear face detected. Uncover your whole face and look at the camera.' };
+            const face = result.faceLandmarks[0];
+            const p = pose(face, this.scan.width, this.scan.height);
+            if (!p) return { error: 'Keep your whole face inside the circle. Adjust your distance.' };
+            if (!this.brightEnough()) return { error: 'Use even lighting. Avoid dark rooms and bright backlight.' };
+            if (handCoversFace(this.hands.detectForVideo(this.scan, now).landmarks, face)) return { error: 'Move your hands away from your face. Keep your eyes, nose and mouth visible.' };
+            return { error: await this.visibility.check(this.scan, face), p };
+        }
+        block(error, resetProgress = !error.startsWith('Keep both eyes open')) {
+            this.onReady(false); this.heldSince = null;
+            // Do not keep completed evidence when a covering or lost face appears.
+            if (resetProgress) {
+                this.index = 0; this.frames = [];
+                document.getElementById('captureFiles').replaceChildren();
+            }
+            this.update(error);
+        }
+        async captureSelfie() {
+            if (!this.running || this.captureRequested || !this.complete) return null;
+            const version = this.version;
+            this.captureRequested = true; this.onReady(false);
+            if (this.saving) await new Promise(resolve => { this.onIdle = resolve; });
+            if (!this.running || version !== this.version || !this.complete) { this.captureRequested = false; return null; }
+            this.saving = true; this.onReady(false);
+            try {
+                const { error, p } = await this.inspect();
+                if (!this.running || version !== this.version) return null;
+                if (error) { this.block(error); return null; }
+                if (!matches('front', p)) { this.update('Look straight ahead before capturing.'); return null; }
+                // Encode the exact frame inspected above, never a later unchecked frame.
+                return await this.snapshot();
+            } catch {
+                if (version === this.version) this.block('Automatic face checks failed. Restart movements to try again.');
+                return null;
+            } finally { if (version === this.version) this.saving = false; this.captureRequested = false; }
+        }
+        async tick() {
             if (!this.running) return;
             this.animation = requestAnimationFrame(() => this.tick());
-            if (this.saving || this.video.readyState < 2 || this.lastVideoTime === this.video.currentTime) return;
+            if (this.saving || this.captureRequested || this.video.readyState < 2 || this.lastVideoTime === this.video.currentTime) return;
             if (this.lastDetection && performance.now() - this.lastDetection < 100) return;
             this.lastDetection = performance.now();
             this.lastVideoTime = this.video.currentTime;
             if (performance.now() - this.started > 120000) {
                 this.stop(); this.update('Session paused. Choose Restart movements to try again.'); return;
             }
+            const checkVersion = this.version;
             try {
-                const result = this.detector.detectForVideo(this.video, performance.now());
-                let error = '';
-                if (result.faceLandmarks.length !== 1) error = result.faceLandmarks.length ? 'Only one person should be in the camera.' : 'No face detected. Face the camera in good light.';
-                const p = !error && pose(result.faceLandmarks[0], this.video.videoWidth, this.video.videoHeight);
-                if (!error && !p) error = 'Keep your whole face inside the circle. Adjust your distance.';
-                if (!error && !this.brightEnough()) error = 'Use even lighting. Avoid dark rooms and bright backlight.';
-                if (error) { this.heldSince = null; this.onReady(false); this.update(error); return; }
+                this.saving = true;
+                const version = this.version;
+                const { error, p } = await this.inspect();
+                if (!this.running || version !== this.version) return;
+                if (error) { this.block(error); return; }
                 if (this.index === this.steps.length) {
                     this.onReady(matches('front', p));
-                    this.update(matches('front', p) ? 'Movements complete. Look forward and capture your selfie.' : 'Look straight ahead to enable Capture selfie.');
+                    this.update(matches('front', p) ? 'Face checks passed. Look forward and capture your selfie.' : 'Look straight ahead to enable Capture selfie.');
                     return;
                 }
                 const step = this.steps[this.index];
@@ -99,22 +155,23 @@
                 this.heldSince ??= performance.now();
                 this.update(`${instructions[step]} · Hold still`);
                 if (performance.now() - this.heldSince < 700) return;
-                this.saving = true;
-                const version = this.version;
-                this.snapshot().then(blob => {
-                    if (!this.running || version !== this.version) return;
-                    if (!blob) throw new Error('capture');
-                    const transfer = new DataTransfer();
-                    transfer.items.add(new File([blob], `movement-${this.index}.jpg`, { type: 'image/jpeg' }));
-                    const input = document.createElement('input');
-                    input.type = 'file'; input.name = `captureStep${this.index}`; input.files = transfer.files;
-                    document.getElementById('captureFiles').append(input);
-                    this.frames.push(blob); this.index++; this.heldSince = null; this.saving = false;
-                }).catch(() => { if (version === this.version) { this.stop(); this.update('Capture failed. Restart movements to try again.'); } });
+                const blob = await this.snapshot();
+                if (!this.running || version !== this.version) return;
+                if (!blob) throw new Error('capture');
+                const transfer = new DataTransfer();
+                transfer.items.add(new File([blob], `movement-${this.index}.jpg`, { type: 'image/jpeg' }));
+                const input = document.createElement('input');
+                input.type = 'file'; input.name = `captureStep${this.index}`; input.files = transfer.files;
+                document.getElementById('captureFiles').append(input);
+                this.frames.push(blob); this.index++; this.heldSince = null;
             } catch { this.stop(); this.update('Face tracking stopped. Restart movements or try another browser.'); }
+            finally {
+                if (checkVersion === this.version) this.saving = false;
+                this.onIdle?.(); this.onIdle = null;
+            }
         }
         get complete() { return this.index === this.steps.length && this.frames.length === this.steps.length; }
     }
-    if (typeof module !== 'undefined') module.exports = { pose, matches };
+    if (typeof module !== 'undefined') module.exports = { pose, matches, handCoversFace, FaceGuide };
     else window.IdentityFaceGuide = FaceGuide;
 })();
