@@ -14,6 +14,7 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
     public string Queue { get; private set; } = "pending";
     public bool DatabaseUnavailable { get; private set; }
     public Dictionary<long, string> DocumentTypes { get; private set; } = [];
+    public Dictionary<long, string[]> CaptureSequences { get; private set; } = [];
     public bool ReviewEnabled => availability.Enabled;
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     [TempData(Key = "AdminIdentity.Notice")] public string? Notice { get; set; }
@@ -38,6 +39,12 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
                     try { DocumentTypes[type.IdentityRequestId] = System.Text.Encoding.UTF8.GetString(protection.CreateProtector("tts.identity.documents.v1").Unprotect(type.EncryptedData)); }
                     catch (System.Security.Cryptography.CryptographicException) { DocumentTypes[type.IdentityRequestId] = "Unavailable — inspect the submitted document"; }
                 }
+                var sequences = await db.IdentityResources.AsNoTracking().Where(x => ids.Contains(x.IdentityRequestId) && x.Kind == "capture-sequence").ToListAsync(ct);
+                foreach (var sequence in sequences)
+                {
+                    try { CaptureSequences[sequence.IdentityRequestId] = System.Text.Json.JsonSerializer.Deserialize<string[]>(protection.CreateProtector("tts.identity.documents.v1").Unprotect(sequence.EncryptedData)) ?? []; }
+                    catch (Exception ex) when (ex is System.Security.Cryptography.CryptographicException or System.Text.Json.JsonException) { }
+                }
                 var resources = await db.IdentityResources.AsNoTracking().Where(x => ids.Contains(x.IdentityRequestId))
                     .Select(x => new { x.IdentityRequestId, x.Kind, x.ContentType }).ToListAsync(ct);
                 Items = Items.Select(item => item with {
@@ -52,12 +59,32 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
         }
         return Page();
     }
-    public async Task<IActionResult> OnPostReviewAsync(long id, string? decision, string? note, bool matchConfirmed, bool faceVisibleConfirmed, CancellationToken ct)
+    public async Task<IActionResult> OnPostReviewAsync(long id, string? decision, string? note, bool matchConfirmed, bool faceVisibleConfirmed, bool documentConfirmed, bool movementConfirmed, string? numberOnDocument, string? typeOnDocument, CancellationToken ct)
     {
         if (!availability.Enabled) return NotFound(); note = (note ?? "").Trim();
         if (AdminId <= 0 || decision is not ("approved" or "rejected" or "resubmit") || note.Length > 500 || (decision != "approved" && string.IsNullOrWhiteSpace(note))) { Notice = "Add a reason when rejecting or requesting a new submission (up to 500 characters)."; return RedirectToPage(new { embedded = Embedded }); }
         if (decision == "approved" && (!matchConfirmed || !faceVisibleConfirmed)) { Notice = "Confirm that the photos show the same person and that the selfie clearly shows the full face without glasses or a face mask."; return RedirectToPage(new { embedded = Embedded }); }
         if (decision == "approved" && !await db.IdentityResources.AnyAsync(x => x.IdentityRequestId == id && x.Kind == "selfie", ct)) { Notice = "This request has no selfie. Request a new submission with a selfie before approving."; return RedirectToPage(new { embedded = Embedded }); }
+        if (decision == "approved")
+        {
+            if (!documentConfirmed || !movementConfirmed || !IdentityDocumentTypes.ValidNumber(numberOnDocument) || !IdentityDocumentTypes.Supports(typeOnDocument))
+            { Notice = "Read the ID type and full number from the document and confirm document and movement checks before approving."; return RedirectToPage(new { embedded = Embedded }); }
+            var evidence = await db.IdentityResources.AsNoTracking().Where(x => x.IdentityRequestId == id &&
+                (x.Kind == "id" || x.Kind == "id-number" || x.Kind == "document-type" || x.Kind == "capture-sequence" || x.Kind.StartsWith("capture-"))).ToListAsync(ct);
+            var protector = protection.CreateProtector("tts.identity.documents.v1");
+            try
+            {
+                string? ReadText(string kind) => evidence.FirstOrDefault(x => x.Kind == kind) is { } resource ? System.Text.Encoding.UTF8.GetString(protector.Unprotect(resource.EncryptedData)) : null;
+                if (ReadText("id-number") != IdentityDocumentTypes.NormalizeNumber(numberOnDocument!) || ReadText("document-type") != typeOnDocument)
+                { Notice = "The ID type or number read from the document does not match the submission. Request correction or reject the request."; return RedirectToPage(new { embedded = Embedded }); }
+                var steps = System.Text.Json.JsonSerializer.Deserialize<string[]>(ReadText("capture-sequence") ?? "[]");
+                if (steps?.Length != 5 || !evidence.Any(x => x.Kind == "id") || Enumerable.Range(0, 5).Any(i => !evidence.Any(x => x.Kind == $"capture-{i}")))
+                { Notice = "Complete camera evidence is unavailable. Request a new submission before approving."; return RedirectToPage(new { embedded = Embedded }); }
+                foreach (var image in evidence.Where(x => x.Kind == "id" || Enumerable.Range(0, 5).Any(i => x.Kind == $"capture-{i}"))) protector.Unprotect(image.EncryptedData);
+            }
+            catch (Exception ex) when (ex is System.Security.Cryptography.CryptographicException or System.Text.Json.JsonException)
+            { Notice = "Verification evidence cannot be read. Request resubmission before approval."; return RedirectToPage(new { embedded = Embedded }); }
+        }
         var changed = await db.IdentityRequests.Where(x => x.Id == id && x.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, decision).SetProperty(x => x.ReviewNote, note).SetProperty(x => x.ReviewedAt, DateTime.UtcNow).SetProperty(x => x.ReviewReadAt, (DateTime?)null).SetProperty(x => x.ReviewedById, AdminId), ct);
         Notice = changed == 1 ? "Decision saved." : "Request was already reviewed or is unavailable."; return RedirectToPage(new { embedded = Embedded });
     }
@@ -97,7 +124,7 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
 
     public async Task<IActionResult> OnGetDocumentAsync(long id, string kind, CancellationToken ct)
     {
-        if (!availability.Enabled || kind is not ("id" or "certification" or "supporting" or "selfie")) return NotFound();
+        if (!availability.Enabled || kind is not ("id" or "certification" or "supporting" or "selfie" or "capture-0" or "capture-1" or "capture-2" or "capture-3" or "capture-4")) return NotFound();
         var resource = await db.IdentityResources.AsNoTracking().Where(x => x.IdentityRequestId == id && x.Kind == kind).Select(x => new { x.EncryptedData, x.ContentType }).SingleOrDefaultAsync(ct);
         byte[]? data = resource?.EncryptedData; string? type = resource?.ContentType;
         if (resource is null) {

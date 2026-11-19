@@ -182,7 +182,9 @@ if (!lanPreview)
 {
     app.UseHttpsRedirection();
 }
-app.UseStaticFiles();
+var staticContentTypes = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+staticContentTypes.Mappings[".task"] = "application/octet-stream";
+app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = staticContentTypes });
 
 app.UseRouting();
 

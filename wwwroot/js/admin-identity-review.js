@@ -3,12 +3,17 @@ document.querySelectorAll('.identity-review').forEach(form => {
     const approve = form.querySelector('button[value="approved"]');
     const match = form.elements.namedItem('matchConfirmed');
     const faceVisible = form.elements.namedItem('faceVisibleConfirmed');
+    const documentChecked = form.elements.namedItem('documentConfirmed');
+    const movement = form.elements.namedItem('movementConfirmed');
+    const number = form.elements.namedItem('numberOnDocument');
+    const type = form.elements.namedItem('typeOnDocument');
     if (approve && match && faceVisible && !match.disabled) {
         const updateApproval = () => {
-            approve.disabled = submitting || !match.checked || !faceVisible.checked;
+            approve.disabled = submitting || !match.checked || !faceVisible.checked || !documentChecked?.checked || !movement?.checked || !number?.value.trim() || !type?.value;
         };
         match.addEventListener('change', updateApproval);
         faceVisible.addEventListener('change', updateApproval);
+        [documentChecked, movement, number, type].forEach(input => input?.addEventListener('input', updateApproval));
         updateApproval();
     }
     form.addEventListener('submit', event => {
