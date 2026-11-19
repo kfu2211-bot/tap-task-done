@@ -1,6 +1,8 @@
 (() => {
     class CaptureCountdown {
-        constructor({ canCapture, onTick, onCapture, now = () => performance.now(), schedule = setTimeout, cancel = clearTimeout }) {
+        // Keep browser timers bound to their global receiver. Calling a stored
+        // native setTimeout as this.schedule(...) can throw Illegal invocation.
+        constructor({ canCapture, onTick, onCapture, now = () => performance.now(), schedule = (fn, delay) => globalThis.setTimeout(fn, delay), cancel = id => globalThis.clearTimeout(id) }) {
             Object.assign(this, { canCapture, onTick, onCapture, now, schedule, cancel });
             this.started = null; this.timer = null;
         }

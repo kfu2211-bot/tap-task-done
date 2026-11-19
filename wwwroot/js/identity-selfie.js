@@ -10,7 +10,7 @@
     const guide = new window.IdentityFaceGuide(video, JSON.parse(el('captureSteps').value), value => { guideReady = value; updateCapture(); });
     let encoding = false;
     function canCapture() {
-        return Boolean(stream?.active && video.videoWidth && consent.checked && guideReady && guide.complete && (!guide.lastPassedAt || performance.now() - guide.lastPassedAt < 1500) && !encoding);
+        return Boolean(stream?.active && video.videoWidth && consent.checked && guideReady && guide.complete && (!guide.lastPassedAt || performance.now() - guide.lastPassedAt < 5000) && !encoding);
     }
     function updateCapture() {
         const ready = canCapture();
@@ -20,7 +20,15 @@
     autoCountdown = new window.IdentityCaptureCountdown({
         canCapture,
         onTick: seconds => {
-            const indicator = el('selfieCountdown');
+            // Older open tabs can retain markup from the preceding deployment.
+            // Missing countdown markup must never crash the face-tracking loop.
+            let indicator = el('selfieCountdown');
+            if (!indicator) {
+                indicator = document.createElement('span'); indicator.id = 'selfieCountdown';
+                indicator.className = 'selfie-countdown'; indicator.setAttribute('role', 'status');
+                indicator.setAttribute('aria-live', 'polite');
+                (document.querySelector('.selfie-frame') || el('selfieCamera')).append(indicator);
+            }
             indicator.hidden = seconds === null;
             indicator.textContent = seconds === null ? '' : `Hold still — ${seconds}`;
             capture.textContent = seconds === null ? 'Capture selfie' : `Capturing in ${seconds}…`;
@@ -176,6 +184,10 @@
     el('restartFaceGuide').addEventListener('click', () => {
         if (!stream?.active || preview.hidden === false) return;
         guide.start(); invalidate(); message.textContent = 'Movements restarted. Follow the new prompts.';
+    });
+    el('resumeFaceGuide')?.addEventListener('click', async () => {
+        if (!stream?.active || !consent.checked) return;
+        await guide.recover(true);
     });
     async function takeSelfie() {
         if (!canCapture()) return;

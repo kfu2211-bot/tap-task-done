@@ -13,3 +13,18 @@ assert(!countdown.active);assert.equal(captured,1,'failed face checks cancel aut
 ready=true;countdown.update(true);assert.equal(ticks.at(-1),3);advance(3000);assert.equal(captured,2,'countdown restarts at 3 after face becomes clear');
 countdown.update(false);ready=true;countdown.update(true);countdown.reset();advance(5000);assert.equal(captured,2,'closing or pausing camera cancels pending capture');
 console.log('PASS: 3-2-1, capture once, cancel on failed checks, resume countdown and camera stop');
+const vm=require('node:vm'),fs=require('node:fs');
+const browser=vm.createContext({module:{exports:{}},performance:{now:()=>0}});
+vm.runInContext(`
+globalThis.scheduled=0;globalThis.cancelled=0;
+globalThis.setTimeout=function(){if(this!==globalThis)throw new TypeError('Illegal invocation');globalThis.scheduled++;return 1;};
+globalThis.clearTimeout=function(){if(this!==globalThis)throw new TypeError('Illegal invocation');globalThis.cancelled++;};
+`,browser);
+vm.runInContext(fs.readFileSync('wwwroot/js/identity-capture-countdown.js','utf8'),browser);
+const BrowserCountdown=browser.module.exports;
+const native=new BrowserCountdown({canCapture:()=>true,onTick(){},onCapture(){}});
+assert.doesNotThrow(()=>native.update(true),'default timer must use the browser global receiver');
+assert.equal(browser.scheduled,1);
+assert.doesNotThrow(()=>native.reset(),'default cancellation must use the browser global receiver');
+assert.equal(browser.cancelled,1);
+console.log('PASS: strict browser native timer receiver starts and cancels countdown without Illegal invocation');

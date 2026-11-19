@@ -56,6 +56,7 @@
         reset() {
             this.stop(); this.index = 0; this.frames = []; this.heldSince = null;
             this.started = performance.now(); this.lastVideoTime = -1; this.saving = false;
+            this.recoveryAttempts = 0; this.lastPassedAt = 0;
             document.getElementById('captureFiles').replaceChildren();
             this.update('Center your face and look straight ahead.');
         }
@@ -91,11 +92,16 @@
             return average > 35 && average < 235;
         }
         async inspect() {
+            if (!this.video.videoWidth || !this.video.videoHeight || this.video.readyState < 2)
+                return { error: 'Camera is adjusting. Keep your full face in view; your steps are saved.' };
             const scale = Math.min(1, 640 / Math.max(this.video.videoWidth, this.video.videoHeight));
             this.scan.width = Math.round(this.video.videoWidth * scale);
             this.scan.height = Math.round(this.video.videoHeight * scale);
             this.scan.getContext('2d').drawImage(this.video, 0, 0, this.scan.width, this.scan.height);
-            const now = performance.now();
+            // Safari can quantize performance.now(). MediaPipe requires strictly
+            // increasing timestamps even when a fresh selfie follows a live check.
+            const now = Math.max(performance.now(), (this.lastTimestamp || 0) + 1);
+            this.lastTimestamp = now;
             const result = this.detector.detectForVideo(this.scan, now);
             if (result.faceLandmarks.length !== 1) return { error: result.faceLandmarks.length ? 'Only one person should be in the camera.' : 'No clear face detected. Uncover your whole face and look at the camera.' };
             const face = result.faceLandmarks[0];
@@ -131,6 +137,38 @@
                 return null;
             } finally { if (version === this.version) this.saving = false; this.captureRequested = false; }
         }
+        async recover(resetBudget = false) {
+            if (this.recovering) return;
+            if (resetBudget) this.recoveryAttempts = 0;
+            this.stop();
+            const version = this.version;
+            const resume = document.getElementById('resumeFaceGuide');
+            this.recoveryAttempts = (this.recoveryAttempts || 0) + 1;
+            if (this.recoveryAttempts > 2) {
+                if (resume) resume.hidden = false;
+                this.update('Face checks paused. Tap Resume face checks; your completed steps are saved.');
+                return;
+            }
+            this.recovering = true;
+            if (resume) resume.hidden = true;
+            this.update('Reconnecting face checks. Your completed steps are saved.');
+            try {
+                try { this.detector?.close(); } catch { }
+                try { this.hands?.close(); } catch { }
+                try { await this.visibility.session?.release(); } catch { }
+                this.detector = null; this.hands = null; this.visibility.session = null;
+                await this.load();
+                if (this.version !== version) return;
+                this.lastTimestamp = 0; this.lastVideoTime = -1; this.lastDetection = 0;
+                this.started = performance.now(); this.saving = false;
+                this.running = true;
+                this.tick();
+            } catch {
+                if (this.version !== version) return;
+                if (resume) resume.hidden = false;
+                this.update('Face checks could not reconnect. Tap Resume face checks. Your steps are saved.');
+            } finally { this.recovering = false; }
+        }
         async tick() {
             if (!this.running) return;
             this.animation = requestAnimationFrame(() => this.tick());
@@ -148,6 +186,7 @@
                 const version = this.version;
                 const { error, p } = await this.inspect();
                 if (!this.running || version !== this.version) return;
+                this.recoveryAttempts = 0;
                 if (error) { this.block(error); return; }
                 if (this.index === this.steps.length) {
                     const ready = matches('front', p);
@@ -172,7 +211,12 @@
                 input.type = 'file'; input.name = `captureStep${this.index}`; input.files = transfer.files;
                 document.getElementById('captureFiles').append(input);
                 this.frames.push(blob); this.index++; this.heldSince = null;
-            } catch { this.stop(); this.update('Face tracking stopped. Restart movements or try another browser.'); }
+            } catch (error) {
+                // Retain accepted frames and recover the browser's ML sessions.
+                // Do not misreport a runtime exception as a user movement error.
+                console.warn('Identity face check interrupted:', error?.name || 'Error', String(error?.message || '').slice(0,160));
+                void this.recover();
+            }
             finally {
                 if (checkVersion === this.version) this.saving = false;
                 this.onIdle?.(); this.onIdle = null;
