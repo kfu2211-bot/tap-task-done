@@ -61,14 +61,21 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
     }
     public async Task<IActionResult> OnPostReviewAsync(long id, string? decision, string? note, bool matchConfirmed, bool faceVisibleConfirmed, bool documentConfirmed, bool movementConfirmed, string? numberOnDocument, string? typeOnDocument, CancellationToken ct)
     {
+        IActionResult Result(bool success, string message, int statusCode = 422)
+        {
+            if (Request.Headers.Accept.Any(value => value?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true))
+                return new JsonResult(new { success, message, id, status = success ? decision : null }) { StatusCode = success ? 200 : statusCode };
+            Notice = message;
+            return success ? RedirectToPage(new { embedded = Embedded }) : RedirectToPage(new { embedded = Embedded, recordId = id });
+        }
         if (!availability.Enabled) return NotFound(); note = (note ?? "").Trim();
-        if (AdminId <= 0 || decision is not ("approved" or "rejected" or "resubmit") || note.Length > 500 || (decision != "approved" && string.IsNullOrWhiteSpace(note))) { Notice = "Add a reason when rejecting or requesting a new submission (up to 500 characters)."; return RedirectToPage(new { embedded = Embedded }); }
-        if (decision == "approved" && (!matchConfirmed || !faceVisibleConfirmed)) { Notice = "Confirm that the photos show the same person and that the selfie clearly shows the full face without glasses or a face mask."; return RedirectToPage(new { embedded = Embedded }); }
-        if (decision == "approved" && !await db.IdentityResources.AnyAsync(x => x.IdentityRequestId == id && x.Kind == "selfie", ct)) { Notice = "This request has no selfie. Request a new submission with a selfie before approving."; return RedirectToPage(new { embedded = Embedded }); }
+        if (AdminId <= 0 || decision is not ("approved" or "rejected" or "resubmit") || note.Length > 500 || (decision != "approved" && string.IsNullOrWhiteSpace(note))) { return Result(false, "Add a reason when rejecting or requesting a new submission (up to 500 characters)."); }
+        if (decision == "approved" && (!matchConfirmed || !faceVisibleConfirmed)) { return Result(false, "Confirm that the photos show the same person and that the selfie clearly shows the full face without glasses or a face mask."); }
+        if (decision == "approved" && !await db.IdentityResources.AnyAsync(x => x.IdentityRequestId == id && x.Kind == "selfie", ct)) { return Result(false, "This request has no selfie. Request a new submission with a selfie before approving."); }
         if (decision == "approved")
         {
             if (!documentConfirmed || !movementConfirmed || !IdentityDocumentTypes.ValidNumber(numberOnDocument) || !IdentityDocumentTypes.Supports(typeOnDocument))
-            { Notice = "Read the ID type and full number from the document and confirm document and movement checks before approving."; return RedirectToPage(new { embedded = Embedded }); }
+            { return Result(false, "Read the ID type and full number from the document and confirm document and movement checks before approving."); }
             var evidence = await db.IdentityResources.AsNoTracking().Where(x => x.IdentityRequestId == id &&
                 (x.Kind == "id" || x.Kind == "id-number" || x.Kind == "document-type" || x.Kind == "capture-sequence" || x.Kind.StartsWith("capture-"))).ToListAsync(ct);
             var protector = protection.CreateProtector("tts.identity.documents.v1");
@@ -76,17 +83,19 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
             {
                 string? ReadText(string kind) => evidence.FirstOrDefault(x => x.Kind == kind) is { } resource ? System.Text.Encoding.UTF8.GetString(protector.Unprotect(resource.EncryptedData)) : null;
                 if (ReadText("id-number") != IdentityDocumentTypes.NormalizeNumber(numberOnDocument!) || ReadText("document-type") != typeOnDocument)
-                { Notice = "The ID type or number read from the document does not match the submission. Request correction or reject the request."; return RedirectToPage(new { embedded = Embedded }); }
+                { return Result(false, "The ID type or number read from the document does not match the submission. Request correction or reject the request."); }
                 var steps = System.Text.Json.JsonSerializer.Deserialize<string[]>(ReadText("capture-sequence") ?? "[]");
                 if (steps?.Length != 5 || !evidence.Any(x => x.Kind == "id") || Enumerable.Range(0, 5).Any(i => !evidence.Any(x => x.Kind == $"capture-{i}")))
-                { Notice = "Complete camera evidence is unavailable. Request a new submission before approving."; return RedirectToPage(new { embedded = Embedded }); }
+                { return Result(false, "Complete camera evidence is unavailable. Request a new submission before approving."); }
                 foreach (var image in evidence.Where(x => x.Kind == "id" || Enumerable.Range(0, 5).Any(i => x.Kind == $"capture-{i}"))) protector.Unprotect(image.EncryptedData);
             }
             catch (Exception ex) when (ex is System.Security.Cryptography.CryptographicException or System.Text.Json.JsonException)
-            { Notice = "Verification evidence cannot be read. Request resubmission before approval."; return RedirectToPage(new { embedded = Embedded }); }
+            { return Result(false, "Verification evidence cannot be read. Request resubmission before approval."); }
         }
         var changed = await db.IdentityRequests.Where(x => x.Id == id && x.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, decision).SetProperty(x => x.ReviewNote, note).SetProperty(x => x.ReviewedAt, DateTime.UtcNow).SetProperty(x => x.ReviewReadAt, (DateTime?)null).SetProperty(x => x.ReviewedById, AdminId), ct);
-        Notice = changed == 1 ? "Decision saved." : "Request was already reviewed or is unavailable."; return RedirectToPage(new { embedded = Embedded });
+        var message = decision == "resubmit" ? "Resubmission requested. Moved to Rejected / Resubmit. The user will see your reason and can submit new documents."
+            : decision == "rejected" ? "Request rejected. Moved to Rejected / Resubmit. The user will see your reason." : "Request approved. Moved to Approved.";
+        return Result(changed == 1, changed == 1 ? message : "Request was already reviewed or is unavailable. Refresh the queue to see its current status.", 409);
     }
     public async Task<IActionResult> OnPostRenewAsync(long id, string? note, CancellationToken ct)
     {
