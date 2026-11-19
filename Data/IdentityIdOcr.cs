@@ -70,9 +70,9 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
             }
             var tsv = await Run("tesseract", [input, "stdout", "-l", "eng", "--psm", "11", "tsv"], timeout.Token);
             var lines = ConfidentLines(tsv);
-            if (!Matches(type, number, lines)) return new(false, "We could not clearly match the selected ID type and full number to the uploaded ID. Enter the number beside its printed ID-number label and upload a clear, straight photo of the front of that ID. Blurry or unrecognized details cannot be submitted.");
+            if (!Matches(type, number, lines)) return new(false, "ID details could not be matched. Check the full number and upload a clear front photo of the selected ID.");
             var receipt = new Receipt(userId, type, IdentityDocumentTypes.NormalizeNumber(number), Convert.ToHexString(SHA256.HashData(bytes)), DateTime.UtcNow.AddMinutes(20));
-            return new(true, "ID type and number match the text read from your upload. Authenticity still requires admin review.", protection.CreateProtector("tts.identity.ocr.v1").Protect(JsonSerializer.Serialize(receipt)));
+            return new(true, "ID details matched. You can open the camera.", protection.CreateProtector("tts.identity.ocr.v1").Protect(JsonSerializer.Serialize(receipt)));
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return new(false, "ID reading timed out. Try a clear JPG or PNG photo."); }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or IOException or InvalidOperationException)

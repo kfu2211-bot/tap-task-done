@@ -27,6 +27,7 @@
         const selectedFile = governmentId.files[0], number = idNumber.value, type = documentType.value;
         checkingId = true; el('checkIdDetails').disabled = true; el('openCamera').disabled = true;
         el('idCheckMessage').textContent = 'Reading your uploaded ID and checking its full number…';
+        el('idCheckMessage').dataset.state = 'loading';
         el('idCheckToken').value = '';
         const controller = new AbortController();
         const checkTimeout = setTimeout(() => controller.abort(), 35000);
@@ -40,10 +41,11 @@
             const result = await response.json();
             if (selectedFile !== governmentId.files[0] || number !== idNumber.value || type !== documentType.value || !consent.checked) return false;
             el('idCheckMessage').textContent = result.message;
+            el('idCheckMessage').dataset.state = response.ok && result.success ? 'success' : 'error';
             if (!response.ok || !result.success || !result.token) return false;
             checkedFile = selectedFile; checkedNumber = number; checkedType = type; el('idCheckToken').value = result.token;
             return true;
-        } catch { el('idCheckMessage').textContent = 'ID checking could not complete. Check your connection and try again. The camera stays locked until the ID matches.'; return false; }
+        } catch { el('idCheckMessage').textContent = 'Could not check your ID. Check your connection and try again.'; el('idCheckMessage').dataset.state = 'error'; return false; }
         finally { clearTimeout(checkTimeout); checkingId = false; el('checkIdDetails').disabled = false; el('openCamera').disabled = false; }
     }
     el('checkIdDetails').addEventListener('click', checkId);
@@ -51,6 +53,7 @@
         el('idCheckToken').value = ''; checkedFile = null;
         preview.hidden = true; file.value = ''; stop(); guide.reset(); invalidate();
         el('idCheckMessage').textContent = 'ID details changed. Check your ID again before taking a selfie.';
+        el('idCheckMessage').dataset.state = 'neutral';
     }));
     function stop() {
         cameraVersion++;
@@ -93,7 +96,7 @@
             preview.hidden = true; file.value = ''; invalidate();
             capture.hidden = false; updateCapture(); el('openCamera').hidden = true; el('retakeSelfie').hidden = true;
             guide.start();
-            message.textContent = 'Remove glasses and any face covering, keep your hands away, and follow each prompt. Capture unlocks after automatic checks pass.';
+            message.textContent = 'Keep your hands away from your face and follow the circle.';
         } catch {
             if (version !== cameraVersion) return;
             stop();

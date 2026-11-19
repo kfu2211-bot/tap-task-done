@@ -4,6 +4,27 @@
 .identity-review [aria-invalid="true"] { border-color:#a22a26; }
 html[data-theme="dark"] .identity-review-feedback.is-error { color:#ffb5ad; background:#402724; }
 .selfie-section p { line-height:1.6; color:#526c5d; font-size:14px; }
+.selfie-requirements { display:flex; flex-wrap:wrap; gap:8px; padding:0; margin:16px 0 10px; list-style:none; }
+.selfie-requirements li { padding:7px 12px; border:1px solid #bedcca; border-radius:8px; background:#edf6ef; color:#21513b; font-size:13px; font-weight:650; line-height:1.4; }
+.selfie-short-guide { margin:0 0 16px; }
+.selfie-privacy { margin:0 0 20px 28px; max-width:720px; font-size:13px; }
+.selfie-privacy summary { width:fit-content; min-height:44px; padding:10px 0; box-sizing:border-box; cursor:pointer; color:#24664b; font-weight:600; }
+.selfie-privacy summary:focus-visible { outline:3px solid #61bc96; outline-offset:3px; border-radius:4px; }
+.selfie-section .selfie-privacy p { font-size:13px; margin:8px 0; }
+.selfie-section .id-check-status { padding:12px 15px; border:1px solid #c8dfd1; border-left:4px solid #79a68b; border-radius:8px; margin:18px 0 14px; background:#fff; color:#365746; font-weight:500; }
+.selfie-section .id-check-status[data-state="error"] { border-color:#e7b7ac; border-left-color:#b43a2b; background:#fff3ee; color:#88291e; font-weight:650; }
+.selfie-section .id-check-status[data-state="success"] { border-color:#aed8bf; border-left-color:#18765b; background:#e8f5ec; color:#175b3e; font-weight:650; }
+.selfie-section .id-check-status[data-state="loading"] { border-left-color:#246da4; background:#eef5fb; color:#245b80; }
+#selfieMessage:empty { display:none; }
+.selfie-actions #openCamera { background:#18765b; border-color:#18765b; color:#fff; }
+.selfie-actions #openCamera:enabled:hover { background:#125c46; }
+html[data-theme="dark"] .selfie-requirements li { background:#253d31; border-color:#476a55; color:#d5efde; }
+html[data-theme="dark"] .selfie-privacy summary { color:#9edab6; }
+html[data-theme="dark"] .selfie-section :is(.selfie-short-guide,.selfie-privacy p,#selfieMessage) { color:#c7dace; }
+html[data-theme="dark"] .selfie-section .id-check-status { background:#24372c; border-color:#526c5c; color:#e0eee5; }
+html[data-theme="dark"] .selfie-section .id-check-status[data-state="error"] { background:#402724; border-color:#aa6b60; color:#ffb5a8; }
+html[data-theme="dark"] .selfie-section .id-check-status[data-state="success"] { background:#1d3d2e; border-color:#5c9c78; color:#b7edcb; }
+html[data-theme="dark"] .selfie-section .id-check-status[data-state="loading"] { background:#21364a; border-color:#6494bd; color:#c3e0fa; }
 .selfie-consent { display:flex; align-items:flex-start; gap:10px; margin:16px 0; line-height:1.5; font-size:14px; }
 .selfie-consent input { width:18px; height:18px; flex-shrink:0; accent-color:#18765b; }
 .selfie-camera { margin:20px 0 4px; padding:20px; border:1px solid #d0e2d2; border-radius:16px; background:#fff; text-align:center; }
@@ -41,12 +62,12 @@ html[data-theme="dark"] .selfie-camera { background:#1b2923; border-color:#36524
 .identity-comparison :is(img,object) { display:block; width:100%; height:300px; object-fit:contain; background:#f1f6f1; border:1px solid #d9e8dc; border-radius:10px; margin-top:12px; }
 @media(max-width:650px) { .identity-comparison { grid-template-columns:1fr; } .selfie-section { padding:18px; } }
 
-html[data-theme="dark"] .selfie-actions button:not(#captureSelfie):not([type="submit"]) {
+html[data-theme="dark"] .selfie-actions button:not(#captureSelfie):not(#openCamera):not([type="submit"]) {
     background: var(--surface, #202a25);
     border-color: #567264;
     color: var(--text, #edf5ef);
 }
-html[data-theme="dark"] .selfie-actions button:not(#captureSelfie):not([type="submit"]):enabled:hover {
+html[data-theme="dark"] .selfie-actions button:not(#captureSelfie):not(#openCamera):not([type="submit"]):enabled:hover {
     background: var(--surface-2, #20392e);
     border-color: #81dbb2;
 }
