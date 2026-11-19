@@ -15,6 +15,7 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
     public bool DatabaseUnavailable { get; private set; }
     public Dictionary<long, string> DocumentTypes { get; private set; } = [];
     public Dictionary<long, string[]> CaptureSequences { get; private set; } = [];
+    public HashSet<long> ManualNumberReviews { get; private set; } = [];
     public bool ReviewEnabled => availability.Enabled;
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     [TempData(Key = "AdminIdentity.Notice")] public string? Notice { get; set; }
@@ -33,6 +34,12 @@ public class AdminIdentityModel(ApplicationDbContext db, IDataProtectionProvider
             try
             {
                 var ids = Items.Select(x => x.Id).ToList();
+                var ocrChecks = await db.IdentityResources.AsNoTracking().Where(x => ids.Contains(x.IdentityRequestId) && x.Kind == "ocr-check").Select(x => new { x.IdentityRequestId, x.EncryptedData }).ToListAsync(ct);
+                foreach (var check in ocrChecks)
+                {
+                    try { if (System.Text.Encoding.UTF8.GetString(protection.CreateProtector("tts.identity.documents.v1").Unprotect(check.EncryptedData)) == "manual") ManualNumberReviews.Add(check.IdentityRequestId); }
+                    catch (System.Security.Cryptography.CryptographicException) { ManualNumberReviews.Add(check.IdentityRequestId); }
+                }
                 var types = await db.IdentityResources.AsNoTracking().Where(x => ids.Contains(x.IdentityRequestId) && x.Kind == "document-type").Select(x => new { x.IdentityRequestId, x.EncryptedData }).ToListAsync(ct);
                 foreach (var type in types)
                 {

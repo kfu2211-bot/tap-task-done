@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="/css/identity-verification.css" asp-append-version="true" /><link rel="stylesheet" href="/css/sidebar-stability.css" asp-append-version="true" /><link rel="stylesheet" href="/css/light-system.css" asp-append-version="true" /><link rel="stylesheet" href="/css/identity-polish.css" asp-append-version="true" /><script defer src="/js/sidebar-account.js" asp-append-version="true"></script>
     <script defer src="/js/profile-photo.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
-<link rel="stylesheet" href="/css/identity-selfie.css" asp-append-version="true" /><script defer src="/js/identity-face-visibility.js" asp-append-version="true"></script><script defer src="/js/identity-face-guide.js" asp-append-version="true"></script><script defer src="/js/identity-selfie.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/identity-workspace.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
+<link rel="stylesheet" href="/css/identity-selfie.css" asp-append-version="true" /><script defer src="/js/identity-face-visibility.js" asp-append-version="true"></script><script defer src="/js/identity-face-guide.js" asp-append-version="true"></script><script defer src="/js/identity-selfie.js" asp-append-version="true"></script><script defer src="/js/identity-id-crop.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/identity-workspace.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
 <body><div class="verification-page"><aside class="sidebar"><a class="sidebar-logo" asp-page="/Landing" aria-label="Tap, Task, Done landing page" style="text-decoration:none"><div class="mini-logo">✓</div><span>Tap, Task, Done</span></a><nav class="navigation"><a href="/Dashboard" class="nav-item"><span class="nav-icon">⌂</span><span>Home</span></a><a href="/FindPost" class="nav-item"><span class="nav-icon">⌕</span><span>Find &amp; Post</span></a><a href="/MyTasks" class="nav-item"><span class="nav-icon">▤</span><span>My Tasks</span></a><a href="/Messages" class="nav-item"><span class="nav-icon">□</span><span>Messages</span></a><a href="/IdentityVerification" class="nav-item active"><span class="nav-icon">✓</span><span>Identity Verification</span></a><a href="/Tracking" class="nav-item"><span class="nav-icon">➤</span><span>Tracking</span></a><a href="/Reviews" class="nav-item"><span class="nav-icon">☆</span><span>Reviews</span></a></nav><div class="sidebar-user"><div class="user-avatar" id="sidebarAvatar">U</div><div class="user-info"><strong id="sidebarName">User</strong><small id="sidebarEmail"></small></div></div></aside>
 <main class="main-content"><header class="topbar"><h1>Identity Verification</h1></header><div class="content"><div class="page-heading"><span class="identity-eyebrow">TRUST &amp; SAFETY</span><h2>Verify your identity</h2><p>Submit your documents to help keep Tap, Task, Done safe and trusted.</p></div>
 @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="identity-notice" role="status">@Model.Notice</p> }
@@ -16,6 +16,7 @@
 </div>
 <form id="identityForm" method="post" enctype="multipart/form-data">
     <input type="hidden" id="idCheckToken" name="idCheckToken" value="" />
+    <input type="hidden" id="manualIdReview" name="manualIdReview" value="false" />
     <input type="hidden" name="captureToken" value="@Model.CaptureToken" />
     <input type="hidden" id="captureSteps" value="@Model.CaptureSteps" />
     <div id="captureFiles" hidden></div>
@@ -46,6 +47,18 @@
         <div class="upload-area">
             <input type="file" id="governmentId" name="governmentId" accept=".jpg,.jpeg,.png,.pdf" aria-label="Upload government ID" aria-describedby="governmentIdHelp" required />
             <small id="governmentIdHelp">JPG, PNG or PDF · Max. 5MB</small>
+            <details class="id-crop-editor" id="idCropEditor"><summary>Crop ID photo (optional)</summary>
+                <p>Trim the background. Keep all ID edges and text visible.</p>
+                <canvas id="idCropPreview" aria-label="Preview of the cropped ID photo" hidden></canvas>
+                <div class="id-crop-controls" id="idCropControls" hidden>
+                    @foreach (var edge in new[] { "Left", "Right", "Top", "Bottom" }) {
+                        <label for="crop@edge">@edge trim <output id="crop@(edge)Value" for="crop@edge">0%</output></label>
+                        <input type="range" id="crop@edge" min="0" max="35" value="0" step="1" />
+                    }
+                    <div class="selfie-actions"><button type="button" id="applyIdCrop">Use cropped photo</button><button type="button" id="resetIdCrop">Reset crop</button></div>
+                </div>
+                <p id="idCropMessage" role="status">Choose a JPG or PNG photo to crop.</p>
+            </details>
         </div>
     </div>
 <div class="document-row"><div class="document-info"><div class="document-title"><strong>Certification</strong><span class="optional">Optional</span></div><p>Upload a professional or relevant certification.</p></div><div class="upload-area"><input type="file" name="certification" aria-label="Certification" accept=".jpg,.jpeg,.png,.pdf" /><small>JPG, PNG or PDF · Max. 5MB</small></div></div><div class="document-row"><div class="document-info"><div class="document-title"><strong>Other Supporting Document</strong><span class="optional">Optional</span></div><p>Upload another document that may support your verification.</p></div><div class="upload-area"><input type="file" name="supportingDocument" aria-label="Other supporting document" accept=".jpg,.jpeg,.png,.pdf" /><small>JPG, PNG or PDF · Max. 5MB</small></div></div><section class="selfie-section" aria-labelledby="selfieHeading">
@@ -57,7 +70,7 @@
 <div class="selfie-camera" id="selfieCamera" hidden><div class="selfie-frame"><video id="selfieVideo" autoplay muted playsinline hidden></video><img id="selfiePreview" alt="Your captured selfie" hidden /><div class="selfie-guide" aria-hidden="true"></div><span id="faceTarget" class="face-target" aria-hidden="true"></span></div><p class="selfie-frame-hint" id="faceInstruction" role="status" aria-live="polite">Center your face in the circle</p><progress id="faceProgress" max="5" value="0" aria-label="Camera movements completed"></progress><p id="faceStepCount">0 of 5 movements completed</p><button type="button" id="restartFaceGuide">Restart movements</button></div>
 <input type="file" name="selfie" id="selfieFile" accept="image/jpeg,image/png" hidden />
 <p id="idCheckMessage" class="id-check-status" data-state="neutral" role="status" aria-live="polite">Open camera to automatically check your ID details first.</p>
-<div class="selfie-actions"><button type="button" id="openCamera">Open camera</button><button type="button" id="captureSelfie" hidden disabled>Capture selfie</button><button type="button" id="retakeSelfie" hidden>Retake</button></div>
+<div class="selfie-actions"><button type="button" id="openCamera">Open camera</button><button type="button" id="continueManualId" hidden>Continue with manual review</button><button type="button" id="captureSelfie" hidden disabled>Capture selfie</button><button type="button" id="retakeSelfie" hidden>Retake</button></div>
 <p id="selfieMessage" role="status" aria-live="polite"></p>
 </section>
 <div class="submit-area"><button type="button" id="reviewIdentity">Review submission</button></div>

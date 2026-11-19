@@ -1,5 +1,12 @@
 .selfie-section { padding:24px; border-top:1px solid #d9e8dc; color:#193e30; }
 .id-number-section label #idNumberLabel { color:inherit; font-size:inherit; font-weight:inherit; margin:0; }
+.id-crop-editor { margin-top:12px; width:min(100%,480px); text-align:left; font-size:14px; }
+.id-crop-editor summary { cursor:pointer; min-height:44px; padding:10px 0; color:inherit; font-weight:600; }
+.id-crop-editor canvas { display:block; max-width:100%; height:auto; border:1px solid #9bc6aa; border-radius:8px; }
+.id-crop-controls { display:grid; grid-template-columns:1fr; gap:6px; margin-top:12px; }
+.id-crop-controls label { display:flex; justify-content:space-between; align-items:center; }
+.id-crop-controls input[type="range"] { width:100%; min-height:36px; padding:0; accent-color:#18765b; }
+.id-crop-editor [hidden] { display:none!important; }
 .identity-review-feedback { padding:12px 16px; border:1px solid currentColor; border-radius:8px; line-height:1.5; }
 .identity-review-feedback.is-error { color:#a22a26; background:#fff3f1; }
 .identity-review [aria-invalid="true"] { border-color:#a22a26; }
@@ -16,6 +23,8 @@ html[data-theme="dark"] .identity-review-feedback.is-error { color:#ffb5ad; back
 .selfie-section .id-check-status[data-state="error"] { border-color:#e7b7ac; border-left-color:#b43a2b; background:#fff3ee; color:#88291e; font-weight:650; }
 .selfie-section .id-check-status[data-state="success"] { border-color:#aed8bf; border-left-color:#18765b; background:#e8f5ec; color:#175b3e; font-weight:650; }
 .selfie-section .id-check-status[data-state="loading"] { border-left-color:#246da4; background:#eef5fb; color:#245b80; }
+.selfie-section .id-check-status[data-state="manual"] { border-color:#dfc38b; border-left-color:#9b6712; background:#fff6e6; color:#775017; }
+html[data-theme="dark"] .selfie-section .id-check-status[data-state="manual"] { border-color:#9d7e45; background:#3b3222; color:#f6dba6; }
 #selfieMessage:empty { display:none; }
 .selfie-actions #openCamera { background:#18765b; border-color:#18765b; color:#fff; }
 .selfie-actions #openCamera:enabled:hover { background:#125c46; }

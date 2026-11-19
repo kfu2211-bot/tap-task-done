@@ -41,3 +41,28 @@ Check(!ocr.ValidReceipt(Token(DateTime.UtcNow.AddSeconds(-1)),42,"Driver's Licen
 Check(!ocr.ValidReceipt("invalid",42,"Driver's License","A0123456789",bytes), "unsigned receipt rejected");
 var invalid = await ocr.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/png",default);
 Check(!invalid.Success && invalid.Token is null, "missing engine or invalid image blocks rather than issuing an unchecked receipt");
+Check(IdentityIdOcr.Assess("Driver's License","99999999999",driver)=="mismatch", "readable different license is a hard mismatch");
+Check(IdentityIdOcr.Assess("Driver's License","A0123456789",[])=="unreadable", "no confident text is unreadable rather than a claimed mismatch");
+string OcrTsv(params string[] lines) {
+ var output="level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n";
+ for(var i=0;i<lines.Length;i++) { var words=lines[i].Split(' ');for(var j=0;j<words.Length;j++)output+=$"5\t1\t1\t1\t{i+1}\t{j+1}\t0\t0\t20\t20\t99\t{words[j]}\n"; }
+ return output;
+}
+var commands=new List<(string Tool,string[] Args)>();
+var simulated=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(tool,arguments,ct)=>{
+ commands.Add((tool,arguments));return Task.FromResult(tool=="tesseract"?OcrTsv(driver):"");
+});
+var matched=await simulated.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
+Check(matched.Success && !matched.CanManualReview && ocr.ValidReceipt(matched.Token,42,"Driver's License","A0123456789",bytes), "successful pipeline issues only a matched receipt");
+Check(commands[0].Args.Contains("1800x1800>") && commands[0].Args.Contains("-auto-orient") && commands[0].Args.Contains("-limit") && commands[1].Tool=="tesseract", "bounded preprocessing runs before text reading");
+var mismatch=await simulated.CheckAsync(42,"Driver's License","99999999999",bytes,"image/jpeg",default);
+Check(!mismatch.Success && !mismatch.CanManualReview && mismatch.Token is null,"explicit mismatch never offers fallback or a receipt");
+var unreadable=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(_,_,_)=>Task.FromResult(""));
+var manual=await unreadable.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
+Check(!manual.Success && manual.CanManualReview && ocr.ReceiptMode(manual.Token,42,"Driver's License","A0123456789",bytes)=="manual", "unreadable upload issues a signed manual-only receipt");
+Check(!ocr.ValidReceipt(manual.Token,42,"Driver's License","A0123456789",bytes),"manual receipt is never an OCR match");
+Check(ocr.ReceiptMode(manual.Token,42,"Driver's License","A0123456789",[1,2,4]) is null,"manual receipt cannot authorize a swapped image");
+Check(ocr.ReceiptMode(manual.Token,43,"Driver's License","A0123456789",bytes) is null,"manual receipt cannot cross accounts");
+var timeout=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(_,_,_)=>throw new OperationCanceledException());
+var timed=await timeout.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
+Check(timed.CanManualReview && !timed.Success && ocr.ReceiptMode(timed.Token,42,"Driver's License","A0123456789",bytes)=="manual","OCR timeout offers manual-only evidence");

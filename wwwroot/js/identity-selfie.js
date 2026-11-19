@@ -15,7 +15,7 @@
     video.addEventListener("loadeddata", updateCapture);
     let stream, selfieUrl, idUrl, reviewed = false, opening = false;
     let cameraVersion = 0;
-    let checkingId = false, checkedFile, checkedNumber, checkedType;
+    let checkingId = false, checkedFile, checkedNumber, checkedType, checkedMode;
     const idNumber = el('idNumber'), documentType = el('documentType'), governmentId = el('governmentId');
     function updateNumberField() {
         const option = documentType.selectedOptions[0];
@@ -27,7 +27,7 @@
     documentType.addEventListener('change', updateNumberField);
     updateNumberField();
     function idChecked() {
-        return !!el('idCheckToken').value && checkedFile === governmentId.files[0] && checkedNumber === idNumber.value && checkedType === documentType.value;
+        return !!el('idCheckToken').value && checkedFile === governmentId.files[0] && checkedNumber === idNumber.value && checkedType === documentType.value && (checkedMode === 'matched' || checkedMode === 'manual' && el('manualIdReview').value === 'true');
     }
     async function checkId() {
         if (checkingId) return false;
@@ -39,6 +39,7 @@
         el('idCheckMessage').textContent = 'Reading your uploaded ID and checking its full number…';
         el('idCheckMessage').dataset.state = 'loading';
         el('idCheckToken').value = '';
+        el('manualIdReview').value = 'false'; el('continueManualId').hidden = true;
         const controller = new AbortController();
         const checkTimeout = setTimeout(() => controller.abort(), 35000);
         try {
@@ -66,9 +67,16 @@
             const result = await response.json();
             if (selectedFile !== governmentId.files[0] || number !== idNumber.value || type !== documentType.value || !consent.checked) return false;
             el('idCheckMessage').textContent = result.message;
-            el('idCheckMessage').dataset.state = response.ok && result.success ? 'success' : 'error';
+            el('idCheckMessage').dataset.state = result.canManualReview ? 'manual' : response.ok && result.success ? 'success' : 'error';
+            if (response.ok && result.canManualReview && result.token) {
+                checkedFile = selectedFile; checkedNumber = number; checkedType = type;
+                checkedMode = 'manual';
+                el('idCheckToken').value = result.token; el('continueManualId').hidden = false;
+                return false;
+            }
             if (!response.ok || !result.success || !result.token) return false;
             checkedFile = selectedFile; checkedNumber = number; checkedType = type; el('idCheckToken').value = result.token;
+            checkedMode = 'matched';
             return true;
         } catch (error) {
             el('idCheckMessage').textContent = error.name === 'AbortError' ? 'ID reading took too long. Try a smaller, clear JPG or PNG and open the camera again.'
@@ -78,7 +86,8 @@
         finally { clearTimeout(checkTimeout); checkingId = false; el('openCamera').disabled = false; el('openCamera').textContent = 'Open camera'; }
     }
     [idNumber, documentType, governmentId].forEach(input => input.addEventListener('input', () => {
-        el('idCheckToken').value = ''; checkedFile = null;
+        el('idCheckToken').value = ''; checkedFile = null; checkedMode = null;
+        el('manualIdReview').value = 'false'; el('continueManualId').hidden = true;
         preview.hidden = true; file.value = ''; stop(); guide.reset(); invalidate();
         el('idCheckMessage').textContent = 'ID details changed. Open camera to check them again.';
         el('idCheckMessage').dataset.state = 'neutral';
@@ -132,6 +141,14 @@
         finally { opening = false; }
     }
     el('openCamera').addEventListener('click', open);
+    el('continueManualId').addEventListener('click', () => {
+        if (!el('idCheckToken').value || !consent.checked) return;
+        el('manualIdReview').value = 'true';
+        el('continueManualId').hidden = true;
+        el('idCheckMessage').dataset.state = 'manual';
+        el('idCheckMessage').textContent = 'Manual review selected. An admin must check your ID number before approval.';
+        return open();
+    });
     el('retakeSelfie').addEventListener('click', open);
     el('restartFaceGuide').addEventListener('click', () => {
         if (!stream?.active || preview.hidden === false) return;
@@ -171,6 +188,7 @@
         if (/image\/(jpeg|png)/.test(id.type)) { const img = document.createElement('img'); img.src = idUrl; img.alt = 'Government ID selected for submission'; container.append(img); }
         else { const link = document.createElement('a'); link.href = idUrl; link.target = '_blank'; link.rel = 'noopener'; link.textContent = 'Open selected government ID: ' + id.name; container.append(link); }
         el('reviewSummary').textContent = el('documentType').value + ' · ID ending in ' + el('idNumber').value.trim().replace(/[ -]/g, '').slice(-4) + ' · 5 movement photos and selfie captured · Manual admin review';
+        if (el('manualIdReview').value === 'true') el('reviewSummary').textContent += ' · ID number awaiting manual comparison';
         reviewed = true; review.hidden = false; el('reviewIdentity').hidden = true; review.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
     el('editIdentity').addEventListener('click', invalidate);

@@ -38,11 +38,11 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
         {
             var file = await ReadFile(governmentId, ct);
             var result = await idOcr.CheckAsync(UserId, documentType!, idNumber!, file.Bytes, file.Type, ct);
-            return new JsonResult(new { success = result.Success, message = result.Message, token = result.Token }) { StatusCode = result.Success ? 200 : 422 };
+            return new JsonResult(new { success = result.Success, message = result.Message, token = result.Token, canManualReview = result.CanManualReview }) { StatusCode = result.Success || result.CanManualReview ? 200 : 422 };
         }
         catch (ArgumentException) { return new JsonResult(new { success = false, message = "Choose a valid JPG, PNG or PDF no larger than 5 MB." }) { StatusCode = 422 }; }
     }
-    public async Task<IActionResult> OnPostAsync(string? idNumber, IFormFile? governmentId, IFormFile? certification, IFormFile? supportingDocument, IFormFile? selfie, bool consent, string? documentType, string? captureToken, string? idCheckToken, CancellationToken ct)
+    public async Task<IActionResult> OnPostAsync(string? idNumber, IFormFile? governmentId, IFormFile? certification, IFormFile? supportingDocument, IFormFile? selfie, bool consent, string? documentType, string? captureToken, string? idCheckToken, bool manualIdReview, CancellationToken ct)
     {
         if (!availability.Enabled) return NotFound();
         if (!IdentityDocumentTypes.Supports(documentType)) { Notice = "Choose a supported government photo ID type. Other images are not accepted as identity documents."; return RedirectToPage(); }
@@ -65,10 +65,13 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
             var selfieFile = await ReadFile(selfie, ct);
             if (selfieFile.Type is not ("image/jpeg" or "image/png")) throw new ArgumentException();
             var idFile = await ReadFile(governmentId, ct); (byte[] Bytes, string Type)? cert = certification is null || certification.Length == 0 ? null : await ReadFile(certification, ct); (byte[] Bytes, string Type)? other = supportingDocument is null || supportingDocument.Length == 0 ? null : await ReadFile(supportingDocument, ct);
-            if (!idOcr.ValidReceipt(idCheckToken, UserId, documentType!, idNumber, idFile.Bytes))
+            var checkMode = idOcr.ReceiptMode(idCheckToken, UserId, documentType!, idNumber, idFile.Bytes);
+            if (checkMode == "manual" && !manualIdReview) { Notice = "Choose manual review or check your ID again before submitting."; return RedirectToPage(); }
+            if (checkMode is null)
             {
                 var check = await idOcr.CheckAsync(UserId, documentType!, idNumber, idFile.Bytes, idFile.Type, ct);
                 if (!check.Success) { Notice = check.Message; return RedirectToPage(); }
+                checkMode = "matched";
             }
             // TiDB does not support SERIALIZABLE. Lock the stable owner row to
             // serialize this user's submissions, including their first request.
@@ -88,13 +91,14 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
             AddResource("id", idFile);
             AddResource("document-type", (System.Text.Encoding.UTF8.GetBytes(documentType!), "text/plain"));
             AddResource("id-number", (System.Text.Encoding.UTF8.GetBytes(idNumber), "text/plain"));
+            AddResource("ocr-check", (System.Text.Encoding.UTF8.GetBytes(checkMode), "text/plain"));
             AddResource("capture-sequence", (System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(challenge.Steps)), "text/plain"));
             for (var i = 0; i < captures.Count; i++) AddResource($"capture-{i}", captures[i]);
             AddResource("selfie", selfieFile);
             AddResource("consent", (System.Text.Encoding.UTF8.GetBytes("Identity review consent v2: encrypted ID, full ID number, selfie and guided capture frames for manual review; accepted at submission. Browser movement checks are not certified liveness or document authentication."), "text/plain"));
             if (cert is not null) AddResource("certification", cert.Value);
             if (other is not null) AddResource("supporting", other.Value);
-            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Verification request submitted for admin review.";
+            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = checkMode == "manual" ? "Submitted for manual review. Your ID number has not been automatically verified; an admin will compare it with your ID." : "Verification request submitted for admin review.";
         } catch (ArgumentException) { Notice = "Each file must be a valid JPG, PNG or PDF no larger than 5 MB."; }
           catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException) { logger.LogError(ex, "Unable to save identity request"); Notice = "Could not save the request. Please try again later."; }
         return RedirectToPage();
