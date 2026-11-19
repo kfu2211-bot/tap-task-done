@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace tts.Data;
 
-// Call inside a serializable transaction, before changing marketplace state.
+// Call inside a locking transaction, before changing marketplace state.
 public static class ModerationGuard
 {
     public static async Task<bool> NewWorkAllowedAsync(ApplicationDbContext db, IWebHostEnvironment environment, CancellationToken ct, params int[] userIds)

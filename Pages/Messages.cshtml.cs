@@ -142,7 +142,7 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
         if (task is null) return NotFound();
         var provider = task.ClientId == UserId ? freelancerId ?? 0 : UserId;
         if (provider <= 0 || provider == task.ClientId) return NotFound();
-        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         foreach (var id in new[] { task.ClientId, provider }.Distinct().Order()) await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {id} FOR UPDATE").AsNoTracking().ToListAsync(ct);
         var locked = await db.MarketplaceTasks.FromSqlInterpolated($"SELECT * FROM marketplace_tasks WHERE Id = {taskId} FOR UPDATE").ToListAsync(ct); task = locked.Single();
         if (await ModerationGuard.IsSuspendedAsync(db, UserId, ct)) return Forbid();
@@ -164,7 +164,7 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
         if (!ModelState.IsValid || body.Length is < 1 or > 2000) { Notice = "Enter a message of up to 2,000 characters."; return RedirectToPage(new { conversationId }); }
         var thread = await (from c in ConversationAccess.VisibleTo(db, UserId).AsNoTracking() join t in db.MarketplaceTasks.AsNoTracking() on c.TaskId equals t.Id where c.Id == conversationId && t.Id == taskId && (t.ClientId == UserId || c.FreelancerId == UserId) select new { c, t }).SingleOrDefaultAsync(ct);
         if (thread is null) return NotFound();
-        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         foreach (var id in new[] { thread.t.ClientId, thread.c.FreelancerId }.Distinct().Order()) await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {id} FOR UPDATE").AsNoTracking().ToListAsync(ct);
         var locked = await db.MarketplaceTasks.FromSqlInterpolated($"SELECT * FROM marketplace_tasks WHERE Id = {taskId} FOR UPDATE").AsNoTracking().ToListAsync(ct);
         bool assigned = await db.MarketplaceOffers.AnyAsync(o => o.TaskId == taskId && o.FreelancerId == thread.c.FreelancerId && o.Status == "accepted", ct);

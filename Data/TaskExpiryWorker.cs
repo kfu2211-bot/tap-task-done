@@ -24,7 +24,7 @@ public sealed class TaskExpiryWorker(IServiceScopeFactory scopes, ILogger<TaskEx
         foreach (var id in ids)
         {
             db.ChangeTracker.Clear();
-            await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+            await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
             var task = (await db.MarketplaceTasks.FromSqlInterpolated($"SELECT * FROM marketplace_tasks WHERE Id = {id} FOR UPDATE").ToListAsync(ct)).SingleOrDefault();
             if (task is not null && task.Status == "open" && !task.IsPrivate && task.PostExpiresUtc <= now)
             {

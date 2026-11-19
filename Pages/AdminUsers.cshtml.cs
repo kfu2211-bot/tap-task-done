@@ -88,7 +88,7 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
         { Notice = "Confirm your evidence review and enter a unique incident reference, such as report:123. Reuse the same reference for the same incident."; return ReturnToReview(); }
         try
         {
-            await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+            await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
             if (ReportId is long reportId)
             {
                 var report = (await db.SafetyReports.FromSqlInterpolated($"SELECT * FROM safety_reports WHERE Id = {reportId} FOR UPDATE").AsNoTracking().ToListAsync(ct)).SingleOrDefault();

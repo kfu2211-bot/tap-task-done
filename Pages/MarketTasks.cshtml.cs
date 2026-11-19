@@ -9,7 +9,7 @@ using tts.Data;
 namespace tts.Pages;
 
 [Authorize]
-public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironment environment) : PageModel
+public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironment environment, ILogger<MarketTasksModel>? logger = null) : PageModel
 {
     public record TaskItem(MarketplaceTask Task, string ClientName);
     public record OfferItem(MarketplaceOffer Offer, string Name, string Service);
@@ -53,7 +53,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
 
         if (!ModelState.IsValid || (postDurationDays is not (null or 3 or 7)) || (!ValidTaskDetails(title, description, category, location, budget, schedule) || !TaskLocationRules.Valid(latitude, longitude)))
         { Notice = "Check the task details. Enter a valid task budget and confirm the location pin."; return RedirectToPage(new { view = "mine" }); }
-        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot edit tasks while suspended."; return RedirectToPage(new { view = "mine" }); }
         var tasks = await db.MarketplaceTasks.FromSqlInterpolated($"SELECT * FROM marketplace_tasks WHERE Id = {id} FOR UPDATE").ToListAsync(ct);
         var task = tasks.SingleOrDefault();
@@ -145,35 +145,56 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
 
     public static bool ValidBudgetMaximum(decimal minimum, decimal? maximum) => maximum is null || maximum >= minimum && maximum <= 9999999999m && decimal.Round(maximum.Value, 2) == maximum;
 
+    private bool JsonRequested => Request.Headers.Accept.Any(value => value?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true);
+    private IActionResult DraftFailure(string message, int status = 422)
+    {
+        if (JsonRequested) return new JsonResult(new { success = false, message }) { StatusCode = status };
+        Notice = message;
+        return RedirectToPage("/FindPost", new { mode = "post" });
+    }
+    private IActionResult DraftSaved(long id, string message)
+    {
+        Notice = message;
+        return JsonRequested ? new JsonResult(new { success = true, redirectUrl = $"/MarketTasks?view=mine&reviewTask={id}#task-{id}" })
+            : RedirectToPage("/MarketTasks", null, new { view = "mine", reviewTask = id }, $"task-{id}");
+    }
+
     public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null, string? specificService = null)
+    {
+        try { return await CreateDraftAsync(title, description, category, location, budget, schedule, ct, latitude, longitude, postDurationDays, postEndDate, serviceArea, arrivalInstructions, specificService); }
+        catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException)
+        {
+            logger?.LogError(ex, "Unable to save task draft");
+            return DraftFailure("Could not save your task. Your details are still here; please try again.", 503);
+        }
+    }
+    private async Task<IActionResult> CreateDraftAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude, double? longitude, int? postDurationDays, DateOnly? postEndDate, string? serviceArea, string? arrivalInstructions, string? specificService)
     {
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim(); location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (UserId <= 0) return Challenge();
         arrivalInstructions = arrivalInstructions?.Trim();
         if (arrivalInstructions?.Length > 500 || !TaskLocationRules.ValidServiceLocation(serviceArea, latitude, longitude))
-        { Notice = "Confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage(new { view = "mine" }); }
-        if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
+        { return DraftFailure("Confirm a pin inside Bacolor and keep arrival instructions under 500 characters."); }
+        if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { if (JsonRequested) return DraftFailure(IdentityWorkGate.Message); TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
         if (ModelState.TryGetValue(nameof(postEndDate), out var dateState) && dateState.Errors.Count > 0 ||
             postEndDate is { } endDate && (endDate < TodayInPhilippines || endDate == DateOnly.MaxValue))
         {
-            Notice = "Choose a valid closing date today or later.";
-            return RedirectToPage(new { view = "mine" });
+            return DraftFailure("Choose a valid closing date today or later.");
         }
 
         if (!ModelState.IsValid || postDurationDays is not (null or 3 or 7) || !ValidTaskDetails(title, description, category, location, budget, schedule) || !TaskLocationRules.Valid(latitude, longitude))
-        { Notice = "Complete the task details, enter a valid task budget, and confirm the destination pin."; return RedirectToPage(); }
+        { return DraftFailure("Complete the task details, enter a valid task budget, and confirm the destination pin."); }
         if (string.IsNullOrWhiteSpace(specificService)) specificService = null;
         else if (!ServiceCatalog.Options.TryGetValue(category, out var services) ||
             (specificService != ServiceCatalog.CustomOption && !services.Contains(specificService)))
         {
-            Notice = "Choose a specific service that belongs to the selected category.";
-            return RedirectToPage("/FindPost", new { mode = "post" });
+            return DraftFailure("Choose a specific service that belongs to the selected category.");
         }
 
         var role = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
-        if (role is not ("client" or "both")) { Notice = "Choose Client or Client & Freelancer in Settings to post tasks."; return RedirectToPage(); }
-        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
-        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot create new tasks while restricted or pending account deletion."; return RedirectToPage(); }
+        if (role is not ("client" or "both")) { return DraftFailure("Choose Client or Client & Freelancer in Settings to post tasks."); }
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { return DraftFailure("This account cannot create new tasks while restricted or pending account deletion."); }
         // Serialize task creation by this client so simultaneous retries see the first draft.
         await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {UserId} FOR UPDATE").AsNoTracking().ToListAsync(ct);
         var duration = postDurationDays ?? 7;
@@ -190,19 +211,18 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             select (long?)draft.Id).FirstOrDefaultAsync(ct);
         if (duplicate.HasValue)
         {
-            Notice = "This task was already saved. Confirm and open the task to publish it.";
-            return RedirectToPage("/MarketTasks", null, new { view = "mine", reviewTask = duplicate.Value }, $"task-{duplicate.Value}");
+            return DraftSaved(duplicate.Value, "This task was already saved. Confirm and open the task to publish it.");
         }
         var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, Category = category, SpecificService = specificService, Location = location, ArrivalInstructions = arrivalInstructions, Budget = budget, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
         db.MarketplaceTasks.Add(task); await db.SaveChangesAsync(ct);
         TaskLocationRules.Save(db, task.Id, null, latitude!.Value, longitude!.Value);
-        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "Task saved for review. Select Confirm and open task to publish it for freelancers."; return RedirectToPage("/MarketTasks", null, new { view = "mine", reviewTask = task.Id }, $"task-{task.Id}");
+        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return DraftSaved(task.Id, "Task saved for review. Select Confirm and open task to publish it for freelancers.");
     }
     public async Task<IActionResult> OnPostConfirmAsync(long id, CancellationToken ct)
     {
         if (UserId <= 0) return Challenge();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
-        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot confirm new tasks while restricted or pending account deletion."; return RedirectToPage(); }
         var destination = await db.Set<TaskDestination>().AsNoTracking().SingleOrDefaultAsync(d => d.TaskId == id, ct);
         if (!TaskLocationRules.Valid(destination?.Latitude, destination?.Longitude)) { Notice = "Edit this draft and confirm a work-location pin before publishing."; return RedirectToPage(new { view = "mine" }); }
@@ -218,7 +238,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (UserId <= 0) return Challenge();
         if (!ModelState.IsValid || reason.Length is < 1 or > 500)
         { Notice = "Please provide a cancellation reason (up to 500 characters)."; return RedirectToPage(new { view = "mine" }); }
-        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
+        await AppTransactions.LockTaskAsync(db, id, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId == UserId &&
             (t.Status == "pending-confirmation" || t.Status == "booking-pending" || t.Status == "open" && !t.IsPrivate || t.Status == "assigned" || t.Status == "on-the-way" || t.Status == "arrived" || t.Status == "in-progress" || t.Status == "awaiting-confirmation"), ct);
         if (task is null)
@@ -254,9 +275,11 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct);
         if (profile is null || profile.WorkRole is not ("freelancer" or "both") || profile.Availability != "Available" || !ModelState.IsValid || price <= 0 || price > 9999999999m || message.Length > 500)
         { Notice = "Check your freelancer role, availability and offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
-        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
-        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot send offers while restricted or pending account deletion."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        var owner = await db.MarketplaceTasks.Where(t => t.Id == id).Select(t => t.ClientId).SingleOrDefaultAsync(ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, owner)) { Notice = "This account cannot send offers while restricted or pending account deletion."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         if (await FreelancerAvailability.IsBusyAsync(db, UserId, ct)) { Notice = "Finish your current travel/work before sending a new offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        await AppTransactions.LockTaskAsync(db, id, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId != UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         if (task is null || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct)) { Notice = "This task is unavailable or you already sent an offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         if (applyAtPostedPay && ((task.BudgetMaximum.HasValue && task.BudgetMaximum.Value != task.Budget) || price != task.Budget))
@@ -274,7 +297,10 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     }
     public async Task<IActionResult> OnPostAcceptAsync(long id, CancellationToken ct)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
+        var hint = await db.MarketplaceOffers.AsNoTracking().SingleOrDefaultAsync(o => o.Id == id && o.Status == "pending", ct);
+        if (hint is null || !await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, hint.FreelancerId)) { Notice = "This offer is no longer available."; return RedirectToPage(); }
+        await AppTransactions.LockTaskAsync(db, hint.TaskId, ct);
         var offer = await db.MarketplaceOffers.SingleOrDefaultAsync(o => o.Id == id && o.Status == "pending", ct);
         var task = offer is null ? null : await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == offer.TaskId && t.ClientId == UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         if (task is null || offer is null) { Notice = "This offer is no longer available."; return RedirectToPage(); }

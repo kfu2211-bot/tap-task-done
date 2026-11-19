@@ -63,7 +63,8 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
         if (!ModelState.IsValid || reason.Length is < 1 or > 500)
         { Notice = "Please provide a withdrawal reason (up to 500 characters)."; return RedirectToPage(new { view = "active" }); }
 
-        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
+        await AppTransactions.LockTaskAsync(db, id, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.Status == "assigned" &&
             db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == UserId && o.Status == "accepted"), ct);
         if (task is null)

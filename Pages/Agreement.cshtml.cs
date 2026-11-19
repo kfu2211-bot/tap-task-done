@@ -39,7 +39,7 @@ public class AgreementModel(ApplicationDbContext db, IWebHostEnvironment environ
         try
         {
             var participants = await ParticipantsAsync(taskId, ct); if (participants.Length != 2) return NotFound();
-            await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+            await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
             if (!await ModerationGuard.AllowedAsync(db, environment, ct, participants)) return Forbid();
             var locked = await LockAsync(taskId, ct); if (locked is null || !participants.Contains(locked.Value.Freelancer)) return NotFound();
             var latest = await AgreementRules.LatestAsync(db, taskId, ct);
@@ -60,7 +60,7 @@ public class AgreementModel(ApplicationDbContext db, IWebHostEnvironment environ
         try
         {
             var participants = await ParticipantsAsync(taskId, ct); if (participants.Length != 2) return NotFound();
-            await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+            await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
             if (!await ModerationGuard.AllowedAsync(db, environment, ct, participants)) return Forbid();
             var locked = await LockAsync(taskId, ct); if (locked is null || !participants.Contains(locked.Value.Freelancer)) return NotFound();
             var latest = await AgreementRules.LatestAsync(db, taskId, ct);

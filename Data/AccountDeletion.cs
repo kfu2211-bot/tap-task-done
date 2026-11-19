@@ -52,7 +52,7 @@ public static class AccountDeletion
     {
         if (password.Length is 0 or > 256) throw new DeletionFlowException("Enter your current password.");
         var now = DateTime.UtcNow; var code = RandomNumberGenerator.GetInt32(1000000).ToString("D6"); string email;
-        await using (var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct))
+        await using (var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct))
         {
             var user = await LockAsync(db, id, ct);
             if (Staff(user.Role) || user.Role == "deleted" || !accounts.VerifyPassword(user, password)) throw new DeletionFlowException("Check your password. Staff accounts require a separate administrator process.");
@@ -74,7 +74,7 @@ public static class AccountDeletion
     public static async Task<bool> ConfirmAsync(ApplicationDbContext db, int id, string code, CancellationToken ct)
     {
         if (!RegistrationVerification.ValidCode(code)) return false;
-        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         var user = await LockAsync(db, id, ct); var now = DateTime.UtcNow;
         var r = await db.Set<AccountDeletionRequest>().SingleOrDefaultAsync(x => x.UserId == id, ct);
         if (r is null || !CodeUsable(r, now) || Staff(user.Role) || r.PasswordVersion != AccountStore.SessionFingerprint(user.PasswordHash)) return false;
@@ -87,7 +87,7 @@ public static class AccountDeletion
 
     public static async Task UserActionAsync(ApplicationDbContext db, int id, string action, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct); await LockAsync(db, id, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct); await LockAsync(db, id, ct);
         var r = await db.Set<AccountDeletionRequest>().SingleOrDefaultAsync(x => x.UserId == id, ct) ?? throw new DeletionFlowException("No deletion request found.");
         if (action == "cancel" && (Pending(r.Status) || r.Status == "verifying")) r.Status = "cancelled";
         else if (action == "review" && r.Status is "held" or "rejected") { r.Status = "pending"; r.ReviewedById = null; }
@@ -119,7 +119,7 @@ public static class AccountDeletion
     public static async Task ReviewAsync(ApplicationDbContext db, int adminId, int userId, string decision, string reason, bool evidenceReviewed, CancellationToken ct)
     {
         if (adminId == userId || !evidenceReviewed || decision is not ("approved" or "held" or "rejected") || reason.Trim().Length is < 5 or > 1000) throw new DeletionFlowException("Review the evidence and enter a clear reason (5–1000 characters). You cannot review your own request.");
-        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         foreach (var id in new[] { adminId, userId }.Order()) await LockAsync(db, id, ct);
         var admin = await db.Users.SingleAsync(u => u.Id == adminId, ct);
         if (!Staff(admin.Role)) throw new DeletionFlowException("Administrator access required.");
@@ -132,7 +132,7 @@ public static class AccountDeletion
 
     public static async Task<string?> FinalizeAsync(ApplicationDbContext db, int userId, DateTime now, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         var user = await LockAsync(db, userId, ct); var r = await db.Set<AccountDeletionRequest>().SingleOrDefaultAsync(x => x.UserId == userId, ct);
         if (r is null || !Due(r, now)) return null;
         var blockers = await BlockersAsync(db, userId, ct);
@@ -147,7 +147,7 @@ public static class AccountDeletion
     public static async Task DeleteUnverifiedAsync(ApplicationDbContext db, int adminId, int userId, CancellationToken ct)
     {
         if (adminId == userId) throw new DeletionFlowException("Choose another account.");
-        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         foreach (var id in new[] { adminId, userId }.Order()) await LockAsync(db, id, ct);
         var admin = await db.Users.SingleAsync(u => u.Id == adminId, ct);
         var user = await db.Users.SingleAsync(u => u.Id == userId, ct);

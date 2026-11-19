@@ -78,7 +78,7 @@ public sealed class VerifyEmailModel(ApplicationDbContext db, IConfiguration con
             }
             else
             {
-                await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+                await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
                 var current = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id={user.Id} FOR UPDATE")
                     .AsNoTracking().ToListAsync(ct)).SingleOrDefault();
                 if (current is null || AccountModerationRules.IsStaff(current.Role) || current.Role == "deleted" ||

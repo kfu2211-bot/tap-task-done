@@ -562,7 +562,7 @@
                         <button type="button" id="startPostTaskButton">Create a task</button>
                     </div>
 
-                    <form class="post-task-panel" id="databasePostTaskForm" data-submit-pending="Saving draft…" method="post" asp-page="/MarketTasks" asp-page-handler="Create" data-submit-pending="Saving task…">
+                    <form class="post-task-panel" id="databasePostTaskForm" method="post" asp-page="/MarketTasks" asp-page-handler="Create">
                         <input type="hidden" name="schedule" id="databaseSchedule" />
                         <div class="post-task-heading">
                             <div>
@@ -629,6 +629,7 @@
                             <small class="schedule-help">You can change this anytime before a freelancer accepts, or leave it empty to schedule later.</small>
                         </label>
 
+                        <p id="taskReviewError" role="alert" hidden style="color:var(--danger, #c0392b);font-weight:600"></p>
                         <div class="post-form-actions"><small>You can edit your task before publishing.</small>
                             <button class="post-cancel-button" type="button" id="cancelPostTaskButton">Cancel</button>
                             <button class="post-submit-button" type="submit">Review task</button>
@@ -777,6 +778,7 @@
 
 
     <script src="~/js/findpost.js" asp-append-version="true"></script>
+    <script src="~/js/post-task-review.js" asp-append-version="true" defer></script>
 
 
     <partial name="_TaskHelp" />
