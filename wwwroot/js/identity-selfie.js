@@ -25,7 +25,8 @@
         if (idChecked()) return true;
         if (!documentType.reportValidity() || !idNumber.reportValidity() || !governmentId.reportValidity() || !consent.reportValidity()) return false;
         const selectedFile = governmentId.files[0], number = idNumber.value, type = documentType.value;
-        checkingId = true; el('checkIdDetails').disabled = true; el('openCamera').disabled = true;
+        checkingId = true; el('openCamera').disabled = true;
+        el('openCamera').textContent = 'Checking ID…';
         el('idCheckMessage').textContent = 'Reading your uploaded ID and checking its full number…';
         el('idCheckMessage').dataset.state = 'loading';
         el('idCheckToken').value = '';
@@ -46,13 +47,12 @@
             checkedFile = selectedFile; checkedNumber = number; checkedType = type; el('idCheckToken').value = result.token;
             return true;
         } catch { el('idCheckMessage').textContent = 'Could not check your ID. Check your connection and try again.'; el('idCheckMessage').dataset.state = 'error'; return false; }
-        finally { clearTimeout(checkTimeout); checkingId = false; el('checkIdDetails').disabled = false; el('openCamera').disabled = false; }
+        finally { clearTimeout(checkTimeout); checkingId = false; el('openCamera').disabled = false; el('openCamera').textContent = 'Open camera'; }
     }
-    el('checkIdDetails').addEventListener('click', checkId);
     [idNumber, documentType, governmentId].forEach(input => input.addEventListener('input', () => {
         el('idCheckToken').value = ''; checkedFile = null;
         preview.hidden = true; file.value = ''; stop(); guide.reset(); invalidate();
-        el('idCheckMessage').textContent = 'ID details changed. Check your ID again before taking a selfie.';
+        el('idCheckMessage').textContent = 'ID details changed. Open camera to check them again.';
         el('idCheckMessage').dataset.state = 'neutral';
     }));
     function stop() {
