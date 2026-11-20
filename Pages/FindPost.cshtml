@@ -339,7 +339,7 @@
                         <div class="filter-group" id="specificServiceFilter" hidden data-catalog="@System.Text.Json.JsonSerializer.Serialize(tts.Data.ServiceCatalog.Options)">
                             <label for="specificServiceSearch">Specific service</label>
                             <div class="input-wrapper">
-                                <select id="specificServiceSearch"><option value="" selected disabled hidden>Any specific service</option></select>
+                                <select id="specificServiceSearch"><option value="" selected>Any specific service</option></select>
                             </div>
                         </div>
 
@@ -688,7 +688,7 @@
                                 <label for="jobsMatchFilter">Show jobs</label><select id="jobsMatchFilter" data-matching-jobs="@string.Join(",", Model.MatchingJobIds)"><option value="matching">Matches my services</option><option value="all">All jobs</option></select>
                                 <label for="jobsCategoryFilter">Service category</label>
                                 <select id="jobsCategoryFilter">
-                                    <option value="" selected disabled hidden>All categories</option>
+                                    <option value="" selected>All categories</option>
                                     @foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other / General" })
                                     {
                                         <option value="@category">@category</option>
@@ -696,7 +696,7 @@
                                 </select>
                                 <div id="jobsSpecificServiceField" hidden>
                                     <label for="jobsSpecificService">Specific service</label>
-                                    <select id="jobsSpecificService" disabled><option value="" selected disabled hidden>Any specific service</option></select>
+                                    <select id="jobsSpecificService" disabled><option value="" selected>Any specific service</option></select>
                                 </div>
                                 <div id="otherJobServiceField" hidden>
                                     <label for="otherJobService">Search custom jobs</label>

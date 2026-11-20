@@ -3,6 +3,7 @@
     const editor = el('idCropEditor'), file = el('governmentId');
     if (!editor || !file) return;
     const preview = el('idCropPreview'), controls = el('idCropControls'), message = el('idCropMessage');
+    const selection = el('governmentIdSelection');
     const edges = ['Left', 'Right', 'Top', 'Bottom'];
     let source, selected, version = 0, applying = false;
     function bounds() {
@@ -33,7 +34,14 @@
         finally { URL.revokeObjectURL(url); }
     }
     editor.addEventListener('toggle', () => { if (editor.open) load(); });
-    file.addEventListener('change', () => { ++version; source = null; selected = null; if (editor.open) load(); });
+    file.addEventListener('change', () => {
+        ++version; source = null; selected = null;
+        const next = file.files[0];
+        selection.textContent = next ? `${next.name} · ${(next.size / (1024 * 1024)).toFixed(2)} MB` : 'No ID file selected.';
+        controls.hidden = preview.hidden = true;
+        editor.open = Boolean(next && /^image\/(jpeg|png)$/.test(next.type));
+        load();
+    });
     edges.forEach(edge => el('crop' + edge).addEventListener('input', draw));
     el('resetIdCrop').addEventListener('click', () => { edges.forEach(edge => { el('crop' + edge).value = '0'; }); draw(); });
     el('applyIdCrop').addEventListener('click', async () => {
@@ -52,7 +60,8 @@
             // Existing ID-change handlers clear OCR receipts and camera evidence.
             file.dispatchEvent(new Event('input', {bubbles:true}));
             source = null; selected = null; ++version; controls.hidden = preview.hidden = true;
-            message.textContent = 'Cropped photo selected. Open camera to check it.'; editor.open = false;
+            selection.textContent = 'Cropped ID photo selected. This photo will be used for ID reading and submission.';
+            message.textContent = 'Crop applied. Open camera to check the cropped ID, or reopen this panel to adjust it.'; editor.open = false;
         } catch { message.textContent = 'Could not crop this photo. Try again or use the original.'; }
         finally { applying = false; el('applyIdCrop').disabled = false; }
     });

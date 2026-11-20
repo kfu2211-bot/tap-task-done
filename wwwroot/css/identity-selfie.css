@@ -96,3 +96,9 @@ html[data-theme="dark"] .identity-comparison :is(img, object) {
 #openCamera.camera-loading::before { content: ""; width: 1em; height: 1em; flex: 0 0 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: camera-spin .8s linear infinite; }
 @keyframes camera-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { #openCamera.camera-loading::before { animation: none; } }
+.verification-page .document-row > .id-crop-editor { flex: 1 0 100%; width: 100%; box-sizing: border-box; padding: 0 16px 12px; border: 1px solid var(--line, #c9dfce); border-radius: 10px; }
+.verification-page .id-crop-editor[open] { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 1fr); gap: 12px 24px; }
+.verification-page .id-crop-editor > :is(summary, p) { grid-column: 1 / -1; }
+.verification-page .id-crop-editor canvas { margin: auto; }
+.verification-page .id-file-selection { margin: 6px 0; font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 650px) { .verification-page .id-crop-editor[open] { grid-template-columns: minmax(0, 1fr); } }

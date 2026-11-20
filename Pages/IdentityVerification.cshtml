@@ -47,7 +47,7 @@
         </div>
         <div class="upload-area">
             <input type="file" id="governmentId" name="governmentId" accept=".jpg,.jpeg,.png,.pdf" aria-label="Upload government ID" aria-describedby="governmentIdHelp" required />
-            <small id="governmentIdHelp">JPG, PNG or PDF · Max. 5MB</small>
+            <small id="governmentIdHelp">JPG, PNG or PDF · Max. 5MB</small><p id="governmentIdSelection" class="id-file-selection" role="status" aria-live="polite">No ID file selected.</p></div>
             <details class="id-crop-editor" id="idCropEditor"><summary>Crop ID photo (optional)</summary>
                 <p>Trim the background. Keep all ID edges and text visible.</p>
                 <canvas id="idCropPreview" aria-label="Preview of the cropped ID photo" hidden></canvas>
@@ -60,7 +60,7 @@
                 </div>
                 <p id="idCropMessage" role="status">Choose a JPG or PNG photo to crop.</p>
             </details>
-        </div>
+
     </div>
 <div class="document-row"><div class="document-info"><div class="document-title"><strong>Certification</strong><span class="optional">Optional</span></div><p>Upload a professional or relevant certification.</p></div><div class="upload-area"><input type="file" name="certification" aria-label="Certification" accept=".jpg,.jpeg,.png,.pdf" /><small>JPG, PNG or PDF · Max. 5MB</small></div></div><div class="document-row"><div class="document-info"><div class="document-title"><strong>Other Supporting Document</strong><span class="optional">Optional</span></div><p>Upload another document that may support your verification.</p></div><div class="upload-area"><input type="file" name="supportingDocument" aria-label="Other supporting document" accept=".jpg,.jpeg,.png,.pdf" /><small>JPG, PNG or PDF · Max. 5MB</small></div></div><section class="selfie-section" aria-labelledby="selfieHeading">
 <h3 id="selfieHeading">Selfie verification <span class="required">Required</span></h3>

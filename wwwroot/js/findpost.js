@@ -6,8 +6,6 @@ function populateTaskServices(select, field, category, emptyLabel) {
     const catalog = JSON.parse(document.getElementById("specificServiceFilter").dataset.catalog);
     const options = Object.hasOwn(catalog, category) ? catalog[category] : [];
     const placeholder = new Option(emptyLabel, "", true, true);
-    placeholder.disabled = true;
-    placeholder.hidden = true;
     select.replaceChildren(placeholder);
     options.forEach(service => select.add(new Option(service, service)));
     if (options.length) select.add(new Option("Other " + category.toLowerCase(), "Other"));
