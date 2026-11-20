@@ -294,6 +294,35 @@
         "Feedback from freelancers will appear here after a completed task.": "Dito lalabas ang feedback ng mga freelancer pagkatapos makumpleto ang task.",
         "Feedback from clients will appear here after a completed task.": "Dito lalabas ang feedback ng mga kliyente pagkatapos makumpleto ang task."
     });
+    Object.assign(labels, {
+        "Complete your account": "Kumpletuhin ang account mo",
+        "Set up your account": "Ihanda ang account mo",
+        "Three steps to get started.": "Tatlong hakbang para makapagsimula.",
+        "Role, identity & mobile number": "Tungkulin, pagkakakilanlan at mobile number",
+        "Continue setup": "Ipagpatuloy ang pag-set up",
+        "Open Settings": "Buksan ang mga setting",
+        "Identity verification": "Pagpapatunay ng pagkakakilanlan",
+        "Choose your work role": "Piliin ang iyong tungkulin",
+        "Client, Freelancer, or both.": "Kliyente, Freelancer, o pareho.",
+        "Your ID has been submitted. Wait for admin review.": "Naipasa na ang ID mo. Hintayin ang pagsusuri ng admin.",
+        "Upload a valid ID and take a selfie.": "Mag-upload ng valid na ID at kumuha ng selfie.",
+        "Add your mobile number": "Idagdag ang mobile number mo",
+        "You choose when to share it.": "Ikaw ang pipili kung kailan ito ibabahagi.",
+        "Role set": "Nakapili na", "Not set": "Hindi pa napili",
+        "View role": "Tingnan ang tungkulin", "Set role": "Pumili ng tungkulin",
+        "Verified": "Na-verify na", "Under review": "Sinusuri pa",
+        "Resubmit ID": "Isumite muli ang ID", "Needs attention": "Kailangang ayusin",
+        "Not verified": "Hindi pa na-verify", "View status": "Tingnan ang katayuan",
+        "Review request": "Suriin ang kahilingan", "Verify now": "Magpa-verify",
+        "Added": "Naidagdag na", "Not added": "Hindi pa naidagdag",
+        "Edit number": "Baguhin ang numero", "Add number": "Magdagdag ng numero",
+        "Try again later": "Subukan muli mamaya",
+        "Verification is required before posting or applying.": "Kailangan ng verification bago mag-post o mag-apply.",
+        "Maybe later": "Mamaya na",
+        "You can also find this on your dashboard.": "Makikita rin ito sa dashboard.",
+        "Account setup progress": "Progreso ng pag-set up ng account",
+        "Close account setup": "Isara ang pag-set up ng account"
+    });
     const tracked = new WeakMap();
     let language = "en";
     try { language = localStorage.getItem("tts-language") === "fil" ? "fil" : "en"; } catch {}
@@ -343,6 +372,7 @@
         ".jobs-intro :is(p, a), .job-tabs :is(a, button), .jobs-empty p, .jobs-section-heading a, .jobs-meta, .job-meta, .job-actions button, .job-card > a, .sent-offer-status",
         ".account-workspace :is(.availability-summary, .photo-settings-copy, .photo-file-note), .home-view-switch a, .home-filters a, .home-row-copy small",
         ".conversations-toolbar label, .messages-inbox-tabs a, .inbox-welcome :is(p, a), .conversation-list-empty, .conversation-task, .messages-thread :is(p, label, button):not(.message-text, .message-bubble p)",
+        "[data-account-setup]",
         ".db-tracking-details span, .tracking-timeline li > div, .db-tracking-card :is(button, summary), .tracking-actions a, .tracking-panel p, .tracking-shared-phone strong, .tracking-location strong, .map-place-search :is(label, button, p)",
         ".reviews-hero-copy, .reviews-action, .reviews-overview, .reviews-tabs a, .reviews-section-heading span, .review-person p, .review-task span, .reviews-empty",
         "button[data-toggle-specialties], [data-specialty-count], #selectedServices, #selectAllServiceAreas, #jobsFilterCount"
@@ -355,6 +385,8 @@
             .replace(/^(\d+) reviews?$/, "$1 review")
             .replace(/^(\d+) pending offers?$/, "$1 alok na naghihintay")
             .replace(/^Busy · (.+)$/, (_, status) => "Abala · " + (labels[status] || status))
+            .replace(/^(\d+) of (\d+) completed$/, "Natapos ang $1 sa $2")
+            .replace(/^(\d+) of (\d+)$/, "$1 sa $2")
             .replace(/^(\d+) selected$/, "$1 ang napili")
             .replace(/^Select all (\d+)$/, "Piliin lahat ng $1")
             .replace(/^(\d+) open tasks?$/, "$1 bukas na task")
@@ -370,6 +402,8 @@
             option.setAttribute("aria-pressed", String(option.dataset.language === language));
         }
         for (const [selector, attribute, key] of [
+            ["[data-account-setup] progress", "aria-label", "Account setup progress"],
+            ["[data-account-setup] .setup-close", "aria-label", "Close account setup"],
             [".task-filters", "aria-label", "Filter tasks by status"],
             ["#governmentId", "aria-label", "Upload government ID"],
             ["#idNumber", "placeholder", "Enter your government ID number"],
