@@ -241,7 +241,31 @@ html body #findJobsSection .jobs-card .jobs-meta {
     color: #40594d !important;
     font-size: 14px;
 }
-@media (max-width: 600px) { .jobs-category-filter { max-width: none; } }
+#findJobsSection .jobs-category-filter {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    max-width: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+#findJobsSection .jobs-filter-field {
+    display: grid;
+    gap: 8px;
+    flex: 1 1 0;
+    min-width: 0;
+}
+#findJobsSection .jobs-filter-field[hidden] { display: none; }
+#findJobsSection .jobs-filter-field :is(select, input) { min-width: 0; width: 100%; box-sizing: border-box; }
+#findJobsSection #jobsFilterReset { flex: 0 0 auto; min-height: 46px; margin: 0; white-space: nowrap; }
+@media (max-width: 900px) {
+    #findJobsSection .jobs-category-filter { flex-wrap: wrap; }
+    #findJobsSection .jobs-filter-field { flex: 1 1 180px; }
+}
+@media (max-width: 480px) {
+    #findJobsSection .jobs-filter-field { flex-basis: 100%; }
+    #findJobsSection #jobsFilterReset { width: 100%; }
+}
 
 .service-inquiry {
     margin-block: 16px;

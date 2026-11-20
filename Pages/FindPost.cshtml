@@ -686,8 +686,9 @@
                         @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
                         @if (!Model.DirectoryUnavailable && (Model.WorkRole is "freelancer" or "both")) {
                             <div class="jobs-category-filter">
-                                <label for="jobsMatchFilter">Show jobs</label><select id="jobsMatchFilter" data-matching-jobs="@string.Join(",", Model.MatchingJobIds)"><option value="matching">Matches my services</option><option value="all">All jobs</option></select>
-                                <label for="jobsTypeFilter">Job type</label><select id="jobsTypeFilter"><option value="">All job types</option><option value="short">Short Job</option><option value="long">Long Job</option><option value="multi-day">Multi-Day Job</option></select><label for="jobsCategoryFilter">Service category</label>
+                                <div class="jobs-filter-field"><label for="jobsMatchFilter">Show jobs</label><select id="jobsMatchFilter" data-matching-jobs="@string.Join(",", Model.MatchingJobIds)"><option value="matching">Matches my services</option><option value="all">All jobs</option></select></div>
+                                <div class="jobs-filter-field"><label for="jobsTypeFilter">Job type</label><select id="jobsTypeFilter"><option value="">All job types</option><option value="short">Short Job</option><option value="long">Long Job</option><option value="multi-day">Multi-Day Job</option></select></div>
+                                <div class="jobs-filter-field"><label for="jobsCategoryFilter">Service category</label>
                                 <select id="jobsCategoryFilter">
                                     <option value="" selected>All categories</option>
                                     @foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other / General" })
@@ -695,11 +696,12 @@
                                         <option value="@category">@category</option>
                                     }
                                 </select>
-                                <div id="jobsSpecificServiceField" hidden>
+                                </div>
+                                <div id="jobsSpecificServiceField" class="jobs-filter-field" hidden>
                                     <label for="jobsSpecificService">Specific service</label>
                                     <select id="jobsSpecificService" disabled><option value="" selected>Any specific service</option></select>
                                 </div>
-                                <div id="otherJobServiceField" hidden>
+                                <div id="otherJobServiceField" class="jobs-filter-field" hidden>
                                     <label for="otherJobService">Search custom jobs</label>
                                     <div class="custom-job-search">
                                         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
