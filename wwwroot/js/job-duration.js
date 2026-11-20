@@ -14,8 +14,10 @@
         legend.textContent = 'Estimated work duration (optional)';
         const select = document.createElement('select');
         select.setAttribute('aria-label', 'Estimated work duration');
-        [['', 'Not sure yet'], ['15', '15 minutes'], ['30', '30 minutes'], ['60', '1 hour'], ['90', '1 hour 30 minutes'], ['120', '2 hours'], ['180', '3 hours'], ['240', '4 hours'], ['480', '8 hours'], ['custom', 'Custom duration']]
+        [['', 'Choose duration'], ['15', '15 minutes'], ['30', '30 minutes'], ['60', '1 hour'], ['90', '1 hour 30 minutes'], ['120', '2 hours'], ['180', '3 hours'], ['240', '4 hours'], ['480', '8 hours'], ['custom', 'Custom duration']]
             .forEach(([value, text]) => select.add(new Option(text, value)));
+        select.options[0].disabled = true;
+        select.options[0].hidden = true;
         const custom = document.createElement('div');
         custom.className = 'job-duration-custom';
         const hours = document.createElement('input'), minutes = document.createElement('input');
