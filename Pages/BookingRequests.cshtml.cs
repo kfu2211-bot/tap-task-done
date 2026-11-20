@@ -100,8 +100,6 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
                 (p.WorkRole == "freelancer" || p.WorkRole == "both") && p.Availability == "Available" && p.Service != "" && p.Location != "", ct);
             if (!CanBook(role) || provider is null)
             { Notice = "Choose an available freelancer to send a booking."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
-            if (preferredTime.Date <= DateTime.UtcNow.AddHours(8).Date && await FreelancerAvailability.IsBusyAsync(db, freelancerId, ct))
-            { Notice = "This freelancer is working now. Choose tomorrow or a later date in Philippine time."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
             var duplicate = await db.MarketplaceBookings.AnyAsync(b => b.FreelancerId == freelancerId && b.Status == "pending" &&
                 db.MarketplaceTasks.Any(t => t.Id == b.TaskId && t.ClientId == UserId && t.Status == "booking-pending" &&
                     t.JobType == jobType && t.WorkEndUtc == JobTypes.EndUtc(workEnd) && t.Title == title && t.Description == description && t.Location == location && t.ScheduleText == schedule && t.Budget == budget && t.BudgetMaximum == null), ct);
@@ -163,7 +161,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         await AppTransactions.LockTaskAsync(db, taskId, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == taskId && t.ClientId == UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         var provider = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == freelancerId && p.UserId != UserId && (p.WorkRole == "freelancer" || p.WorkRole == "both") && p.Availability == "Available" && p.Service != "" && p.Location != "", ct);
-        if (!CanBook(role) || task is null || provider is null || await FreelancerAvailability.IsBusyAsync(db, freelancerId, ct) || await db.MarketplaceBookings.AnyAsync(b => b.TaskId == taskId && b.FreelancerId == freelancerId, ct))
+        if (!CanBook(role) || task is null || provider is null || await db.MarketplaceBookings.AnyAsync(b => b.TaskId == taskId && b.FreelancerId == freelancerId, ct))
         { Notice = "Request could not be sent. Check that your task is open, the freelancer is available, and you have not sent this request already."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
         await AgreementRules.ConversationAsync(db, taskId, freelancerId, ct);
         db.MarketplaceBookings.Add(new MarketplaceBooking { TaskId = taskId, FreelancerId = freelancerId, Status = "pending", CreatedAt = DateTime.UtcNow });
@@ -195,6 +193,8 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         else
         {
             if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This request cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
+            if (await JobAcceptanceRules.IsLockedAsync(db, UserId, ct, task.Id))
+            { Notice = JobAcceptanceRules.Message; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             if (await JobTypes.ConflictsAsync(db, UserId, task.Id, task.ScheduleText, task.WorkEndUtc, ct))
             { Notice = "This booking overlaps another accepted job. Discuss a different schedule with the client."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             booking.Status = "accepted"; task.Status = "assigned";

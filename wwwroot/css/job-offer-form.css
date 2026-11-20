@@ -69,3 +69,6 @@ html body :is(.job-offer-actions, .job-offer-editor) .post-submit-button {
 }
 #findJobsSection .jobs-card[id] { scroll-margin-top: 90px; }
 #findJobsSection .jobs-card:target { outline: 2px solid var(--brand, #176b50); outline-offset: -2px; }
+.job-offer-actions button:disabled { opacity: .6; cursor: not-allowed; }
+.job-offer-guard { border: 0; padding: 0; margin: 0; min-width: 0; }
+[data-work-lock-notice][hidden] { display: none !important; }

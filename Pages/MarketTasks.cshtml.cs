@@ -23,6 +23,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     public Dictionary<long, TaskDestination> Destinations { get; private set; } = [];
     public bool ReviewsUnavailable { get; private set; }
     public string WorkRole { get; private set; } = "client";
+    public bool WorkLocked { get; private set; }
     [TempData] public string? Notice { get; set; }
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
     public int CurrentUserId => UserId;
@@ -75,6 +76,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var openedAt = DateTime.UtcNow;
         if (UserId == 0 || !await db.Users.AnyAsync(x => x.Id == UserId, ct)) return Challenge();
         WorkRole = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
+        WorkLocked = await JobAcceptanceRules.IsLockedAsync(db, UserId, ct);
         MyTasks = await (from t in db.MarketplaceTasks.AsNoTracking()
                     join u in db.Users.AsNoTracking() on t.ClientId equals u.Id
                     where t.ClientId == UserId && t.Status != "inquiry" orderby t.Id descending
@@ -280,7 +282,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var owner = await db.MarketplaceTasks.Where(t => t.Id == id).Select(t => t.ClientId).SingleOrDefaultAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, owner)) { Notice = "This account cannot send offers while restricted or pending account deletion."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
-        if (await FreelancerAvailability.IsBusyAsync(db, UserId, ct)) { Notice = "Finish your current travel/work before sending a new offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        if (await JobAcceptanceRules.IsLockedAsync(db, UserId, ct)) { Notice = JobAcceptanceRules.Message; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
         await AppTransactions.LockTaskAsync(db, id, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId != UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         if (task is null || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct)) { Notice = "This task is unavailable or you already sent an offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
@@ -307,6 +309,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var task = offer is null ? null : await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == offer.TaskId && t.ClientId == UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         if (task is null || offer is null) { Notice = "This offer is no longer available."; return RedirectToPage(); }
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage(); }
+        if (await JobAcceptanceRules.IsLockedAsync(db, offer.FreelancerId, ct, task.Id))
+        { Notice = "This freelancer must finish their ongoing Long Job or Multi-Day Job before another offer can be accepted."; return RedirectToPage(); }
         if (await JobTypes.ConflictsAsync(db, offer.FreelancerId, task.Id, task.ScheduleText, task.WorkEndUtc, ct))
         { Notice = "This work schedule overlaps another accepted job for the freelancer. Agree on a different schedule first."; return RedirectToPage(); }
         task.Status = "assigned"; offer.Status = "accepted";

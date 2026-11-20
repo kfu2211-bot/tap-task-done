@@ -1,5 +1,6 @@
 using System.Text;
 using tts.Data;
+using Microsoft.EntityFrameworkCore;
 
 var checks = 0;
 void Check(bool condition, string label)
@@ -68,3 +69,23 @@ Check(JobTypes.Overlaps(startUtc, startUtc.AddDays(2), startUtc.AddHours(6), sta
 Check(!JobTypes.Overlaps(startUtc, startUtc.AddHours(2), startUtc.AddHours(2), startUtc.AddHours(4)), "Back-to-back jobs do not overlap");
 Check(!AgreementRules.SameTerms(new WorkAgreement { JobType="short" }, new WorkAgreement { JobType="long" }), "Job type changes require new agreement terms");
 Console.WriteLine($"All {checks} job-flow and job-type checks passed.");
+foreach (var type in new[] { "short", "long", "multi-day" })
+{
+    Check(!JobAcceptanceRules.RequiresCompletion(type, "assigned"), $"Scheduled {type} does not lock new acceptance before starting");
+    foreach (var status in JobAcceptanceRules.StartedStates)
+        Check(JobAcceptanceRules.RequiresCompletion(type, status) == (type != "short"), $"{type} at {status} has the correct new-work restriction");
+    Check(!JobAcceptanceRules.RequiresCompletion(type, "completed") && !JobAcceptanceRules.RequiresCompletion(type, "cancelled"), $"Completed or approved-cancelled {type} releases the lock");
+}
+Check(JobAcceptanceRules.RequiresCompletion("long", "awaiting-confirmation"), "Long job stays locked until client confirmation");
+Check(JobAcceptanceRules.RequiresCompletion("multi-day", "disputed", true), "Started multi-day job stays locked when paused/disputed");
+Check(!JobAcceptanceRules.RequiresCompletion("multi-day", "disputed", false), "Pre-start dispute does not pretend the job already started");
+Check(!JobAcceptanceRules.RequiresCompletion(null, "in-progress"), "Historical unclassified work is not silently inferred as Long Job");
+Console.WriteLine($"All {checks} workflow checks passed.");
+using (var db = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
+    .UseMySql("Server=127.0.0.1;Database=unused;User ID=unused",new MySqlServerVersion(new Version(8,0,36))).Options))
+{
+    var sql = JobAcceptanceRules.BlockingTasks(db,42).ToQueryString();
+    Check(sql.Contains("awaiting-confirmation") && sql.Contains("multi-day") && sql.Contains("accepted") && sql.Contains("42"), "Database restriction query translates and scopes the accepted freelancer and full completion lifecycle");
+    Check(JobAcceptanceRules.BlockingTasks(db,42,7).ToQueryString().Contains("7"), "Current job can be excluded when continuing its own progress");
+}
+Console.WriteLine($"All {checks} workflow and restriction checks passed. No live database writes.");

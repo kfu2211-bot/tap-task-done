@@ -20,6 +20,7 @@ namespace tts.Pages
         public Dictionary<long, string> OfferTaskTitles { get; private set; } = [];
         public string[] MatchingJobIds { get; private set; } = [];
         public string WorkRole { get; private set; } = "client";
+        public bool WorkLocked { get; private set; }
         [Microsoft.AspNetCore.Mvc.TempData] public string? Notice { get; set; }
         public bool DirectoryUnavailable { get; private set; }
         public bool IdentityApproved { get; private set; }
@@ -31,6 +32,7 @@ namespace tts.Pages
                 IdentityApproved = await IdentityWorkGate.IsApprovedAsync(db, userId, cancellationToken);
                 var ownProfile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
                 WorkRole = ownProfile?.WorkRole ?? "client";
+                WorkLocked = await JobAcceptanceRules.IsLockedAsync(db, userId, cancellationToken);
                 if (userId != 0 && WorkRole is "freelancer" or "both")
                 {
                     OpenTasks = await (from t in db.MarketplaceTasks.AsNoTracking()

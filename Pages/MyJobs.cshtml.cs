@@ -15,6 +15,7 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
     public List<JobItem> Jobs { get; private set; } = [];
     public List<BookingItem> Bookings { get; private set; } = [];
     public bool Unavailable { get; private set; }
+    public bool WorkLocked { get; private set; }
     [TempData] public string? Notice { get; set; }
     private int UserId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
@@ -24,6 +25,7 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
         if (Request.Query["legacy"] == "1") return Page();
         try
         {
+            WorkLocked = await JobAcceptanceRules.IsLockedAsync(db, UserId, ct);
             Jobs = await (from offer in db.MarketplaceOffers.AsNoTracking()
                           join task in db.MarketplaceTasks.AsNoTracking() on offer.TaskId equals task.Id
                           join client in db.Users.AsNoTracking() on task.ClientId equals client.Id

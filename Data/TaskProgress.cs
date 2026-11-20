@@ -101,6 +101,8 @@ public static class TaskProgress
             return new(false, "Ask the client to save the exact destination pin before starting travel.");
         if (action is "travel" or "start" && await FreelancerAvailability.ActiveTasks(db, freelancer.Value).AnyAsync(t => t.Id != id, ct))
             return new(false, "Finish your current travel/work before starting another job.");
+        if (action is "travel" or "start" && await JobAcceptanceRules.IsLockedAsync(db, freelancer.Value, ct, id))
+            return new(false, JobAcceptanceRules.Message);
         if (action is "travel" or "start" or "finish" or "confirm" && !AgreementRules.CanProceed(await AgreementRules.LatestAsync(db, id, ct)))
             return new(false, "Both participants must confirm the latest work details before continuing.");
 

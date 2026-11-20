@@ -43,6 +43,8 @@ public class AgreementModel(ApplicationDbContext db, IWebHostEnvironment environ
             await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
             if (!await ModerationGuard.AllowedAsync(db, environment, ct, participants)) return Forbid();
             var locked = await LockAsync(taskId, ct); if (locked is null || !participants.Contains(locked.Value.Freelancer)) return NotFound();
+            if (jobType == "short" && JobAcceptanceRules.RequiresCompletion(locked.Value.Task.JobType, locked.Value.Task.Status))
+            { Notice = "An ongoing Long Job or Multi-Day Job cannot be changed to Short Job to remove its work restriction. Complete it or obtain approved cancellation first."; return RedirectToPage("/Tracking", new { taskId }); }
             var latest = await AgreementRules.LatestAsync(db, taskId, ct);
             if (!AgreementRules.MatchesVersion(latest, expectedVersion)) { Notice = "The agreement changed. Review the latest version before proposing again."; return RedirectToPage("/Tracking", new { taskId }); }
             var proposal = new WorkAgreement { TaskId = taskId, Version = expectedVersion + 1, ProposedById = UserId, Price = price, JobType = jobType, WorkEndUtc = JobTypes.EndUtc(workEnd), EstimatedMinutes = latest?.EstimatedMinutes, Scope = scope, ScheduleText = schedule, Location = location,

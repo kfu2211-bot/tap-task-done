@@ -1,4 +1,4 @@
-@model (tts.Data.MarketplaceTask Task, string? OfferStatus)
+@model tts.Data.JobOfferView
 @{
     var task = Model.Task;
     var hasRange = task.BudgetMaximum is { } maximum && maximum != task.Budget;
@@ -25,17 +25,19 @@
                 <input type="hidden" name="id" value="@task.Id" />
                 <input type="hidden" name="price" value="@postedPrice" />
                 <input type="hidden" name="applyAtPostedPay" value="true" />
-                <button class="post-submit-button" type="submit">Apply at @task.BudgetDisplay</button>
+                <button class="post-submit-button" type="submit" data-work-guard disabled="@Model.WorkLocked">Apply at @task.BudgetDisplay</button>
             </form>
         }
-        <button class="job-offer-toggle" type="button" aria-controls="@formId" aria-expanded="false" hidden>Make an offer</button>
+        <button class="job-offer-toggle" type="button" aria-controls="@formId" aria-expanded="false" data-work-guard disabled="@Model.WorkLocked" hidden>Make an offer</button>
     }
     <a class="task-chat-action" asp-page="/Reports" asp-route-taskId="@task.Id">Report this task</a>
 </div>
+@if (Model.OfferStatus is null) { <p class="job-notice" data-work-lock-notice hidden="@(!Model.WorkLocked)" role="status">@tts.Data.JobAcceptanceRules.Message <a href="/MyJobs?view=active">View current job</a></p> }
 @if (Model.OfferStatus is null)
 {
     <form id="@formId" class="job-offer-editor" method="post" asp-page="/MarketTasks" asp-page-handler="Offer" data-submit-pending="Sending offer…">
         <input type="hidden" name="id" value="@task.Id" />
+        <fieldset class="job-offer-guard" data-work-guard disabled="@Model.WorkLocked">
         @if (hasRange && postedPrice is not null)
         {
             <button type="button" class="job-offer-use-budget" data-offer-price="@postedPrice" hidden>Use minimum budget (₱@task.Budget.ToString("N2"))</button>
@@ -47,5 +49,6 @@
             <label>Message (optional)<textarea data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" name="message" maxlength="500" rows="1" placeholder="Add a note to the client"></textarea></label>
             <button class="post-submit-button" type="submit">Send offer</button>
         </div>
+        </fieldset>
     </form>
 }

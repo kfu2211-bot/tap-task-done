@@ -192,3 +192,4 @@ html body.my-jobs-page .jobs-activity { margin-block-start: 0; }
 html body.my-jobs-page .jobs-intro .jobs-find-button { flex-shrink: 0; }
 .my-jobs-page .job-message-form { margin: 14px 0 0; }
 .my-jobs-page .job-message-form .job-progress-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font: inherit; font-weight: 650; }
+.my-jobs-page .job-actions button:disabled { opacity: .6; cursor: not-allowed; }

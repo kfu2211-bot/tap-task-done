@@ -490,13 +490,10 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateBookingAvailability() {
         if (!selectedProvider || !bookingSchedule) return;
         const canRequest = selectedProvider.id > 0 && selectedProvider.savedAvailability === "Available";
-        const futureOnly = canRequest && selectedProvider.availability !== "Available";
+
         const localNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
-        const tomorrow = new Date(localNow.getTime() + 24 * 60 * 60 * 1000);
-        bookingSchedule.min = futureOnly ? tomorrow.toISOString().slice(0, 10) + "T00:00" : localNow.toISOString().slice(0, 16);
-        if (bookingScheduleHelp) bookingScheduleHelp.textContent = futureOnly
-            ? "This freelancer is working now. Choose tomorrow or later (Philippine time)."
-            : "Choose a future date and time (Philippine time).";
+        bookingSchedule.min = localNow.toISOString().slice(0, 16);
+        if (bookingScheduleHelp) bookingScheduleHelp.textContent = 'Choose a future date and time (Philippine time). Requests can be discussed while the freelancer is working; acceptance depends on their current job restrictions and schedule.';
         if (sendBookingRequestButton) sendBookingRequestButton.disabled = !canRequest;
     }
 

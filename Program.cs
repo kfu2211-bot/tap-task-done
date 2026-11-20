@@ -292,6 +292,14 @@ app.MapGet("/api/task-help/providers", async (string topic, HttpContext context,
     return Results.Json(new { count });
 }).RequireAuthorization();
 
+app.MapGet("/api/work-eligibility", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0) return Results.Unauthorized();
+    try { return Results.Json(new { locked = await JobAcceptanceRules.IsLockedAsync(db, userId, ct) }); }
+    catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { return Results.StatusCode(503); }
+}).RequireAuthorization();
+
 app.MapGet("/api/work-preferences", async (HttpContext context, ApplicationDbContext db) =>
 {
     if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))

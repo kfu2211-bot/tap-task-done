@@ -44,3 +44,4 @@ html body :is(.provider-card, .freelancer-card, .job-card, .db-tracking-card):ha
         transition: background-color 150ms ease, box-shadow 150ms ease;
     }
 }
+[data-work-lock-notice][hidden] { display: none !important; }
