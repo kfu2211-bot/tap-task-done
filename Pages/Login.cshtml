@@ -58,6 +58,7 @@
             </h1>
 
 
+            @if (!string.IsNullOrWhiteSpace(Model.LoginNotice)) { <p class="login-reset-notice" role="status">@Model.LoginNotice</p> }
             <p class="login-subtitle">
                 Pick up where you left off and manage your tasks.
             </p>
@@ -81,6 +82,7 @@
                     <input type="email"
                            id="loginEmail"
                            name="email"
+                           value="@Model.LoginEmail"
                            placeholder="you@example.com"
                            autocomplete="email"
                            required />

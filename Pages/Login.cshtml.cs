@@ -13,6 +13,8 @@ namespace tts.Pages
     [EnableRateLimiting("AdminLoginLimit")]
     public class LoginModel : PageModel
     {
+        [TempData] public string? LoginEmail { get; set; }
+        [TempData] public string? LoginNotice { get; set; }
         public void OnGet()
         {
         }

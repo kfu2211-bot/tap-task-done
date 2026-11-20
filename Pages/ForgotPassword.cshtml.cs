@@ -95,6 +95,7 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
             if (request is null || !CryptographicOperations.FixedTimeEquals(Convert.FromHexString(request.CodeHash), Convert.FromHexString(expected))) { ErrorMessage = "Invalid or expired code. Request a new code if needed."; return Page(); }
             var verified = await db.PasswordResetCodes.Where(x => x.ChallengeHash == hash && x.ExpiresUtc > now && !x.Verified).ExecuteUpdateAsync(s => s.SetProperty(x => x.Verified, true), ct);
             if (verified != 1) { ErrorMessage = "Invalid or expired code. Request a new code."; return Page(); }
+            Email = await db.Users.AsNoTracking().Where(u => u.Id == request.UserId).Select(u => u.Username).SingleOrDefaultAsync(ct);
             Step = "password"; Notice = "Code verified. Choose a new password."; return Page();
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException or FormatException) { logger.LogWarning("Code verification failed ({ErrorType}).", ex.GetType().Name); ErrorMessage = "Unable to verify the code. Please try again later."; return Page(); }
@@ -103,25 +104,32 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
     public async Task<IActionResult> OnPostResetAsync(CancellationToken ct)
     {
         NoStore(); Step = "password";
-        if (Password is null || !tts.Data.NewPasswordPolicy.IsValid(Password) || Password != ConfirmPassword) { ErrorMessage = Password != ConfirmPassword ? "The passwords do not match." : tts.Data.NewPasswordPolicy.Requirements; return Page(); }
+        if (!ModelState.IsValid || Password is null || !tts.Data.NewPasswordPolicy.IsValid(Password) || Password != ConfirmPassword) { ErrorMessage = Password != ConfirmPassword ? "The passwords do not match." : tts.Data.NewPasswordPolicy.Requirements; return Page(); }
         var challenge = ResetChallenge;
         if (challenge is null) { Step = "email"; ErrorMessage = "Your reset session expired. Request a new code."; return Page(); }
         try
         {
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
             var hash = Hash(challenge); var now = DateTime.UtcNow;
             var request = await db.PasswordResetCodes.AsNoTracking().SingleOrDefaultAsync(x => x.ChallengeHash == hash && x.Verified && x.ExpiresUtc > now, ct);
-            if (request is null || await db.PasswordResetCodes.Where(x => x.ChallengeHash == hash && x.Verified && x.ExpiresUtc > now).ExecuteDeleteAsync(ct) != 1) { Step = "email"; ErrorMessage = "Your reset session expired. Request a new code."; return Page(); }
-            var user = await db.Users.SingleOrDefaultAsync(x => x.Id == request.UserId, ct);
+            if (request is null) { Step = "email"; ErrorMessage = "Your reset session expired. Request a new code."; return Page(); }
+            var user = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id={request.UserId} FOR UPDATE").ToListAsync(ct)).SingleOrDefault();
             if (user is null) { Step = "email"; ErrorMessage = "Your reset session expired. Request a new code."; return Page(); }
+            if (await db.PasswordResetCodes.Where(x => x.ChallengeHash == hash && x.UserId == user.Id && x.Verified && x.ExpiresUtc > now).ExecuteDeleteAsync(ct) != 1) { Step = "email"; ErrorMessage = "Your reset session expired. Request a new code."; return Page(); }
             if (VerificationMailer.Enabled(config) && !await VerificationMailer.IsVerifiedAsync(db, user, ct)) { Step = "email"; ErrorMessage = "Your reset session expired. Verify your email before requesting a new code."; return Page(); }
             accounts.SetPassword(user, Password);
             await db.SaveChangesAsync(ct);
+            var stored = await db.Users.AsNoTracking().Where(u => u.Id == user.Id).Select(u => new AppUser { Id = u.Id, PasswordHash = u.PasswordHash }).SingleAsync(ct);
+            if (!accounts.VerifyPassword(stored, Password)) throw new InvalidOperationException("Saved password failed verification.");
             if (LoginSecurity.Enabled(config)) await LoginSecurity.RevokeAllAsync(db, user.Id, ct);
             await db.PasswordResetCodes.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             await db.PasswordResetRequests.Where(x => x.UserId == user.Id).ExecuteDeleteAsync(ct);
             await tx.CommitAsync(ct);
-            Response.Cookies.Delete(CookieName); Password = ConfirmPassword = null; Step = "done"; return Page();
+            Response.Cookies.Delete(CookieName);
+            TempData["LoginEmail"] = user.Username;
+            TempData["LoginNotice"] = "Password updated. Enter your new password below. If your browser fills an older password, replace it.";
+            Password = ConfirmPassword = null;
+            return RedirectToPage("/Login");
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException) { logger.LogWarning("Password reset failed ({ErrorType}).", ex.GetType().Name); ErrorMessage = "Unable to reset your password. Please try again later."; return Page(); }
     }
