@@ -1,0 +1,66 @@
+/* Final palette layer shared by standalone pages, workspaces and admin frames. */
+html:not([data-theme="dark"]) {
+    color-scheme: light;
+    --ui-control-bg: #fff;
+    --ui-control-text: #173d30;
+    --ui-control-border: #bfd3c3;
+    --ui-control-muted: #61776b;
+}
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --ui-control-bg: #17231c;
+    --ui-control-text: #edf5ef;
+    --ui-control-border: #6e9780;
+    --ui-control-muted: #b3c7bb;
+}
+html body :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="submit"]):not([type="button"]):not([type="color"]), textarea, select),
+html body :is(#users, #registerForm, #loginForm) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea, select) {
+    background-color: var(--ui-control-bg) !important;
+    color: var(--ui-control-text) !important;
+    border-color: var(--ui-control-border) !important;
+    caret-color: var(--ui-control-text);
+}
+html body :is(input, textarea)::placeholder { color: var(--ui-control-muted) !important; opacity: 1; }
+html body input:-webkit-autofill,
+html body input:-webkit-autofill:focus,
+html body :is(#users, #registerForm, #loginForm) input:-webkit-autofill {
+    -webkit-text-fill-color: var(--ui-control-text) !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--ui-control-bg) inset !important;
+    box-shadow: 0 0 0 1000px var(--ui-control-bg) inset !important;
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] body :is(.page.registration-page, .page .right-side, .login-page, .email-verification-page, .admin-shell, .admin-main, .admin-content, .users-page, .identity-admin, .report-admin-body, .deletion-embedded) {
+    background-color: #111614 !important;
+    color: #edf5ef !important;
+}
+html[data-theme="dark"] body :is(.registration-page .register-box, .login-page .login-box, .admin-shell .admin-card, .admin-shell .stat-card, .users-page .user-card, .users-page .empty, .identity-admin .identity-request, .admin-report-card, .review-profile-card, .profile-overview, .profile-review-list, .admin-settings) {
+    background: #202a25 !important;
+    color: #edf5ef !important;
+    border-color: #456052 !important;
+}
+html[data-theme="dark"] body :is(.users-page .history, .users-total, .admin-settings-note, .password-popup, .registration-page .dropdown-button, .registration-page .dropdown-menu) {
+    background: #26392f !important;
+    color: #edf5ef !important;
+    border-color: #527361 !important;
+}
+html[data-theme="dark"] body.post-moderation-page :is(section, .notice) { background: #202a25 !important; color: #edf5ef !important; border-color: #456052 !important; }
+html[data-theme="dark"] body :is(.registration-page h1, .registration-page label, .registration-page .dropdown-option, .registration-page .password-rule, .users-page .user-identity strong, .users-page .history strong, .admin-settings .admin-setting-switch) { color: #edf5ef !important; }
+html[data-theme="dark"] body :is(.registration-page .signup-subtitle, .registration-page .signup-demo-notice, .users-page .intro, .users-page .user-identity p, .users-page .history small, .admin-settings p) { color: #b3c7bb !important; }
+html body .admin-settings .admin-setting-switch input[type="checkbox"] {
+    appearance: none;
+    width: 44px;
+    height: 26px;
+    min-width: 44px;
+    flex: 0 0 44px;
+    padding: 3px;
+    border: 1px solid #70897c !important;
+    background: #70897c !important;
+    box-shadow: none !important;
+}
+html body .admin-settings .admin-setting-switch input[type="checkbox"]::before { width: 18px; height: 18px; background: #fff; }
+html body .admin-settings .admin-setting-switch input[type="checkbox"]:checked { background: #176b50 !important; border-color: #176b50 !important; }
+html[data-theme="dark"] body .admin-settings .admin-setting-switch input[type="checkbox"] { background: #486454 !important; border-color: #71937e !important; }
+html[data-theme="dark"] body .admin-settings .admin-setting-switch input[type="checkbox"]:checked { background: #81dbb2 !important; }
+html[data-theme="dark"] body .admin-settings .admin-setting-switch input[type="checkbox"]:checked::before { background: #12372a; }
+.registration-page .signup-error { padding: 12px 14px; margin: 10px 0 18px; border: 1px solid #e5bdb4; border-radius: 9px; background: #fff1ed; color: #8d3023; font-size: 13px; line-height: 1.5; }
+html[data-theme="dark"] body .registration-page .signup-error { background: #392521 !important; border-color: #a76d61 !important; color: #ffd1c5 !important; }

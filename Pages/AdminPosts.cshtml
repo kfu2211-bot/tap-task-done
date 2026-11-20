@@ -13,8 +13,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Post Moderation · Tap, Task, Done</title>
 <link rel="stylesheet" href="/css/admin-posts.css" asp-append-version="true" />
+<partial name="_AccountTheme" />
 </head>
-<body class="@(Model.Embedded ? "embedded" : null)">
+<body class="post-moderation-page @(Model.Embedded ? "embedded" : null)">
 <main>
     @if (!Model.Embedded) { <header><a asp-page="/Admin" asp-fragment="posts">‹ Admin workspace</a><h1>Post Moderation</h1></header> }
     @if (Model.Notice is { } notice) { <p role="status" class="notice">@notice</p> }

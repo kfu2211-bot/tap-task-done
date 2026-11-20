@@ -46,13 +46,6 @@
 
                 <p class="signup-subtitle">Start finding trusted local help today.</p>
                 <p class="signup-demo-notice" role="status">Enter your first and last name. You must be at least 16 years old to register.</p>
-                @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
-                {
-                    <p class="signup-demo-notice" role="alert">@Model.ErrorMessage</p>
-                    @if (Model.ShowExistingAccountLink) { <p class="signup-demo-notice"><a href="/Login">Log in to continue</a></p> }
-                }
-
-
                 <form id="registerForm" method="post" asp-page="/Index" asp-page-handler="Register">
 
                     <!-- NAME -->
@@ -83,7 +76,7 @@
                         </label>
 
                         <input type="email"
-                               id="email"
+                               id="email" aria-describedby="@(string.IsNullOrWhiteSpace(Model.ErrorMessage) ? null : "registrationError")"
                                name="Email"
                                value="@Model.Email"
                                placeholder="you@example.com"
@@ -94,6 +87,10 @@
 
 
                
+                    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+                    {
+                        <p id="registrationError" class="signup-error" role="alert">@Model.ErrorMessage</p>
+                    }
                     <!-- PASSWORD -->
 
                     <div class="form-group password-group">
