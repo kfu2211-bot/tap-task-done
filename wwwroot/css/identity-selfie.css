@@ -91,3 +91,8 @@ html[data-theme="dark"] .identity-comparison :is(img, object) {
     background: var(--surface, #202a25);
     border-color: #567264;
 }
+/* The active camera action carries its loading state on phones and desktop. */
+#openCamera.camera-loading { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; cursor: progress; opacity: .85; }
+#openCamera.camera-loading::before { content: ""; width: 1em; height: 1em; flex: 0 0 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: camera-spin .8s linear infinite; }
+@keyframes camera-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { #openCamera.camera-loading::before { animation: none; } }

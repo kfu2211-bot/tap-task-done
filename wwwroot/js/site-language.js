@@ -85,6 +85,7 @@
         "Valid Government ID": "Valid na government ID", "Select your ID type": "Piliin ang uri ng ID",
         "Upload government ID": "Mag-upload ng government ID",
         "Open camera": "Buksan ang camera", "Capture selfie": "Kumuha ng selfie", "Retake": "Kumuha muli",
+        "Checking ID…": "Sinusuri ang ID…", "Preparing camera…": "Inihahanda ang camera…", "Opening camera…": "Binubuksan ang camera…",
         "Selfie verification": "Pagpapatunay gamit ang selfie", "Required": "Kailangan", "Optional": "Opsyonal",
         "Certification": "Sertipiko", "Other Supporting Document": "Iba pang sumusuportang dokumento",
         "Before you submit": "Bago magsumite", "Review your submission": "Suriin ang isusumite mo",

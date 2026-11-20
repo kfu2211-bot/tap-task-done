@@ -187,13 +187,15 @@
                     }
                 }
 
-                var labelSpan = link.querySelector(":scope > span:not(.sidebar-unread-badge):last-child, :scope > span:not(.sidebar-unread-badge):has(+ .sidebar-unread-badge)");
-                if (labelSpan && labelSpan !== link.querySelector("span:first-child")) labelSpan.textContent = item.label;
-                else if (link.classList.contains("mytasks-nav-item")) {
-                    Array.from(link.childNodes).filter(function (node) { return node.nodeType === Node.TEXT_NODE; }).forEach(function (node) { node.remove(); });
-                    link.appendChild(document.createTextNode(item.label));
-                }
-
+                // Keep the label independent from unread counts on every page/role.
+                // Older markup can put badge classes on the last text span.
+                var iconSpan = document.createElement("span");
+                iconSpan.className = "menu-icon";
+                iconSpan.textContent = item.icon;
+                var labelSpan = document.createElement("span");
+                labelSpan.className = "sidebar-link-label";
+                labelSpan.textContent = item.label;
+                link.replaceChildren(iconSpan, labelSpan);
                 var path = window.location.pathname.toLowerCase();
                 var query = new URLSearchParams(window.location.search);
                 var active = path === item.href.split("?")[0].toLowerCase();

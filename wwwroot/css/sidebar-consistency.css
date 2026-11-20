@@ -405,3 +405,15 @@ html[data-theme="dark"] body .desktop-view-switch a:not([aria-current="page"]):h
 @media (max-width: 700px) {
     html body .desktop-view-switch { display: none; }
 }
+/* Labels and counts have separate slots, including Safari's mobile drawer. */
+html body :is(.sidebar, .mytasks-sidebar) nav a > .sidebar-link-label {
+    display: block !important;
+    visibility: visible !important;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+html body :is(.sidebar, .mytasks-sidebar) nav a > .sidebar-unread-badge[hidden] {
+    display: none !important;
+}

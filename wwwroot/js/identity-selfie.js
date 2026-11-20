@@ -5,6 +5,13 @@
     const video = el('selfieVideo'), preview = el('selfiePreview'), file = el('selfieFile');
     const review = el('identityReview'), message = el('selfieMessage');
     const consent = el("selfieConsent"), capture = el("captureSelfie");
+    function cameraBusy(label) {
+        const button = el('openCamera');
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        button.classList.add('camera-loading');
+        button.textContent = label;
+    }
     let guideReady = false;
     let autoCountdown;
     const guide = new window.IdentityFaceGuide(video, JSON.parse(el('captureSteps').value), value => { guideReady = value; updateCapture(); });
@@ -58,7 +65,7 @@
         if (!documentType.reportValidity() || !idNumber.reportValidity() || !governmentId.reportValidity() || !consent.reportValidity()) return false;
         const selectedFile = governmentId.files[0], number = idNumber.value, type = documentType.value;
         checkingId = true; el('openCamera').disabled = true;
-        el('openCamera').textContent = 'Checking ID…';
+        cameraBusy('Checking ID…');
         el('idCheckMessage').textContent = 'Reading your uploaded ID and checking its full number…';
         el('idCheckMessage').dataset.state = 'loading';
         el('idCheckToken').value = '';
@@ -146,10 +153,12 @@
             if (!await checkId()) return;
             if (version !== cameraVersion || !consent.checked || document.hidden) return;
             message.textContent = 'Loading automatic face, glasses, mask and hand checks on your device. The first load may take a moment.';
+            cameraBusy('Preparing camera…');
             preview.hidden = true; file.value = ''; invalidate();
             await guide.load();
             if (version !== cameraVersion || !consent.checked || document.hidden) return;
             if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
+            cameraBusy('Opening camera…');
             const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 720 } }, audio: false });
             if (version !== cameraVersion || !consent.checked || document.hidden) { next.getTracks().forEach(t => t.stop()); return; }
             stream = next; video.srcObject = stream; video.hidden = false; el('selfieCamera').hidden = false; await video.play();
@@ -168,7 +177,14 @@
             if (version !== cameraVersion) return;
             stop();
             message.textContent = 'Camera or face tracking could not start. Check camera permission, use HTTPS (or localhost), and try a recent Chrome, Edge or Safari browser.'; }
-        finally { opening = false; }
+        finally {
+            opening = false;
+            const button = el('openCamera');
+            button.disabled = false;
+            button.removeAttribute('aria-busy');
+            button.classList.remove('camera-loading');
+            if (!button.hidden && button.dataset.idAction !== 'retry') button.textContent = 'Open camera';
+        }
     }
     el('openCamera').addEventListener('click', () => open());
     el('continueManualId').addEventListener('click', () => {
