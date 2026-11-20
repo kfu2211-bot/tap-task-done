@@ -721,9 +721,6 @@
                             <partial name="_JobOfferForm" model="new tts.Data.JobOfferView(task, existing?.Offer.Status, Model.WorkLocked)" /></article>
                         }
                         <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs match these filters</h3><p>Try All jobs or change your category and specific service.</p></div>
-                        <section class="jobs-offers"><h3>My offers</h3>
-                        @if (Model.Offers.Count == 0) { <p>Your sent offers will appear here so you can check their status.</p> }
-                        @foreach (var sent in Model.Offers) { <div class="sent-offer"><div><strong>@(Model.OfferTaskTitles.TryGetValue(sent.Offer.TaskId, out var offerTitle) ? offerTitle : "Task details unavailable")</strong><span>Offer: ₱@sent.Offer.Price</span></div><span class="sent-offer-status">@sent.Offer.Status.Replace("-", " ")</span></div> }</section>
                     </div>
 
 

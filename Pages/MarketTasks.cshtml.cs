@@ -286,31 +286,38 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
 
     public async Task<IActionResult> OnPostOfferAsync(long id, decimal price, string? message, CancellationToken ct, bool applyAtPostedPay = false)
     {
+        IActionResult OfferFailure(string text) {
+            if (JsonRequested) return new JsonResult(new { success = false, message = text }) { StatusCode = 422 };
+            Notice = text; return RedirectToPage("/FindPost", new { mode = "jobs" });
+        }
         if (UserId <= 0) return Challenge();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
         message = (message ?? "").Trim();
         var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct);
         if (profile is null || profile.WorkRole is not ("freelancer" or "both") || profile.Availability != "Available" || !ModelState.IsValid || price <= 0 || price > 9999999999m || message.Length > 500)
-        { Notice = "Check your freelancer role, availability and offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        { return OfferFailure("Check your freelancer role, availability and offer."); }
         var owner = await db.MarketplaceTasks.Where(t => t.Id == id).Select(t => t.ClientId).SingleOrDefaultAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
-        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, owner)) { Notice = "This account cannot send offers while restricted or pending account deletion."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
-        if (await JobAcceptanceRules.IsLockedAsync(db, UserId, ct)) { Notice = JobAcceptanceRules.Message; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, owner)) return OfferFailure("This account cannot send offers while restricted or pending account deletion.");
+        if (await JobAcceptanceRules.IsLockedAsync(db, UserId, ct)) return OfferFailure(JobAcceptanceRules.Message);
         await AppTransactions.LockTaskAsync(db, id, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId != UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
-        if (task is null || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct)) { Notice = "This task is unavailable or you already sent an offer."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        if (task is null || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct)) return OfferFailure("This task is unavailable or you already sent an offer. Check My Jobs before retrying.");
         if (applyAtPostedPay && ((task.BudgetMaximum.HasValue && task.BudgetMaximum.Value != task.Budget) || price != task.Budget))
         {
-            Notice = "The posted pay has changed. Review the latest budget before applying.";
-            return RedirectToPage("/FindPost", new { mode = "jobs" });
+            return OfferFailure("The posted pay has changed. Review the latest budget before applying.");
         }
-        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This task cannot receive offers while an account is pending deletion or restricted."; return RedirectToPage("/FindPost", new { mode = "jobs" }); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) return OfferFailure("This task cannot receive offers while an account is pending deletion or restricted.");
         await AgreementRules.ConversationAsync(db, id, UserId, ct);
         db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = id, FreelancerId = UserId, Price = price, Message = message, Status = "pending", CreatedAt = DateTime.UtcNow });
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(task.ClientId, id, "offer", "A freelancer sent an offer for your task."));
-        try { await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct); Notice = applyAtPostedPay ? "Application sent to the client at the posted pay." : "Offer sent to the client."; return RedirectToPage("/MyJobs", new { view = "offers" }); }
-        catch (DbUpdateException) { Notice = "Your offer could not be saved. Please try again."; }
-        return RedirectToPage("/FindPost", new { mode = "jobs" });
+        try {
+            await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct);
+            if (JsonRequested) return new JsonResult(new { success = true, message = "Offer sent. Waiting for the client response.", taskId = id });
+            Notice = "Offer sent. Waiting for the client response.";
+            return RedirectToPage("/FindPost", null, new { mode = "jobs", offerSent = id }, "task-" + id);
+        }
+        catch (DbUpdateException) { return OfferFailure("Your offer could not be saved. Please try again."); }
     }
     public async Task<IActionResult> OnPostAcceptAsync(long id, CancellationToken ct)
     {

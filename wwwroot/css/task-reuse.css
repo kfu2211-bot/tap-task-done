@@ -13,3 +13,30 @@
 .task-record-events small { display: block; margin: 6px 0; }
 .record-status { display: inline-block; padding: 6px 10px; background: var(--surface-2, #edf5ee); border-radius: 8px; margin-right: 8px; }
 @media(max-width:600px) { .task-reuse-page { padding: 20px 12px; } .task-reuse-form, .task-record { padding: 18px; } }
+
+/* Standalone record/forms do not use the settings sidebar or its main/header sizes. */
+html:has(body.task-reuse-screen) { min-height: 100%; background: #f6f7f3; }
+html body.task-reuse-screen { min-height: 100vh; background: #f6f7f3 !important; color: #193e30; }
+html body.task-reuse-screen main.task-reuse-page { width: 100%; max-width: 1100px; min-height: 100vh; margin: 0 auto; padding: 30px 24px 48px; box-sizing: border-box; }
+html body.task-reuse-screen .task-reuse-page > header { height: auto; min-height: 64px; padding: 0 0 22px; margin: 0 0 24px; border-bottom: 1px solid #d9e7da; }
+.record-eyebrow { display: block; margin-bottom: 7px; font-size: .72rem; font-weight: 750; letter-spacing: .12em; color: #176b50; }
+html body.task-reuse-screen .record-back { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 15px; border: 1px solid #b9d3c0; border-radius: 9px; text-decoration: none; background: #fff; color: #175e45; font-weight: 650; }
+.task-record > h2 { margin: 0 0 16px; font-size: clamp(1.25rem, 2vw, 1.6rem); }
+.record-statuses { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.record-statuses .record-status { margin: 0; font-size: .85rem; font-weight: 650; text-transform: capitalize; }
+.record-status[data-status="expired"] { background: #fff1cf; color: #78520e; }
+.record-status[data-status="withdrawn"] { background: #f0ecfb; color: #63448c; }
+.record-status[data-status="cancelled"], .record-status[data-status="canceled"] { background: #fdebea; color: #963931; }
+.record-description { white-space: pre-wrap; margin: 0 0 22px; }
+.record-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0 0 22px; }
+.record-details > div { border: 1px solid #dce8de; background: #f6f9f5; border-radius: 10px; padding: 14px; min-width: 0; }
+.record-details dt { font-size: .8rem; color: #526c5d; margin-bottom: 6px; }
+.record-details dd { margin: 0; font-weight: 650; overflow-wrap: anywhere; }
+.record-info { padding: 14px 16px; border-left: 3px solid #b78020; border-radius: 6px; background: #fff9ec; color: #6c511f; }
+.record-readonly { margin-top: 20px; font-size: .85rem; color: #526c5d; }
+.task-record-actions:empty { display: none; }
+html[data-theme="dark"]:has(body.task-reuse-screen), html[data-theme="dark"] body.task-reuse-screen { background: #101815 !important; color: #edf5ef; }
+html[data-theme="dark"] body.task-reuse-screen :is(.task-record, .task-reuse-form, .record-back) { background: #1b2923; border-color: #456452; color: #edf5ef; }
+html[data-theme="dark"] body.task-reuse-screen .record-details > div { background: #20392e; border-color: #456452; }
+html[data-theme="dark"] body.task-reuse-screen .record-details dt, html[data-theme="dark"] body.task-reuse-screen .record-readonly { color: #c1d3c8; }
+@media(max-width:600px) { html body.task-reuse-screen main.task-reuse-page { padding: 20px 12px; } .record-details { grid-template-columns: 1fr; } }

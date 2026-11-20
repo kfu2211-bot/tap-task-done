@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/css/task-reuse.css" asp-append-version="true" />
 <script defer src="/js/task-repeat.js" asp-append-version="true"></script>
 <script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><script defer src="/js/task-location-picker.js" asp-append-version="true"></script>
-<partial name="_AccountTheme" /></head><body><main class="task-reuse-page"><header><h1>@title</h1><a href="/JobRecord?taskId=@source.Id">Back to original record</a></header>
+<partial name="_AccountTheme" /></head><body class="task-reuse-screen"><main class="task-reuse-page"><header><h1>@title</h1><a class="record-back" href="/JobRecord?taskId=@source.Id">Back to original record</a></header>
 <p>This creates a new @(Model.Booking ? "private booking request" : "public task draft") linked to <a href="/JobRecord?taskId=@source.Id">task #@source.Id</a>. The original record stays unchanged.</p>
 @if (Model.Booking) { <p><strong>Freelancer:</strong> @Model.FreelancerName. They must accept this new request. Both of you must confirm the work details again.</p> }
 else { <p>Review the details and choose fresh dates. You will confirm publication after saving the draft. Previous offers and agreements are not copied.</p> }

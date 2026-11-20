@@ -13,7 +13,7 @@ public static class JobActivity
     };
     public static bool InView(MarketplaceTask task, MarketplaceOffer offer, string view, bool pendingOnly, DateTime now) => view switch {
         "closed" => IsClosed(task, offer),
-        "offers" => !IsClosed(task, offer) && task.Status != "completed" && offer.Status != "accepted" &&
+        "offers" => !IsClosed(task, offer) && (offer.Status is "pending" or "declined" or "rejected") &&
             (!pendingOnly || offer.Status == "pending" && task.Status == "open" && (task.PostExpiresUtc == null || task.PostExpiresUtc > now)),
         "scheduled" => offer.Status == "accepted" && TaskSchedule.IsUpcoming(task, now),
         "active" => offer.Status == "accepted" && !IsClosed(task, offer) &&

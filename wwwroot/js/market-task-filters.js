@@ -7,13 +7,14 @@
     const count = section.querySelector('#task-filter-count');
     const empty = section.querySelector('.task-filter-empty');
     const typeFilter = section.querySelector('#myTasksTypeFilter');
+    const closedFilter = section.querySelector('#clientClosedFilter');
     const groups = {
         'needs-confirmation': ['pending-confirmation', 'awaiting-confirmation'],
         open: ['open'],
         scheduled: ['scheduled'],
         active: ['booking-pending', 'assigned', 'on-the-way', 'arrived', 'in-progress', 'awaiting-confirmation', 'disputed'],
         completed: ['completed'],
-        cancelled: ['cancelled', 'expired']
+        closed: ['cancelled', 'canceled', 'expired', 'moderated']
     };
 
     section.querySelectorAll('.edit-task').forEach(editor => {
@@ -40,12 +41,15 @@
         const button = event.target.closest('button[data-filter]');
         if (!button || !filters.contains(button)) return;
         const selected = button.dataset.filter;
+        if (closedFilter) closedFilter.parentElement.hidden = selected !== 'closed';
         let visible = 0;
         for (const card of cards) {
             const statusMatch = selected === 'all' ||
                 (selected === 'new-offers' ? card.dataset.pendingOffers === 'true' :
                     (groups[selected] || []).includes(card.dataset.taskStatus));
-            const matches = statusMatch && (!typeFilter?.value || card.dataset.jobType === typeFilter.value);
+            const closedMatch = selected !== 'closed' || !closedFilter || closedFilter.value === 'all' ||
+                card.dataset.taskStatus === closedFilter.value || closedFilter.value === 'cancelled' && card.dataset.taskStatus === 'canceled';
+            const matches = statusMatch && closedMatch && (!typeFilter?.value || card.dataset.jobType === typeFilter.value);
             card.hidden = !matches;
             if (matches) visible++;
         }
@@ -58,11 +62,12 @@
         if (noTasks) noTasks.hidden = selected !== 'all';
     });
     typeFilter?.addEventListener('change', () => filters.querySelector('button[aria-pressed="true"]')?.click());
+    closedFilter?.addEventListener('change', () => filters.querySelector('button[data-filter="closed"]')?.click());
     const requestedFilter = new URLSearchParams(location.search).get('filter');
-    const filterKey = requestedFilter === 'needs-action' ? 'needs-confirmation' : requestedFilter;
+    const filterKey = requestedFilter === 'needs-action' ? 'needs-confirmation' : requestedFilter === 'cancelled' ? 'closed' : requestedFilter;
     const initialButton = [...filters.querySelectorAll('button[data-filter]')]
         .find(button => button.dataset.filter === filterKey);
-    initialButton?.click();
+    (initialButton || filters.querySelector('[data-filter="all"]'))?.click();
     if (filterKey === "new-offers" || filterKey === "needs-confirmation") {
         cards.filter(card => !card.hidden).forEach(card => {
             card.querySelector(".task-disclosure").open = true;

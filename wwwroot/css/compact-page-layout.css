@@ -1,4 +1,20 @@
 /* One page title in the top bar; real section headings stay inside the workspace. */
+html body.client-tasks-workspace #my-tasks-section { padding: 22px; border: 1px solid #d9e7da; border-radius: 14px; background: #fff; }
+html body.client-tasks-workspace #my-tasks-section .client-tasks-intro { margin: 0 0 18px; color: #526c5d; font-size: .9rem; line-height: 1.6; }
+html body.client-tasks-workspace #my-tasks-section .task-list-count { margin: 0 0 14px; }
+html body.client-tasks-workspace #my-tasks-section #task-filter-count { display: inline-flex; padding: 6px 10px; border-radius: 8px; background: #edf5ee; color: #175e45; font-size: .8rem; font-weight: 650; }
+.client-tasks-workspace :is(.client-job-type-filter, .client-closed-filter) { display: grid; gap: 8px; max-width: 280px; margin: 0 0 18px; font-weight: 650; }
+.client-tasks-workspace .client-closed-filter[hidden] { display: none; }
+.client-tasks-workspace :is(.client-job-type-filter, .client-closed-filter) select { min-height: 46px; padding: 10px 12px; border: 1px solid #b9d3c0; border-radius: 9px; font: inherit; }
+html body.client-tasks-workspace #my-tasks-section .task-filters { padding: 0 0 16px; margin-bottom: 16px; border-bottom: 1px solid #d9e7da; }
+html body.client-tasks-workspace #my-tasks-section .task-card { margin: 12px 0; border: 1px solid #d9e7da; border-radius: 12px; overflow: hidden; }
+html body.client-tasks-workspace #my-tasks-section .task-list-summary { padding: 18px; }
+html body.client-tasks-workspace #my-tasks-section .task-title-line > strong { font-size: 1.1rem; line-height: 1.4; }
+html body.client-tasks-workspace #my-tasks-section .task-list-title small { display: block; margin-top: 6px; line-height: 1.5; }
+html body.client-tasks-workspace #my-tasks-section .task-list-budget { font-size: 1.1rem; }
+html[data-theme="dark"] body.client-tasks-workspace #my-tasks-section { background: #1b2923; border-color: #456452; }
+html[data-theme="dark"] body.client-tasks-workspace #my-tasks-section .client-tasks-intro { color: #c1d3c8; }
+@media(max-width:600px) { html body.client-tasks-workspace #my-tasks-section { padding: 16px; } .client-tasks-workspace :is(.client-job-type-filter, .client-closed-filter) { max-width: none; } }
 html body .compact-page-description,
 html body.compact-page-layout .page-intro > p {
     margin: 0;

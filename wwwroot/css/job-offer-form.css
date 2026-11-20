@@ -72,3 +72,7 @@ html body :is(.job-offer-actions, .job-offer-editor) .post-submit-button {
 .job-offer-actions button:disabled { opacity: .6; cursor: not-allowed; }
 .job-offer-guard { border: 0; padding: 0; margin: 0; min-width: 0; }
 [data-work-lock-notice][hidden] { display: none !important; }
+
+.offer-submit-feedback { padding: 14px 16px; border: 1px solid #bfd7c6; border-radius: 10px; background: #edf5ee; color: #175e45; }
+.offer-submit-feedback[role="alert"] { background: #fff4f2; border-color: #d9aaa4; color: #8b2020; }
+.offer-submit-feedback p { margin: 0 0 10px; }

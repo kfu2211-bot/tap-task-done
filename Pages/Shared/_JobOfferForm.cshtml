@@ -16,12 +16,13 @@
     @if (Model.OfferStatus is { } status)
     {
         <span class="jobs-offer-status">Offer sent · @status</span>
+        <a class="task-chat-action" href="/MyJobs?view=@(status is "withdrawn" or "cancelled" ? "closed" : status == "accepted" ? "active" : "offers")&amp;offerFilter=@(status is "declined" or "rejected" ? "declined" : "pending")#job-@task.Id">View offer</a>
     }
     else
     {
         @if (!hasRange && postedPrice is not null)
         {
-            <form method="post" asp-page="/MarketTasks" asp-page-handler="Offer" data-submit-pending="Applying…">
+            <form method="post" asp-page="/MarketTasks" asp-page-handler="Offer" data-submit-pending="Applying…" data-job-offer-submit>
                 <input type="hidden" name="id" value="@task.Id" />
                 <input type="hidden" name="price" value="@postedPrice" />
                 <input type="hidden" name="applyAtPostedPay" value="true" />
@@ -35,7 +36,7 @@
 @if (Model.OfferStatus is null) { <p class="job-notice" data-work-lock-notice hidden="@(!Model.WorkLocked)" role="status">@tts.Data.JobAcceptanceRules.Message <a href="/MyJobs?view=active">View current job</a></p> }
 @if (Model.OfferStatus is null)
 {
-    <form id="@formId" class="job-offer-editor" method="post" asp-page="/MarketTasks" asp-page-handler="Offer" data-submit-pending="Sending offer…">
+    <form id="@formId" class="job-offer-editor" method="post" asp-page="/MarketTasks" asp-page-handler="Offer" data-submit-pending="Sending offer…" data-job-offer-submit>
         <input type="hidden" name="id" value="@task.Id" />
         <fieldset class="job-offer-guard" data-work-guard disabled="@Model.WorkLocked">
         @if (hasRange && postedPrice is not null)

@@ -25,6 +25,9 @@ Check(JobActivity.MatchesClosed(expiredTask, withdrawnOffer, "expired") && JobAc
 Check(!JobActivity.MatchesClosed(expiredTask, withdrawnOffer, "cancelled"), "Expired does not pretend to mean cancelled");
 Check(JobActivity.IsClosed(new MarketplaceTask { Status = "open" }, withdrawnOffer), "Withdrawn offer is closed even while the public task stays open");
 Check(JobActivity.InView(new MarketplaceTask { Status = "open" }, new MarketplaceOffer { Status = "pending" }, "offers", false, DateTime.UtcNow), "Open pending offer remains in My offers");
+Check(!JobActivity.InView(new MarketplaceTask { Status = "assigned" }, new MarketplaceOffer { Status = "accepted" }, "offers", false, DateTime.UtcNow), "Accepted offer is removed from My offers");
+Check(JobActivity.InView(new MarketplaceTask { Status = "assigned" }, new MarketplaceOffer { Status = "declined" }, "offers", false, DateTime.UtcNow), "Declined offers remain available in the declined view");
+Check(!JobActivity.InView(new MarketplaceTask { Status = "assigned" }, new MarketplaceOffer { Status = "declined" }, "offers", true, DateTime.UtcNow), "Pending view does not include declined offers");
 Check(!JobActivity.InView(new MarketplaceTask { Status = "moderated" }, new MarketplaceOffer { Status = "accepted" }, "active", false, DateTime.UtcNow), "Removed work cannot appear as active");
 Check(JobActivity.InView(new MarketplaceTask { Status = "completed" }, new MarketplaceOffer { Status = "accepted" }, "completed", false, DateTime.UtcNow), "Completed accepted work retains its own tab");
 Check(TaskReuse.CanReuse(expiredTask, 42) && !TaskReuse.CanReuse(expiredTask, 43), "Only the original client can reuse an expired task");
