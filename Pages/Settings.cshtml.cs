@@ -147,6 +147,35 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         return RedirectToPage(new { view = "profile" });
     }
 
+    public async Task<IActionResult> OnPostAvailabilityAsync()
+    {
+        if (UserId <= 0) return Challenge();
+        var validDays = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+        Days ??= [];
+        var fields = new[] { nameof(Days), nameof(Availability), nameof(PreferredStart), nameof(PreferredEnd) };
+        if (ModelState.Any(entry => fields.Any(field => entry.Key == field || entry.Key.StartsWith(field + "[", StringComparison.Ordinal)) && entry.Value!.Errors.Count > 0) ||
+            Days.Any(day => !validDays.Contains(day)) || !new[] { "Available", "Busy", "Day off" }.Contains(Availability) ||
+            PreferredStart.HasValue != PreferredEnd.HasValue || PreferredStart >= PreferredEnd)
+            return new JsonResult(new { success = false, message = "Check your days and enter both times, with the end after the start, or leave both blank." }) { StatusCode = 422 };
+        try
+        {
+            var profile = await db.FreelancerProfiles.SingleOrDefaultAsync(p => p.UserId == UserId, HttpContext.RequestAborted);
+            if (profile is null || profile.WorkRole is not ("freelancer" or "both"))
+                return new JsonResult(new { success = false, message = "Save your freelancer work role first, then update availability." }) { StatusCode = 422 };
+            profile.AvailableDays = string.Join(',', validDays.Where(Days.Contains));
+            profile.Availability = Availability;
+            profile.PreferredStart = PreferredStart;
+            profile.PreferredEnd = PreferredEnd;
+            await db.SaveChangesAsync(HttpContext.RequestAborted);
+            return new JsonResult(new { success = true, message = "Availability saved." });
+        }
+        catch (Exception ex) when (ex is DbUpdateException or MySqlConnector.MySqlException)
+        {
+            logger.LogError(ex, "Could not save availability for user {UserId}.", UserId);
+            return new JsonResult(new { success = false, message = "Availability could not be saved. Your selections are still here; please try again." }) { StatusCode = 503 };
+        }
+    }
+
     public async Task<IActionResult> OnPostAsync()
     {
         var validDays = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };

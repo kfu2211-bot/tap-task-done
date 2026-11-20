@@ -35,6 +35,7 @@ if (workRole && freelancerPreferences) {
     let submitter;
 
     form.addEventListener("submit", event => {
+        if (availabilityOnlyChanged()) return;
         const missing = requiredAgreements();
         if (missing.every(agreementChecked)) return;
         event.preventDefault();
@@ -67,7 +68,44 @@ if (workRole && freelancerPreferences) {
         both: "Post tasks, book freelancers, and accept work."
     };
     const snapshot = () => JSON.stringify(Array.from(new FormData(form)));
-    const initial = snapshot();
+    let initial = snapshot();
+    const availabilityFields = new Set(["Days", "Availability", "PreferredStart", "PreferredEnd"]);
+    const withoutAvailability = value => JSON.stringify(JSON.parse(value).filter(([name]) => !availabilityFields.has(name)));
+    const availabilityOnlyChanged = () => snapshot() !== initial && withoutAvailability(snapshot()) === withoutAvailability(initial) && workRole.value !== "client";
+    let savingAvailability = false;
+    const savedMessage = document.getElementById("profileSavedMessage");
+    form.addEventListener("submit", async event => {
+        if (event.defaultPrevented || !availabilityOnlyChanged()) return;
+        event.preventDefault();
+        if (savingAvailability) return;
+        savingAvailability = true;
+        const submitted = snapshot();
+        const originalLabel = save.textContent;
+        save.disabled = true;
+        save.textContent = "Saving…";
+        savedMessage.textContent = "Saving availability…";
+        savedMessage.setAttribute("role", "status");
+        const controller = new AbortController();
+        const timeout = globalThis.setTimeout(() => controller.abort(), 30000);
+        try {
+            const url = new URL(form.action, location.href);
+            url.searchParams.set("handler", "Availability");
+            const response = await fetch(url, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" }, signal: controller.signal });
+            if (!response.headers.get("content-type")?.includes("application/json")) throw new Error("Could not save availability. Refresh your sign-in in another tab, then try again.");
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || "Availability could not be saved. Please try again.");
+            initial = submitted;
+            savedMessage.textContent = result.message;
+        } catch (error) {
+            savedMessage.setAttribute("role", "alert");
+            savedMessage.textContent = error.name === "AbortError" ? "Saving timed out. Your selections are still here; please try again." : error.message;
+        } finally {
+            globalThis.clearTimeout(timeout);
+            savingAvailability = false;
+            save.textContent = originalLabel;
+            update();
+        }
+    });
     const services = Array.from(form.querySelectorAll('input[name="Services"]'));
     const selectAllCategories = document.getElementById("selectAllServiceCategories");
     const specialtyGroups = [...form.querySelectorAll("[data-specialty-category]")];
@@ -119,7 +157,7 @@ if (workRole && freelancerPreferences) {
         allAreas.textContent = areas.every(area => area.checked) ? "Clear all" : "Select all " + areas.length;
         selectedServices.textContent = services.filter(service => service.checked).length + " selected";
         help.textContent = descriptions[workRole.value] || "";
-        save.disabled = snapshot() === initial && requiredAgreements().length === 0;
+        save.disabled = savingAvailability || (snapshot() === initial && requiredAgreements().length === 0);
     }
 
     selectAllCategories.addEventListener("click", () => {
