@@ -2,6 +2,11 @@
     let pending = false, timer;
     function badge(name, warning) {
         if (!name) return;
+        // Profile chips also contain an account-tagged name. Only that name owns the badge.
+        if ([...name.querySelectorAll('[data-account-id]')].some(child => child.dataset.accountId === name.dataset.accountId)) {
+            name.querySelectorAll(':scope > .account-warning-symbol').forEach(node => node.remove());
+            return;
+        }
         const existing = name.querySelector(':scope > .account-warning-symbol');
         if (!warning) { existing?.remove(); return; }
         if (existing) return;

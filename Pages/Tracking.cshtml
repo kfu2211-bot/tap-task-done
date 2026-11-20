@@ -607,7 +607,6 @@
                 }
                 <div class="tracking-intro">
                     <div class="db-tracking-header"><div><span class="db-tracking-eyebrow">@(Model.IsHistory ? "TASK HISTORY" : "TASK PROGRESS")</span><h2>@(Model.IsHistory ? "Task history" : "Track your tasks")</h2><p>@(Model.IsHistory ? "This task is archived from active tracking. Review its recorded progression below." : "See the progress of your active assigned work in one place.")</p></div></div>
-                    <div class="tracking-actions"><a href="/MarketTasks?view=mine&amp;filter=completed">Completed tasks</a><a href="/MyJobs?view=completed">Completed jobs</a>@if (Model.IsHistory) { <a href="/Tracking">Back to active tracking</a> }</div>
                     @if (activeEntry is not null && !Model.IsHistory) {
                         <span class="tracking-picker-label" id="tracking-picker-label">Select a task</span>
                         <details class="tracking-picker">
