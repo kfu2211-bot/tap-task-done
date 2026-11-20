@@ -70,8 +70,17 @@ namespace tts.Pages
             {
                 var db = HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
                 var accounts = HttpContext.RequestServices.GetRequiredService<AccountStore>();
-                if (await accounts.UsernameExistsAsync(email, cancellationToken))
+                var existing = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Username == email, cancellationToken);
+                if (existing is not null)
                 {
+                    var config = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+                    // A repeated registration may be the same pending account
+                    // after a failed delivery. Authenticate it; never overwrite it.
+                    if (VerificationMailer.Enabled(config) && accounts.VerifyPassword(existing, password) &&
+                        !AccountModerationRules.IsStaff(existing.Role) && existing.Role != "deleted" &&
+                        !await ModerationGuard.IsSuspendedAsync(db, existing.Id, cancellationToken) &&
+                        !await VerificationMailer.IsVerifiedAsync(db, existing, cancellationToken))
+                        return await BeginVerificationAsync(db, existing, config, cancellationToken);
                     ShowExistingAccountLink = true;
                     ErrorMessage = "An account already exists for this email. Use your original password to sign in and resume verification if needed.";
                     return Page();
@@ -82,10 +91,7 @@ namespace tts.Pages
                 await db.SaveChangesAsync(cancellationToken);
                 if (VerificationMailer.Enabled(HttpContext.RequestServices.GetRequiredService<IConfiguration>()))
                 {
-                    try { await RegistrationVerification.StartAsync(db, HttpContext, user, HttpContext.RequestServices.GetRequiredService<IConfiguration>(), cancellationToken); }
-                    catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException or System.Net.Mail.SmtpException or FormatException)
-                    { HttpContext.RequestServices.GetRequiredService<ILogger<IndexModel>>().LogWarning("Verification email could not be sent ({ErrorType}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex)); TempData["RegistrationNotice"] = "Your account is pending verification. Email delivery could not be completed. Try Resend code, or return to login to resume verification."; }
-                    return RedirectToPage("/VerifyEmail");
+                    return await BeginVerificationAsync(db, user, HttpContext.RequestServices.GetRequiredService<IConfiguration>(), cancellationToken);
                 }
                 AccountCreated = true;
                 return RedirectToPage("/Index");
@@ -97,6 +103,22 @@ namespace tts.Pages
                 ErrorMessage = "Unable to save the account. Check the MySQL server and database settings.";
                 return Page();
             }
+        }
+
+        private async Task<IActionResult> BeginVerificationAsync(ApplicationDbContext db, AppUser user, IConfiguration config, CancellationToken ct)
+        {
+            try
+            {
+                await RegistrationVerification.StartAsync(db, HttpContext, user, config, ct);
+                TempData["RegistrationNotice"] = "Continue email verification. If the code has not arrived, check Spam or use Resend code when the timer ends. Use the latest code.";
+            }
+            catch (RegistrationFlowException ex) { TempData["RegistrationNotice"] = ex.Message; }
+            catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException or System.Net.Mail.SmtpException or FormatException)
+            {
+                HttpContext.RequestServices.GetRequiredService<ILogger<IndexModel>>().LogWarning("Verification email could not be sent ({ErrorType}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex));
+                TempData["RegistrationNotice"] = "Your account was saved, but the verification email could not be sent. Use Resend code after the timer ends. You can correct the email address on this page.";
+            }
+            return RedirectToPage("/VerifyEmail");
         }
     }
 }
