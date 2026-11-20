@@ -1,8 +1,0 @@
-.job-duration-picker { min-width: 0; border: 0; padding: 0; margin: 12px 0; }
-.job-duration-picker legend { font-weight: 650; margin-bottom: 8px; }
-.job-duration-picker select { width: 100%; min-height: 44px; font: inherit; }
-.job-duration-custom { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
-.job-duration-custom[hidden] { display: none !important; }
-.job-duration-custom label { display: grid; gap: 6px; min-width: 0; }
-.job-duration-custom input { box-sizing: border-box; width: 100%; min-height: 44px; }
-.job-duration-picker small { display: block; margin-top: 6px; color: inherit; opacity: .8; }

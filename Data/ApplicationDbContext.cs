@@ -86,6 +86,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         modelBuilder.Entity<MarketplaceMessage>().HasIndex(m => new { m.ConversationId, m.Id });
         modelBuilder.Entity<MarketplaceNotification>().HasOne<TaskConversation>().WithMany().HasForeignKey(n => n.ConversationId).OnDelete(DeleteBehavior.Restrict);
         var agreement = modelBuilder.Entity<WorkAgreement>();
+        agreement.Property(a => a.JobType).HasMaxLength(16);
         agreement.ToTable("work_agreements"); agreement.HasKey(a => a.Id); agreement.Ignore(a => a.Confirmed);
         agreement.HasIndex(a => new { a.TaskId, a.Version }).IsUnique();
         agreement.Property(a => a.Price).HasPrecision(12, 2);
@@ -220,6 +221,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         profile.Property(x => x.AvailableDays).HasMaxLength(40);
         modelBuilder.Entity<PostModerationAction>();
         var task = modelBuilder.Entity<MarketplaceTask>();
+        task.Property(t => t.JobType).HasMaxLength(16);
         task.ToTable("marketplace_tasks");
         task.Property(x => x.SpecificService).HasMaxLength(60);
         task.HasKey(x => x.Id);

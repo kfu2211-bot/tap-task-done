@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS marketplace_tasks (
     Location VARCHAR(120) NOT NULL,
     Budget DECIMAL(12,2) NOT NULL,
     EstimatedMinutes INT NULL,
+ JobType VARCHAR(16) NULL,
+ WorkEndUtc DATETIME(6) NULL,
     ScheduleText VARCHAR(120) NOT NULL,
     Status VARCHAR(24) NOT NULL DEFAULT 'pending-confirmation',
     CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),

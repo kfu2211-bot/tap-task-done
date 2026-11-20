@@ -989,6 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filter = document.getElementById('jobsCategoryFilter');
     if (!filter) return;
     const matchFilter = document.getElementById('jobsMatchFilter');
+    const typeFilter = document.getElementById('jobsTypeFilter');
     const matchingJobs = new Set(matchFilter.dataset.matchingJobs.split(','));
     const specific = document.getElementById('jobsSpecificService');
     const customJob = document.getElementById("otherJobService");
@@ -1009,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let visible = 0;
         for (const card of cards) {
             if (!card.isConnected) continue;
-            const matches = (matchFilter.value === 'all' || matchingJobs.has(card.id.replace('task-', ''))) && (!selected || normalizeServiceCategory(card.dataset.jobCategory || '') === selected) &&
+            const matches = (!typeFilter.value || card.dataset.jobType === typeFilter.value) && (matchFilter.value === 'all' || matchingJobs.has(card.id.replace('task-', ''))) && (!selected || normalizeServiceCategory(card.dataset.jobCategory || '') === selected) &&
                 (!specific.value || card.dataset.jobSpecificService === specific.value) &&
                 (!customQuery || [card.querySelector("h3").textContent, card.querySelector("p").textContent]
                     .some(value => normalizeServiceSearch(value).includes(customQuery)));
@@ -1020,6 +1021,7 @@ document.addEventListener('DOMContentLoaded', () => {
         empty.hidden = visible !== 0 || cards.length === 0;
     }
     matchFilter.addEventListener('change', updateJobs);
+    typeFilter.addEventListener('change', updateJobs);
     filter.addEventListener('change', updateJobServices);
     specific.addEventListener('change', updateJobs);
     customJob.addEventListener("input", updateJobs);
@@ -1027,6 +1029,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateJobServices();
     document.getElementById('jobsFilterReset').addEventListener('click', () => {
         matchFilter.value = 'all';
+        typeFilter.value = '';
         filter.value = '';
         updateJobServices();
         filter.focus();

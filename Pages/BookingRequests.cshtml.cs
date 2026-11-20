@@ -70,7 +70,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
     }
 
     public async Task<IActionResult> OnPostDirectAsync(int freelancerId, string? title, string? description,
-        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, long? inquiryId = null, string? serviceArea = null, string? arrivalInstructions = null, int? estimatedMinutes = null)
+        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, long? inquiryId = null, string? serviceArea = null, string? arrivalInstructions = null, int? estimatedMinutes = null, string? jobType = null, DateTime? workEnd = null)
     {
         if (UserId <= 0) return Challenge();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
@@ -79,7 +79,8 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         { Notice = "Confirm a pin inside Bacolor and keep arrival instructions under 500 characters."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
         title = (title ?? "").Trim(); description = (description ?? "").Trim();
         location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
-        if (!ModelState.IsValid || !JobDuration.Valid(estimatedMinutes) || freelancerId <= 0 || freelancerId == UserId || title.Length is < 1 or > 120 ||
+        if (!JobTypes.ValidSchedule(jobType, schedule, JobTypes.EndUtc(workEnd))) { Notice = JobTypes.ScheduleMessage; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
+        if (!ModelState.IsValid || !JobTypes.ValidSchedule(jobType, schedule, JobTypes.EndUtc(workEnd)) || !JobDuration.Valid(estimatedMinutes) || freelancerId <= 0 || freelancerId == UserId || title.Length is < 1 or > 120 ||
             description.Length is < 1 or > 5000 || location.Length is < 1 or > 120 || schedule.Length is < 1 or > 120 ||
             budget is < 1 or > 9999999999m || decimal.Round(budget, 2) != budget || !TaskLocationRules.Valid(latitude, longitude))
         { Notice = "Complete the work details and confirm the location. Enter a valid proposed budget."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
@@ -103,7 +104,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             { Notice = "This freelancer is working now. Choose tomorrow or a later date in Philippine time."; return RedirectToPage("/FindPost", new { providerId = freelancerId, inquiryId }); }
             var duplicate = await db.MarketplaceBookings.AnyAsync(b => b.FreelancerId == freelancerId && b.Status == "pending" &&
                 db.MarketplaceTasks.Any(t => t.Id == b.TaskId && t.ClientId == UserId && t.Status == "booking-pending" &&
-                    t.EstimatedMinutes == estimatedMinutes && t.Title == title && t.Description == description && t.Location == location && t.ScheduleText == schedule && t.Budget == budget && t.BudgetMaximum == null), ct);
+                    t.JobType == jobType && t.WorkEndUtc == JobTypes.EndUtc(workEnd) && t.Title == title && t.Description == description && t.Location == location && t.ScheduleText == schedule && t.Budget == budget && t.BudgetMaximum == null), ct);
             if (duplicate)
             { Notice = "This booking request has already been sent. Check My Tasks for its status."; return RedirectToPage("/MarketTasks", new { view = "mine" }); }
             MarketplaceTask? work = null;
@@ -130,7 +131,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             work.Description = description;
             work.Location = location;
             work.ArrivalInstructions = arrivalInstructions;
-            work.EstimatedMinutes = estimatedMinutes;
+            work.JobType = jobType; work.WorkEndUtc = JobTypes.EndUtc(workEnd);
             work.ScheduleText = schedule;
             work.Budget = budget;
             work.BudgetMaximum = null;
@@ -194,6 +195,8 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         else
         {
             if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This request cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
+            if (await JobTypes.ConflictsAsync(db, UserId, task.Id, task.ScheduleText, task.WorkEndUtc, ct))
+            { Notice = "This booking overlaps another accepted job. Discuss a different schedule with the client."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             booking.Status = "accepted"; task.Status = "assigned";
             await AgreementRules.ConversationAsync(db, task.Id, UserId, ct);
             await AgreementRules.InitialAsync(db, task, task.Budget, UserId, ct);

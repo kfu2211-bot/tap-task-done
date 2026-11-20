@@ -19,6 +19,9 @@ public sealed class MarketplaceTask
     public string BudgetDisplay => BudgetMaximum.HasValue && BudgetMaximum.Value != Budget
         ? $"₱{Budget:N2} – ₱{BudgetMaximum.Value:N2}" : $"₱{Budget:#,##0.##}";
     public int? EstimatedMinutes { get; set; }
+    public string? JobType { get; set; }
+    public DateTime? WorkEndUtc { get; set; }
+    public string JobTypeDisplay => JobTypes.Label(JobType);
     public string DurationDisplay => JobDuration.Display(EstimatedMinutes);
     public string ScheduleText { get; set; } = "";
     public string Status { get; set; } = "pending-confirmation";

@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS work_agreements (
  ProposedById INT NOT NULL,
  Price DECIMAL(12,2) NOT NULL,
  EstimatedMinutes INT NULL,
+ JobType VARCHAR(16) NULL,
+ WorkEndUtc DATETIME(6) NULL,
  ScheduleText VARCHAR(120) NOT NULL,
  Scope VARCHAR(5000) NOT NULL,
  Location VARCHAR(120) NOT NULL,

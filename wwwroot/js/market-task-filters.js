@@ -6,6 +6,7 @@
     const cards = [...section.querySelectorAll('.task-card')];
     const count = section.querySelector('#task-filter-count');
     const empty = section.querySelector('.task-filter-empty');
+    const typeFilter = section.querySelector('#myTasksTypeFilter');
     const groups = {
         'needs-confirmation': ['pending-confirmation', 'awaiting-confirmation'],
         open: ['open'],
@@ -24,7 +25,10 @@
         const card = cards.find(task => task.id === id);
         if (!card) return;
 
-        if (card.hidden) filters.querySelector('[data-filter="all"]').click();
+        if (card.hidden) {
+            if (typeFilter) typeFilter.value = '';
+            filters.querySelector('[data-filter="all"]').click();
+        }
         card.querySelector('.task-disclosure').open = true;
         card.scrollIntoView({ block: 'start' });
     }
@@ -38,9 +42,10 @@
         const selected = button.dataset.filter;
         let visible = 0;
         for (const card of cards) {
-            const matches = selected === 'all' ||
+            const statusMatch = selected === 'all' ||
                 (selected === 'new-offers' ? card.dataset.pendingOffers === 'true' :
                     (groups[selected] || []).includes(card.dataset.taskStatus));
+            const matches = statusMatch && (!typeFilter?.value || card.dataset.jobType === typeFilter.value);
             card.hidden = !matches;
             if (matches) visible++;
         }
@@ -48,10 +53,11 @@
             option.setAttribute('aria-pressed', String(option === button));
         }
         count.textContent = `${visible} ${visible === 1 ? 'task' : 'tasks'}`;
-        empty.hidden = selected === 'all' || visible !== 0;
+        empty.hidden = visible !== 0 || cards.length === 0;
         const noTasks = section.querySelector('.market-empty');
         if (noTasks) noTasks.hidden = selected !== 'all';
     });
+    typeFilter?.addEventListener('change', () => filters.querySelector('button[aria-pressed="true"]')?.click());
     const requestedFilter = new URLSearchParams(location.search).get('filter');
     const filterKey = requestedFilter === 'needs-action' ? 'needs-confirmation' : requestedFilter;
     const initialButton = [...filters.querySelectorAll('button[data-filter]')]

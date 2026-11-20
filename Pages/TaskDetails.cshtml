@@ -26,6 +26,8 @@
             <p style="white-space: pre-wrap; overflow-wrap: anywhere">@task.Description</p>
             <dl class="row">
                 <dt class="col-sm-3">Category</dt><dd class="col-sm-9">@task.Category</dd>
+                <dt class="col-sm-3">Job type</dt><dd class="col-sm-9">@task.JobTypeDisplay</dd>
+                @if (task.WorkEndUtc.HasValue) { <dt class="col-sm-3">Expected finish</dt><dd class="col-sm-9">@task.WorkEndUtc.Value.AddHours(8).ToString("MMM d, yyyy h:mm tt") PHT</dd> }
                 <dt class="col-sm-3">Budget</dt><dd class="col-sm-9">@task.BudgetDisplay</dd>
                 @if (!string.IsNullOrWhiteSpace(task.ScheduleText))
                 {

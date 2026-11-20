@@ -36,7 +36,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     private static DateTime? ClosingTimeUtc(DateOnly? date) =>
         date?.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc).AddHours(-8);
 
-    public async Task<IActionResult> OnPostEditAsync(long id, string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null, int? estimatedMinutes = null)
+    public async Task<IActionResult> OnPostEditAsync(long id, string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null, int? estimatedMinutes = null, string? jobType = null, DateTime? workEnd = null)
     {
         if (UserId <= 0) return Challenge();
         arrivalInstructions = arrivalInstructions?.Trim();
@@ -51,7 +51,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             return RedirectToPage(new { view = "mine" });
         }
 
-        if (!ModelState.IsValid || !JobDuration.Valid(estimatedMinutes) || (postDurationDays is not (null or 3 or 7)) || (!ValidTaskDetails(title, description, category, location, budget, schedule) || !TaskLocationRules.Valid(latitude, longitude)))
+        if (!JobTypes.ValidSchedule(jobType, schedule, JobTypes.EndUtc(workEnd))) { Notice = JobTypes.ScheduleMessage; return RedirectToPage(new { view = "mine" }); }
+        if (!ModelState.IsValid || !JobTypes.ValidSchedule(jobType, schedule, JobTypes.EndUtc(workEnd)) || !JobDuration.Valid(estimatedMinutes) || (postDurationDays is not (null or 3 or 7)) || (!ValidTaskDetails(title, description, category, location, budget, schedule) || !TaskLocationRules.Valid(latitude, longitude)))
         { Notice = "Check the task details. Enter a valid task budget and confirm the location pin."; return RedirectToPage(new { view = "mine" }); }
         await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot edit tasks while suspended."; return RedirectToPage(new { view = "mine" }); }
@@ -59,7 +60,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var task = tasks.SingleOrDefault();
         if (task is null || !CanEditTask(task.Status, task.ClientId, UserId)) { Notice = "This task cannot be edited. It may already be confirmed or cancelled."; return RedirectToPage(new { view = "mine" }); }
         if (!string.Equals(task.Category, category, StringComparison.OrdinalIgnoreCase)) task.SpecificService = null;
-        task.EstimatedMinutes = estimatedMinutes; task.Title = title; task.Description = description; task.Category = category; task.Location = location; task.Budget = budget; task.BudgetMaximum = null; task.ScheduleText = schedule;
+        task.JobType = jobType; task.WorkEndUtc = JobTypes.EndUtc(workEnd); task.Title = title; task.Description = description; task.Category = category; task.Location = location; task.Budget = budget; task.BudgetMaximum = null; task.ScheduleText = schedule;
         task.PostDurationDays = postDurationDays;
         task.ArrivalInstructions = arrivalInstructions;
         task.PostExpiresUtc = ClosingTimeUtc(postEndDate);
@@ -159,16 +160,16 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             : RedirectToPage("/MarketTasks", null, new { view = "mine", reviewTask = id }, $"task-{id}");
     }
 
-    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null, string? specificService = null, int? estimatedMinutes = null)
+    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null, string? specificService = null, int? estimatedMinutes = null, string? jobType = null, DateTime? workEnd = null)
     {
-        try { return await CreateDraftAsync(title, description, category, location, budget, schedule, ct, latitude, longitude, postDurationDays, postEndDate, serviceArea, arrivalInstructions, specificService, estimatedMinutes); }
+        try { return await CreateDraftAsync(title, description, category, location, budget, schedule, ct, latitude, longitude, postDurationDays, postEndDate, serviceArea, arrivalInstructions, specificService, estimatedMinutes, jobType, workEnd); }
         catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException)
         {
             logger?.LogError(ex, "Unable to save task draft");
             return DraftFailure("Could not save your task. Your details are still here; please try again.", 503);
         }
     }
-    private async Task<IActionResult> CreateDraftAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude, double? longitude, int? postDurationDays, DateOnly? postEndDate, string? serviceArea, string? arrivalInstructions, string? specificService, int? estimatedMinutes)
+    private async Task<IActionResult> CreateDraftAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude, double? longitude, int? postDurationDays, DateOnly? postEndDate, string? serviceArea, string? arrivalInstructions, string? specificService, int? estimatedMinutes, string? jobType, DateTime? workEnd)
     {
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim(); location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (UserId <= 0) return Challenge();
@@ -182,7 +183,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             return DraftFailure("Choose a valid closing date today or later.");
         }
 
-        if (!ModelState.IsValid || !JobDuration.Valid(estimatedMinutes) || postDurationDays is not (null or 3 or 7) || !ValidTaskDetails(title, description, category, location, budget, schedule) || !TaskLocationRules.Valid(latitude, longitude))
+        if (!JobTypes.ValidSchedule(jobType, schedule, JobTypes.EndUtc(workEnd))) return DraftFailure(JobTypes.ScheduleMessage);
+        if (!ModelState.IsValid || !JobTypes.ValidSchedule(jobType, schedule, JobTypes.EndUtc(workEnd)) || !JobDuration.Valid(estimatedMinutes) || postDurationDays is not (null or 3 or 7) || !ValidTaskDetails(title, description, category, location, budget, schedule) || !TaskLocationRules.Valid(latitude, longitude))
         { return DraftFailure("Complete the task details, enter a valid task budget, and confirm the destination pin."); }
         if (string.IsNullOrWhiteSpace(specificService)) specificService = null;
         else if (!ServiceCatalog.Options.TryGetValue(category, out var services) ||
@@ -204,7 +206,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             join pin in db.Set<TaskDestination>().AsNoTracking() on draft.Id equals pin.TaskId
             where draft.ClientId == UserId && !draft.IsPrivate && draft.Status == "pending-confirmation" &&
                 draft.CreatedAt >= recent && draft.Title == title && draft.Description == description &&
-                draft.EstimatedMinutes == estimatedMinutes && draft.Category == category && draft.SpecificService == specificService && draft.Location == location && draft.ArrivalInstructions == arrivalInstructions && draft.Budget == budget &&
+                draft.JobType == jobType && draft.WorkEndUtc == JobTypes.EndUtc(workEnd) && draft.Category == category && draft.SpecificService == specificService && draft.Location == location && draft.ArrivalInstructions == arrivalInstructions && draft.Budget == budget &&
                 draft.BudgetMaximum == null && draft.ScheduleText == schedule &&
                 draft.PostDurationDays == duration && draft.PostExpiresUtc == closingTime &&
                 pin.Latitude == latitude!.Value && pin.Longitude == longitude!.Value
@@ -213,7 +215,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         {
             return DraftSaved(duplicate.Value, "This task was already saved. Confirm and open the task to publish it.");
         }
-        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, EstimatedMinutes = estimatedMinutes, Category = category, SpecificService = specificService, Location = location, ArrivalInstructions = arrivalInstructions, Budget = budget, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
+        var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, JobType = jobType, WorkEndUtc = JobTypes.EndUtc(workEnd), EstimatedMinutes = estimatedMinutes, Category = category, SpecificService = specificService, Location = location, ArrivalInstructions = arrivalInstructions, Budget = budget, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
         db.MarketplaceTasks.Add(task); await db.SaveChangesAsync(ct);
         TaskLocationRules.Save(db, task.Id, null, latitude!.Value, longitude!.Value);
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return DraftSaved(task.Id, "Task saved for review. Select Confirm and open task to publish it for freelancers.");
@@ -305,6 +307,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var task = offer is null ? null : await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == offer.TaskId && t.ClientId == UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         if (task is null || offer is null) { Notice = "This offer is no longer available."; return RedirectToPage(); }
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage(); }
+        if (await JobTypes.ConflictsAsync(db, offer.FreelancerId, task.Id, task.ScheduleText, task.WorkEndUtc, ct))
+        { Notice = "This work schedule overlaps another accepted job for the freelancer. Agree on a different schedule first."; return RedirectToPage(); }
         task.Status = "assigned"; offer.Status = "accepted";
         await AgreementRules.ConversationAsync(db, task.Id, offer.FreelancerId, ct);
         await AgreementRules.InitialAsync(db, task, offer.Price, UserId, ct);

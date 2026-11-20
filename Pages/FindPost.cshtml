@@ -521,7 +521,7 @@
                                     <div class="booking-fields">
                                     <label for="bookingTitle">What do you need help with?</label><input id="bookingTitle" name="title" maxlength="120" required placeholder="e.g. Clean a two-bedroom home" />
                                     <label for="bookingDescription">Work details</label><textarea id="bookingDescription" name="description" maxlength="5000" rows="3" required placeholder="Describe the work, scope, and any special requirements"></textarea>
-                                    <label for="bookingDuration">Estimated work duration (minutes, optional)</label><input id="bookingDuration" name="estimatedMinutes" type="number" min="15" max="43200" step="1" placeholder="e.g. 120 for 2 hours" />
+                                    <partial name="_JobTypeInput" model="new tts.Data.JobTypeInput()" />
                                     <label for="bookingSchedule">Preferred date and time (Philippine time)</label>
                                     <input id="bookingSchedule" name="schedule" type="datetime-local" step="60" min="@DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required aria-describedby="bookingScheduleHelp" />
                                     <small id="bookingScheduleHelp">Choose a date from the calendar and select a time. Schedule uses Philippine time (UTC+8).</small>
@@ -607,7 +607,7 @@
                             <textarea id="taskDescriptionInput" name="description" maxlength="500" required placeholder="Describe the task, including important details or materials needed."></textarea>
                         </label>
 
-                        <label class="post-field"><span>Estimated work duration (minutes, optional)</span><input name="estimatedMinutes" type="number" min="15" max="43200" step="1" placeholder="e.g. 120 for 2 hours" /></label>
+                        <partial name="_JobTypeInput" model="new tts.Data.JobTypeInput()" />
                         <div class="post-work-details">
                             <label class="post-field">
                                 <span>Task Budget (₱)</span>
@@ -687,7 +687,7 @@
                         @if (!Model.DirectoryUnavailable && (Model.WorkRole is "freelancer" or "both")) {
                             <div class="jobs-category-filter">
                                 <label for="jobsMatchFilter">Show jobs</label><select id="jobsMatchFilter" data-matching-jobs="@string.Join(",", Model.MatchingJobIds)"><option value="matching">Matches my services</option><option value="all">All jobs</option></select>
-                                <label for="jobsCategoryFilter">Service category</label>
+                                <label for="jobsTypeFilter">Job type</label><select id="jobsTypeFilter"><option value="">All job types</option><option value="short">Short Job</option><option value="long">Long Job</option><option value="multi-day">Multi-Day Job</option></select><label for="jobsCategoryFilter">Service category</label>
                                 <select id="jobsCategoryFilter">
                                     <option value="" selected>All categories</option>
                                     @foreach (var category in new[] { "Cleaning", "Repairs", "Errands", "Moving", "Gardening", "Painting", "Tutoring", "Pet Care", "Other / General" })
@@ -715,7 +715,7 @@
                         @foreach (var item in Model.OpenTasks) {
                             var task = item.Task;
                             var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
-                            <article class="jobs-card" id="task-@task.Id" data-job-category="@task.Category" data-job-specific-service="@task.SpecificService"><div class="jobs-card-top"><span class="jobs-tag">@task.CategoryDisplay</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>Duration: @task.DurationDisplay</span><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span><a asp-page="/ReviewProfile" asp-route-id="@task.ClientId" asp-route-role="client">@item.ClientName</a></span></div>
+                            <article class="jobs-card" id="task-@task.Id" data-job-type="@task.JobType" data-job-category="@task.Category" data-job-specific-service="@task.SpecificService"><div class="jobs-card-top"><span class="jobs-tag">@task.CategoryDisplay</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>@task.JobTypeDisplay</span>@if (task.WorkEndUtc.HasValue) { <span>Finish: @task.WorkEndUtc.Value.AddHours(8).ToString("MMM d, yyyy h:mm tt") PHT</span> }<span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span><a asp-page="/ReviewProfile" asp-route-id="@task.ClientId" asp-route-role="client">@item.ClientName</a></span></div>
                             <partial name="_JobOfferForm" model="(task, existing?.Offer.Status)" /></article>
                         }
                         <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs match these filters</h3><p>Try All jobs or change your category and specific service.</p></div>
