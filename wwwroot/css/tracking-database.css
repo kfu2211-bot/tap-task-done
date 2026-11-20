@@ -21,6 +21,8 @@
 .db-tracking-steps li.current span,.db-tracking-steps li.done span { background:#205440; border-color:#39d19c; }
 .db-tracking-hint { margin:22px 0 12px; font-size:13px; }
 .db-tracking-empty { text-align:center; padding:55px 20px; }
+.tracking-schedule-notice { padding: 18px; margin: 18px 0; border: 1px solid #c6dace; border-left: 4px solid #b47415; border-radius: 10px; background: #fff9ec; color: #503a18; }
+.tracking-schedule-notice p { line-height: 1.6; }
 .db-tracking-empty > span { color:#67e0b6; font-size:28px; }
 .db-tracking-empty h3 { color:#f2f8f5; margin:10px 0; }
 .db-tracking-empty a { display:inline-block; margin-top:12px; }

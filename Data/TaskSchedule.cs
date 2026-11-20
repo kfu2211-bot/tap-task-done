@@ -13,6 +13,19 @@ public static class TaskSchedule
     public static bool IsUpcoming(MarketplaceTask task, DateTime nowUtc) =>
         task.Status == "assigned" && StartUtc(task.ScheduleText) > nowUtc;
 
+    public static bool SameStart(string first, string second) =>
+        StartUtc(first) is { } start && StartUtc(second) is { } other ? start == other : first == second;
+
     public static string DisplayStatus(MarketplaceTask task, DateTime nowUtc) =>
-        IsUpcoming(task, nowUtc) ? "Scheduled" : TaskProgress.Label(task.Status);
+        task.Status == "assigned" && StartUtc(task.ScheduleText) is { } start
+            ? ScheduleLabel(start, nowUtc) : TaskProgress.Label(task.Status);
+
+    public static string ScheduleLabel(DateTime start, DateTime now) =>
+        now < start ? "Scheduled" : now >= start.AddMinutes(30) ? "Schedule overdue" : "Due now";
+
+    // One reminder per window and confirmed agreement version; never changes job status.
+    public static string? ReminderKind(DateTime start, DateTime now) =>
+        now >= start.AddMinutes(30) ? "schedule_overdue" :
+        now >= start.AddHours(-1) && now < start ? "schedule_1h" :
+        now >= start.AddHours(-24) && now < start.AddHours(-1) ? "schedule_24h" : null;
 }

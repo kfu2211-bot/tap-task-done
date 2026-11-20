@@ -4,7 +4,7 @@ namespace tts.Data;
 
 public static class JobCancellation
 {
-    public static bool CanRequest(string status) => status is "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation";
+    public static bool CanRequest(string status) => status is "assigned" or "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation";
 
     public static async Task<TaskProgress.Result> DecideAsync(ApplicationDbContext db, int actor, long id,
         string decision, string? reason, CancellationToken ct)

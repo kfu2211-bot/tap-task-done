@@ -348,6 +348,7 @@ html body .dashboard .home-schedule-job-title {
 }
 
 /* Keep skill recommendations calm and scannable, including the empty state. */
+.dashboard .home-schedule-status { display: inline-block; padding: 6px 10px; border: 1px solid #c6dace; border-radius: 8px; color: #175e45; background: #edf5ee; font-weight: 650; }
 html body .dashboard .home-matching-jobs .home-panel-heading { margin-bottom: 20px; }
 html body .dashboard .home-matching-jobs .matching-eyebrow { display: block; margin-bottom: 8px; color: #176b50; font-size: .72rem; font-weight: 750; letter-spacing: .1em; }
 html body .dashboard .home-matching-jobs #matchingJobsTitle { margin: 0; font-size: clamp(1.2rem, 1.7vw, 1.55rem); line-height: 1.3; }

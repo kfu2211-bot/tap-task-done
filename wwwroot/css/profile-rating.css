@@ -3,3 +3,21 @@
 .profile-rating-stars > span { position: absolute; inset: 0 auto 0 0; overflow: hidden; color: #a26709; white-space: nowrap; }
 html[data-theme="dark"] .profile-rating-stars > span { color: #f1c96b; }
 .profile-inline-rating strong { font-size: inherit; font-weight: 600; }
+
+/* Keep the rating colors above the generic provider text rules. */
+html body .profile-inline-rating .profile-rating-stars,
+html body #findFreelancerSection .freelancer-info .profile-inline-rating .profile-rating-stars {
+    color: #8b7860 !important;
+    font-size: 18px !important;
+    line-height: 1.2;
+}
+html body .profile-inline-rating .profile-rating-stars > span,
+html body #findFreelancerSection .freelancer-info .profile-inline-rating .profile-rating-stars > span {
+    color: #b77908 !important;
+    font-size: inherit !important;
+    line-height: inherit;
+}
+html[data-theme="dark"] body .profile-inline-rating .profile-rating-stars > span,
+html[data-theme="dark"] body #findFreelancerSection .freelancer-info .profile-inline-rating .profile-rating-stars > span {
+    color: #f5c451 !important;
+}

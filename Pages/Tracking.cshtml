@@ -636,6 +636,19 @@
 
 @if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
 @if (Model.ProgressUnavailable) { <p role="alert">Progress updates need the task_progress_events database table.</p> }
+@if (!Model.IsHistory && task.Status == "assigned") {
+    var scheduleStatus = TaskSchedule.DisplayStatus(task, DateTime.UtcNow);
+    <section class="tracking-schedule-notice" aria-label="Schedule actions">
+        <h4>@scheduleStatus</h4>
+        <p>Schedule: @task.ScheduleText (PHT)</p>
+        @if (scheduleStatus is "Due now" or "Schedule overdue") { <p>No travel update is recorded. Contact each other to confirm whether work will proceed. Passing the scheduled time does not complete or cancel this job.</p> }
+        <div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a><a href="#work-details-@task.Id">Request reschedule</a><a href="/Reports?taskId=@task.Id">Report a problem</a></div>
+        <p>To reschedule, request changes to the work details below. The current schedule stays in effect until both of you confirm the updated version.</p>
+    </section>
+}
+@if (!Model.IsHistory && AgreementRules.Editable(task.Status)) {
+    <div id="work-details-@task.Id"><partial name="_WorkAgreement" model="new AgreementView(task, Model.Agreements.GetValueOrDefault(task.Id), Model.Destinations.GetValueOrDefault(task.Id), item.IsClient)" /></div>
+}
 @{
     var cancellation = Model.Progress.LastOrDefault(e => e.TaskId == task.Id &&
         (e.Status == TaskProgress.CancellationRequested || e.Status == TaskProgress.CancellationDeclined));

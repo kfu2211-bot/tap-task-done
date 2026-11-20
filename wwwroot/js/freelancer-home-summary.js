@@ -27,7 +27,12 @@
             if (scheduledDetails && scheduledEmpty) {
                 scheduledDetails.hidden = !scheduled;
                 scheduledEmpty.hidden = !!scheduled;
+                const attention = scheduled && ['Due now', 'Schedule overdue'].includes(scheduled.status);
+                document.querySelector('[data-schedule-heading]').textContent = attention ? 'Schedule needs attention' : 'Scheduled job';
+                const help = scheduledDetails.querySelector('[data-scheduled-help]');
+                if (help) help.hidden = !attention;
                 if (scheduled) {
+                    scheduledDetails.querySelector('[data-scheduled-status]').textContent = scheduled.status;
                     scheduledDetails.querySelector('[data-scheduled-title]').textContent = scheduled.title;
                     scheduledDetails.querySelector('[data-scheduled-time]').textContent = scheduled.scheduleText;
                     scheduledDetails.querySelector('[data-scheduled-link]').href = scheduled.url;

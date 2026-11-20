@@ -78,6 +78,7 @@ if (lanPreview)
 builder.Services.AddRazorPages(options => options.Conventions.AuthorizePage("/Admin", "AdminOnly"));
 builder.Services.AddScoped<AccountStore>();
 builder.Services.AddHostedService<CompletionReminderWorker>();
+builder.Services.AddHostedService<ScheduleReminderWorker>();
 builder.Services.AddHostedService<TaskExpiryWorker>();
 builder.Services.AddHostedService<IdentityRetentionWorker>();
 builder.Services.AddHostedService<AccountDeletionWorker>();

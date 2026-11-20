@@ -789,16 +789,18 @@
                         </section>
                         <div class="home-job-details">
                             <section class="section home-panel">
-                                <div class="home-panel-heading"><h3>Scheduled job</h3></div>
+                                <div class="home-panel-heading"><h3 data-schedule-heading>@(Model.ScheduledJob?.Status is "Schedule overdue" or "Due now" ? "Schedule needs attention" : "Scheduled job")</h3></div>
                                 <div data-scheduled-details hidden="@(Model.ScheduledJob is null)">
                                     <p class="home-schedule-job-title" data-scheduled-title>@Model.ScheduledJob?.Title</p>
+                                    <p class="home-schedule-status" data-scheduled-status role="status">@Model.ScheduledJob?.Status</p>
+                                    <p data-scheduled-help hidden="@(Model.ScheduledJob?.Status is not ("Schedule overdue" or "Due now"))">No travel update is recorded. Contact your client to continue, reschedule, or request cancellation.</p>
                                     <div class="home-schedule-time">
                                         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg>
                                         <div><span>Scheduled date and time</span><strong data-scheduled-time>@Model.ScheduledJob?.ScheduleText</strong></div>
                                     </div>
-                                    <a class="home-panel-action" data-scheduled-link href="@(Model.ScheduledJob is { } job ? Url.Page("/Tracking", new { taskId = job.Id }) : null)">View progress</a>
+                                    <a class="home-panel-action" data-scheduled-link href="@(Model.ScheduledJob is { } job ? Url.Page("/Tracking", new { taskId = job.Id }) : null)">Review schedule &amp; actions</a>
                                 </div>
-                                <p data-scheduled-empty hidden="@(Model.ScheduledJob is not null)">@(Model.SummaryUnavailable ? "Schedule is temporarily unavailable." : "No upcoming accepted jobs.")</p>
+                                <p data-scheduled-empty hidden="@(Model.ScheduledJob is not null)">@(Model.SummaryUnavailable ? "Schedule is temporarily unavailable." : "No confirmed job schedule yet.")</p>
                             </section>
                             <section class="section home-panel">
                                 <div class="home-panel-heading"><h3>Your availability</h3></div>

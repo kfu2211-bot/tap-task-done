@@ -47,10 +47,14 @@ public class AgreementModel(ApplicationDbContext db, IWebHostEnvironment environ
             { Notice = "An ongoing Long Job or Multi-Day Job cannot be changed to Short Job to remove its work restriction. Complete it or obtain approved cancellation first."; return RedirectToPage("/Tracking", new { taskId }); }
             var latest = await AgreementRules.LatestAsync(db, taskId, ct);
             if (!AgreementRules.MatchesVersion(latest, expectedVersion)) { Notice = "The agreement changed. Review the latest version before proposing again."; return RedirectToPage("/Tracking", new { taskId }); }
+            if (!TaskSchedule.SameStart(schedule, locked.Value.Task.ScheduleText) && TaskSchedule.StartUtc(schedule) <= DateTime.UtcNow)
+            { Notice = "Choose a future date and time for the new schedule."; return RedirectToPage("/Tracking", new { taskId }); }
             var proposal = new WorkAgreement { TaskId = taskId, Version = expectedVersion + 1, ProposedById = UserId, Price = price, JobType = jobType, WorkEndUtc = JobTypes.EndUtc(workEnd), EstimatedMinutes = latest?.EstimatedMinutes, Scope = scope, ScheduleText = schedule, Location = location,
                 Latitude = latitude!.Value, Longitude = longitude!.Value, CreatedAtUtc = DateTime.UtcNow };
             if (latest is not null && AgreementRules.SameTerms(latest, proposal)) { Notice = "These terms are unchanged. Confirm the existing version instead."; return RedirectToPage("/Tracking", new { taskId }); }
             db.Add(proposal);
+            db.Add(new TaskProgressEvent { TaskId = taskId, ActorId = UserId, Status = "agreement-proposed", CreatedAtUtc = DateTime.UtcNow,
+                Note = $"Agreement version {proposal.Version} proposed. Current schedule: {locked.Value.Task.ScheduleText}. Proposed schedule: {schedule}. Both participants must confirm." });
             db.Add(MarketplaceNotification.Create(UserId == locked.Value.Task.ClientId ? locked.Value.Freelancer : locked.Value.Task.ClientId, taskId, "agreement", "New work terms proposed. Both participants must confirm the same version in Tracking."));
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); Notice = "New agreement saved. Both of you must confirm this version. The current destination stays unchanged until then.";
         }
@@ -71,13 +75,20 @@ public class AgreementModel(ApplicationDbContext db, IWebHostEnvironment environ
             if (UserId == locked.Value.Task.ClientId ? latest.ClientConfirmedAtUtc.HasValue : latest.FreelancerConfirmedAtUtc.HasValue)
             { Notice = "Your confirmation for this version is already saved."; return RedirectToPage("/Tracking", new { taskId }); }
             if (!AgreementRules.Valid(latest.Price, latest.Scope, latest.ScheduleText, latest.Location, latest.Latitude, latest.Longitude)) return BadRequest();
+            if (!TaskSchedule.SameStart(latest.ScheduleText, locked.Value.Task.ScheduleText) && TaskSchedule.StartUtc(latest.ScheduleText) <= DateTime.UtcNow)
+            { Notice = "The proposed schedule has already passed. Request a future schedule before confirming."; return RedirectToPage("/Tracking", new { taskId }); }
             if (latest.JobType is not null && (!JobTypes.ValidSchedule(latest.JobType, latest.ScheduleText, latest.WorkEndUtc, requireEnd: true) ||
                 await JobTypes.ConflictsAsync(db, locked.Value.Freelancer, taskId, latest.ScheduleText, latest.WorkEndUtc, ct)))
             { Notice = "The schedule is incomplete, invalid, or overlaps another accepted job. Request corrected work details before confirming."; return RedirectToPage("/Tracking", new { taskId }); }
             if (UserId == locked.Value.Task.ClientId) latest.ClientConfirmedAtUtc ??= DateTime.UtcNow;
             else latest.FreelancerConfirmedAtUtc ??= DateTime.UtcNow;
+            db.Add(new TaskProgressEvent { TaskId = taskId, ActorId = UserId, Status = "agreement-confirmed", CreatedAtUtc = DateTime.UtcNow,
+                Note = $"Confirmed agreement version {latest.Version}. Schedule: {latest.ScheduleText}." });
             if (latest.Confirmed)
             {
+                if (!TaskSchedule.SameStart(latest.ScheduleText, locked.Value.Task.ScheduleText))
+                    db.Add(new TaskProgressEvent { TaskId = taskId, ActorId = UserId, Status = "schedule-changed", CreatedAtUtc = DateTime.UtcNow,
+                        Note = $"Both participants approved agreement version {latest.Version}. Previous schedule: {locked.Value.Task.ScheduleText}. New schedule: {latest.ScheduleText}." });
                 locked.Value.Task.JobType = latest.JobType; locked.Value.Task.WorkEndUtc = latest.WorkEndUtc; locked.Value.Task.Budget = latest.Price; locked.Value.Task.Description = latest.Scope; locked.Value.Task.ScheduleText = latest.ScheduleText; locked.Value.Task.Location = latest.Location;
                 var offer = await db.MarketplaceOffers.SingleAsync(o => o.TaskId == taskId && o.Status == "accepted", ct); offer.Price = latest.Price;
                 TaskLocationRules.Save(db, taskId, await db.Set<TaskDestination>().SingleOrDefaultAsync(d => d.TaskId == taskId, ct), latest.Latitude, latest.Longitude);
