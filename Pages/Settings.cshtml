@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="/css/account-workspace.css" asp-append-version="true" />
     <script defer src="/js/work-preferences.js" asp-append-version="true"></script>
 <partial name="_AccountTheme" /></head>
-<body>
+<body class="compact-page-layout">
     <div class="settings-layout">
         <aside class="sidebar">
             <a class="brand" asp-page="/Landing" aria-label="Tap, Task, Done landing page" style="text-decoration:none"><span class="brand-icon">✓</span><strong>Tap, Task, Done</strong></a>
@@ -39,11 +39,9 @@
                 @if (showProfile)
                 {
                 <div class="page-intro">
-                    <h2>Your profile</h2>
                     <p>Manage your display name and profile photo.</p>
                 </div>
                 <section class="settings-card account-card" data-submit-pending="Saving…">
-                    <h2>Account profile</h2>
                     <div class="profile-summary" aria-label="Current profile">
                         <span id="profileAvatar" class="profile-avatar">@(Model.DisplayName.FirstOrDefault())</span>
                         <div><strong id="profileSummaryName" data-own-account-name>@Model.DisplayName</strong><span id="profileSummaryEmail">@Model.Email</span></div>
@@ -130,7 +128,6 @@
                 else
                 {
                 <div class="page-intro">
-                    <h2>Account settings</h2>
                     <p>Manage your work preferences, availability, and account security.</p>
                 </div>
                 <div class="account-settings-grid">

@@ -39,7 +39,7 @@
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
 <link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-location-picker.css" asp-append-version="true" /><script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><script defer src="/js/task-location-picker.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/post-task-polish.css" asp-append-version="true" /><link rel="stylesheet" href="/css/job-offer-form.css" asp-append-version="true" /><script defer src="/js/job-offer-form.js" asp-append-version="true"></script><script defer src="/js/jobs-live.js" asp-append-version="true"></script><partial name="_AccountTheme" /><link rel="stylesheet" href="/css/compact-task-cards.css" asp-append-version="true" /></head>
 
-<body>
+<body class="compact-page-layout">
 
     <div class="app-shell">
 
@@ -232,7 +232,7 @@
 
 
                 <h1>
-                    Find &amp; Post
+                    @(mode == "jobs" ? "Find Jobs" : mode == "post" ? "Post a Task" : "Find Freelancers")
                 </h1>
 
 
@@ -568,7 +568,7 @@
                         <input type="hidden" name="schedule" id="databaseSchedule" />
                         <div class="post-task-heading">
                             <div>
-                                <h2>Post a Task</h2>
+                                <h2>Task details</h2>
                                 <p>Find trusted help in Bacolor, Pampanga.</p>
                             </div>
                             <span class="post-step">Task details</span>
@@ -682,7 +682,7 @@
 
                     @if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
                     <div class="jobs-workspace">
-                        <div class="jobs-heading"><div><h2>Find Jobs</h2></div><span class="jobs-count" id="jobsFilterCount">@Model.OpenTasks.Count open @(Model.OpenTasks.Count == 1 ? "task" : "tasks")</span></div>
+                        <div class="jobs-heading compact-jobs-heading"><p class="compact-page-description">Browse open jobs and filter by your services and skills.</p><span class="jobs-count" id="jobsFilterCount">@Model.OpenTasks.Count open @(Model.OpenTasks.Count == 1 ? "task" : "tasks")</span></div>
                         @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
                         @if (!Model.DirectoryUnavailable && (Model.WorkRole is "freelancer" or "both")) {
                             <div class="jobs-category-filter">

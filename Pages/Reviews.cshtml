@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
 <partial name="_AccountTheme" /></head>
 
-<body>
+<body class="compact-page-layout">
 
     <div class="reviews-page">
 
@@ -151,7 +151,7 @@
             {
             <section class="reviews-live">
                 <div class="reviews-live-heading">
-                    <div class="reviews-hero-copy"><span class="reviews-eyebrow">YOUR FEEDBACK</span><h2>Reviews that matter.</h2><p>Every completed task is a chance to build trust. See the feedback you've received and shared along the way.</p></div>
+                    <p class="compact-page-description">See feedback you’ve received and reviews you’ve shared.</p>
                     <a class="reviews-action" href="/MarketTasks?view=mine">View my tasks</a>
                 </div>
                 @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="reviews-notice" role="status">@Model.Notice</p> }

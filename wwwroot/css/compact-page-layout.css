@@ -1,0 +1,115 @@
+/* One page title in the top bar; real section headings stay inside the workspace. */
+html body .compact-page-description,
+html body.compact-page-layout .page-intro > p {
+    margin: 0;
+    color: #526c5d;
+    font-size: .9rem;
+    font-weight: 400;
+    line-height: 1.6;
+    max-width: 80ch;
+}
+
+/* Find Jobs: neutral workspace, compact intro and one row of filters. */
+html body.compact-page-layout #findJobsSection .jobs-workspace {
+    padding: 20px;
+    border: 1px solid #d9e7da;
+    border-radius: 14px;
+    background: #fff;
+    color: #193e30;
+}
+html body.compact-page-layout #findJobsSection .compact-jobs-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 0;
+    padding: 0 0 18px;
+    margin: 0;
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none;
+    color: #193e30;
+}
+html body.compact-page-layout #findJobsSection .jobs-count {
+    background: #edf5ee;
+    color: #175e45;
+    border: 1px solid #d0e2d2;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: .8rem;
+    font-weight: 650;
+}
+html body.compact-page-layout #findJobsSection .jobs-category-filter { padding: 0; margin-bottom: 20px; }
+
+/* Post a Task: keep the form's meaningful section name, without a hero banner. */
+html body.compact-page-layout #postTaskSection .post-task-heading {
+    min-height: 0;
+    padding: 0 0 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+html body.compact-page-layout #postTaskSection .post-task-heading h2 { font-size: 1.2rem; line-height: 1.4; }
+
+/* Settings and profile retain section labels and editing controls. */
+html body.compact-page-layout .account-workspace > .page-intro {
+    padding: 0;
+    margin: 0 0 18px;
+    min-height: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Tracking keeps the task picker; the task itself supplies the content heading. */
+html body.compact-page-layout .db-tracking .tracking-intro {
+    padding: 0 !important;
+    margin: 0 0 18px !important;
+    min-height: 0;
+    border: 0;
+    background: transparent !important;
+    box-shadow: none;
+}
+html body.compact-page-layout .tracking-intro .tracking-picker-label { margin-top: 16px; }
+html body.compact-page-layout .db-tracking .db-tracking-card { margin-top: 16px !important; }
+
+/* Reviews and notifications begin with useful context, then the existing records. */
+html body.compact-page-layout .reviews-live > .reviews-live-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 0;
+    margin: 0 0 18px !important;
+    padding: 0 !important;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none;
+}
+html body.compact-page-layout .reviews-live-heading .reviews-action {
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid #b9d3c0;
+    border-radius: 9px;
+    background: #fff;
+    color: #175e45;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+html body .notification-page > .compact-page-description { margin-bottom: 20px; }
+
+html[data-theme="dark"] body .compact-page-description,
+html[data-theme="dark"] body.compact-page-layout .page-intro > p { color: #c1d3c8 !important; }
+html[data-theme="dark"] body.compact-page-layout #findJobsSection .jobs-workspace { background: #1b2923; border-color: #456452; color: #edf5ef; }
+html[data-theme="dark"] body.compact-page-layout #findJobsSection .jobs-count,
+html[data-theme="dark"] body.compact-page-layout .reviews-live-heading .reviews-action { background: #243b30; color: #edf5ef; border-color: #567264; }
+
+@media (max-width: 700px) {
+    html body.compact-page-layout #findJobsSection .jobs-workspace { padding: 16px; }
+    html body.compact-page-layout .reviews-live-heading .reviews-action { align-self: flex-start; }
+}
