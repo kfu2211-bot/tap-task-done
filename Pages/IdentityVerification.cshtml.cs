@@ -66,8 +66,7 @@ public class IdentityVerificationModel(ApplicationDbContext db, IDataProtectionP
             if (selfieFile.Type is not ("image/jpeg" or "image/png")) throw new ArgumentException();
             var idFile = await ReadFile(governmentId, ct); (byte[] Bytes, string Type)? cert = certification is null || certification.Length == 0 ? null : await ReadFile(certification, ct); (byte[] Bytes, string Type)? other = supportingDocument is null || supportingDocument.Length == 0 ? null : await ReadFile(supportingDocument, ct);
             var checkMode = idOcr.ReceiptMode(idCheckToken, UserId, documentType!, idNumber, idFile.Bytes);
-            if (checkMode == "manual" && !manualIdReview) { Notice = "Choose manual review or check your ID again before submitting."; return RedirectToPage(); }
-            if (checkMode is null)
+            if (checkMode != "matched")
             {
                 var check = await idOcr.CheckAsync(UserId, documentType!, idNumber, idFile.Bytes, idFile.Type, ct);
                 if (!check.Success) { Notice = check.Message; return RedirectToPage(); }

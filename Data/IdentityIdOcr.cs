@@ -74,8 +74,8 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
         if (string.IsNullOrEmpty(token) || token.Length > 4096) return null;
         try
         {
-            var r = JsonSerializer.Deserialize<Receipt>(protection.CreateProtector("tts.identity.ocr.v1").Unprotect(token));
-            return r is not null && r.UserId == userId && r.Type == type && r.Number == IdentityDocumentTypes.NormalizeNumber(number) && r.Expires > DateTime.UtcNow && r.Hash == Convert.ToHexString(SHA256.HashData(bytes)) && r.Mode is "matched" or "manual" ? r.Mode : null;
+            var r = JsonSerializer.Deserialize<Receipt>(protection.CreateProtector("tts.identity.ocr.v2").Unprotect(token));
+            return r is not null && r.UserId == userId && r.Type == type && r.Number == IdentityDocumentTypes.NormalizeNumber(number) && r.Expires > DateTime.UtcNow && r.Hash == Convert.ToHexString(SHA256.HashData(bytes)) && r.Mode == "matched" ? r.Mode : null;
         }
         catch (Exception ex) when (ex is CryptographicException or JsonException) { return null; }
     }
@@ -84,8 +84,8 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
         if (!await gate.WaitAsync(0, ct)) return new(false, "ID checking is busy. Please try again in a moment.");
         var directory = Path.Combine(Path.GetTempPath(), "tts-id-" + Guid.NewGuid().ToString("N"));
         var total = Stopwatch.StartNew(); var stage = "prepare";
-        string Token(string mode) => protection.CreateProtector("tts.identity.ocr.v1").Protect(JsonSerializer.Serialize(new Receipt(userId, type, IdentityDocumentTypes.NormalizeNumber(number), Convert.ToHexString(SHA256.HashData(bytes)), DateTime.UtcNow.AddMinutes(20), mode)));
-        Result Manual(string message) => new(false, message, Token("manual"), true);
+        string Token(string mode) => protection.CreateProtector("tts.identity.ocr.v2").Protect(JsonSerializer.Serialize(new Receipt(userId, type, IdentityDocumentTypes.NormalizeNumber(number), Convert.ToHexString(SHA256.HashData(bytes)), DateTime.UtcNow.AddMinutes(20), mode)));
+
         async Task<string> Timed(string executable, string[] arguments, string name, CancellationToken token)
         {
             stage = name; var watch = Stopwatch.StartNew();
@@ -108,7 +108,7 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
             }
             var prepared = Path.Combine(directory, "prepared.png");
             await Timed(OperatingSystem.IsWindows() ? "magick" : "convert",
-                ["-limit", "memory", "96MiB", "-limit", "map", "96MiB", "-limit", "disk", "128MiB", "-limit", "thread", "1", "-define", "jpeg:size=1800x1800", input + "[0]", "-auto-orient", "-resize", "1800x1800>", "-background", "white", "-alpha", "remove", "-colorspace", "Gray", prepared], "image-prepare", timeout.Token);
+                ["-limit", "memory", "96MiB", "-limit", "map", "96MiB", "-limit", "disk", "128MiB", "-limit", "thread", "1", "-define", "jpeg:size=1800x1800", input + "[0]", "-auto-orient", "-resize", "1800x1800", "-background", "white", "-alpha", "remove", "-colorspace", "Gray", prepared], "image-prepare", timeout.Token);
             var tsv = await Timed("tesseract", [prepared, "stdout", "-l", "eng", "--psm", "11", "tsv"], "text-read", timeout.Token);
             var lines = ConfidentLines(tsv);
             var outcome = Assess(type, number, lines);
@@ -119,14 +119,24 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
                 var blockTsv = await Timed("tesseract", [prepared, "stdout", "-l", "eng", "--psm", "6", "tsv"], "text-read-block", timeout.Token);
                 outcome = Assess(type, number, ConfidentLines(blockTsv));
             }
+            // Try different image contrast for faint printing, without guessing
+            // missing characters or relaxing the full-number comparison.
+            if (outcome == "unreadable" && total.Elapsed < TimeSpan.FromSeconds(18))
+            {
+                var enhanced = Path.Combine(directory, "enhanced.png");
+                await Timed(OperatingSystem.IsWindows() ? "magick" : "convert",
+                    ["-limit", "memory", "96MiB", "-limit", "map", "96MiB", "-limit", "disk", "128MiB", "-limit", "thread", "1", prepared, "-normalize", "-unsharp", "0x1", enhanced], "image-enhance", timeout.Token);
+                var enhancedTsv = await Timed("tesseract", [enhanced, "stdout", "-l", "eng", "--psm", "3", "tsv"], "text-read-enhanced", timeout.Token);
+                outcome = Assess(type, number, ConfidentLines(enhancedTsv));
+            }
             if (outcome == "mismatch") return new(false, $"The selected ID type or {IdentityDocumentTypes.NumberFor(type).Label} does not match the readable details. Correct it before continuing.");
-            if (outcome == "unreadable") return Manual($"Could not read the {IdentityDocumentTypes.NumberFor(type).Label}. If the photo is clear, continue to the camera for manual ID review.");
+            if (outcome == "unreadable") return new(false, $"Could not clearly read the full {IdentityDocumentTypes.NumberFor(type).Label} on the selected ID. Crop closely around the entire ID, avoid glare, and upload a sharper photo. Unreadable documents cannot continue to the camera.");
             return new(true, "ID details matched. You can open the camera.", Token("matched"));
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
             logger.LogWarning("Identity OCR timed out during {Stage} after {ElapsedMs} ms.", stage, total.ElapsedMilliseconds);
-            return Manual("ID reading timed out. Try a smaller photo, or continue with manual review.");
+            return new(false, "ID reading timed out. Upload a clear, smaller JPG or PNG and try again. No unchecked ID was accepted.");
         }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or IOException or InvalidOperationException)
         {

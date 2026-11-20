@@ -35,7 +35,7 @@ Check(IdentityIdOcr.Matches("Driver's License","A0123456789", ["DRIVER'S LICENSE
 var protection = new EphemeralDataProtectionProvider();
 var ocr = new IdentityIdOcr(protection, NullLogger<IdentityIdOcr>.Instance);
 var bytes = new byte[]{1,2,3};
-string Token(DateTime expiry) => protection.CreateProtector("tts.identity.ocr.v1").Protect(JsonSerializer.Serialize(new {UserId=42,Type="Driver's License",Number="A0123456789",Hash=Convert.ToHexString(SHA256.HashData(bytes)),Expires=expiry}));
+string Token(DateTime expiry) => protection.CreateProtector("tts.identity.ocr.v2").Protect(JsonSerializer.Serialize(new {UserId=42,Type="Driver's License",Number="A0123456789",Hash=Convert.ToHexString(SHA256.HashData(bytes)),Expires=expiry}));
 var token=Token(DateTime.UtcNow.AddMinutes(1));
 Check(ocr.ValidReceipt(token,42,"Driver's License","A01-23-456789",bytes), "signed receipt accepts unchanged upload");
 Check(!ocr.ValidReceipt(token,42,"Driver's License","A0123456789",[1,2,4]), "swapping uploaded ID invalidates receipt");
@@ -59,18 +59,19 @@ var simulated=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(t
 });
 var matched=await simulated.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
 Check(matched.Success && !matched.CanManualReview && ocr.ValidReceipt(matched.Token,42,"Driver's License","A0123456789",bytes), "successful pipeline issues only a matched receipt");
-Check(commands[0].Args.Contains("1800x1800>") && commands[0].Args.Contains("-auto-orient") && commands[0].Args.Contains("-limit") && commands[1].Tool=="tesseract", "bounded preprocessing runs before text reading");
+Check(commands[0].Args.Contains("1800x1800") && commands[0].Args.Contains("-auto-orient") && commands[0].Args.Contains("-limit") && commands[1].Tool=="tesseract", "bounded preprocessing runs before text reading");
 var mismatch=await simulated.CheckAsync(42,"Driver's License","99999999999",bytes,"image/jpeg",default);
 Check(!mismatch.Success && !mismatch.CanManualReview && mismatch.Token is null,"explicit mismatch never offers fallback or a receipt");
 var unreadable=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(_,_,_)=>Task.FromResult(""));
 var manual=await unreadable.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
-Check(!manual.Success && manual.CanManualReview && ocr.ReceiptMode(manual.Token,42,"Driver's License","A0123456789",bytes)=="manual", "unreadable upload issues a signed manual-only receipt");
-Check(!ocr.ValidReceipt(manual.Token,42,"Driver's License","A0123456789",bytes),"manual receipt is never an OCR match");
-Check(ocr.ReceiptMode(manual.Token,42,"Driver's License","A0123456789",[1,2,4]) is null,"manual receipt cannot authorize a swapped image");
-Check(ocr.ReceiptMode(manual.Token,43,"Driver's License","A0123456789",bytes) is null,"manual receipt cannot cross accounts");
+Check(!manual.Success && !manual.CanManualReview && manual.Token is null, "unreadable or random image cannot obtain a manual-review receipt");
+var legacy = protection.CreateProtector("tts.identity.ocr.v1").Protect(JsonSerializer.Serialize(new { UserId=42,Type="Driver's License",Number="A0123456789",Hash=Convert.ToHexString(SHA256.HashData(bytes)),Expires=DateTime.UtcNow.AddMinutes(1),Mode="manual" }));
+Check(ocr.ReceiptMode(legacy,42,"Driver's License","A0123456789",bytes) is null,"previous manual-review bypass receipt is invalidated");
+var forgedMode = protection.CreateProtector("tts.identity.ocr.v2").Protect(JsonSerializer.Serialize(new { UserId=42,Type="Driver's License",Number="A0123456789",Hash=Convert.ToHexString(SHA256.HashData(bytes)),Expires=DateTime.UtcNow.AddMinutes(1),Mode="manual" }));
+Check(ocr.ReceiptMode(forgedMode,42,"Driver's License","A0123456789",bytes) is null,"manual mode cannot authorize final submission");
 var timeout=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(_,_,_)=>throw new OperationCanceledException());
 var timed=await timeout.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
-Check(timed.CanManualReview && !timed.Success && ocr.ReceiptMode(timed.Token,42,"Driver's License","A0123456789",bytes)=="manual","OCR timeout offers manual-only evidence");
+Check(!timed.CanManualReview && !timed.Success && timed.Token is null,"OCR timeout cannot authorize an unchecked submission");
 var sparsePasses=0;
 var retry=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(tool,arguments,ct)=>{
  if(tool!="tesseract")return Task.FromResult("");
@@ -78,3 +79,11 @@ var retry=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(tool,
 });
 var retried=await retry.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
 Check(retried.Success && sparsePasses==2,"unreadable sparse result retries block-layout OCR once");
+var enhancedPasses = 0;
+var enhanced = new IdentityIdOcr(protection, NullLogger<IdentityIdOcr>.Instance, (tool, arguments, ct) => {
+ if(tool != "tesseract") return Task.FromResult("");
+ enhancedPasses++;
+ return Task.FromResult(arguments.Contains("3") ? OcrTsv(driver) : "");
+});
+var enhancedResult = await enhanced.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
+Check(enhancedResult.Success && enhancedPasses == 3,"contrast-enhanced OCR can recover a complete number without manual fallback");
