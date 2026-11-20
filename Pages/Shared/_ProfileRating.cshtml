@@ -1,0 +1,9 @@
+@model tts.Data.ProfileRating
+@{
+    var score = Math.Clamp(Model.Average, 0, 5);
+    var width = (Model.Count > 0 && !Model.Unavailable ? score * 20 : 0).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+}
+<div class="freelancer-rating profile-inline-rating">
+    <span class="profile-rating-stars" aria-hidden="true">☆☆☆☆☆<span style="width:@(width)%">★★★★★</span></span>
+    <strong>@(Model.Unavailable ? "Ratings unavailable" : Model.Count > 0 ? $"{score:0.0} / 5 ({Model.Count} {(Model.Count == 1 ? "review" : "reviews")})" : "No ratings yet")</strong>
+</div>

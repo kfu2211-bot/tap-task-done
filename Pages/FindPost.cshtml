@@ -429,6 +429,7 @@
                                                 <strong>@provider.Name</strong>
                                                 <span class="provider-availability">@provider.Availability</span>
                                             </div>
+                                            <partial name="_ProfileRating" model="new tts.Data.ProfileRating(Model.Ratings.GetValueOrDefault(provider.Id)?.Average ?? 0, Model.Ratings.GetValueOrDefault(provider.Id)?.Count ?? 0, Model.RatingsUnavailable)" />
                                             @if (!string.IsNullOrWhiteSpace(provider.Location))
                                             {
                                                 <p class="freelancer-service-area">@provider.Location</p>
@@ -478,7 +479,7 @@
                                         </div></div>
                                         <div class="freelancer-right">
                                             <div class="freelancer-price"><small>Service rate</small><span>@(serviceRate is int rate ? $"₱{rate:N0}" : "Rate not set")</span></div>
-                                            <div class="freelancer-rating"><strong>@(Model.RatingsUnavailable ? "Ratings unavailable" : Model.Ratings.TryGetValue(provider.Id, out var rating) ? $"★ {rating.Average:0.0} ({rating.Count} {(rating.Count == 1 ? "review" : "reviews")})" : "No ratings yet")</strong></div>
+
                                             <button class="arrow-button" type="button" data-name="@provider.Name">View profile</button>
                                         </div>
 

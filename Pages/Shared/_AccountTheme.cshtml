@@ -10,5 +10,19 @@
 <link rel="stylesheet" href="~/css/client-profile-links.css" asp-append-version="true" />
 <script defer src="~/js/client-profile-links.js" asp-append-version="true"></script>
 <link rel="stylesheet" href="~/css/review-stars.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/profile-rating.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/job-duration.css" asp-append-version="true" />
 <script defer src="~/js/job-duration.js" asp-append-version="true"></script>
+<link id="productPolish" rel="stylesheet" href="~/css/product-polish.css" asp-append-version="true" />
+<link id="mobilePolish" rel="stylesheet" href="~/css/mobile-polish.css" asp-append-version="true" />
+<style>
+    html.workspace-shell-loading :is(.sidebar, .mytasks-sidebar) :is(nav, .sidebar-view-switch, .sidebar-user, .sidebar-account, .mytasks-user) { visibility: hidden !important; }
+    html.workspace-shell-loading :is(.sidebar, .mytasks-sidebar) > :is(.sidebar-user, .sidebar-account, .mytasks-user) { display: none !important; }
+</style>
+<script>
+    if (document.querySelector('script[src*="sidebar-account.js"]')) {
+        document.documentElement.classList.add('workspace-shell-loading');
+        // Leave navigation usable if the script fails to initialize.
+        setTimeout(() => document.documentElement.classList.remove('workspace-shell-loading'), 6000);
+    }
+</script>

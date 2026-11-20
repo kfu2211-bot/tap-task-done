@@ -23,18 +23,9 @@
 <section class="review-profile-card profile-overview">
     <div class="profile-identity">
         <div class="profile-avatar" aria-hidden="true">@Model.DisplayName.FirstOrDefault()</div>
-        <div><h2>@Model.DisplayName</h2><p class="profile-role">@Model.ProfileRole</p>
+        <div><h2>@Model.DisplayName</h2><partial name="_ProfileRating" model="new tts.Data.ProfileRating(Model.Reviews.Count > 0 ? Model.Reviews.Average(r => r.Rating) : 0, Model.Reviews.Count, Model.Unavailable)" /><p class="profile-role">@Model.ProfileRole</p>
             @if (!string.IsNullOrWhiteSpace(Model.Location)) { <p class="profile-location">@Model.Location</p> }
         </div>
-    </div>
-    <div class="profile-rating-summary">
-        @if (!Model.Unavailable && Model.Reviews.Count > 0)
-        {
-            <strong class="review-profile-score"><span aria-hidden="true">★</span> @Model.Reviews.Average(r => r.Rating).ToString("0.0")</strong>
-            <p>@Model.Reviews.Count reviews</p>
-        }
-        else if (Model.Unavailable) { <p>Ratings unavailable</p> }
-        else { <strong class="profile-unrated">—</strong><p>No ratings yet</p> }
     </div>
 </section>
 <section class="review-profile-card profile-review-list">

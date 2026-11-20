@@ -630,11 +630,12 @@
         }
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", loadSidebarAccount);
-    } else {
-        loadSidebarAccount();
+    function initializeSidebar() {
+        loadSidebarAccount().catch(error => console.warn('Navigation setup could not finish.', error))
+            .finally(() => document.documentElement.classList.remove('workspace-shell-loading'));
     }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initializeSidebar);
+    else initializeSidebar();
     function enforceLocalAccountStatus() {
         let account, users;
         try { account = JSON.parse(localStorage.getItem("tapTaskDoneAccount") || "null"); users = JSON.parse(localStorage.getItem("tapTaskDoneLocalUsers") || "[]"); } catch (error) { return; }
