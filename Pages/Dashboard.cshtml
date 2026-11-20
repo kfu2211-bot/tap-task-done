@@ -768,14 +768,15 @@
                 @if (Model.ShowAvailableTasks)
                 {
                     <div class="home-job-layout">
-                        <section class="section home-panel">
-                            <div class="home-panel-heading"><h3>Jobs matching your skills</h3><a href="/FindPost?mode=jobs">Find jobs ›</a></div>
-                            <p>Open jobs related to your saved services and specific skills.</p>
+                        <section class="section home-panel home-matching-jobs" aria-labelledby="matchingJobsTitle">
+                            <div class="home-panel-heading"><div><span class="matching-eyebrow">RECOMMENDED FOR YOU</span><h3 id="matchingJobsTitle">Jobs matching your skills</h3><p class="matching-subtitle">Based on your saved services and specific skills.</p></div></div>
                             @if (Model.TasksUnavailable || Model.AvailableTasks.Count == 0)
                             {
-                                <p>@(Model.TasksUnavailable ? "Tasks are temporarily unavailable." : !Model.HasMatchingServices ? "Add your services and specific skills to see matching jobs here." : "No open jobs match your skills right now. New matches will appear here when posted.")</p>
+                                <div class="matching-empty" role="status">
+                                    <span class="matching-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="14" rx="3"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a22 22 0 0 0 18 0M10 12h4"/></svg></span>
+                                    <div><h4>@(Model.TasksUnavailable ? "Jobs are temporarily unavailable" : !Model.HasMatchingServices ? "Let’s find work that fits you" : "No matching jobs yet")</h4><p>@(Model.TasksUnavailable ? "Please try again in a moment." : !Model.HasMatchingServices ? "Add your services and skills to start seeing relevant jobs here." : "New jobs that match your skills will appear here when posted.")</p></div>
+                                </div>
                             }
-                            @if (!Model.TasksUnavailable) { <a href="/Settings#work-preferences">@(Model.HasMatchingServices ? "Update services and skills" : "Set up services and skills")</a> }
                             @foreach (var task in Model.AvailableTasks)
                             {
                                 <a class="home-task-row" href="/FindPost?mode=jobs#task-@task.Id">
@@ -784,6 +785,7 @@
                                     <span aria-hidden="true">›</span>
                                 </a>
                             }
+                            @if (!Model.TasksUnavailable) { <div class="matching-footer"><a class="home-panel-action matching-settings" href="/Settings#work-preferences"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m14 6 4 4M4 20l4-1L20 7l-3-3L5 16l-1 4Z"/></svg>@(Model.HasMatchingServices ? "Edit services & skills" : "Set up services & skills")</a></div> }
                         </section>
                         <div class="home-job-details">
                             <section class="section home-panel">
