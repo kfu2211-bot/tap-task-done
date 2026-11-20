@@ -1,0 +1,35 @@
+@model tts.Pages.DashboardModel
+@if (Model.Setup is { Complete: false } setup)
+{
+    <section class="account-setup" data-account-setup data-reminder-key="@Model.SetupReminderKey" data-auto-open="@setup.NeedsAction.ToString().ToLowerInvariant()" aria-labelledby="setupCardTitle">
+        <div class="setup-reminder">
+            <span class="setup-shield" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="m8 12 3 3 5-6"/></svg></span>
+            <div class="setup-reminder-copy"><h2 id="setupCardTitle">Complete your account</h2><p>@setup.Completed of 3 completed <span aria-hidden="true">·</span> Role, identity &amp; mobile number</p><progress value="@setup.Completed" max="3" aria-label="Account setup progress">@setup.Completed of 3</progress></div>
+            <button type="button" class="setup-button setup-outline" data-setup-open hidden>Continue setup <span aria-hidden="true">→</span></button>
+            <noscript><a class="setup-button setup-outline" href="/Settings">Open Settings</a><a class="setup-button setup-outline" href="/IdentityVerification">Identity verification</a></noscript>
+        </div>
+        <dialog class="setup-dialog" aria-labelledby="setupTitle" aria-describedby="setupDescription">
+            <div class="setup-dialog-inner">
+                <div class="setup-dialog-top"><span class="setup-shield" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="m8 12 3 3 5-6"/></svg></span><button type="button" class="setup-close" data-setup-close aria-label="Close account setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+                <h2 id="setupTitle" tabindex="-1" autofocus>Ihanda ang account mo</h2>
+                <p id="setupDescription">Tatlong hakbang para makapagsimula.</p>
+                <div class="setup-progress"><strong>@setup.Completed of 3 completed</strong><progress value="@setup.Completed" max="3" aria-label="Account setup progress">@setup.Completed of 3</progress></div>
+                <ol class="setup-steps">
+                    @for (var index = 0; index < setup.Steps.Count; index++)
+                    {
+                        var step = setup.Steps[index];
+                        <li class="setup-step @(step.Complete ? "is-complete" : "")">
+                            <span class="setup-step-number" aria-hidden="true">@(step.Complete ? "✓" : (index + 1).ToString())</span>
+                            <div class="setup-step-copy"><h3>@step.Title</h3><p>@step.Description</p></div>
+                            <span class="setup-status @(step.Complete ? "is-done" : step.Status == "Under review" ? "is-pending" : "")">@step.Status</span>
+                            @if (step.Available) { <a class="setup-button @(index == 1 && !step.Complete && step.Status != "Under review" ? "setup-primary" : "setup-outline")" href="@step.Url">@step.Action</a> }
+                            else { <span class="setup-unavailable">Try again later</span> }
+                        </li>
+                    }
+                </ol>
+                <p class="setup-info">Kailangan ng verification bago mag-post o mag-apply.</p>
+                <footer class="setup-footer"><button type="button" data-setup-close>Mamaya na</button><span>Makikita rin ito sa dashboard.</span></footer>
+            </div>
+        </dialog>
+    </section>
+}

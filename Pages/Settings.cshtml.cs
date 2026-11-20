@@ -93,7 +93,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         if (UserId <= 0) return Challenge();
         phoneNumber = (phoneNumber ?? "").Trim();
         if (phoneNumber.Length > 25 || (phoneNumber.Length > 0 && !System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, @"^\+?[0-9 ()-]{7,24}$")))
-        { Message = "Enter a valid phone number, or leave it blank to remove it."; return RedirectToPage(new { view = "profile" }); }
+        { Message = "Enter a valid phone number, or leave it blank to remove it."; return RedirectToPage("/Settings", null, new { view = "profile", editPhone = true }, "contact-details"); }
         try {
             var contact = await db.Set<UserContact>().SingleOrDefaultAsync(x => x.UserId == UserId, ct);
             if (contact is null) { contact = new UserContact { UserId = UserId }; db.Set<UserContact>().Add(contact); }
@@ -102,7 +102,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         } catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException) {
             logger.LogError(ex, "Could not save contact details"); Message = "Contact details could not be saved. Please try again.";
         }
-        return RedirectToPage(new { view = "profile" });
+        return RedirectToPage("/Settings", null, new { view = "profile", editPhone = true }, "contact-details");
     }
     public async Task<IActionResult> OnPostDisplayNameAsync(string? firstName, string? lastName, CancellationToken ct)
     {

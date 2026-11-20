@@ -29,7 +29,9 @@
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/client-workspace.css" asp-append-version="true" />
-<partial name="_AccountTheme" /><script defer src="/js/home-service-photos.js" asp-append-version="true"></script></head>
+<partial name="_AccountTheme" /><script defer src="/js/home-service-photos.js" asp-append-version="true"></script>
+<link rel="stylesheet" href="/css/account-setup.css" asp-append-version="true" />
+<script defer src="/js/account-setup.js" asp-append-version="true"></script></head>
 
 <body class="dashboard-body @(Model.FreelancerOnly ? "freelancer-home" : "client-workspace client-home")">
 
@@ -331,6 +333,7 @@
                         ? new[] { "Pending offers", "Active jobs", "Completed jobs" }
                         : new[] { "Needs confirmation", "New offers", "Active bookings" };
                 }
+                <partial name="_AccountSetup" model="Model" />
                 <section class="home-overview" aria-label="Work overview" data-freelancer-summary="@(Model.FreelancerOnly ? Url.Page("/Dashboard", "FreelancerSummary") : null)">
                     @{ var jobViews = new[] { "offers&pending=1", "active", "completed" }; }
                     @for (var i = 0; i < labels.Length; i++)

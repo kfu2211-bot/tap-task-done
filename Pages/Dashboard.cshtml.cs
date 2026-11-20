@@ -33,6 +33,43 @@ namespace tts.Pages
         public record ScheduledWork(long Id, string Title, string ScheduleText);
         public ScheduledWork? ScheduledJob { get; private set; }
         public bool TasksUnavailable { get; private set; }
+        public AccountSetup? Setup { get; private set; }
+        public string SetupReminderKey { get; private set; } = "";
+
+        private async Task LoadAccountSetupAsync(int userId, CancellationToken ct)
+        {
+            string? role = null, identity = null;
+            List<string> accepted = [];
+            var hasPhone = false;
+            var roleAvailable = true; var identityAvailable = true; var phoneAvailable = true;
+            try
+            {
+                role = await db.FreelancerProfiles.AsNoTracking().Where(p => p.UserId == userId).Select(p => p.WorkRole).SingleOrDefaultAsync(ct);
+                accepted = await db.Set<RoleAgreementAcceptance>().AsNoTracking()
+                    .Where(a => a.UserId == userId && a.Version == RoleAgreementAcceptance.CurrentVersion).Select(a => a.Role).ToListAsync(ct);
+            }
+            catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+            { logger.LogWarning(ex, "Unable to load account setup role"); roleAvailable = false; }
+            try
+            {
+                identity = await db.IdentityRequests.AsNoTracking().Where(r => r.UserId == userId)
+                    .OrderByDescending(r => r.Id).Select(r => r.Status).FirstOrDefaultAsync(ct);
+            }
+            catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+            { logger.LogWarning(ex, "Unable to load account setup verification"); identityAvailable = false; }
+            try
+            {
+                var phone = await db.Set<UserContact>().AsNoTracking().Where(c => c.UserId == userId).Select(c => c.PhoneNumber).SingleOrDefaultAsync(ct);
+                hasPhone = !string.IsNullOrWhiteSpace(phone);
+            }
+            catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+            { logger.LogWarning(ex, "Unable to load account setup contact status"); phoneAvailable = false; }
+            Setup = AccountSetup.Create(role, accepted, identity, hasPhone, roleAvailable, identityAvailable, phoneAvailable);
+            // A UI-only digest distinguishes sign-ins without exposing the login token or contact data.
+            var issued = HttpContext.Features.Get<Microsoft.AspNetCore.Authentication.IAuthenticateResultFeature>()?.AuthenticateResult?.Properties?.IssuedUtc?.ToString("O");
+            var signIn = User.FindFirst("login_session")?.Value ?? issued ?? "browser-session";
+            SetupReminderKey = "tts-setup-v1-" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes($"{userId}:{signIn}")))[..24];
+        }
         public async Task<IActionResult> OnPostAvailabilityAsync(bool? acceptingJobs, CancellationToken ct)
         {
             if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0)
@@ -119,6 +156,11 @@ namespace tts.Pages
 
         public async Task OnGetAsync(CancellationToken ct, string? view = null, string? filter = null)
         {
+            if (User.Identity?.IsAuthenticated == true && int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var setupUserId) && setupUserId > 0)
+            {
+                Response.Headers.CacheControl = "no-store";
+                await LoadAccountSetupAsync(setupUserId, ct);
+            }
             try
             {
                 var viewerId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;

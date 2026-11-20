@@ -1,0 +1,50 @@
+.account-setup{--setup-surface:#fff;--setup-text:#18352b;--setup-muted:#53665e;--setup-border:#c8dfd0;--setup-soft:#eef7f1;--setup-brand:#176f53;--setup-badge:#fff0ce;--setup-badge-text:#785018;margin:0 0 24px;color:var(--setup-text);font-family:inherit}
+.account-setup *{box-sizing:border-box}
+.setup-reminder{display:flex;align-items:center;gap:18px;padding:20px 24px;background:var(--setup-surface);border:1px solid var(--setup-border);border-radius:16px}
+.setup-shield{display:grid;place-items:center;flex:none;width:48px;height:48px;background:var(--setup-soft);color:var(--setup-brand);border-radius:14px}
+.setup-shield svg{width:30px;height:30px}
+.setup-reminder-copy{flex:1;min-width:0}
+.account-setup .setup-reminder h2{margin:0 0 5px;font-size:19px;line-height:1.3;color:var(--setup-text)}
+.account-setup .setup-reminder p{margin:0 0 10px;color:var(--setup-muted);font-size:14px;line-height:1.5}
+.account-setup progress{display:block;width:100%;height:9px;border:0;border-radius:20px;overflow:hidden;background:var(--setup-soft);accent-color:var(--setup-brand)}
+.account-setup progress::-webkit-progress-bar{background:var(--setup-soft);border-radius:20px}
+.account-setup progress::-webkit-progress-value{background:var(--setup-brand);border-radius:20px}
+.account-setup progress::-moz-progress-bar{background:var(--setup-brand);border-radius:20px}
+.account-setup .setup-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 15px;border:1px solid var(--setup-brand);border-radius:9px;font:600 14px/1.3 inherit;font-family:inherit;font-size:14px;font-weight:600;line-height:1.3;text-align:center;text-decoration:none;cursor:pointer;white-space:nowrap}
+.account-setup .setup-outline{background:var(--setup-surface);color:var(--setup-brand)}
+.account-setup .setup-primary{background:var(--setup-brand);color:#fff}
+.account-setup .setup-button:hover{filter:brightness(.94)}
+.account-setup :is(button,a):focus-visible{outline:3px solid #72ba95;outline-offset:4px}
+.account-setup .setup-dialog{position:fixed;inset:0;margin:auto;width:min(720px,calc(100% - 32px));max-width:none;max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--setup-border);border-radius:22px;background:var(--setup-surface);color:var(--setup-text);box-shadow:0 24px 80px #071e2d33;overflow:auto;overscroll-behavior:contain}
+.setup-dialog:not([open]){display:none}
+.setup-dialog::backdrop{background:rgb(10 25 20 / .48)}
+html:has(.setup-dialog[open]){overflow:hidden}
+.setup-dialog-inner{padding:30px}
+.setup-dialog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.account-setup .setup-close{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--setup-text);font:32px/1 inherit;font-size:32px;cursor:pointer}
+.setup-close:hover{background:var(--setup-soft)}
+.setup-close svg{width:22px;height:22px}
+.account-setup #setupTitle:focus{outline:none}
+.account-setup #setupTitle{margin:0 0 8px;font-size:clamp(25px,3vw,34px);line-height:1.18;letter-spacing:-.7px;text-wrap:balance;color:var(--setup-text)}
+.account-setup #setupDescription{margin:0;color:var(--setup-muted);font-size:16px;line-height:1.5}
+.setup-progress{margin:24px 0}
+.setup-progress strong{display:block;margin-bottom:9px;font-size:14px}
+.setup-steps{display:grid;gap:12px;list-style:none;margin:0;padding:0}
+.setup-step{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:9px 14px;align-items:center;padding:18px;border:1px solid var(--setup-border);border-radius:13px}
+.setup-step-number{grid-column:1;grid-row:1 / 3;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--setup-soft);color:var(--setup-brand);font-size:18px;font-weight:700}
+.setup-step-copy{grid-column:2;grid-row:1 / 3}
+.account-setup .setup-step h3{margin:0 0 5px;font-size:17px;line-height:1.3;color:var(--setup-text)}
+.account-setup .setup-step p{margin:0;font-size:13px;line-height:1.5;color:var(--setup-muted)}
+.setup-status{grid-column:3;justify-self:center;background:var(--setup-badge);color:var(--setup-badge-text);padding:4px 9px;border-radius:6px;font-size:12px;line-height:1.3;font-weight:600}
+.setup-status.is-done,.setup-status.is-pending{background:var(--setup-soft);color:var(--setup-brand)}
+.setup-step .setup-button,.setup-unavailable{grid-column:3}
+.setup-unavailable{font-size:12px;color:var(--setup-muted)}
+.account-setup .setup-info{margin:22px 0 0;padding:15px 17px;border-radius:10px;background:var(--setup-soft);color:var(--setup-brand);font-size:14px;line-height:1.5;font-weight:600}
+.setup-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px;color:var(--setup-muted);font-size:13px}
+.account-setup .setup-footer button{min-height:44px;padding:10px 0;background:none;border:0;color:var(--setup-muted);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.account-setup [hidden]{display:none!important}
+html[data-theme="dark"] .account-setup{--setup-surface:#202e27;--setup-text:#edf5ef;--setup-muted:#bdcec3;--setup-border:#527261;--setup-soft:#2a4335;--setup-brand:#a0ecc1;--setup-badge:#493820;--setup-badge-text:#ffe1a8}
+html[data-theme="dark"] .account-setup .setup-primary{background:#19765a;color:#fff}
+@media(min-width:750px){.setup-step{grid-template-columns:36px minmax(0,1fr) auto 115px;gap:14px}.setup-step-number,.setup-step-copy{grid-row:1}.setup-step .setup-button,.setup-unavailable{grid-column:4}.setup-status{grid-column:3}}
+@media(max-width:540px){.setup-reminder{padding:17px;gap:12px;flex-wrap:wrap}.setup-reminder .setup-shield{width:40px;height:40px}.setup-reminder .setup-button{width:100%}.setup-dialog-inner{padding:22px 18px}.setup-dialog-top{margin-bottom:16px}.setup-step{grid-template-columns:32px minmax(0,1fr);padding:15px;gap:10px}.setup-step-number{width:32px;height:32px;grid-row:1}.setup-step-copy{grid-row:1}.setup-status{grid-column:2;justify-self:start}.setup-step .setup-button,.setup-unavailable{grid-column:2;justify-self:start;white-space:normal}.setup-footer{align-items:flex-start}.setup-footer span{max-width:150px;text-align:right}}
+@media(prefers-reduced-motion:reduce){.account-setup *{scroll-behavior:auto!important;transition:none!important}}
