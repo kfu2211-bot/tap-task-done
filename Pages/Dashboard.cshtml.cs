@@ -15,6 +15,7 @@ namespace tts.Pages
         public bool CategoriesUnavailable { get; private set; }
         public List<MarketplaceTask> AvailableTasks { get; private set; } = [];
         public bool ShowAvailableTasks { get; private set; }
+        public bool HasMatchingServices { get; private set; }
         public bool FreelancerOnly { get; private set; }
         public bool CanSwitchView { get; private set; }
         public bool SummaryUnavailable { get; private set; }
@@ -164,7 +165,8 @@ namespace tts.Pages
             try
             {
                 var viewerId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
-                var role = await db.FreelancerProfiles.AsNoTracking().Where(p => p.UserId == viewerId).Select(p => p.WorkRole).SingleOrDefaultAsync(ct);
+                var matchingProfile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == viewerId, ct);
+                var role = matchingProfile?.WorkRole;
                 CanSwitchView = role == "both";
                 if (CanSwitchView && view is "client" or "freelancer")
                     Response.Cookies.Append("tts-home-view-" + viewerId, view,
@@ -173,9 +175,22 @@ namespace tts.Pages
                     (view is "client" or "freelancer" ? view : Request.Cookies["tts-home-view-" + viewerId]) == "freelancer");
                 ShowAvailableTasks = FreelancerOnly;
                 if (ShowAvailableTasks)
-                    AvailableTasks = await db.MarketplaceTasks.AsNoTracking()
+                {
+                    HasMatchingServices = !string.IsNullOrWhiteSpace(matchingProfile?.Service);
+                    if (HasMatchingServices)
+                    {
+                        // Match before limiting, so unrelated recent posts cannot hide older matching work.
+                        var candidates = db.MarketplaceTasks.AsNoTracking()
                         .Where(t => t.ClientId != viewerId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow))
-                        .OrderByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id).Take(4).ToListAsync(ct);
+                        .OrderByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id);
+                        await foreach (var task in candidates.AsAsyncEnumerable().WithCancellation(ct))
+                        {
+                            if (!ServiceCatalog.Matches(matchingProfile!.Service, matchingProfile.ServiceSpecialties, task)) continue;
+                            AvailableTasks.Add(task);
+                            if (AvailableTasks.Count == 4) break;
+                        }
+                    }
+                }
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
             { logger.LogError(ex, "Unable to load available tasks on the dashboard"); TasksUnavailable = true; }

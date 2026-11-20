@@ -769,12 +769,13 @@
                 {
                     <div class="home-job-layout">
                         <section class="section home-panel">
-                            <div class="home-panel-heading"><h3>Available tasks</h3><a href="/FindPost?mode=jobs">View all jobs ›</a></div>
-                            <p>Recently posted work open for offers.</p>
+                            <div class="home-panel-heading"><h3>Jobs matching your skills</h3><a href="/FindPost?mode=jobs">Find jobs ›</a></div>
+                            <p>Open jobs related to your saved services and specific skills.</p>
                             @if (Model.TasksUnavailable || Model.AvailableTasks.Count == 0)
                             {
-                                <p>@(Model.TasksUnavailable ? "Tasks are temporarily unavailable." : "No open tasks right now.")</p>
+                                <p>@(Model.TasksUnavailable ? "Tasks are temporarily unavailable." : !Model.HasMatchingServices ? "Add your services and specific skills to see matching jobs here." : "No open jobs match your skills right now. New matches will appear here when posted.")</p>
                             }
+                            @if (!Model.TasksUnavailable) { <a href="/Settings#work-preferences">@(Model.HasMatchingServices ? "Update services and skills" : "Set up services and skills")</a> }
                             @foreach (var task in Model.AvailableTasks)
                             {
                                 <a class="home-task-row" href="/FindPost?mode=jobs#task-@task.Id">
