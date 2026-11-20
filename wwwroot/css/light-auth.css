@@ -159,3 +159,36 @@ html[data-theme="dark"] body .registration-page .dropdown-option:is(:hover, .sel
     background: var(--surface-2);
     color: var(--text);
 }
+/* Keep login controls consistent in normal, focused and browser-filled states. */
+html body .login-page {
+    --login-input-bg: #fff;
+    --login-input-text: #20372e;
+    --login-input-border: #cedbd2;
+    color-scheme: light;
+}
+html[data-theme="dark"] body .login-page {
+    --login-input-bg: #17231c;
+    --login-input-text: #edf5ef;
+    --login-input-border: #6e9780;
+    color-scheme: dark;
+}
+html body .login-page .login-group input,
+html body .login-page .login-group input:focus {
+    background: var(--login-input-bg) !important;
+    color: var(--login-input-text) !important;
+    caret-color: var(--login-input-text);
+    border-color: var(--login-input-border) !important;
+}
+html body .login-page .login-group input:focus {
+    outline: 2px solid #419b79;
+    outline-offset: 2px;
+}
+html body .login-page .login-group input:-webkit-autofill,
+html body .login-page .login-group input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--login-input-text) !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--login-input-bg) inset !important;
+    box-shadow: 0 0 0 1000px var(--login-input-bg) inset !important;
+}
+html[data-theme="dark"] body .login-page .login-box { background: #202e26 !important; border-color: #456052 !important; }
+html[data-theme="dark"] body .login-page :is(.login-box h1, .login-group label, .login-logo) { color: #edf5ef !important; }
+html[data-theme="dark"] body .login-page :is(.login-subtitle, .create-account-text) { color: #b6cbbd !important; }
