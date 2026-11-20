@@ -184,20 +184,19 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         if (!ModelState.IsValid || UserId == 0 || ServiceRate is <= 0 ||
             !new[] { "client", "freelancer", "both" }.Contains(WorkRole) ||
             !new[] { "Available", "Busy", "Day off" }.Contains(Availability) || Days.Any(x => !validDays.Contains(x)))
-        { Message = "Please check your work preferences and try again."; return RedirectToPage(); }
+        { return await WorkPreferencesErrorAsync("Please check your work preferences and try again."); }
         if ((WorkRole is "freelancer" or "both") &&
             (Services.Length == 0 || Services.Any(service => !ServiceOptions.Contains(service)) ||
              Areas.Length == 0 || Areas.Any(area => !BacolorServiceAreas.Names.Contains(area)) ||
              (Services.Contains("Other/General") && (string.IsNullOrWhiteSpace(OtherService) || OtherService.Length > 60 || OtherService.Contains(',')))))
-        { Message = "Choose at least one service and area. For Other / General, enter a service name of up to 60 characters without commas."; return RedirectToPage(); }
+        { return await WorkPreferencesErrorAsync("Choose at least one service and area. For Other / General, enter a service name of up to 60 characters without commas."); }
         string? specialties = null;
         if ((WorkRole is "freelancer" or "both") && !ServiceCatalog.TryBuild(Services, SpecialtyChoices, CustomSpecialties, out specialties))
-        { Message = "Check the selected specific services and enter any custom service names (up to 60 characters)."; return RedirectToPage(); }
+        { return await WorkPreferencesErrorAsync("Check the selected specific services and enter any custom service names (up to 60 characters)."); }
         if ((WorkRole is "freelancer" or "both") &&
             (PreferredStart.HasValue != PreferredEnd.HasValue || PreferredStart >= PreferredEnd))
         {
-            Message = "Enter both preferred times, with an end time after the start time, or leave both blank.";
-            return RedirectToPage();
+            return await WorkPreferencesErrorAsync("Enter both preferred times, with an end time after the start time, or leave both blank.");
         }
         if (!await db.Users.AnyAsync(x => x.Id == UserId)) { await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
         var accepted = await LoadAcceptedRolesAsync();
@@ -206,8 +205,7 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         if (missing.Length > 0 && (AgreementVersion != RoleAgreementAcceptance.CurrentVersion ||
             missing.Any(role => !AcceptedAgreements.Contains(role))))
         {
-            Message = "Review and accept the required role agreements before saving.";
-            return RedirectToPage();
+            return await WorkPreferencesErrorAsync("Review and accept the required role agreements before saving.");
         }
 
         foreach (var role in missing)
@@ -241,11 +239,28 @@ public class SettingsModel(ApplicationDbContext db, ILogger<SettingsModel> logge
         catch (DbUpdateException ex)
         {
             logger.LogError(ex, "Could not save work preferences for user {UserId}.", UserId);
-            Message = "Your changes could not be saved. Your previous work role is still active.";
-            return RedirectToPage();
+            return await WorkPreferencesErrorAsync("Your changes could not be saved. Your entries are still here; please try again.");
         }
         Message = "Work preferences saved.";
         return RedirectToPage();
+    }
+    public string? WorkPreferencesError { get; private set; }
+
+    private async Task<IActionResult> WorkPreferencesErrorAsync(string error)
+    {
+        // Load display-only context without replacing the submitted draft.
+        var draft = (WorkRole, Services, Areas, OtherService, ServiceRate, Availability, Days,
+            PreferredStart, PreferredEnd, SpecialtyChoices, CustomSpecialties, AcceptedAgreements, AgreementVersion);
+        var result = await OnGetAsync();
+        if (result is not PageResult) return result;
+        (WorkRole, Services, Areas, OtherService, ServiceRate, Availability, Days,
+            PreferredStart, PreferredEnd, SpecialtyChoices, CustomSpecialties, AcceptedAgreements, AgreementVersion) = draft;
+        SavedSpecialties = ServiceCatalog.Options.Keys.ToDictionary(category => category, category =>
+            SpecialtyChoices.Where(choice => choice.StartsWith(category + "|", StringComparison.Ordinal))
+                .Select(choice => choice[(category.Length + 1)..] is var option && option == "Other"
+                    ? "Other: " + CustomSpecialties.GetValueOrDefault(category) : choice[(category.Length + 1)..]).ToArray());
+        WorkPreferencesError = error;
+        return Page();
     }
     public async Task<IActionResult> OnPostLogoutAsync() { if (LoginSecurity.Enabled(HttpContext.RequestServices.GetRequiredService<IConfiguration>())) await LoginSecurity.LogoutAsync(db, HttpContext, HttpContext.RequestAborted); await HttpContext.SignOutAsync(); return RedirectToPage("/Login"); }
 }

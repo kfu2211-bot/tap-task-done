@@ -52,6 +52,7 @@ html body a.workspace-action {
     text-decoration: none;
 }
 html body a.workspace-action:hover { background: #125740; }
+html body a.workspace-action:focus-visible { outline: 3px solid #176b50; outline-offset: 3px; }
 html body a.workspace-action-secondary { background: transparent; border-color: #aacbb7; color: #15583f; }
 html body a.workspace-action-secondary:hover { background: #dceee0; }
 html[data-theme="dark"] body a.workspace-action-secondary { color: #a5edcc; border-color: #567264; }

@@ -3,6 +3,88 @@ const freelancerPreferences = document.getElementById("freelancerPreferences");
 
 if (workRole && freelancerPreferences) {
     const form = workRole.form;
+    // Validate before agreements or navigation, keeping the entire draft on screen.
+    form.noValidate = true;
+    const errorSummary = document.getElementById("workPreferencesErrors");
+    let attemptedSave = !errorSummary.hidden;
+    const reveal = field => {
+        for (let parent = field.parentElement; parent; parent = parent.parentElement) {
+            if (parent instanceof HTMLDetailsElement) parent.open = true;
+        }
+        field.focus();
+        field.scrollIntoView({ block: "center", behavior: "auto" });
+    };
+    function validateDraft(focus = false) {
+        form.querySelectorAll(".preference-field-error").forEach(node => node.remove());
+        form.querySelectorAll('[aria-invalid="true"]').forEach(field => {
+            field.removeAttribute("aria-invalid");
+            const ids = (field.getAttribute("aria-describedby") || "").split(" ").filter(id => !id.startsWith("preference-error-"));
+            if (ids.length) field.setAttribute("aria-describedby", ids.join(" "));
+            else field.removeAttribute("aria-describedby");
+        });
+        const errors = [];
+        const add = (field, message, container = field.closest("label") || field.parentElement) => {
+            errors.push({ field, message });
+            const note = document.createElement("p");
+            note.id = `preference-error-${errors.length}`;
+            note.className = "preference-field-error";
+            note.textContent = message;
+            container.append(note);
+            field.setAttribute("aria-invalid", "true");
+            field.setAttribute("aria-describedby", `${field.getAttribute("aria-describedby") || ""} ${note.id}`.trim());
+        };
+        if (workRole.value !== "client") {
+            for (const [name, message, selector] of [
+                ["Services", "Choose at least one service you offer.", ".service-picker"],
+                ["Areas", "Choose at least one service area.", ".service-area-picker"]
+            ]) {
+                if (!form.querySelector(`input[name="${name}"]:checked`)) add(form.querySelector(`input[name="${name}"]`), message, form.querySelector(selector));
+            }
+            for (const input of freelancerPreferences.querySelectorAll("input:not([type=checkbox]), select")) {
+                if (input.closest("[hidden]")) continue;
+                if (!input.validity.valid) add(input, input.validationMessage);
+            }
+            if (otherInput.required && otherInput.value.includes(",")) add(otherInput, "Use a service name without commas.");
+            if (otherInput.required && otherInput.value && !otherInput.value.trim()) add(otherInput, "Enter your service name.");
+            for (const input of form.querySelectorAll(".specialty-custom:not([hidden]) input")) {
+                if (!input.closest("[hidden]") && input.value && !input.value.trim()) add(input, "Enter your custom service name.");
+            }
+            const start = form.elements.PreferredStart;
+            const end = form.elements.PreferredEnd;
+            if (Boolean(start.value) !== Boolean(end.value) || (start.value && end.value && start.value >= end.value)) {
+                add(!start.value ? start : end, "Enter both times, with the end after the start, or leave both blank.");
+            }
+        }
+        const list = errorSummary.querySelector("ul");
+        list.replaceChildren();
+        errors.forEach(({ field, message }) => {
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+            if (!field.id) field.id = `preference-field-${list.children.length}`;
+            link.href = `#${field.id}`;
+            link.textContent = message;
+            link.addEventListener("click", event => { event.preventDefault(); reveal(field); });
+            item.append(link);
+            list.append(item);
+        });
+        errorSummary.hidden = errors.length === 0;
+        if (focus && errors.length) {
+            errors.forEach(({ field }) => {
+                for (let parent = field.parentElement; parent; parent = parent.parentElement) {
+                    if (parent instanceof HTMLDetailsElement) parent.open = true;
+                }
+            });
+            errorSummary.focus();
+            errorSummary.scrollIntoView({ block: "center" });
+        }
+        return errors.length === 0;
+    }
+    form.addEventListener("submit", event => {
+        attemptedSave = true;
+        if (validateDraft(true)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+    }, true);
     const availability = document.getElementById("availability");
 
     function openLinkedAvailability() {
@@ -58,7 +140,7 @@ if (workRole && freelancerPreferences) {
         update();
     });
     confirmAgreement.addEventListener("click", () => {
-        if (!requiredAgreements().every(agreementChecked) || !form.reportValidity()) return;
+        if (!requiredAgreements().every(agreementChecked) || !validateDraft(true)) return;
         agreementDialog.close();
         form.requestSubmit(submitter ?? save);
     });
@@ -157,7 +239,8 @@ if (workRole && freelancerPreferences) {
         allAreas.textContent = areas.every(area => area.checked) ? "Clear all" : "Select all " + areas.length;
         selectedServices.textContent = services.filter(service => service.checked).length + " selected";
         help.textContent = descriptions[workRole.value] || "";
-        save.disabled = savingAvailability || (snapshot() === initial && requiredAgreements().length === 0);
+        save.disabled = savingAvailability || (!attemptedSave && snapshot() === initial && requiredAgreements().length === 0);
+        if (attemptedSave) validateDraft();
     }
 
     selectAllCategories.addEventListener("click", () => {
@@ -174,4 +257,13 @@ if (workRole && freelancerPreferences) {
     form.addEventListener("change", update);
     window.addEventListener("pageshow", update);
     update();
+    if (attemptedSave) {
+        validateDraft(true);
+        // A server/storage failure may not correspond to a client-side field error.
+        if (errorSummary.querySelectorAll("p").length > 1) {
+            errorSummary.hidden = false;
+            errorSummary.focus();
+            save.disabled = false;
+        }
+    }
 }

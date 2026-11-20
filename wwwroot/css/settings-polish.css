@@ -51,3 +51,12 @@
     .local-profile-badge { margin-left: 0; }
     .signout-card form, .signout-button { width: 100%; }
 }
+
+#profileForm .preferences-errors { color: #8b2020; background: #fff4f2; border: 2px solid #b74236; border-radius: 12px; padding: 18px 22px; margin-bottom: 18px; }
+#profileForm .preferences-errors[hidden] { display: none; }
+#profileForm .preferences-errors p { color: inherit; margin: 8px 0; }
+#profileForm .preferences-errors a { color: #8b2020; text-decoration: underline; }
+#profileForm .preferences-errors li { margin: 10px 0; }
+#profileForm .preference-field-error { color: #a12622; font-weight: 600; margin: 8px 0; }
+#profileForm [aria-invalid="true"] { outline: 2px solid #b74236; outline-offset: 3px; }
+#profileForm .preferences-errors:focus { outline: 3px solid #8b2020; outline-offset: 3px; }

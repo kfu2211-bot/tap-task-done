@@ -135,6 +135,12 @@
                 </div>
                 <div class="account-settings-grid">
                 <form method="post" id="profileForm" class="settings-preferences" data-submit-pending="Saving…">
+                    <div id="workPreferencesErrors" class="preferences-errors" role="alert" tabindex="-1" hidden="@(Model.WorkPreferencesError is null)">
+                        <strong>Please check the details below before saving.</strong>
+                        <p>Your entries are still here. Nothing has been reset.</p>
+                        <ul></ul>
+                        @if (Model.WorkPreferencesError is not null) { <p>@Model.WorkPreferencesError</p> }
+                    </div>
                     <div class="settings-card account-role" id="work-preferences"><h3 id="workRoleTitle">Work role</h3><select aria-labelledby="workRoleTitle" aria-describedby="workRoleHelp" asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select><p id="workRoleHelp" class="form-message"></p></div>                    <dialog id="roleAgreementDialog" class="role-agreement-dialog" aria-labelledby="roleAgreementTitle">
                         <h2 id="roleAgreementTitle" tabindex="-1" autofocus>Work role agreements</h2>
                         <p>Review the terms for your selected role, then scroll down to accept.</p>
@@ -174,7 +180,7 @@
                         <div class="field-grid work-field-grid">
                             <div class="service-choice service-picker" role="group" aria-labelledby="servicesOfferedTitle">
                                 <div class="service-area-heading">
-                                    <strong id="servicesOfferedTitle">Services offered</strong>
+                                    <strong id="servicesOfferedTitle">Services offered (required)</strong>
                                     <button type="button" id="selectAllServiceCategories" class="settings-select-all">Check all</button>
                                 </div>
                                 <span id="selectedServices" role="status"></span>
@@ -234,7 +240,7 @@
                             </div>
                             <div class="service-choice service-area-picker" role="group" aria-labelledby="serviceAreasTitle">
                                 <div class="service-area-heading">
-                                    <strong id="serviceAreasTitle">Service areas</strong>
+                                    <strong id="serviceAreasTitle">Service areas (required)</strong>
                                     <button type="button" id="selectAllServiceAreas">Select all 5</button>
                                 </div>
                                 <div class="service-checkboxes service-area-list">
