@@ -59,7 +59,7 @@ var simulated=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(t
 });
 var matched=await simulated.CheckAsync(42,"Driver's License","A0123456789",bytes,"image/jpeg",default);
 Check(matched.Success && !matched.CanManualReview && ocr.ValidReceipt(matched.Token,42,"Driver's License","A0123456789",bytes), "successful pipeline issues only a matched receipt");
-Check(commands[0].Args.Contains("1800x1800") && commands[0].Args.Contains("-auto-orient") && commands[0].Args.Contains("-limit") && commands[1].Tool=="tesseract", "bounded preprocessing runs before text reading");
+Check(commands[0].Args.Contains("1400x1400>") && commands[0].Args.Contains("-auto-orient") && commands[0].Args.Contains("-limit") && commands[1].Tool=="tesseract", "bounded preprocessing runs before text reading");
 var mismatch=await simulated.CheckAsync(42,"Driver's License","99999999999",bytes,"image/jpeg",default);
 Check(!mismatch.Success && !mismatch.CanManualReview && mismatch.Token is null,"explicit mismatch never offers fallback or a receipt");
 var unreadable=new IdentityIdOcr(protection,NullLogger<IdentityIdOcr>.Instance,(_,_,_)=>Task.FromResult(""));

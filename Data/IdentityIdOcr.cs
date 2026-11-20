@@ -89,39 +89,49 @@ public sealed class IdentityIdOcr(IDataProtectionProvider protection, ILogger<Id
         async Task<string> Timed(string executable, string[] arguments, string name, CancellationToken token)
         {
             stage = name; var watch = Stopwatch.StartNew();
-            try { return await (runner is null ? Run(executable, arguments, token, directory) : runner(executable, arguments, token)); }
+            try
+            {
+                using var passTimeout = CancellationTokenSource.CreateLinkedTokenSource(token);
+                if (executable == "tesseract") passTimeout.CancelAfter(TimeSpan.FromSeconds(12));
+                try { return await (runner is null ? Run(executable, arguments, passTimeout.Token, directory) : runner(executable, arguments, passTimeout.Token)); }
+                catch (OperationCanceledException) when (executable == "tesseract" && !token.IsCancellationRequested)
+                {
+                    logger.LogWarning("Identity OCR pass {Stage} exceeded its budget; trying the next layout if time permits.", name);
+                    return "";
+                }
+            }
             finally { logger.LogInformation("Identity OCR stage {Stage}: {ElapsedMs} ms.", name, watch.ElapsedMilliseconds); }
         }
         try
         {
             Directory.CreateDirectory(directory);
             if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct); timeout.CancelAfter(TimeSpan.FromSeconds(25));
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct); timeout.CancelAfter(TimeSpan.FromSeconds(45));
             var input = Path.Combine(directory, "document" + (contentType == "application/pdf" ? ".pdf" : contentType == "image/png" ? ".png" : ".jpg"));
             await File.WriteAllBytesAsync(input, bytes, timeout.Token);
             if (contentType == "application/pdf")
             {
                 // OCR rendered pixels, not a PDF text layer that can disagree with its visible image.
                 var prefix = Path.Combine(directory, "page");
-                await Timed("pdftoppm", ["-f", "1", "-l", "1", "-singlefile", "-scale-to", "1800", "-png", input, prefix], "pdf-render", timeout.Token);
+                await Timed("pdftoppm", ["-f", "1", "-l", "1", "-singlefile", "-scale-to", "1400", "-png", input, prefix], "pdf-render", timeout.Token);
                 input = prefix + ".png";
             }
             var prepared = Path.Combine(directory, "prepared.png");
             await Timed(OperatingSystem.IsWindows() ? "magick" : "convert",
-                ["-limit", "memory", "96MiB", "-limit", "map", "96MiB", "-limit", "disk", "128MiB", "-limit", "thread", "1", "-define", "jpeg:size=1800x1800", input + "[0]", "-auto-orient", "-resize", "1800x1800", "-background", "white", "-alpha", "remove", "-colorspace", "Gray", prepared], "image-prepare", timeout.Token);
+                ["-limit", "memory", "96MiB", "-limit", "map", "96MiB", "-limit", "disk", "128MiB", "-limit", "thread", "1", "-define", "jpeg:size=1400x1400", input + "[0]", "-auto-orient", "-resize", "1400x1400>", "-background", "white", "-alpha", "remove", "-colorspace", "Gray", prepared], "image-prepare", timeout.Token);
             var tsv = await Timed("tesseract", [prepared, "stdout", "-l", "eng", "--psm", "11", "tsv"], "text-read", timeout.Token);
             var lines = ConfidentLines(tsv);
             var outcome = Assess(type, number, lines);
             // Sparse text can split an ID's labels and numbers into separate
             // blocks. Try a block-layout pass once, within the same deadline.
-            if (outcome == "unreadable" && total.Elapsed < TimeSpan.FromSeconds(18))
+            if (outcome == "unreadable" && total.Elapsed < TimeSpan.FromSeconds(32))
             {
                 var blockTsv = await Timed("tesseract", [prepared, "stdout", "-l", "eng", "--psm", "6", "tsv"], "text-read-block", timeout.Token);
                 outcome = Assess(type, number, ConfidentLines(blockTsv));
             }
             // Try different image contrast for faint printing, without guessing
             // missing characters or relaxing the full-number comparison.
-            if (outcome == "unreadable" && total.Elapsed < TimeSpan.FromSeconds(18))
+            if (outcome == "unreadable" && total.Elapsed < TimeSpan.FromSeconds(32))
             {
                 var enhanced = Path.Combine(directory, "enhanced.png");
                 await Timed(OperatingSystem.IsWindows() ? "magick" : "convert",

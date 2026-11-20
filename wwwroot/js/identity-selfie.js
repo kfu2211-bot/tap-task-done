@@ -71,7 +71,7 @@
         el('idCheckToken').value = '';
         el('manualIdReview').value = 'false'; el('continueManualId').hidden = true;
         const controller = new AbortController();
-        const checkTimeout = setTimeout(() => controller.abort(), 35000);
+        const checkTimeout = setTimeout(() => controller.abort(), 55000);
         try {
             const data = new FormData();
             data.set('__RequestVerificationToken', form.elements.namedItem('__RequestVerificationToken').value);
