@@ -1,0 +1,31 @@
+@page
+@model tts.Pages.RepeatTaskModel
+@using tts.Data
+@{ Layout = null; var source = Model.Source; var title = Model.Booking ? "Book again" : source.Status == "expired" ? "Edit & repost" : "Create similar task"; }
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>@title - Tap, Task, Done</title>
+<link rel="stylesheet" href="/css/settings.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-location-picker.css" asp-append-version="true" />
+<link rel="stylesheet" href="/css/task-reuse.css" asp-append-version="true" />
+<script defer src="/js/task-repeat.js" asp-append-version="true"></script>
+<script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><script defer src="/js/task-location-picker.js" asp-append-version="true"></script>
+<partial name="_AccountTheme" /></head><body><main class="task-reuse-page"><header><h1>@title</h1><a href="/JobRecord?taskId=@source.Id">Back to original record</a></header>
+<p>This creates a new @(Model.Booking ? "private booking request" : "public task draft") linked to <a href="/JobRecord?taskId=@source.Id">task #@source.Id</a>. The original record stays unchanged.</p>
+@if (Model.Booking) { <p><strong>Freelancer:</strong> @Model.FreelancerName. They must accept this new request. Both of you must confirm the work details again.</p> }
+else { <p>Review the details and choose fresh dates. You will confirm publication after saving the draft. Previous offers and agreements are not copied.</p> }
+<form method="post" asp-page="@(Model.Booking ? "/BookingRequests" : "/MarketTasks")" asp-page-handler="@(Model.Booking ? "Direct" : "Create")" class="task-reuse-form" data-task-repeat>
+<p data-repeat-message role="alert" hidden></p>
+<input type="hidden" name="sourceTaskId" value="@source.Id" />
+@if (Model.Booking) { <input type="hidden" name="freelancerId" value="@Model.FreelancerId" /> }
+<label>Task title<input name="title" value="@source.Title" maxlength="120" required /></label>
+<label>Work details<textarea name="description" rows="4" maxlength="5000" required>@source.Description</textarea></label>
+@if (!Model.Booking) {
+<label>Service category<select name="category" required><option value="">Choose category</option>@foreach (var category in ServiceCatalog.Options.Keys.Append(ServiceCatalog.OtherCategory)) { <option value="@category" selected="@(source.Category == category)">@category</option> }</select></label>
+}
+<label>Proposed budget (₱)<input name="budget" type="number" min="1" max="9999999999" step="0.01" value="@source.Budget.ToString(System.Globalization.CultureInfo.InvariantCulture)" required /></label>
+<label>New preferred schedule (Philippine time)<input name="schedule" type="datetime-local" min="@DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required /></label>
+<partial name="_JobTypeInput" model="new JobTypeInput(source.JobType, null)" />
+@if (!Model.Booking) { <label>New post closing date<input name="postEndDate" type="date" min="@MarketTasksModel.TodayInPhilippines.ToString("yyyy-MM-dd")" required /></label> }
+<partial name="_TaskLocationPicker" model="new TaskLocationInput(source.Location, Model.Destination?.Latitude, Model.Destination?.Longitude, true, source.ArrivalInstructions)" />
+<p>Check the destination pin and dates before proceeding.</p>
+<button type="submit">@(Model.Booking ? "Send new booking request" : "Save new draft for review")</button>
+</form></main><partial name="_TaskHelp" /></body></html>

@@ -94,7 +94,7 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
             "moderation" => RedirectToPage("/MarketTasks", null, new { view = "mine" }, "task-" + item.TaskId),
             "cancelled" => RedirectToPage("/MyJobs", new { view = "cancelled" }),
             "offer" or "withdrawn" or "booking_declined" => RedirectToPage("/MarketTasks", new { view = "mine" }),
-            "task_expired" => isTaskOwner ? RedirectToPage("/MarketTasks", new { view = "mine" }) : RedirectToPage("/MyJobs", new { view = "offers" }),
+            "task_expired" => isTaskOwner ? RedirectToPage("/MarketTasks", new { view = "mine" }) : RedirectToPage("/MyJobs", new { view = "closed", closedFilter = "expired" }),
             _ => RedirectToPage("/MarketTasks", new { view = "mine" })
         };
     }

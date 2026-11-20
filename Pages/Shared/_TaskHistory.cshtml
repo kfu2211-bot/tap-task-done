@@ -10,6 +10,7 @@
         "agreement-proposed" => "Updated work details proposed",
         "agreement-confirmed" => "Work details confirmed",
         "schedule-changed" => "Schedule change approved by both participants",
+        TaskReuse.EventStatus => "Created from a previous task",
         _ => TaskProgress.Label(status)
     };
 }
@@ -21,7 +22,8 @@ else {
         <li class="done"><span aria-hidden="true">✓</span><div><strong>@EventLabel(entry.Status)</strong>
             <small>@entry.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm:ss tt") PHT</small>
             <small>Recorded by: @(Model.ActorNames.GetValueOrDefault(entry.ActorId) is { Length: > 0 } actor ? actor : "Account unavailable") · Account #@entry.ActorId</small>
-            @if (!string.IsNullOrWhiteSpace(entry.Note)) { <p style="white-space:pre-wrap;overflow-wrap:anywhere">@entry.Note</p> }
+            @if (entry.Status == TaskReuse.EventStatus && long.TryParse(entry.Note, out var originalId)) { <p>Original task #@originalId @if (item.IsClient) { <a href="/JobRecord?taskId=@originalId">View original record</a> }</p> }
+            else if (!string.IsNullOrWhiteSpace(entry.Note)) { <p style="white-space:pre-wrap;overflow-wrap:anywhere">@entry.Note</p> }
             @if (entry.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@entry.Id" target="_blank" rel="noopener">View attached completion proof</a> }
         </div></li>
     }

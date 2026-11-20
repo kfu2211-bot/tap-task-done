@@ -195,6 +195,13 @@ html body.my-jobs-page .jobs-intro .jobs-find-button { flex-shrink: 0; }
 .my-jobs-page .job-message-form { margin: 14px 0 0; }
 .my-jobs-page .job-message-form .job-progress-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font: inherit; font-weight: 650; }
 .my-jobs-page .job-actions button:disabled { opacity: .6; cursor: not-allowed; }
+.closed-job-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.closed-job-filters a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1px solid var(--line, #cdded1); border-radius: 8px; color: var(--text, #193e30); text-decoration: none; }
+.closed-job-filters a[aria-current="page"] { background: #176b50; color: #fff; border-color: #176b50; }
+.my-jobs-page .job-card-summary { flex-wrap: wrap; max-width: 100%; }
+html body.my-jobs-page .job-card .job-status[data-status="expired"] { background: #fff1cf !important; color: #78520e !important; }
+html body.my-jobs-page .job-card .job-status[data-status="cancelled"], html body.my-jobs-page .job-card .job-status[data-status="canceled"] { background: #fdebea !important; color: #963931 !important; }
+html body.my-jobs-page .job-card .job-status[data-status="withdrawn"] { background: #f0ecfb !important; color: #63448c !important; }
 .my-jobs-page .job-type-filter { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 18px 0 22px; }
 .my-jobs-page .job-type-filter label { display: grid; gap: 8px; font-weight: 650; }
 .my-jobs-page .job-type-filter :is(select, button) { box-sizing: border-box; min-height: 46px; border: 1px solid #b9d3c0; border-radius: 9px; padding: 10px 16px; font: inherit; }

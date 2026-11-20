@@ -33,9 +33,9 @@ html body.compact-page-layout #findJobsSection .compact-jobs-heading {
     color: #193e30;
 }
 html body.compact-page-layout #findJobsSection .jobs-count {
-    background: #edf5ee;
-    color: #175e45;
-    border: 1px solid #d0e2d2;
+    background: #edf5ee !important;
+    color: #175e45 !important;
+    border: 1px solid #d0e2d2 !important;
     padding: 6px 10px;
     border-radius: 8px;
     font-size: .8rem;
@@ -107,7 +107,7 @@ html[data-theme="dark"] body .compact-page-description,
 html[data-theme="dark"] body.compact-page-layout .page-intro > p { color: #c1d3c8 !important; }
 html[data-theme="dark"] body.compact-page-layout #findJobsSection .jobs-workspace { background: #1b2923; border-color: #456452; color: #edf5ef; }
 html[data-theme="dark"] body.compact-page-layout #findJobsSection .jobs-count,
-html[data-theme="dark"] body.compact-page-layout .reviews-live-heading .reviews-action { background: #243b30; color: #edf5ef; border-color: #567264; }
+html[data-theme="dark"] body.compact-page-layout .reviews-live-heading .reviews-action { background: #243b30 !important; color: #edf5ef !important; border-color: #567264 !important; }
 
 @media (max-width: 700px) {
     html body.compact-page-layout #findJobsSection .jobs-workspace { padding: 16px; }

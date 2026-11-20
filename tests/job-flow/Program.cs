@@ -17,6 +17,20 @@ var trackingTasks = new[] {
     new MarketplaceTask { Id = 4, Status = "cancelled" },
     new MarketplaceTask { Id = 5, Status = "open" }
 }.AsQueryable();
+var expiredTask = new MarketplaceTask { Id = 17, ClientId = 42, Status = "expired" };
+var withdrawnOffer = new MarketplaceOffer { TaskId = 17, Status = "withdrawn" };
+Check(JobActivity.InView(expiredTask, withdrawnOffer, "closed", false, DateTime.UtcNow), "Expired task with withdrawn offer appears in Closed");
+Check(!JobActivity.InView(expiredTask, withdrawnOffer, "offers", false, DateTime.UtcNow), "Closed work does not leak into My offers");
+Check(JobActivity.MatchesClosed(expiredTask, withdrawnOffer, "expired") && JobActivity.MatchesClosed(expiredTask, withdrawnOffer, "withdrawn"), "Task expiration and offer withdrawal remain independently filterable");
+Check(!JobActivity.MatchesClosed(expiredTask, withdrawnOffer, "cancelled"), "Expired does not pretend to mean cancelled");
+Check(JobActivity.IsClosed(new MarketplaceTask { Status = "open" }, withdrawnOffer), "Withdrawn offer is closed even while the public task stays open");
+Check(JobActivity.InView(new MarketplaceTask { Status = "open" }, new MarketplaceOffer { Status = "pending" }, "offers", false, DateTime.UtcNow), "Open pending offer remains in My offers");
+Check(!JobActivity.InView(new MarketplaceTask { Status = "moderated" }, new MarketplaceOffer { Status = "accepted" }, "active", false, DateTime.UtcNow), "Removed work cannot appear as active");
+Check(JobActivity.InView(new MarketplaceTask { Status = "completed" }, new MarketplaceOffer { Status = "accepted" }, "completed", false, DateTime.UtcNow), "Completed accepted work retains its own tab");
+Check(TaskReuse.CanReuse(expiredTask, 42) && !TaskReuse.CanReuse(expiredTask, 43), "Only the original client can reuse an expired task");
+Check(!TaskReuse.CanReuse(new MarketplaceTask { ClientId = 42, Status = "in-progress" }, 42), "Active work cannot be recreated through closed-record actions");
+var provenance = TaskReuse.SourceEvent(99, expiredTask.Id, 42);
+Check(provenance.TaskId == 99 && provenance.Note == "17" && provenance.ActorId == 42 && expiredTask.Status == "expired", "New task keeps a source reference without changing original history");
 foreach (var closedStatus in new[] { "completed", "cancelled", "canceled", "expired", "moderated" })
 {
     Check(tts.Pages.MessagesModel.IsArchived(closedStatus), $"{closedStatus} conversations belong in Archived");

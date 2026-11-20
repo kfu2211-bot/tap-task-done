@@ -35,7 +35,7 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
             Bookings = await (from booking in db.MarketplaceBookings.AsNoTracking()
                               join task in db.MarketplaceTasks.AsNoTracking() on booking.TaskId equals task.Id
                               join client in db.Users.AsNoTracking() on task.ClientId equals client.Id
-                              where booking.FreelancerId == UserId && ((booking.Status == "pending" && (task.Status == "open" || task.Status == "booking-pending")) || (booking.Status == "cancelled" && task.Status == "cancelled"))
+                              where booking.FreelancerId == UserId
                               orderby booking.Id descending
                               select new BookingItem(booking, task, ((client.FirstName ?? "") + " " + (client.LastName ?? "")).Trim())).ToListAsync(ct);
         }
@@ -84,6 +84,6 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
         Notice = "You withdrew from the job. The client has been notified. Private requests stay private.";
-        return RedirectToPage(new { view = "offers" });
+        return RedirectToPage(new { view = "closed", closedFilter = "withdrawn" });
     }
 }

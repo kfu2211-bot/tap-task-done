@@ -40,8 +40,9 @@
             </dl>
             @if (Model.IsAssigned)
             {
-                <a class="task-detail-action task-detail-progress" asp-page="/Tracking" asp-route-taskId="@task.Id">View progress</a>
+                <a class="task-detail-action task-detail-progress" asp-page="@(tts.Data.JobActivity.IsClosedTask(task.Status) || task.Status == "completed" ? "/JobRecord" : "/Tracking")" asp-route-taskId="@task.Id">@(tts.Data.JobActivity.IsClosedTask(task.Status) || task.Status == "completed" ? "View record" : "View progress")</a>
             }
+            else { <a class="task-detail-action" asp-page="/JobRecord" asp-route-taskId="@task.Id">View record</a> }
         </div>
     </article>
 </main>

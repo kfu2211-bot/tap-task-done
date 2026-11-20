@@ -682,7 +682,7 @@
 
                     @if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
                     <div class="jobs-workspace">
-                        <div class="jobs-heading compact-jobs-heading"><p class="compact-page-description">Browse open jobs and filter by your services and skills.</p><span class="jobs-count" id="jobsFilterCount">@Model.OpenTasks.Count open @(Model.OpenTasks.Count == 1 ? "task" : "tasks")</span></div>
+                        <div class="compact-jobs-heading"><p class="compact-page-description">Browse open jobs and filter by your services and skills.</p><span class="jobs-count" id="jobsFilterCount">@Model.OpenTasks.Count open @(Model.OpenTasks.Count == 1 ? "task" : "tasks")</span></div>
                         @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
                         @if (!Model.DirectoryUnavailable && (Model.WorkRole is "freelancer" or "both")) {
                             <div class="jobs-category-filter">

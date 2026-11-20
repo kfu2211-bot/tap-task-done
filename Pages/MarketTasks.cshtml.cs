@@ -15,6 +15,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     public record OfferItem(MarketplaceOffer Offer, string Name, string Service);
     public record BookingItem(MarketplaceBooking Booking, string Name);
     public List<TaskItem> MyTasks { get; private set; } = [];
+    public Dictionary<long, long> SourceTasks { get; private set; } = [];
     public List<TaskItem> OpenTasks { get; private set; } = [];
     public List<OfferItem> Offers { get; private set; } = [];
     public Dictionary<long, string> OfferTaskTitles { get; private set; } = [];
@@ -82,6 +83,10 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
                     where t.ClientId == UserId && t.Status != "inquiry" orderby t.Id descending
                     select new TaskItem(t, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).ToListAsync(ct);
         var ownIds = MyTasks.Select(t => t.Task.Id).ToArray();
+        var sourceRecords = await db.Set<TaskProgressEvent>().AsNoTracking().Where(e => ownIds.Contains(e.TaskId) && e.Status == TaskReuse.EventStatus)
+            .Select(e => new { e.TaskId, e.Note }).ToListAsync(ct);
+        SourceTasks = sourceRecords.Where(e => long.TryParse(e.Note, out _)).GroupBy(e => e.TaskId)
+            .ToDictionary(g => g.Key, g => long.Parse(g.First().Note!, System.Globalization.CultureInfo.InvariantCulture));
         Destinations = await db.Set<TaskDestination>().AsNoTracking().Where(d => ownIds.Contains(d.TaskId)).ToDictionaryAsync(d => d.TaskId, ct);
         if (WorkRole is "freelancer" or "both")
             OpenTasks = await (from t in db.MarketplaceTasks.AsNoTracking()
@@ -162,19 +167,24 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             : RedirectToPage("/MarketTasks", null, new { view = "mine", reviewTask = id }, $"task-{id}");
     }
 
-    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null, string? specificService = null, int? estimatedMinutes = null, string? jobType = null, DateTime? workEnd = null)
+    public async Task<IActionResult> OnPostCreateAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude = null, double? longitude = null, int? postDurationDays = null, DateOnly? postEndDate = null, string? serviceArea = null, string? arrivalInstructions = null, string? specificService = null, int? estimatedMinutes = null, string? jobType = null, DateTime? workEnd = null, long? sourceTaskId = null)
     {
-        try { return await CreateDraftAsync(title, description, category, location, budget, schedule, ct, latitude, longitude, postDurationDays, postEndDate, serviceArea, arrivalInstructions, specificService, estimatedMinutes, jobType, workEnd); }
+        var reuseSource = await TaskReuse.SourceAsync(db, sourceTaskId, UserId, ct);
+        if (sourceTaskId.HasValue && reuseSource is null) return NotFound();
+        try { return await CreateDraftAsync(title, description, category, location, budget, schedule, ct, latitude, longitude, postDurationDays, postEndDate, serviceArea, arrivalInstructions, specificService, estimatedMinutes, jobType, workEnd, sourceTaskId); }
         catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException)
         {
             logger?.LogError(ex, "Unable to save task draft");
             return DraftFailure("Could not save your task. Your details are still here; please try again.", 503);
         }
     }
-    private async Task<IActionResult> CreateDraftAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude, double? longitude, int? postDurationDays, DateOnly? postEndDate, string? serviceArea, string? arrivalInstructions, string? specificService, int? estimatedMinutes, string? jobType, DateTime? workEnd)
+    private async Task<IActionResult> CreateDraftAsync(string? title, string? description, string? category, string? location, decimal budget, string? schedule, CancellationToken ct, double? latitude, double? longitude, int? postDurationDays, DateOnly? postEndDate, string? serviceArea, string? arrivalInstructions, string? specificService, int? estimatedMinutes, string? jobType, DateTime? workEnd, long? sourceTaskId)
     {
         title = (title ?? "").Trim(); description = (description ?? "").Trim(); category = (category ?? "").Trim(); location = (location ?? "").Trim(); schedule = (schedule ?? "").Trim();
         if (UserId <= 0) return Challenge();
+        var reuseSource = await TaskReuse.SourceAsync(db, sourceTaskId, UserId, ct);
+        if (sourceTaskId.HasValue && reuseSource is null) return NotFound();
+        if (reuseSource is not null && (TaskSchedule.StartUtc(schedule) is not { } newStart || newStart <= DateTime.UtcNow)) return DraftFailure("Choose a valid future schedule for the new task.");
         arrivalInstructions = arrivalInstructions?.Trim();
         if (arrivalInstructions?.Length > 500 || !TaskLocationRules.ValidServiceLocation(serviceArea, latitude, longitude))
         { return DraftFailure("Confirm a pin inside Bacolor and keep arrival instructions under 500 characters."); }
@@ -204,10 +214,12 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var duration = postDurationDays ?? 7;
         var closingTime = ClosingTimeUtc(postEndDate);
         var recent = DateTime.UtcNow.AddMinutes(-2);
+        var sourceKey = sourceTaskId?.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var duplicate = await (from draft in db.MarketplaceTasks.AsNoTracking()
             join pin in db.Set<TaskDestination>().AsNoTracking() on draft.Id equals pin.TaskId
             where draft.ClientId == UserId && !draft.IsPrivate && draft.Status == "pending-confirmation" &&
                 draft.CreatedAt >= recent && draft.Title == title && draft.Description == description &&
+                (sourceKey == null || db.Set<TaskProgressEvent>().Any(e => e.TaskId == draft.Id && e.Status == TaskReuse.EventStatus && e.Note == sourceKey)) &&
                 draft.JobType == jobType && draft.WorkEndUtc == JobTypes.EndUtc(workEnd) && draft.Category == category && draft.SpecificService == specificService && draft.Location == location && draft.ArrivalInstructions == arrivalInstructions && draft.Budget == budget &&
                 draft.BudgetMaximum == null && draft.ScheduleText == schedule &&
                 draft.PostDurationDays == duration && draft.PostExpiresUtc == closingTime &&
@@ -220,6 +232,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var task = new MarketplaceTask { ClientId = UserId, Title = title, Description = description, JobType = jobType, WorkEndUtc = JobTypes.EndUtc(workEnd), EstimatedMinutes = estimatedMinutes, Category = category, SpecificService = specificService, Location = location, ArrivalInstructions = arrivalInstructions, Budget = budget, PostDurationDays = duration, PostExpiresUtc = closingTime, ScheduleText = schedule, Status = "pending-confirmation", CreatedAt = DateTime.UtcNow };
         db.MarketplaceTasks.Add(task); await db.SaveChangesAsync(ct);
         TaskLocationRules.Save(db, task.Id, null, latitude!.Value, longitude!.Value);
+        if (reuseSource is not null) db.Add(TaskReuse.SourceEvent(task.Id, reuseSource.Id, UserId));
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return DraftSaved(task.Id, "Task saved for review. Select Confirm and open task to publish it for freelancers.");
     }
     public async Task<IActionResult> OnPostConfirmAsync(long id, CancellationToken ct)

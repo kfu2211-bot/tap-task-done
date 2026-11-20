@@ -1,0 +1,28 @@
+@page
+@model tts.Pages.JobRecordModel
+@using tts.Data
+@{ Layout = null; var task = Model.Work; }
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Task record - Tap, Task, Done</title><link rel="stylesheet" href="/css/settings.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-reuse.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
+<body><main class="task-reuse-page"><header><h1>Task record #@task.Id</h1><a href="@(Model.IsOwner ? "/MarketTasks?view=mine" : "/MyJobs?view=closed")">Back to @(Model.IsOwner ? "My Tasks" : "My Jobs")</a></header>
+<article class="task-record"><h2>@task.Title</h2><p class="record-status">Task: @TaskSchedule.DisplayStatus(task, DateTime.UtcNow)</p>
+@if (Model.Offer is not null && !Model.IsOwner) { <p class="record-status">Your offer: @Model.Offer.Status</p> }
+@if (Model.Booking is not null) { <p class="record-status">Booking: @Model.Booking.Status</p> }
+<p style="white-space:pre-wrap">@task.Description</p><p>@task.CategoryDisplay · @task.JobTypeDisplay · @task.BudgetDisplay</p><p>Schedule: @task.ScheduleText</p>
+@if (!string.IsNullOrWhiteSpace(task.CancellationReason)) { <p><strong>Cancellation reason:</strong> @task.CancellationReason</p> }
+@if (!string.IsNullOrWhiteSpace(Model.Offer?.WithdrawalReason)) { <p><strong>Withdrawal reason:</strong> @Model.Offer.WithdrawalReason</p> }
+@if (task.Status == "expired") { <p>The public post closed without an accepted freelancer. This is different from a cancellation or withdrawal.</p> }
+@if (JobActivity.IsClosedTask(task.Status) || task.Status == "completed") { <p>This record is read-only. A repost or repeat booking creates a separate task.</p> }
+<div class="task-record-actions">
+@if (Model.IsOwner && task.Status is "cancelled" or "canceled" or "expired" or "completed") {
+    <a class="task-record-button" href="/RepeatTask?sourceTaskId=@task.Id">@(task.Status == "expired" ? "Edit & repost" : "Create similar task")</a>
+    @if (Model.CanBookAgain) { <a class="task-record-button" href="/RepeatTask?sourceTaskId=@task.Id&amp;booking=true">Book again</a> }
+}
+@if (Model.Offer?.Status == "accepted" && (task.Status is "completed" or "cancelled")) { <a class="task-record-button" href="/Tracking?taskId=@task.Id">View full history</a> }
+</div></article>
+@if (Model.Events.Count > 0) { <section class="task-record"><h2>Recorded history</h2><ol class="task-record-events">@foreach (var entry in Model.Events) {
+<li><strong>@(entry.Status == TaskReuse.EventStatus ? "Created from a previous task" : TaskProgress.Label(entry.Status))</strong><small>@DisplayTime.Philippine(entry.CreatedAtUtc) · Account #@entry.ActorId</small>
+@if (entry.Status == TaskReuse.EventStatus && long.TryParse(entry.Note, out var sourceId)) { <a href="/JobRecord?taskId=@sourceId">Original task #@sourceId</a> }
+else if (!string.IsNullOrWhiteSpace(entry.Note)) { <p style="white-space:pre-wrap">@entry.Note</p> }
+@if (entry.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@entry.Id">View completion proof</a> }
+</li> }</ol></section> }
+</main><partial name="_TaskHelp" /></body></html>

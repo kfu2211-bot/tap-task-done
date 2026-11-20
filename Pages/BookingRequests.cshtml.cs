@@ -70,9 +70,13 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
     }
 
     public async Task<IActionResult> OnPostDirectAsync(int freelancerId, string? title, string? description,
-        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, long? inquiryId = null, string? serviceArea = null, string? arrivalInstructions = null, int? estimatedMinutes = null, string? jobType = null, DateTime? workEnd = null)
+        string? location, string? schedule, decimal budget, CancellationToken ct, double? latitude = null, double? longitude = null, long? inquiryId = null, string? serviceArea = null, string? arrivalInstructions = null, int? estimatedMinutes = null, string? jobType = null, DateTime? workEnd = null, long? sourceTaskId = null)
     {
         if (UserId <= 0) return Challenge();
+        var reuseSource = await TaskReuse.SourceAsync(db, sourceTaskId, UserId, ct);
+        if (sourceTaskId.HasValue && (reuseSource is null || inquiryId.HasValue ||
+            !await db.MarketplaceOffers.AnyAsync(o => o.TaskId == sourceTaskId && o.FreelancerId == freelancerId && o.Status == "accepted", ct) &&
+            !await db.MarketplaceBookings.AnyAsync(b => b.TaskId == sourceTaskId && b.FreelancerId == freelancerId, ct))) return NotFound();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
         arrivalInstructions = arrivalInstructions?.Trim();
         if (arrivalInstructions?.Length > 500 || !TaskLocationRules.ValidServiceLocation(serviceArea, latitude, longitude))
@@ -137,6 +141,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             work.Status = "booking-pending";
             await db.SaveChangesAsync(ct);
             TaskLocationRules.Save(db, work.Id, null, latitude!.Value, longitude!.Value);
+            if (reuseSource is not null) db.Add(TaskReuse.SourceEvent(work.Id, reuseSource.Id, UserId));
             await AgreementRules.ConversationAsync(db, work.Id, freelancerId, ct);
             db.MarketplaceBookings.Add(new MarketplaceBooking { TaskId = work.Id, FreelancerId = freelancerId, Status = "pending", CreatedAt = DateTime.UtcNow });
             db.MarketplaceNotifications.Add(MarketplaceNotification.Create(freelancerId, work.Id, "booking_request", "A client sent you a private work request. Review it in My Jobs → Booking requests."));

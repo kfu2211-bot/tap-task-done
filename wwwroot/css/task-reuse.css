@@ -1,0 +1,15 @@
+.task-reuse-page { max-width: 900px; margin: 0 auto; padding: 28px 24px; color: var(--text, #193e30); }
+.task-reuse-page > header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
+.task-reuse-page h1 { font-size: clamp(1.4rem, 3vw, 1.9rem); margin: 0; }
+.task-reuse-page p { line-height: 1.6; overflow-wrap: anywhere; }
+.task-reuse-page a { color: var(--brand, #176b50); }
+.task-reuse-form, .task-record { padding: 24px; border: 1px solid var(--line, #d9e7da); border-radius: 14px; background: var(--surface, #fff); margin-bottom: 20px; }
+.task-reuse-form { display: grid; gap: 18px; }
+.task-reuse-form label { display: grid; gap: 8px; font-weight: 650; }
+.task-reuse-form :is(input:not([type=hidden]), select, textarea) { width: 100%; box-sizing: border-box; min-height: 44px; padding: 10px 12px; font: inherit; border: 1px solid var(--line, #bfd3c5); border-radius: 8px; background: var(--surface, #fff); color: inherit; }
+.task-reuse-form > button, .task-record-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid #176b50; border-radius: 9px; background: #176b50; color: #fff !important; font: inherit; font-weight: 650; text-decoration: none; cursor: pointer; box-sizing: border-box; }
+.task-record-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.task-record-events { display: grid; gap: 18px; padding-left: 22px; }
+.task-record-events small { display: block; margin: 6px 0; }
+.record-status { display: inline-block; padding: 6px 10px; background: var(--surface-2, #edf5ee); border-radius: 8px; margin-right: 8px; }
+@media(max-width:600px) { .task-reuse-page { padding: 20px 12px; } .task-reuse-form, .task-record { padding: 18px; } }
