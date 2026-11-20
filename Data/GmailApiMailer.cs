@@ -33,6 +33,16 @@ public sealed class GmailApiMailer(HttpClient client)
             throw new GmailDeliveryException("gmail_sender_invalid");
         return new Settings(mailbox.Address.ToLowerInvariant(), id, secret, refresh);
     }
+    // Checks OAuth authorization without sending a message or exposing tokens.
+    public async Task CheckAuthorizationAsync(IConfiguration config, CancellationToken ct)
+    {
+        var settings = ReadSettings(config);
+        var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(settings))));
+        try { await AccessTokenAsync(settings, key, null, ct); }
+        catch (HttpRequestException) { throw new GmailDeliveryException("gmail_network_error"); }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { throw new GmailDeliveryException("gmail_timeout"); }
+        catch (JsonException) { throw new GmailDeliveryException("gmail_invalid_response"); }
+    }
     public async Task SendAsync(IConfiguration config, string recipient, string subject, string text, CancellationToken ct, string? html = null)
     {
         var settings = ReadSettings(config);

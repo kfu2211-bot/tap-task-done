@@ -61,3 +61,11 @@ html[data-theme="dark"] body .verification-code-form .verification-trust {
 html[data-theme="dark"] body .verification-code-form .verification-trust small {
     color: var(--muted) !important;
 }
+html:not([data-theme="dark"]) body.email-verification-page .verification-code-cells input {
+    color-scheme: light; background: #fff !important; color: #163d30 !important; caret-color: #18765b;
+}
+html[data-theme="dark"] body.email-verification-page { background: var(--page, #101813) !important; color: var(--text, #edf5ef) !important; }
+html[data-theme="dark"] body.email-verification-page .email-verification-card { background: var(--surface, #202e26) !important; border-color: var(--line, #456052) !important; }
+html[data-theme="dark"] body.email-verification-page :is(.verification-brand, .verification-heading h1, .verification-heading strong, .verification-code-form label) { color: #edf5ef !important; }
+html[data-theme="dark"] body.email-verification-page :is(.verification-heading p, .verification-expiry, .verification-footer, .verification-resend small) { color: #b6cbbd !important; }
+html[data-theme="dark"] body.email-verification-page .verification-code-cells input { color-scheme: dark; background: #16231c !important; color: #edf5ef !important; border-color: #6e9780 !important; }

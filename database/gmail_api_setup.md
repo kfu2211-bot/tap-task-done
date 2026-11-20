@@ -14,3 +14,9 @@ External OAuth apps in Testing normally receive refresh tokens expiring after se
 Missing configuration fails closed with `gmail_configuration_missing`. Other safe log categories distinguish revoked authorization, disabled API, sender/scope denial, throttling and timeout. Provider responses and email contents are not logged. No automatic SMTP fallback occurs. No database migration is needed for this delivery change.
 
 References: https://developers.google.com/workspace/gmail/api/guides/sending and https://developers.google.com/identity/protocols/oauth2/web-server
+
+## Diagnose without sending email
+
+Locally run `dotnet run --no-launch-profile -- --check-email-authorization`. In the deployed container's shell run `dotnet tts.dll --check-email-authorization` from `/app`. This checks the configured Gmail OAuth refresh token without sending mail, connecting to the database, or printing credentials. A local result does not establish which credentials the deployed service uses.
+
+If the result is `gmail_authorization_expired_or_revoked`, the sender account owner must authorize Gmail again using the same OAuth client and `gmail.send` scope, then replace `EmailDelivery:Gmail:RefreshToken` in the private JSON and Render secret file. Check for overriding `EmailDelivery__Gmail__RefreshToken` environment variables. Restart the service and repeat the probe on Render. Only then test registration/resend with a mailbox you control. Do not paste tokens into chat, screenshots, logs, or Git.

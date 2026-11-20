@@ -7,6 +7,10 @@ public static class SmtpMailer
 {
     private static readonly GmailApiMailer Gmail = new(new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(20), MaxResponseContentBufferSize = 65536 });
     public static string Diagnostic(Exception ex) => ex is GmailDeliveryException gmail ? gmail.Reason : ex.InnerException is TimeoutException ? "smtp_timeout" : "email_delivery_failed";
+    public static string VerificationFailureMessage(Exception ex) => ex is GmailDeliveryException { Reason:
+        "gmail_authorization_expired_or_revoked" or "gmail_client_credentials_invalid" or "gmail_configuration_missing" or "gmail_client_not_authorized" }
+        ? "The email service needs administrator attention before it can send codes. Your account is saved and still pending verification. You do not need to create another account."
+        : "The verification email could not be sent. Your account is still pending. Use Resend code after the timer ends, or correct the email address if needed.";
     public static async Task SendAsync(IConfiguration config, string recipient, string subject, string text, CancellationToken ct, string? html = null)
     {
         var provider = config["EmailDelivery:Provider"] ?? "Smtp";

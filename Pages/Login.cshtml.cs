@@ -59,7 +59,7 @@ namespace tts.Pages
                 {
                     try { await RegistrationVerification.StartAsync(db, HttpContext, user, config, cancellationToken); }
                     catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException or System.Net.Mail.SmtpException or FormatException)
-                    { HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("Verification email could not be sent ({ErrorType}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex)); TempData["RegistrationNotice"] = "Email verification is still pending. If a code could not be sent, wait a minute and try again."; }
+                    { HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("Verification email could not be sent ({ErrorType}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex)); TempData["RegistrationNotice"] = SmtpMailer.VerificationFailureMessage(ex); }
                     return new JsonResult(new { redirect = "/VerifyEmail" });
                 }
                 if (!user.DateOfBirth.HasValue)

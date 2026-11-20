@@ -22,6 +22,21 @@ if (builder.Environment.IsDevelopment())
         .AddEnvironmentVariables();
 }
 var lanPreview = string.Equals(Environment.GetEnvironmentVariable("TTS_LAN_PREVIEW"), "true", StringComparison.OrdinalIgnoreCase);
+if (args.Contains("--check-email-authorization", StringComparer.Ordinal))
+{
+    // Operator-only CLI probe: no web endpoint, database writes, or emails.
+    if (!string.Equals(builder.Configuration["EmailDelivery:Provider"], "GmailApi", StringComparison.OrdinalIgnoreCase))
+    { Console.WriteLine("Email authorization check: GmailApi is not the configured provider."); Environment.ExitCode = 1; return; }
+    using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(20) };
+    try
+    {
+        await new GmailApiMailer(client).CheckAuthorizationAsync(builder.Configuration, CancellationToken.None);
+        Console.WriteLine("PASS: Gmail OAuth authorization is valid. No email was sent. This does not confirm inbox delivery or the deployed server's configuration.");
+    }
+    catch (Exception ex) when (ex is GmailDeliveryException or InvalidOperationException)
+    { Console.WriteLine("Email authorization check failed: " + SmtpMailer.Diagnostic(ex)); Environment.ExitCode = 1; }
+    return;
+}
 var renderDeployment = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RENDER_EXTERNAL_URL"));
 var assignedPort = Environment.GetEnvironmentVariable("PORT");
 

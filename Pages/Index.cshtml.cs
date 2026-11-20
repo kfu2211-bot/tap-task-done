@@ -116,7 +116,7 @@ namespace tts.Pages
             catch (Exception ex) when (ex is MySqlException or DbUpdateException or InvalidOperationException or System.Net.Mail.SmtpException or FormatException)
             {
                 HttpContext.RequestServices.GetRequiredService<ILogger<IndexModel>>().LogWarning("Verification email could not be sent ({ErrorType}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex));
-                TempData["RegistrationNotice"] = "Your account was saved, but the verification email could not be sent. Use Resend code after the timer ends. You can correct the email address on this page.";
+                TempData["RegistrationNotice"] = SmtpMailer.VerificationFailureMessage(ex);
             }
             return RedirectToPage("/VerifyEmail");
         }
