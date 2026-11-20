@@ -1,0 +1,42 @@
+@model tts.Pages.TrackingModel
+@using tts.Data
+@{
+    var item = Model.Tasks.Single();
+    var records = Model.Progress.Where(e => e.TaskId == item.Task.Id).ToList();
+    string EventLabel(string status) => status switch {
+        TaskProgress.ArrivalRequest => "Client arrival confirmation requested",
+        TaskProgress.CancellationRequested => "Cancellation requested",
+        TaskProgress.CancellationDeclined => "Cancellation declined",
+        _ => TaskProgress.Label(status)
+    };
+}
+<p>This record is read-only. Times are shown in Philippine time (PHT).</p>
+@if (records.Count == 0) { <p>No progress events were recorded for this task.</p> }
+else {
+    <ol class="tracking-timeline">
+    @foreach (var entry in records) {
+        <li class="done"><span aria-hidden="true">✓</span><div><strong>@EventLabel(entry.Status)</strong>
+            <small>@entry.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm:ss tt") PHT</small>
+            <small>Recorded by: @(Model.ActorNames.GetValueOrDefault(entry.ActorId) is { Length: > 0 } actor ? actor : "Account unavailable") · Account #@entry.ActorId</small>
+            @if (!string.IsNullOrWhiteSpace(entry.Note)) { <p style="white-space:pre-wrap;overflow-wrap:anywhere">@entry.Note</p> }
+            @if (entry.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@entry.Id" target="_blank" rel="noopener">View attached completion proof</a> }
+        </div></li>
+    }
+    </ol>
+    @if (!records.Any(e => e.Status == "assigned")) { <p>The booking acceptance time was not recorded for this older task.</p> }
+}
+@if (!string.IsNullOrWhiteSpace(item.Task.CancellationReason)) { <p><strong>Cancellation reason:</strong> @item.Task.CancellationReason</p> }
+@if (Model.AgreementHistory.Count > 0) {
+    <details><summary>Work agreement history (@Model.AgreementHistory.Count versions)</summary>
+    @foreach (var agreement in Model.AgreementHistory.OrderBy(a => a.Version)) {
+        <section class="tracking-completion"><h4>Agreement version @agreement.Version</h4>
+            <p>Proposed @agreement.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm:ss tt") PHT · Account #@agreement.ProposedById</p>
+            <p style="white-space:pre-wrap;overflow-wrap:anywhere">@agreement.Scope</p>
+            <p>Agreed price: ₱@agreement.Price.ToString("N2") · Schedule: @agreement.ScheduleText</p>
+            <p>Location: @agreement.Location</p>
+            <p>Client confirmation: @(agreement.ClientConfirmedAtUtc?.AddHours(8).ToString("MMM d, yyyy h:mm:ss tt") + (agreement.ClientConfirmedAtUtc.HasValue ? " PHT" : "Not recorded"))</p>
+            <p>Freelancer confirmation: @(agreement.FreelancerConfirmedAtUtc?.AddHours(8).ToString("MMM d, yyyy h:mm:ss tt") + (agreement.FreelancerConfirmedAtUtc.HasValue ? " PHT" : "Not recorded"))</p>
+        </section>
+    }
+    </details>
+}

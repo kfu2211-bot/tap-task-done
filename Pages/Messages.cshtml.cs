@@ -26,7 +26,7 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
     public bool Unavailable { get; private set; }
     [TempData] public string? Notice { get; set; }
     public bool Archived { get; private set; }
-    public static bool IsArchived(string status) => status is "completed" or "cancelled" or "canceled";
+    public static bool IsArchived(string status) => status is "completed" or "cancelled" or "canceled" or "expired" or "moderated";
     public static bool MaySend(string status, bool assigned, bool pendingBooking, bool isPrivate = false) => !IsArchived(status) && (status == "inquiry" && isPrivate || status == "open" && !isPrivate || assigned || status == "booking-pending" && pendingBooking);
     public async Task<IActionResult> OnGetAsync(long? taskId, CancellationToken ct, long? conversationId = null, int? freelancerId = null, int? accountId = null, bool archived = false)
     {

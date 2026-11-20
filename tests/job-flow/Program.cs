@@ -10,6 +10,24 @@ void Check(bool condition, string label)
     Console.WriteLine("PASS " + label);
 }
 
+var trackingTasks = new[] {
+    new MarketplaceTask { Id = 1, Status = "assigned" },
+    new MarketplaceTask { Id = 2, Status = "awaiting-confirmation" },
+    new MarketplaceTask { Id = 3, Status = "completed" },
+    new MarketplaceTask { Id = 4, Status = "cancelled" },
+    new MarketplaceTask { Id = 5, Status = "open" }
+}.AsQueryable();
+foreach (var closedStatus in new[] { "completed", "cancelled", "canceled", "expired", "moderated" })
+{
+    Check(tts.Pages.MessagesModel.IsArchived(closedStatus), $"{closedStatus} conversations belong in Archived");
+    Check(!tts.Pages.MessagesModel.MaySend(closedStatus, true, true, true), $"{closedStatus} blocks messaging even with an accepted offer or pending booking");
+}
+Check(!tts.Pages.MessagesModel.IsArchived("awaiting-confirmation") && tts.Pages.MessagesModel.MaySend("awaiting-confirmation", true, false), "Work awaiting client confirmation keeps its conversation active");
+Check(!tts.Pages.MessagesModel.IsArchived("inquiry") && tts.Pages.MessagesModel.MaySend("inquiry", false, false, true), "Private service inquiries remain active");
+Check(TaskTracking.VisibleTasks(trackingTasks).Select(t => t.Id).SequenceEqual(new long[] { 1, 2 }), "Tracking excludes completed/cancelled/open tasks and retains work awaiting client confirmation");
+Check(TaskTracking.VisibleTasks(trackingTasks, 3).Select(t => t.Id).SequenceEqual(new long[] { 1, 2, 3 }), "Explicit history request includes only the requested completed task alongside active candidates");
+Check(!TaskTracking.VisibleTasks(trackingTasks, 999).Any(t => t.Status == "completed"), "Unknown history ID does not expose unrelated completed tasks");
+
 Check(TaskProgress.ValidCompletion("Work completed.", false), "Completion note alone is accepted");
 Check(TaskProgress.ValidCompletion(null, true), "Video alone is accepted");
 Check(TaskProgress.ValidCompletion("Finished", true), "Note and video together are accepted");
@@ -85,6 +103,8 @@ using (var db = new ApplicationDbContext(new DbContextOptionsBuilder<Application
     .UseMySql("Server=127.0.0.1;Database=unused;User ID=unused",new MySqlServerVersion(new Version(8,0,36))).Options))
 {
     var sql = JobAcceptanceRules.BlockingTasks(db,42).ToQueryString();
+    var trackingSql = TaskTracking.VisibleTasks(db.MarketplaceTasks, 3).ToQueryString();
+    Check(trackingSql.Contains("awaiting-confirmation") && trackingSql.Contains("completed") && trackingSql.Contains("3"), "Tracking history filter translates to database SQL");
     Check(sql.Contains("awaiting-confirmation") && sql.Contains("multi-day") && sql.Contains("accepted") && sql.Contains("42"), "Database restriction query translates and scopes the accepted freelancer and full completion lifecycle");
     Check(JobAcceptanceRules.BlockingTasks(db,42,7).ToQueryString().Contains("7"), "Current job can be excluded when continuing its own progress");
 }

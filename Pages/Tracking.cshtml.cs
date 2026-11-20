@@ -66,6 +66,8 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         {
             var result = await TaskProgress.AdvanceAsync(db, UserId, id, action, note, encrypted, type, ct);
             Notice = result.Message;
+            if (result.Success && action == "confirm")
+                return RedirectToPage("/MarketTasks", null, new { view = "mine", filter = "completed" }, $"task-{id}");
             return RedirectToPage(new { taskId = id, shareLocation = result.Success && action == "travel" ? "1" : null });
         }
         catch (MySqlConnector.MySqlException ex)
@@ -222,6 +224,9 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
 
     public record TrackingItem(MarketplaceTask Task, string Client, string Freelancer, bool IsClient) { public int FreelancerId { get; init; } }
     public List<TrackingItem> Tasks { get; private set; } = [];
+    public bool IsHistory { get; private set; }
+    public Dictionary<int, string> ActorNames { get; private set; } = [];
+    public List<WorkAgreement> AgreementHistory { get; private set; } = [];
     public bool Unavailable { get; private set; }
     public Dictionary<long, string> SharedPhones { get; private set; } = [];
 
@@ -230,9 +235,10 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         Response.Headers.CacheControl = "no-store";
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0) return Challenge();
         if (Request.Query["legacy"] == "1") return Page();
+        var requestedTask = long.TryParse(Request.Query["taskId"], out var requested) ? requested : 0;
         try
         {
-            Tasks = await (from task in db.MarketplaceTasks.AsNoTracking()
+            Tasks = await (from task in TaskTracking.VisibleTasks(db.MarketplaceTasks.AsNoTracking(), requestedTask)
                 join offer in db.MarketplaceOffers.AsNoTracking() on task.Id equals offer.TaskId
                 join client in db.Users.AsNoTracking() on task.ClientId equals client.Id
                 join freelancer in db.Users.AsNoTracking() on offer.FreelancerId equals freelancer.Id
@@ -240,6 +246,9 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
                 orderby task.Id descending
                 select new TrackingItem(task, ((client.FirstName ?? "") + " " + (client.LastName ?? "")).Trim(),
                     ((freelancer.FirstName ?? "") + " " + (freelancer.LastName ?? "")).Trim(), task.ClientId == userId) { FreelancerId = offer.FreelancerId }).ToListAsync(ct);
+            IsHistory = Tasks.Any(x => x.Task.Id == requestedTask && x.Task.Status is "completed" or "cancelled");
+            if (IsHistory) Tasks = Tasks.Where(x => x.Task.Id == requestedTask).ToList();
+            else if (requestedTask > 0 && !Tasks.Any(x => x.Task.Id == requestedTask)) return NotFound();
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         {
@@ -260,10 +269,14 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
             try {
                 var ids = Tasks.Select(x => x.Task.Id).ToList();
                 var terms = await db.Set<WorkAgreement>().AsNoTracking().Where(a => ids.Contains(a.TaskId)).OrderByDescending(a => a.Version).ToListAsync(ct);
+                AgreementHistory = terms;
                 Agreements = terms.GroupBy(a => a.TaskId).ToDictionary(g => g.Key, g => g.First());
                 Destinations = await db.Set<TaskDestination>().AsNoTracking().Where(d => ids.Contains(d.TaskId)).ToDictionaryAsync(d => d.TaskId, ct);
                 Progress = await db.Set<TaskProgressEvent>().AsNoTracking().Where(x => ids.Contains(x.TaskId))
-                    .OrderBy(x => x.Id).Select(x => new TaskProgressEvent { Id = x.Id, TaskId = x.TaskId, Status = x.Status, Note = x.Note, PhotoType = x.PhotoType, CreatedAtUtc = x.CreatedAtUtc }).ToListAsync(ct);
+                    .OrderBy(x => x.CreatedAtUtc).ThenBy(x => x.Id).Select(x => new TaskProgressEvent { Id = x.Id, TaskId = x.TaskId, ActorId = x.ActorId, Status = x.Status, Note = x.Note, PhotoType = x.PhotoType, CreatedAtUtc = x.CreatedAtUtc }).ToListAsync(ct);
+                var actors = Progress.Select(x => x.ActorId).Distinct().ToArray();
+                ActorNames = await db.Users.AsNoTracking().Where(u => actors.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), ct);
             } catch (MySqlConnector.MySqlException) { ProgressUnavailable = true; }
         }
         return Page();

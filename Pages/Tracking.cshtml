@@ -606,8 +606,9 @@
                     var activeEntry = Model.Tasks.FirstOrDefault(x => x.Task.Id == selectedTask);
                 }
                 <div class="tracking-intro">
-                    <div class="db-tracking-header"><div><span class="db-tracking-eyebrow">TASK PROGRESS</span><h2>Track your tasks</h2><p>See the progress of your assigned work in one place.</p></div></div>
-                    @if (activeEntry is not null) {
+                    <div class="db-tracking-header"><div><span class="db-tracking-eyebrow">@(Model.IsHistory ? "TASK HISTORY" : "TASK PROGRESS")</span><h2>@(Model.IsHistory ? "Task history" : "Track your tasks")</h2><p>@(Model.IsHistory ? "This task is archived from active tracking. Review its recorded progression below." : "See the progress of your active assigned work in one place.")</p></div></div>
+                    <div class="tracking-actions"><a href="/MarketTasks?view=mine&amp;filter=completed">Completed tasks</a><a href="/MyJobs?view=completed">Completed jobs</a>@if (Model.IsHistory) { <a href="/Tracking">Back to active tracking</a> }</div>
+                    @if (activeEntry is not null && !Model.IsHistory) {
                         <span class="tracking-picker-label" id="tracking-picker-label">Select a task</span>
                         <details class="tracking-picker">
                             <summary aria-labelledby="tracking-picker-label tracking-picker-current"><span><strong id="tracking-picker-current">@activeEntry.Task.Title</strong><small>@(activeEntry.IsClient ? "Posted task" : "Accepted job") · #@activeEntry.Task.Id</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
@@ -620,7 +621,7 @@
                     }
                 </div>
                 @if (Model.Unavailable) { <div class="db-tracking-empty"><h3>Tracking is unavailable</h3><p>Please check the database connection and try again.</p></div> }
-                else if (Model.Tasks.Count == 0) { <div class="db-tracking-empty"><span class="tracking-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12h4l3-6 3 12 2-6h4"/></svg></span><h3>No tasks to track</h3><p>Accepted tasks and their progress appear here.</p><a class="workspace-action" href="/FindPost">Explore Find &amp; Post</a></div> }
+                else if (Model.Tasks.Count == 0) { <div class="db-tracking-empty"><span class="tracking-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12h4l3-6 3 12 2-6h4"/></svg></span><h3>No active tasks to track</h3><p>Your next accepted task will appear here. Finished tasks remain in your completed history.</p><a class="workspace-action" href="/FindPost">Explore Find &amp; Post</a></div> }
                 @foreach (var item in Model.Tasks.Where(x => x.Task.Id == selectedTask)) {
                     var task = item.Task;
                     var status = Array.IndexOf(TaskProgress.States, task.Status);
@@ -628,8 +629,9 @@
                     var steps = TaskProgress.Labels;
                     <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><span class="db-tracking-status">@label</span></div>
                     <div class="db-tracking-details"><div><span>Job type</span><strong>@task.JobTypeDisplay</strong></div><div><span>Expected finish</span><strong>@(task.WorkEndUtc?.AddHours(8).ToString("MMM d, yyyy h:mm tt") ?? "To be agreed")</strong></div><div><span>Client</span><strong>@item.Client</strong></div><div><span>Freelancer</span><strong>@item.Freelancer</strong></div><div><span>Task budget</span><strong>@task.BudgetDisplay</strong></div><div><span>Schedule</span><strong>@(string.IsNullOrWhiteSpace(task.ScheduleText) ? "To be arranged" : task.ScheduleText)</strong></div></div>
-                    <div class="tracking-detail-layout"><section class="tracking-panel"><h4>Task progress</h4>
-                    @if (status >= 0) { var descriptions = new[] { "The booking or offer has been accepted.", "The freelancer is travelling to the work location.", "The freelancer has confirmed arrival. Travel tracking stops.", "The freelancer is performing the agreed work.", "The client checks the completion note and finished work.", "The client has confirmed completion. Reviews are available." }; <ol class="tracking-timeline">@for (var i = 0; i < steps.Length; i++) { <li class="@(i == 0 ? "done" : status == i ? "current" : status > i ? "done" : "")"><span>@(i == 0 || status > i ? "✓" : (i + 1).ToString())</span><div>@steps[i]<small>@descriptions[i]</small>
+                    <div class="tracking-detail-layout"><section class="tracking-panel"><h4>@(Model.IsHistory ? "Recorded progression" : "Task progress")</h4>
+                    @if (Model.IsHistory) { <partial name="_TaskHistory" model="Model" /> }
+                    @if (!Model.IsHistory && status >= 0) { var descriptions = new[] { "The booking or offer has been accepted.", "The freelancer is travelling to the work location.", "The freelancer has confirmed arrival. Travel tracking stops.", "The freelancer is performing the agreed work.", "The client checks the completion note and finished work.", "The client has confirmed completion. Reviews are available." }; <ol class="tracking-timeline">@for (var i = 0; i < steps.Length; i++) { <li class="@(i == 0 ? "done" : status == i ? "current" : status > i ? "done" : "")"><span>@(i == 0 || status > i ? "✓" : (i + 1).ToString())</span><div>@steps[i]<small>@descriptions[i]</small>
 @{ var recorded = Model.Progress.LastOrDefault(x => x.TaskId == task.Id && x.Status == TaskProgress.States[i]); }
 @if (recorded is not null) { <small>@recorded.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm tt") PHT</small> }</div></li> }</ol> }
 
