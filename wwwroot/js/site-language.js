@@ -323,6 +323,20 @@
         "Account setup progress": "Progreso ng pag-set up ng account",
         "Close account setup": "Isara ang pag-set up ng account"
     });
+    Object.assign(labels, {
+        "Matches my services": "Tugma sa mga serbisyo ko", "All jobs": "Lahat ng trabaho",
+        "Show jobs": "Mga trabahong ipapakita", "Estimated duration": "Tinatayang tagal",
+        "Estimated work duration (minutes, optional)": "Tinatayang tagal ng trabaho (minuto, opsyonal)",
+        "Estimated duration (minutes, optional)": "Tinatayang tagal (minuto, opsyonal)",
+        "Completion details": "Detalye ng natapos na trabaho", "Completion video": "Video ng natapos na trabaho",
+        "Choose a video": "Pumili ng video", "Change video": "Palitan ang video", "Remove video": "Alisin ang video",
+        "Edit completion note": "Baguhin ang tala ng natapos na trabaho", "Save completion note": "I-save ang tala",
+        "Request cancellation": "Humiling ng pagkansela", "Cancellation requested": "Hiniling ang pagkansela",
+        "Approve cancellation": "Aprubahan ang pagkansela", "Keep job active": "Ipagpatuloy ang trabaho",
+        "Send cancellation request": "Ipadala ang kahilingan sa pagkansela",
+        "Request cancellation in Tracking": "Humiling ng pagkansela sa Tracking",
+        "Reason": "Dahilan", "Rating": "Rating"
+    });
     const tracked = new WeakMap();
     let language = "en";
     try { language = localStorage.getItem("tts-language") === "fil" ? "fil" : "en"; } catch {}

@@ -18,6 +18,7 @@ namespace tts.Pages
         public List<MarketTasksModel.TaskItem> OpenTasks { get; private set; } = [];
         public List<MarketTasksModel.OfferItem> Offers { get; private set; } = [];
         public Dictionary<long, string> OfferTaskTitles { get; private set; } = [];
+        public string[] MatchingJobIds { get; private set; } = [];
         public string WorkRole { get; private set; } = "client";
         [Microsoft.AspNetCore.Mvc.TempData] public string? Notice { get; set; }
         public bool DirectoryUnavailable { get; private set; }
@@ -28,13 +29,16 @@ namespace tts.Pages
             {
                 var userId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
                 IdentityApproved = await IdentityWorkGate.IsApprovedAsync(db, userId, cancellationToken);
-                WorkRole = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken))?.WorkRole ?? "client";
+                var ownProfile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+                WorkRole = ownProfile?.WorkRole ?? "client";
                 if (userId != 0 && WorkRole is "freelancer" or "both")
                 {
                     OpenTasks = await (from t in db.MarketplaceTasks.AsNoTracking()
                         join u in db.Users.AsNoTracking() on t.ClientId equals u.Id
                         where t.ClientId != userId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow) orderby t.Id descending
                         select new MarketTasksModel.TaskItem(t, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())).ToListAsync(cancellationToken);
+                    MatchingJobIds = OpenTasks.Where(item => ServiceCatalog.Matches(ownProfile?.Service, ownProfile?.ServiceSpecialties, item.Task))
+                        .Select(item => item.Task.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
                     Offers = await (from o in db.MarketplaceOffers.AsNoTracking()
                         join u in db.Users.AsNoTracking() on o.FreelancerId equals u.Id
                         join p in db.FreelancerProfiles.AsNoTracking() on u.Id equals p.UserId

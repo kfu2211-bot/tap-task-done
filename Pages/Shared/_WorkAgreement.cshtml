@@ -4,13 +4,13 @@
 <section class="work-agreement" data-agreement-task="@task.Id" data-agreement-version="@(agreement?.Version ?? 0)">
     <div data-agreement-summary>
     <h3>Confirm work details</h3>
-    <p>Review the price, schedule, work scope and destination. Both of you must confirm before travel.</p>
+    <p>Review the price, schedule, work scope and destination. Both participants must confirm updated terms before continuing work.</p>
     @if(agreement is not null) {
-        <dl><div><dt>Agreed price</dt><dd>₱@agreement.Price.ToString("N2")</dd></div><div><dt>Schedule</dt><dd>@agreement.ScheduleText</dd></div><div><dt>Work scope</dt><dd>@agreement.Scope</dd></div><div><dt>Work destination</dt><dd>@agreement.Location</dd></div></dl>
+        <dl><div><dt>Agreed price</dt><dd>₱@agreement.Price.ToString("N2")</dd></div><div><dt>Estimated duration</dt><dd>@JobDuration.Display(agreement.EstimatedMinutes)</dd></div><div><dt>Schedule</dt><dd>@agreement.ScheduleText</dd></div><div><dt>Work scope</dt><dd>@agreement.Scope</dd></div><div><dt>Work destination</dt><dd>@agreement.Location</dd></div></dl>
         <p>Client: @(agreement.ClientConfirmedAtUtc.HasValue ? "Confirmed" : "Waiting for confirmation") · Freelancer: @(agreement.FreelancerConfirmedAtUtc.HasValue ? "Confirmed" : "Waiting for confirmation")</p>
         @if(agreement.Confirmed) { <p><strong>Both confirmed.</strong> The agreed destination is saved and ready.</p> }
         else if(AgreementRules.Editable(task.Status)) {
-            <p><strong>Agreement pending.</strong> @if(task.Status == "on-the-way") { <span>Pause travel until you both approve the changes. The existing map destination remains until then.</span> }</p>
+            <p>Current schedule: @task.ScheduleText</p><p><strong>Agreement pending.</strong> @if(task.Status is "on-the-way" or "arrived" or "in-progress") { <span>Pause travel or work until you both approve the changes. The existing map destination remains until then.</span> }</p>
             @if(!(Model.IsClient ? agreement.ClientConfirmedAtUtc.HasValue : agreement.FreelancerConfirmedAtUtc.HasValue)) {
                 <form method="post" asp-page="/Agreement" asp-page-handler="Confirm"><input type="hidden" name="taskId" value="@task.Id" /><input type="hidden" name="version" value="@agreement.Version" /><button type="submit">Confirm work details</button></form>
             }
@@ -24,6 +24,7 @@
                 <input type="hidden" name="taskId" value="@task.Id" /><input type="hidden" name="expectedVersion" value="@(agreement?.Version ?? 0)" />
                 <label>Final price (₱)<input name="price" type="number" min="0.01" max="9999999999" step="0.01" value="@price.ToString(System.Globalization.CultureInfo.InvariantCulture)" required /></label>
                 <label>Schedule (Philippine time)<input name="schedule" maxlength="120" value="@schedule" required placeholder="e.g. November 5, 2026 at 9:00 AM PHT" /></label>
+                <label>Estimated duration (minutes, optional)<input name="estimatedMinutes" type="number" min="15" max="43200" value="@(agreement?.EstimatedMinutes ?? task.EstimatedMinutes)" /></label>
                 <label>Agreed scope<textarea name="scope" rows="3" maxlength="5000" required>@scope</textarea></label>
                 <partial name="_TaskLocationPicker" model="new TaskLocationInput(address, agreement?.Latitude ?? Model.Destination?.Latitude, agreement?.Longitude ?? Model.Destination?.Longitude)" />
                 <p>Both participants must confirm updated details again. The destination stays unchanged until then.</p>

@@ -37,7 +37,7 @@
 <link rel="stylesheet" href="/css/findpost-light.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/sidebar-consistency.css" asp-append-version="true" />
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
-<link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-location-picker.css" asp-append-version="true" /><script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><script defer src="/js/task-location-picker.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/post-task-polish.css" asp-append-version="true" /><link rel="stylesheet" href="/css/job-offer-form.css" asp-append-version="true" /><script defer src="/js/job-offer-form.js" asp-append-version="true"></script><partial name="_AccountTheme" /><link rel="stylesheet" href="/css/compact-task-cards.css" asp-append-version="true" /></head>
+<link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-location-picker.css" asp-append-version="true" /><script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><script defer src="/js/task-location-picker.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/post-task-polish.css" asp-append-version="true" /><link rel="stylesheet" href="/css/job-offer-form.css" asp-append-version="true" /><script defer src="/js/job-offer-form.js" asp-append-version="true"></script><script defer src="/js/jobs-live.js" asp-append-version="true"></script><partial name="_AccountTheme" /><link rel="stylesheet" href="/css/compact-task-cards.css" asp-append-version="true" /></head>
 
 <body>
 
@@ -520,6 +520,7 @@
                                     <div class="booking-fields">
                                     <label for="bookingTitle">What do you need help with?</label><input id="bookingTitle" name="title" maxlength="120" required placeholder="e.g. Clean a two-bedroom home" />
                                     <label for="bookingDescription">Work details</label><textarea id="bookingDescription" name="description" maxlength="5000" rows="3" required placeholder="Describe the work, scope, and any special requirements"></textarea>
+                                    <label for="bookingDuration">Estimated work duration (minutes, optional)</label><input id="bookingDuration" name="estimatedMinutes" type="number" min="15" max="43200" step="1" placeholder="e.g. 120 for 2 hours" />
                                     <label for="bookingSchedule">Preferred date and time (Philippine time)</label>
                                     <input id="bookingSchedule" name="schedule" type="datetime-local" step="60" min="@DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required aria-describedby="bookingScheduleHelp" />
                                     <small id="bookingScheduleHelp">Choose a date from the calendar and select a time. Schedule uses Philippine time (UTC+8).</small>
@@ -605,6 +606,7 @@
                             <textarea id="taskDescriptionInput" name="description" maxlength="500" required placeholder="Describe the task, including important details or materials needed."></textarea>
                         </label>
 
+                        <label class="post-field"><span>Estimated work duration (minutes, optional)</span><input name="estimatedMinutes" type="number" min="15" max="43200" step="1" placeholder="e.g. 120 for 2 hours" /></label>
                         <div class="post-work-details">
                             <label class="post-field">
                                 <span>Task Budget (₱)</span>
@@ -683,6 +685,7 @@
                         @if (User.Identity?.IsAuthenticated == true && !Model.IdentityApproved) { <partial name="_IdentityWorkNotice" /> }
                         @if (!Model.DirectoryUnavailable && (Model.WorkRole is "freelancer" or "both")) {
                             <div class="jobs-category-filter">
+                                <label for="jobsMatchFilter">Show jobs</label><select id="jobsMatchFilter" data-matching-jobs="@string.Join(",", Model.MatchingJobIds)"><option value="matching">Matches my services</option><option value="all">All jobs</option></select>
                                 <label for="jobsCategoryFilter">Service category</label>
                                 <select id="jobsCategoryFilter">
                                     <option value="" selected disabled hidden>All categories</option>
@@ -711,10 +714,10 @@
                         @foreach (var item in Model.OpenTasks) {
                             var task = item.Task;
                             var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
-                            <article class="jobs-card" id="task-@task.Id" data-job-category="@task.Category" data-job-specific-service="@task.SpecificService"><div class="jobs-card-top"><span class="jobs-tag">@task.CategoryDisplay</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span><a asp-page="/ReviewProfile" asp-route-id="@task.ClientId" asp-route-role="client">@item.ClientName</a></span></div>
+                            <article class="jobs-card" id="task-@task.Id" data-job-category="@task.Category" data-job-specific-service="@task.SpecificService"><div class="jobs-card-top"><span class="jobs-tag">@task.CategoryDisplay</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>Duration: @task.DurationDisplay</span><span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span><a asp-page="/ReviewProfile" asp-route-id="@task.ClientId" asp-route-role="client">@item.ClientName</a></span></div>
                             <partial name="_JobOfferForm" model="(task, existing?.Offer.Status)" /></article>
                         }
-                        <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs match these filters</h3><p>Try another category or specific service, or view all jobs.</p></div>
+                        <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs match these filters</h3><p>Try All jobs or change your category and specific service.</p></div>
                         <section class="jobs-offers"><h3>My offers</h3>
                         @if (Model.Offers.Count == 0) { <p>Your sent offers will appear here so you can check their status.</p> }
                         @foreach (var sent in Model.Offers) { <div class="sent-offer"><div><strong>@(Model.OfferTaskTitles.TryGetValue(sent.Offer.TaskId, out var offerTitle) ? offerTitle : "Task details unavailable")</strong><span>Offer: ₱@sent.Offer.Price</span></div><span class="sent-offer-status">@sent.Offer.Status.Replace("-", " ")</span></div> }</section>

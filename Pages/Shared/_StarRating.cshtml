@@ -1,0 +1,14 @@
+@{ var key = "review-rating-" + Guid.NewGuid().ToString("N"); }
+<fieldset class="review-star-input">
+    <legend>Rating</legend>
+    <div class="review-star-options">
+        @for (var rating = 1; rating <= 5; rating++)
+        {
+            <label for="@key-@rating">
+                <input id="@key-@rating" name="rating" type="radio" value="@rating" required />
+                <span aria-hidden="true">★</span>
+                <span class="review-star-name">@rating @(rating == 1 ? "star" : "stars")</span>
+            </label>
+        }
+    </div>
+</fieldset>

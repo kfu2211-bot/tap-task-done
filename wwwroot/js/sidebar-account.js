@@ -154,19 +154,20 @@
                 ? [
                     { href: "/FindPost?mode=jobs", icon: "⌕", label: "Find Jobs" },
                     { href: "/MyJobs", icon: "▤", label: "My Jobs" },
+                    { href: "/Messages", icon: "□", label: "Messages" },
                     { href: "/Settings#availability", icon: "▣", label: "My Availability" }
                 ]
                 : [
                     { href: "/MarketTasks?view=mine", icon: "▤", label: "My Tasks" },
                     { href: "/FindPost", icon: "⌕", label: "Find & Post" }
                 ];
-            var items = [{ href: "/Dashboard", icon: "⌂", label: "Home" }, ...homeItems, ...sharedItems];
+            var items = [{ href: "/Dashboard", icon: "⌂", label: "Home" }, ...homeItems, ...sharedItems.filter(item => homeView !== "freelancer" || item.href !== "/Messages")];
 
             items.forEach(function (item) {
-                if (item.href === "/Dashboard" || item.href === "/Messages") {
+                if (item.href === "/Dashboard" || item.href === (homeView === "freelancer" ? "/Tracking" : "/Messages")) {
                     var heading = document.createElement("div");
                     heading.className = "home-nav-heading";
-                    heading.textContent = item.href === "/Messages" ? "Shared" : homeView;
+                    heading.textContent = item.href === "/Dashboard" ? homeView : "Shared";
                     nav.appendChild(heading);
                 }
                 var link = nav.querySelector('a[href="' + item.href + '"]');

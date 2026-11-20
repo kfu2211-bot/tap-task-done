@@ -1,0 +1,3 @@
+
+.completion-upload-preview video { width: min(100%, 260px); max-height: 180px; border-radius: 8px; }
+@media (max-width: 600px) { .completion-upload-preview { flex-wrap: wrap; } }

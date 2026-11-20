@@ -33,6 +33,9 @@ public static class TaskProgress
             && (action != "travel" || hasDestination);
     }
 
+    public const string CancellationRequested = "cancellation-requested";
+    public const string CancellationDeclined = "cancellation-declined";
+    public static bool ValidCompletion(string? note, bool hasVideo) => (note?.Trim().Length ?? 0) <= 1000 && (!string.IsNullOrWhiteSpace(note) || hasVideo);
     public const string ArrivalRequest = "arrival-requested";
 
     public static async Task<bool> NearDestinationAsync(ApplicationDbContext db, long taskId, int freelancerId, CancellationToken ct)
@@ -70,6 +73,10 @@ public static class TaskProgress
         var freelancer = await db.MarketplaceOffers.Where(o => o.TaskId == id && o.Status == "accepted").Select(o => (int?)o.FreelancerId).SingleOrDefaultAsync(ct);
         if (task is null || freelancer is null || !CanAdvance(task.Status, requestArrival ? "arrive" : action, task.ClientId == actor, freelancer == actor, true))
             return new(false, "This action is unavailable or the task has already changed. Refresh and check its progress.");
+        var cancellation = await db.Set<TaskProgressEvent>().Where(e => e.TaskId == id &&
+            (e.Status == CancellationRequested || e.Status == CancellationDeclined)).OrderByDescending(e => e.Id).FirstOrDefaultAsync(ct);
+        if (cancellation?.Status == CancellationRequested)
+            return new(false, "Resolve the cancellation request in Tracking before changing task progress.");
         if (requestArrival || action == "confirm-arrival")
         {
             var requested = await db.Set<TaskProgressEvent>().AnyAsync(x => x.TaskId == id &&
@@ -94,9 +101,12 @@ public static class TaskProgress
             return new(false, "Ask the client to save the exact destination pin before starting travel.");
         if (action is "travel" or "start" && await FreelancerAvailability.ActiveTasks(db, freelancer.Value).AnyAsync(t => t.Id != id, ct))
             return new(false, "Finish your current travel/work before starting another job.");
+        if (action is "travel" or "start" or "finish" or "confirm" && !AgreementRules.CanProceed(await AgreementRules.LatestAsync(db, id, ct)))
+            return new(false, "Both participants must confirm the latest work details before continuing.");
+
         note = note?.Trim();
-        if (action == "finish" && (string.IsNullOrWhiteSpace(note) || note.Length > 1000))
-            return new(false, "Add a completion note (up to 1,000 characters).");
+        if (action == "finish" && !ValidCompletion(note, photo is not null))
+            return new(false, "Add a completion note (up to 1,000 characters) or a completion video.");
         task.Status = to;
         db.Set<TaskProgressEvent>().Add(new TaskProgressEvent { TaskId = id, ActorId = actor, Status = to,
             Note = action == "finish" ? note : null, Photo = action == "finish" ? photo : null,
@@ -107,7 +117,7 @@ public static class TaskProgress
             "arrive" => "The freelancer has marked their arrival. Travel location sharing has stopped.",
             "confirm-arrival" => "The client confirmed your arrival. You can now start work.",
             "start" => "The freelancer started working on your task.",
-            "finish" => "The freelancer marked the work finished. Open Tracking to review the completion note and confirm.",
+            "finish" => "The freelancer marked the work finished. Open Tracking to review the completion details and confirm.",
             _ => "The client confirmed that the task is complete. You can now leave a review."
         };
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(action is "confirm" or "confirm-arrival" ? freelancer.Value : task.ClientId,

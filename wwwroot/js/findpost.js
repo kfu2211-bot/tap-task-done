@@ -990,6 +990,8 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener('DOMContentLoaded', () => {
     const filter = document.getElementById('jobsCategoryFilter');
     if (!filter) return;
+    const matchFilter = document.getElementById('jobsMatchFilter');
+    const matchingJobs = new Set(matchFilter.dataset.matchingJobs.split(','));
     const specific = document.getElementById('jobsSpecificService');
     const customJob = document.getElementById("otherJobService");
     const customJobField = document.getElementById("otherJobServiceField");
@@ -1008,7 +1010,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const customQuery = isOtherServiceCategory(selected) ? normalizeServiceSearch(customJob.value) : "";
         let visible = 0;
         for (const card of cards) {
-            const matches = (!selected || normalizeServiceCategory(card.dataset.jobCategory || '') === selected) &&
+            if (!card.isConnected) continue;
+            const matches = (matchFilter.value === 'all' || matchingJobs.has(card.id.replace('task-', ''))) && (!selected || normalizeServiceCategory(card.dataset.jobCategory || '') === selected) &&
                 (!specific.value || card.dataset.jobSpecificService === specific.value) &&
                 (!customQuery || [card.querySelector("h3").textContent, card.querySelector("p").textContent]
                     .some(value => normalizeServiceSearch(value).includes(customQuery)));
@@ -1016,13 +1019,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (matches) visible++;
         }
         count.textContent = `${visible} open ${visible === 1 ? 'task' : 'tasks'}`;
-        empty.hidden = !selected || visible !== 0 || cards.length === 0;
+        empty.hidden = visible !== 0 || cards.length === 0;
     }
+    matchFilter.addEventListener('change', updateJobs);
     filter.addEventListener('change', updateJobServices);
     specific.addEventListener('change', updateJobs);
     customJob.addEventListener("input", updateJobs);
+    if (cards.some(card => '#' + card.id === location.hash)) matchFilter.value = 'all';
     updateJobServices();
     document.getElementById('jobsFilterReset').addEventListener('click', () => {
+        matchFilter.value = 'all';
         filter.value = '';
         updateJobServices();
         filter.focus();

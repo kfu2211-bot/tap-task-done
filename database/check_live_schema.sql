@@ -128,6 +128,8 @@ UNION ALL SELECT 'marketplace_reviews' AS table_name, 'Rating' AS column_name
 UNION ALL SELECT 'marketplace_reviews' AS table_name, 'TaskId' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'Budget' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'CancellationReason' AS column_name
+UNION ALL SELECT 'marketplace_tasks' AS table_name, 'EstimatedMinutes' AS column_name
+UNION ALL SELECT 'work_agreements' AS table_name, 'EstimatedMinutes' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'Category' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'SpecificService' AS column_name
 UNION ALL SELECT 'marketplace_tasks' AS table_name, 'ClientId' AS column_name

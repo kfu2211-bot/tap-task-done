@@ -9,7 +9,7 @@ using tts.Data;
 namespace tts.Pages;
 
 [Authorize]
-[RequestSizeLimit(6 * 1024 * 1024)]
+[RequestSizeLimit(12 * 1024 * 1024)]
 public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logger) : PageModel
 {
     public async Task<IActionResult> OnPostFeedbackAsync(long taskId, int rating, string? feedback, CancellationToken ct)
@@ -45,21 +45,21 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         return RedirectToPage("/Tracking", new { taskId });
     }
 
-    public async Task<IActionResult> OnPostAdvanceAsync(long id, string? action, string? note, IFormFile? photo, CancellationToken ct)
+    public async Task<IActionResult> OnPostAdvanceAsync(long id, string? action, string? note, IFormFile? video, CancellationToken ct)
     {
         if (UserId <= 0) return Challenge();
         byte[]? encrypted = null; string? type = null;
-        if (photo is { Length: > 0 })
+        if (video is { Length: > 0 })
         {
-            if (action != "finish" || photo.Length > 5 * 1024 * 1024) { Notice = "Choose a completion photo up to 5 MB."; return RedirectToPage(new { taskId = id }); }
+            if (action != "finish" || video.Length > CompletionMedia.MaxBytes) { Notice = "Choose an MP4 or WebM completion video up to 10 MB."; return RedirectToPage(new { taskId = id }); }
             using var memory = new MemoryStream();
-            await using var stream = photo.OpenReadStream();
+            await using var stream = video.OpenReadStream();
             await stream.CopyToAsync(memory, ct);
-            type = ProfilePhotoModel.ImageType(memory.ToArray());
-            if (type is null) { Notice = "Choose a JPG, PNG or WEBP completion photo."; return RedirectToPage(new { taskId = id }); }
+            type = CompletionMedia.VideoType(memory.ToArray());
+            if (type is null) { Notice = "Choose a valid MP4 or WebM completion video."; return RedirectToPage(new { taskId = id }); }
             var environment = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
             if (!environment.IsDevelopment() && !HttpContext.RequestServices.GetRequiredService<IdentityVerificationAvailability>().Enabled)
-            { Notice = "Secure photo storage is not configured. Submit a completion note without a photo."; return RedirectToPage(new { taskId = id }); }
+            { Notice = "Secure video storage is not configured. Submit a completion note or try again later."; return RedirectToPage(new { taskId = id }); }
             encrypted = PhotoProtector(id).Protect(memory.ToArray());
         }
         try
@@ -70,6 +70,42 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         }
         catch (MySqlConnector.MySqlException ex)
         { logger.LogError(ex, "Progress update failed"); Notice = "Progress storage is unavailable. Please check the database setup."; return RedirectToPage(new { taskId = id }); }
+    }
+
+    public async Task<IActionResult> OnPostCancellationAsync(long id, string decision, string? reason, CancellationToken ct)
+    {
+        try { Notice = (await JobCancellation.DecideAsync(db, UserId, id, decision, reason, ct)).Message; }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException)
+        { logger.LogWarning(ex, "Cancellation update failed"); Notice = "Cancellation could not be saved. Please try again."; }
+        return RedirectToPage(new { taskId = id });
+    }
+
+    public async Task<IActionResult> OnPostCompletionNoteAsync(long id, string? note, CancellationToken ct)
+    {
+        if (UserId <= 0) return Challenge();
+        if (!ModelState.IsValid) { Notice = "Check your completion note and try again."; return RedirectToPage(new { taskId = id }); }
+        try
+        {
+        note = note?.Trim();
+        await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
+        await AppTransactions.LockTaskAsync(db, id, ct);
+        var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id &&
+            t.Status == "awaiting-confirmation" && db.MarketplaceOffers.Any(o => o.TaskId == id &&
+                o.FreelancerId == UserId && o.Status == "accepted"), ct);
+        var completion = task is null ? null : await db.Set<TaskProgressEvent>()
+            .Where(e => e.TaskId == id && e.Status == "awaiting-confirmation").OrderByDescending(e => e.Id).FirstOrDefaultAsync(ct);
+        if (completion is null) { Notice = "This completion note can no longer be edited."; return RedirectToPage(new { taskId = id }); }
+        if (!TaskProgress.ValidCompletion(note, completion.Photo is not null))
+        { Notice = "Keep a completion note or uploaded proof, with a note up to 1,000 characters."; return RedirectToPage(new { taskId = id }); }
+        completion.Note = note;
+        db.Add(MarketplaceNotification.Create(task!.ClientId, id, "finished", "The freelancer updated the completion note. Review it before confirming completion."));
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        Notice = "Completion note updated.";
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException)
+        { logger.LogWarning(ex, "Completion note update failed"); Notice = "Completion note could not be saved. Please try again."; }
+        return RedirectToPage(new { taskId = id });
     }
 
     private Microsoft.AspNetCore.DataProtection.IDataProtector PhotoProtector(long taskId) =>
@@ -86,8 +122,8 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
         try
         {
             var bytes = PhotoProtector(item.TaskId).Unprotect(item.Photo);
-            var type = ProfilePhotoModel.ImageType(bytes);
-            return type is null ? NotFound() : File(bytes, type);
+            var type = CompletionMedia.VideoType(bytes) ?? ProfilePhotoModel.ImageType(bytes);
+            return type is null ? NotFound() : new FileContentResult(bytes, type) { EnableRangeProcessing = true };
         }
         catch (System.Security.Cryptography.CryptographicException) { return StatusCode(503); }
     }

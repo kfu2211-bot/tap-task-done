@@ -29,13 +29,13 @@ public class AgreementModel(ApplicationDbContext db, IWebHostEnvironment environ
             select new { t.ClientId, o.FreelancerId }).SingleOrDefaultAsync(ct);
         return pair is null ? [] : [pair.ClientId, pair.FreelancerId];
     }
-    public async Task<IActionResult> OnPostProposeAsync(long taskId, int expectedVersion, decimal price, string? scope, string? schedule, string? location, double? latitude, double? longitude, CancellationToken ct, string? serviceArea = null)
+    public async Task<IActionResult> OnPostProposeAsync(long taskId, int expectedVersion, decimal price, string? scope, string? schedule, string? location, double? latitude, double? longitude, CancellationToken ct, string? serviceArea = null, int? estimatedMinutes = null)
     {
         scope = (scope ?? "").Trim(); schedule = (schedule ?? "").Trim(); location = (location ?? "").Trim();
         if (UserId <= 0) return Challenge();
         if (!TaskLocationRules.ValidServiceLocation(serviceArea, latitude, longitude))
         { Notice = "Choose a service area and confirm a pin inside Bacolor."; return RedirectToPage("/Tracking", new { taskId }); }
-        if (!ModelState.IsValid || !AgreementRules.Valid(price, scope, schedule, location, latitude, longitude)) { Notice = "Check price, scope, schedule and the confirmed Bacolor-area destination pin."; return RedirectToPage("/Tracking", new { taskId }); }
+        if (!ModelState.IsValid || !JobDuration.Valid(estimatedMinutes) || !AgreementRules.Valid(price, scope, schedule, location, latitude, longitude)) { Notice = "Check price, scope, schedule and the confirmed Bacolor-area destination pin."; return RedirectToPage("/Tracking", new { taskId }); }
         try
         {
             var participants = await ParticipantsAsync(taskId, ct); if (participants.Length != 2) return NotFound();
@@ -44,7 +44,7 @@ public class AgreementModel(ApplicationDbContext db, IWebHostEnvironment environ
             var locked = await LockAsync(taskId, ct); if (locked is null || !participants.Contains(locked.Value.Freelancer)) return NotFound();
             var latest = await AgreementRules.LatestAsync(db, taskId, ct);
             if (!AgreementRules.MatchesVersion(latest, expectedVersion)) { Notice = "The agreement changed. Review the latest version before proposing again."; return RedirectToPage("/Tracking", new { taskId }); }
-            var proposal = new WorkAgreement { TaskId = taskId, Version = expectedVersion + 1, ProposedById = UserId, Price = price, Scope = scope, ScheduleText = schedule, Location = location,
+            var proposal = new WorkAgreement { TaskId = taskId, Version = expectedVersion + 1, ProposedById = UserId, Price = price, EstimatedMinutes = estimatedMinutes, Scope = scope, ScheduleText = schedule, Location = location,
                 Latitude = latitude!.Value, Longitude = longitude!.Value, CreatedAtUtc = DateTime.UtcNow };
             if (latest is not null && AgreementRules.SameTerms(latest, proposal)) { Notice = "These terms are unchanged. Confirm the existing version instead."; return RedirectToPage("/Tracking", new { taskId }); }
             db.Add(proposal);
@@ -72,7 +72,7 @@ public class AgreementModel(ApplicationDbContext db, IWebHostEnvironment environ
             else latest.FreelancerConfirmedAtUtc ??= DateTime.UtcNow;
             if (latest.Confirmed)
             {
-                locked.Value.Task.Budget = latest.Price; locked.Value.Task.Description = latest.Scope; locked.Value.Task.ScheduleText = latest.ScheduleText; locked.Value.Task.Location = latest.Location;
+                locked.Value.Task.EstimatedMinutes = latest.EstimatedMinutes; locked.Value.Task.Budget = latest.Price; locked.Value.Task.Description = latest.Scope; locked.Value.Task.ScheduleText = latest.ScheduleText; locked.Value.Task.Location = latest.Location;
                 var offer = await db.MarketplaceOffers.SingleAsync(o => o.TaskId == taskId && o.Status == "accepted", ct); offer.Price = latest.Price;
                 TaskLocationRules.Save(db, taskId, await db.Set<TaskDestination>().SingleOrDefaultAsync(d => d.TaskId == taskId, ct), latest.Latitude, latest.Longitude);
             }

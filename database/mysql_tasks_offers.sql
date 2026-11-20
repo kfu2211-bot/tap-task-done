@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS marketplace_tasks (
     SpecificService VARCHAR(60) NULL,
     Location VARCHAR(120) NOT NULL,
     Budget DECIMAL(12,2) NOT NULL,
+    EstimatedMinutes INT NULL,
     ScheduleText VARCHAR(120) NOT NULL,
     Status VARCHAR(24) NOT NULL DEFAULT 'pending-confirmation',
     CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),

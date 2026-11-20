@@ -58,6 +58,20 @@ public static class ServiceCatalog
         return true;
     }
 
+    public static bool Matches(string? categories, string? json, MarketplaceTask task)
+    {
+        var category = task.Category.Replace(" / ", "/");
+        var offered = (categories ?? "").Split(", ", StringSplitOptions.RemoveEmptyEntries);
+        var hasCategory = offered.Any(service => service.Equals(category, StringComparison.OrdinalIgnoreCase) ||
+            category == OtherCategory && service.StartsWith("Other/General:", StringComparison.OrdinalIgnoreCase));
+        if (!hasCategory) return false;
+        if (string.IsNullOrWhiteSpace(task.SpecificService)) return true;
+        var specialties = Read(json).GetValueOrDefault(category) ?? [];
+        return task.SpecificService == CustomOption
+            ? specialties.Any(service => service.StartsWith(CustomPrefix, StringComparison.Ordinal))
+            : specialties.Contains(task.SpecificService);
+    }
+
     public static string DisplayServiceName(string service) =>
         service.StartsWith(CustomPrefix, StringComparison.Ordinal) ? service[CustomPrefix.Length..] : service;
 
