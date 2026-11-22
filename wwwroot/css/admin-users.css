@@ -51,3 +51,26 @@
 html[data-theme="dark"] .unverified-delete summary { color: #ffb4ba; }
 .user-identity .avatar { position: relative; overflow: hidden; }
 .user-avatar-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.presence-line{display:flex;justify-content:flex-end;margin:8px 0 14px}
+.presence-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:24px;background:var(--surface-2,#eef1ef);color:var(--text,#455a50);font-size:12px;font-weight:700}
+.presence-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.presence-badge.is-online{background:#e2f4e6;color:#17623e}
+.session-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:0;background:var(--surface-2,#edf4ed);padding:16px;border-radius:10px}
+.session-summary>div+div{border-left:1px solid var(--line,#c9ddcd);padding-left:16px}
+.session-summary dt{font-size:13px;font-weight:600;color:var(--muted,#526c5e)}
+.session-summary dd{margin:3px 0 0;font-weight:700;overflow-wrap:anywhere}
+.session-note{font-size:12px;color:var(--muted,#526c5e);margin:8px 0 16px}
+.user-card .history{margin-top:8px;background:transparent}
+.user-card .history summary{min-height:44px;padding:10px 16px}
+.user-card .unverified-delete{margin-bottom:8px}
+.user-card .unverified-delete summary{width:100%}
+.user-card .history-content>p{margin:8px 0}
+.session-entry{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:16px;padding:14px 0;border-top:1px solid var(--line,#d8e9db)}
+.session-entry strong,.session-entry span{display:block;overflow-wrap:anywhere}
+.session-entry strong{font-size:12px;color:var(--muted,#526c5e);margin-bottom:4px}
+.session-more{margin-top:12px;min-height:44px}
+.refresh-users{color:var(--text,#176b50);padding:12px;font-weight:600}
+.user-card summary:focus-visible,.refresh-users:focus-visible,.user-card button:focus-visible{outline:3px solid #21805e;outline-offset:3px}
+.user-card button{min-height:44px}
+html[data-theme="dark"] .presence-badge.is-online{background:#183f2e;color:#b0ebc3}
+@media(max-width:700px){.session-summary{grid-template-columns:1fr;gap:12px}.session-summary>div+div{border-left:0;padding-left:0;padding-top:12px;border-top:1px solid var(--line,#c9ddcd)}.session-entry{grid-template-columns:repeat(2,minmax(0,1fr))}.user-head{flex-wrap:wrap}.badge{max-width:100%;white-space:normal}}

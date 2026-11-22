@@ -15,6 +15,10 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
     public List<UserRow> Users { get; private set; } = [];
     public List<ActionRow> History { get; private set; } = [];
     public bool Unavailable { get; private set; }
+    public bool SessionsUnavailable { get; private set; }
+    public Dictionary<int, UserActivitySession> LatestSessions { get; private set; } = [];
+    public HashSet<int> OnlineUsers { get; private set; } = [];
+    public DateTime Now { get; } = DateTime.UtcNow;
     [BindProperty(SupportsGet = true)] public bool Embedded { get; set; }
     [BindProperty(SupportsGet = true)] public long? ReportId { get; set; }
     [TempData(Key = "AdminUsersNotice")] public string? Notice { get; set; }
@@ -38,7 +42,38 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         { logger.LogWarning(ex, "Account moderation unavailable"); Unavailable = true; }
+        if (!Unavailable)
+        {
+            try
+            {
+                var sessions = db.Set<UserActivitySession>().AsNoTracking();
+                var latest = await sessions.Where(s => !sessions.Any(other => other.UserId == s.UserId && other.StartedUtc > s.StartedUtc)).ToListAsync(ct);
+                LatestSessions = latest.GroupBy(s => s.UserId).ToDictionary(g => g.Key, g => g.OrderByDescending(s => s.LastActiveUtc).ThenBy(s => s.Id).First());
+                var cutoff = Now.AddMinutes(-5);
+                OnlineUsers = (await sessions.Where(s => s.LogoutUtc == null && s.LastActiveUtc > cutoff).Select(s => s.UserId).Distinct().ToListAsync(ct)).ToHashSet();
+            }
+            catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+            { logger.LogWarning(ex, "User session summaries unavailable"); SessionsUnavailable = true; }
+        }
         return Page();
+    }
+
+    public async Task<IActionResult> OnGetSessionsAsync(int userId, int pageNumber = 1, CancellationToken ct = default)
+    {
+        Response.Headers.CacheControl = "no-store";
+        if (userId <= 0 || pageNumber < 1 || pageNumber > 10000) return BadRequest();
+        try
+        {
+            var rows = await db.Set<UserActivitySession>().AsNoTracking().Where(s => s.UserId == userId && db.Users.Any(u => u.Id == userId && u.Role != "deleted"))
+                .OrderByDescending(s => s.StartedUtc).ThenBy(s => s.Id).Skip((pageNumber - 1) * 20).Take(21).ToListAsync(ct);
+            return new JsonResult(new { hasNext = rows.Count > 20, rows = rows.Take(20).Select(s => new {
+                timeIn = DisplayTime.Philippine(s.StartedUtc), lastActive = DisplayTime.Philippine(s.LastActiveUtc),
+                timeOut = s.LogoutUtc.HasValue ? DisplayTime.Philippine(s.LogoutUtc.Value) : UserActivity.Status(s, Now) == "Inactive" ? "~ " + DisplayTime.Philippine(s.LastActiveUtc) : "—",
+                status = UserActivity.Status(s, Now)
+            }) });
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+        { logger.LogWarning(ex, "User session history unavailable"); return StatusCode(503); }
     }
 
     public async Task<IActionResult> OnPostDeleteUnverifiedAsync(int userId, bool confirmDeletion, CancellationToken ct)
