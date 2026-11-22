@@ -16,7 +16,13 @@
     @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="notice" role="status">@Model.Notice</p> }
     @if (Model.Unavailable) { <div class="empty" role="alert" data-i18n>Account moderation is unavailable. Check the account moderation database setup.</div> }
     else {
-        <div class="users-toolbar"><p class="users-total">All users · <strong>@Model.Users.Count</strong> accounts</p><a class="refresh-users" asp-page="/AdminUsers" asp-route-Embedded="@Model.Embedded">Refresh activity</a></div>
+        <form class="users-toolbar" id="usersTools" method="get" action="/AdminUsers">
+            <input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
+            <p class="users-total">All users · <strong>@Model.Users.Count</strong> accounts</p>
+            <label class="users-search" for="userSearch"><span>Search users</span><input id="userSearch" name="Search" type="search" value="@Request.Query["Search"]" placeholder="Type a name or email" autocomplete="off" aria-describedby="userSearchStatus" /></label>
+            <button class="refresh-users" type="submit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></svg><span>Refresh activity</span></button>
+        </form>
+        <p id="userSearchStatus" class="session-note" role="status" aria-live="polite"></p>
         @if (Model.SessionsUnavailable) { <p class="notice" role="alert">Site activity is temporarily unavailable. Account management is still available.</p> }
         @if (Model.Users.Count == 0) { <p class="empty">No registered users yet.</p> }
         <div class="user-list">
@@ -25,7 +31,7 @@
             var latest = Model.LatestSessions.GetValueOrDefault(user.Id);
             var online = Model.OnlineUsers.Contains(user.Id);
             var sessionStatus = latest is null ? "No sessions yet" : tts.Data.UserActivity.Status(latest, Model.Now);
-            <article class="user-card">
+            <article class="user-card" data-user-search="@($"{user.Name} {user.Email}")">
                 <div class="user-head"><div class="user-identity"><span class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(user.Name) ? "U" : user.Name.Trim().Substring(0, 1).ToUpperInvariant())@if (user.HasPhoto) { <img class="user-avatar-photo" src="@Url.Page("/ProfilePhoto", "Staff", new { userId = user.Id })" alt="" loading="lazy" /> }</span><div><strong>@user.Name @if(user.Restricted) { <span class="account-warning-symbol" title="Account warning">⚠</span> }</strong><p>@user.Email <span aria-hidden="true">·</span> @user.Role</p></div></div><span class="badge @(user.Suspended ? "suspended" : user.Restricted ? "restricted" : "")">@user.Moderation.Penalty</span></div>
                 <div class="presence-line"><span class="presence-badge @(online ? "is-online" : "")">@(Model.SessionsUnavailable ? "Activity unavailable" : online ? "Online" : latest is null ? "No sessions yet" : "Offline")</span></div>
                 <dl class="session-summary">
@@ -77,6 +83,7 @@
             </article>
         }
         </div>
+        <p id="noUserMatches" class="empty" hidden>No users match your search. Try another name or email.</p>
     }
 </main>
 <dialog id="moderationDecision" aria-labelledby="moderationTitle" aria-describedby="moderationDescription">
@@ -89,6 +96,7 @@
     </form>
 </dialog>
 <script defer src="/js/admin-user-sessions.js" asp-append-version="true"></script>
+<script defer src="/js/admin-users-search.js" asp-append-version="true"></script>
 <script>
     const decision = document.getElementById('moderationDecision');
     let pendingSubmitter;

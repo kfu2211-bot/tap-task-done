@@ -27,7 +27,18 @@ const {chromium} = require('C:/Users/Mr_Jh/.cache/codex-runtimes/codex-primary-r
         });
         await page.goto('http://users.test/fixture');
         assert.equal(await page.locator('.user-card').count(),2);
-        assert.equal(await page.locator('input[type="search"]').count(),0);
+        const search = page.locator('#userSearch');
+        assert.equal(await search.count(),1);
+        await search.fill('k');
+        assert.equal(await page.locator('.user-card:visible').count(),1);
+        assert.match(await page.locator('.user-card:visible .user-identity').textContent(),/Karl Paras/);
+        assert.equal(await page.locator('.user-card:visible .avatar').count(),1);
+        await search.fill('ANNE');
+        assert.match(await page.locator('.user-card:visible .user-identity').textContent(),/Anne Reyes/);
+        await search.fill('not-a-user');
+        assert.equal(await page.locator('#noUserMatches').isVisible(),true);
+        await search.fill('');
+        assert.equal(await page.locator('.user-card:visible').count(),2);
         assert.equal(await page.locator('.session-summary').count(),2);
         assert.equal(calls,0,'History should load only when opened');
         const history = page.locator('.session-history').first();
@@ -51,6 +62,12 @@ const {chromium} = require('C:/Users/Mr_Jh/.cache/codex-runtimes/codex-primary-r
         assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'No horizontal overflow on mobile');
         await page.screenshot({path:'obj/users-unified-mobile.png',fullPage:true});
         assert.deepEqual(errors,[]);
-        console.log('PASS: actual Razor cards, no search, lazy history, pagination, retry, text escaping, mobile layout; fixture also checks EF query translation without database access.');
+        await search.fill('Karl');
+        const refreshRequest = page.waitForRequest(r=>r.url().includes('/AdminUsers?') && !r.url().includes('handler='));
+        await page.locator('.refresh-users').click();
+        const refreshUrl = new URL((await refreshRequest).url());
+        assert.equal(refreshUrl.searchParams.get('Search'),'Karl');
+        assert.equal(refreshUrl.searchParams.get('Embedded'),'false');
+        console.log('PASS: one-character search shows matching identity/avatar; case-insensitive search, empty/reset, refresh GET preserves search and embedded mode; history pagination/retry and mobile layout.');
     } finally {await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

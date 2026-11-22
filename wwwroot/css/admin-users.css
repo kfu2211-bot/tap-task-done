@@ -72,5 +72,14 @@ html[data-theme="dark"] .unverified-delete summary { color: #ffb4ba; }
 .refresh-users{color:var(--text,#176b50);padding:12px;font-weight:600}
 .user-card summary:focus-visible,.refresh-users:focus-visible,.user-card button:focus-visible{outline:3px solid #21805e;outline-offset:3px}
 .user-card button{min-height:44px}
+.users-toolbar{gap:16px;align-items:end;margin-bottom:8px}
+.users-search{display:grid;gap:6px;flex:1;max-width:520px;margin-left:auto;font-weight:600;color:var(--text,#173d32)}
+.users-search input{width:100%;min-height:44px;padding:10px 14px;font:inherit;border:1px solid var(--line,#c9ddcd);border-radius:9px;color:var(--text,#173d32);background:var(--surface,#fff)}
+.users-search input:focus-visible{outline:3px solid #21805e;outline-offset:2px}
+button.refresh-users{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;text-decoration:none;background:var(--surface,#fff);border:1px solid #21805e;border-radius:9px;padding:10px 16px;white-space:nowrap}
+button.refresh-users:disabled{opacity:.7;cursor:wait}
+.users-toolbar[aria-busy="true"] .refresh-users svg{animation:moderation-spin .8s linear infinite}
+@media(prefers-reduced-motion:reduce){.users-toolbar[aria-busy="true"] .refresh-users svg{animation:none}}
+@media(max-width:700px){.users-search{order:3;flex-basis:100%;max-width:none;margin-left:0}.users-toolbar .refresh-users{margin-left:auto}}
 html[data-theme="dark"] .presence-badge.is-online{background:#183f2e;color:#b0ebc3}
 @media(max-width:700px){.session-summary{grid-template-columns:1fr;gap:12px}.session-summary>div+div{border-left:0;padding-left:0;padding-top:12px;border-top:1px solid var(--line,#c9ddcd)}.session-entry{grid-template-columns:repeat(2,minmax(0,1fr))}.user-head{flex-wrap:wrap}.badge{max-width:100%;white-space:normal}}
