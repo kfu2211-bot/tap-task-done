@@ -18,8 +18,8 @@
     else {
         <form class="users-toolbar" id="usersTools" method="get" action="/AdminUsers">
             <input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
-            <p class="users-total">All users · <strong>@Model.Users.Count</strong> accounts</p>
             <label class="users-search" for="userSearch"><span>Search users</span><input id="userSearch" name="Search" type="search" value="@Request.Query["Search"]" placeholder="Type a name or email" autocomplete="off" aria-describedby="userSearchStatus" /></label>
+            <p class="users-total"><strong>@Model.Users.Count</strong> accounts</p>
             <button class="refresh-users" type="submit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></svg><span>Refresh activity</span></button>
         </form>
         <p id="userSearchStatus" class="session-note" role="status" aria-live="polite"></p>
@@ -39,10 +39,10 @@
                     <div><dt>Last Active</dt><dd data-last-active>@(latest is null ? "—" : tts.Data.DisplayTime.Philippine(latest.LastActiveUtc))</dd></div>
                     <div><dt>Time Out</dt><dd data-time-out>@(latest is null ? "—" : latest.LogoutUtc.HasValue ? tts.Data.DisplayTime.Philippine(latest.LogoutUtc.Value) : sessionStatus == "Inactive" ? "~ " + tts.Data.DisplayTime.Philippine(latest.LastActiveUtc) : "—")</dd></div>
                 </dl>
-                <p class="session-note">Account penalty and online presence are separate. Latest login shown; online checks all devices. ~ means estimated time out. Older logins use the available sign-in cookie time.</p>
+                <p class="session-note">Philippine time · Latest session · ~ Estimated time out</p>
                 @if (!tts.Data.AccountModerationRules.IsStaff(user.Role)) {
                     <p><strong>Confirmed offenses: @user.Moderation.Offenses</strong> · Next: @tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)</p>
-                    <details class="history penalty-panel" open="@(user.Suspended || user.Restricted)"><summary><strong>Penalty &amp; recovery</strong><span class="chevron" aria-hidden="true">⌄</span></summary><div class="history-content">
+                    <details class="history penalty-panel" open="@(user.Suspended || user.Restricted)"><summary><span><strong>Penalty &amp; recovery</strong><small>@(user.Suspended || user.Restricted ? "Review the current penalty and recovery progress" : "No current penalty")</small></span><span class="chevron" aria-hidden="true">⌄</span></summary><div class="history-content">
                     @if(user.Moderation.Target > 0 && !user.Moderation.Permanent) { <p>Recovery progress: @user.Moderation.Completed / @user.Moderation.Target completed tasks. Temporary suspension ends automatically; completion credit starts after it ends.</p> }
                     @if(user.Moderation.Legacy) { <p data-i18n>Previous actions remain in history; they are not automatically counted as new offenses.</p> }
                     @if (user.Suspended || user.Restricted)
@@ -54,7 +54,9 @@
                         <div class="actions"><button type="submit" name="action" value="restore">Lift penalty after review</button></div>
                     </form>
                     }
-                    @if (!user.Suspended && !user.Restricted) { <p>No current penalty. Review new offenses in <a href="/Admin#reports" target="_top">Safety Reports</a>.</p> }
+                    @if (!user.Suspended && !user.Restricted) {
+                        <div class="penalty-clear-state"><span class="penalty-clear-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6z M8 12l3 3 5-6"/></svg></span><div><strong>No current penalty</strong><p>This account has no active restrictions. Review a safety report before recording a new offense.</p></div><a class="reports-link" href="/Admin#reports" target="_top">View safety reports <span aria-hidden="true">↗</span></a></div>
+                    }
                     </div></details>
                 }
                 @if (user.CanDelete)
@@ -71,10 +73,6 @@
                         </form>
                         </div>
                     </details>
-                }
-                else
-                {
-                    <details class="history unverified-delete"><summary><strong>Delete account</strong><span class="chevron" aria-hidden="true">⌄</span></summary><div class="history-content"><p>@(tts.Data.AccountModerationRules.IsStaff(user.Role) ? "Staff accounts cannot be deleted here." : "Direct deletion is available only for eligible unverified accounts. Review submitted deletion requests in the deletion queue.")</p><a href="/Admin#deletions" target="_top">View deletion requests</a></div></details>
                 }
                 <details class="history session-history" data-user-id="@user.Id"><summary><strong>Session history</strong><span class="chevron" aria-hidden="true">⌄</span></summary><div class="history-content"><p class="session-feedback" role="status">Open to load sessions.</p><div class="session-entries"></div><button type="button" class="session-more" hidden>Load more sessions</button></div></details>
                 <details class="history"><summary><span><strong>Admin action history</strong><small data-i18n>View decisions and notes</small></span><span class="chevron" aria-hidden="true">⌄</span></summary>

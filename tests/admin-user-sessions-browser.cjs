@@ -33,6 +33,11 @@ const {chromium} = require('C:/Users/Mr_Jh/.cache/codex-runtimes/codex-primary-r
         assert.equal(await page.locator('.user-card').count(),2);
         const search = page.locator('#userSearch');
         assert.equal(await search.count(),1);
+        const searchBounds = await page.locator('.users-search').boundingBox();
+        const countBounds = await page.locator('.users-total').boundingBox();
+        assert(searchBounds.x < countBounds.x,'Search starts on the left before account count');
+        assert.equal(await page.locator('.user-card').first().locator('.unverified-delete').count(),1,'Eligible unverified account has deletion control');
+        assert.equal(await page.locator('.user-card').nth(1).locator('.unverified-delete').count(),0,'Verified/ineligible account has no deletion panel');
         await search.fill('k');
         assert.equal(await page.locator('.user-card:visible').count(),1);
         assert.match(await page.locator('.user-card:visible .user-identity').textContent(),/Karl Paras/);
@@ -72,6 +77,8 @@ const {chromium} = require('C:/Users/Mr_Jh/.cache/codex-runtimes/codex-primary-r
         assert.equal(await history.locator('button').isHidden(),true);
         await history.locator('summary').click(); await history.locator('summary').click();
         assert.equal(calls,3,'Reopening does not duplicate requests');
+        await page.locator('.penalty-panel').first().locator('summary').click();
+        assert.equal(await page.locator('.penalty-clear-state').first().isVisible(),true);
         await page.screenshot({path:'obj/users-unified-desktop.png',fullPage:true});
         await page.setViewportSize({width:390,height:844});
         assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'No horizontal overflow on mobile');

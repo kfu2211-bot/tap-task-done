@@ -14,7 +14,7 @@
             card.hidden = !match;
             if (match) count++;
         });
-        status.textContent = query ? `${count} of ${cards.length} users match your search.` : 'All users shown. Search by name or email, starting with one character.';
+        status.textContent = query ? `${count} of ${cards.length} users match your search.` : `${cards.length} users shown.`;
         empty.hidden = !query || count > 0;
     }
     input.addEventListener('input', filter);
