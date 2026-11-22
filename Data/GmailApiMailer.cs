@@ -100,6 +100,13 @@ public sealed class GmailApiMailer(HttpClient client)
                 !root.TryGetProperty("expires_in", out var expiry) || expiry.ValueKind != JsonValueKind.Number || !expiry.TryGetInt32(out var seconds) || seconds <= 0 ||
                 !root.TryGetProperty("token_type", out var type) || type.ValueKind != JsonValueKind.String || !string.Equals(type.GetString(), "Bearer", StringComparison.OrdinalIgnoreCase))
                 throw new GmailDeliveryException("gmail_invalid_token_response");
+            // Google may omit scope on refresh. When supplied, do not cache authorization
+            // which cannot send mail. Do not request broader mailbox access as a workaround.
+            if (root.TryGetProperty("scope", out var scope) && scope.ValueKind == JsonValueKind.String &&
+                !scope.GetString()!.Split(' ', StringSplitOptions.RemoveEmptyEntries).Any(value => value is
+                    "https://www.googleapis.com/auth/gmail.send" or "https://www.googleapis.com/auth/gmail.compose" or
+                    "https://www.googleapis.com/auth/gmail.modify" or "https://mail.google.com/"))
+                throw new GmailDeliveryException("gmail_send_scope_missing");
             cachedToken = token.GetString(); cachedKey = key; tokenExpiresUtc = DateTime.UtcNow.AddSeconds(Math.Min(seconds, 86400));
             return cachedToken!;
         }
@@ -115,9 +122,22 @@ public sealed class GmailApiMailer(HttpClient client)
             {
                 if (oauth && error.ValueKind == JsonValueKind.String)
                     return error.GetString() switch { "invalid_grant" => "gmail_authorization_expired_or_revoked", "invalid_client" => "gmail_client_credentials_invalid", "unauthorized_client" => "gmail_client_not_authorized", _ => "gmail_token_request_failed" };
-                if (!oauth && error.ValueKind == JsonValueKind.Object && error.TryGetProperty("errors", out var errors) && errors.ValueKind == JsonValueKind.Array)
-                    foreach (var entry in errors.EnumerateArray())
-                        if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty("reason", out var reason) && reason.ValueKind == JsonValueKind.String && reason.GetString() is "accessNotConfigured" or "serviceDisabled") return "gmail_api_not_enabled";
+                if (!oauth && error.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var field in new[] { "errors", "details" })
+                        if (error.TryGetProperty(field, out var entries) && entries.ValueKind == JsonValueKind.Array)
+                            foreach (var entry in entries.EnumerateArray())
+                                if (entry.ValueKind == JsonValueKind.Object && entry.TryGetProperty("reason", out var reason) && reason.ValueKind == JsonValueKind.String &&
+                                    KnownApiReason(reason.GetString()) is { } category) return category;
+                    // Gmail uses the same generic "forbidden" reason for a mailbox mismatch.
+                    // Inspect known message signatures only; never include the message or address in logs.
+                    if (response.StatusCode == HttpStatusCode.Forbidden && error.TryGetProperty("message", out var message) && message.ValueKind == JsonValueKind.String)
+                    {
+                        var value = message.GetString()!;
+                        if (value.StartsWith("Delegation denied for", StringComparison.OrdinalIgnoreCase)) return "gmail_sender_account_mismatch";
+                        if (value.Equals("Request had insufficient authentication scopes.", StringComparison.OrdinalIgnoreCase)) return "gmail_send_scope_missing";
+                    }
+                }
             }
         }
         catch (JsonException) { }
@@ -127,4 +147,14 @@ public sealed class GmailApiMailer(HttpClient client)
             HttpStatusCode.TooManyRequests => "gmail_rate_limited", _ => oauth ? "gmail_token_request_failed" : "gmail_send_rejected"
         };
     }
+
+    private static string? KnownApiReason(string? reason) => reason switch
+    {
+        "accessNotConfigured" or "serviceDisabled" or "SERVICE_DISABLED" => "gmail_api_not_enabled",
+        "insufficientPermissions" or "ACCESS_TOKEN_SCOPE_INSUFFICIENT" => "gmail_send_scope_missing",
+        "domainPolicy" => "gmail_domain_policy_denied",
+        "dailyLimitExceeded" or "dailyLimitExceededUnreg" => "gmail_daily_quota_exceeded",
+        "rateLimitExceeded" or "userRateLimitExceeded" or "RATE_LIMIT_EXCEEDED" => "gmail_rate_limited",
+        _ => null
+    };
 }
