@@ -46,16 +46,38 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
         {
             try
             {
-                var sessions = db.Set<UserActivitySession>().AsNoTracking();
-                var latest = await sessions.Where(s => !sessions.Any(other => other.UserId == s.UserId && other.StartedUtc > s.StartedUtc)).ToListAsync(ct);
-                LatestSessions = latest.GroupBy(s => s.UserId).ToDictionary(g => g.Key, g => g.OrderByDescending(s => s.LastActiveUtc).ThenBy(s => s.Id).First());
-                var cutoff = Now.AddMinutes(-5);
-                OnlineUsers = (await sessions.Where(s => s.LogoutUtc == null && s.LastActiveUtc > cutoff).Select(s => s.UserId).Distinct().ToListAsync(ct)).ToHashSet();
+                await LoadActivityAsync(ct);
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
             { logger.LogWarning(ex, "User session summaries unavailable"); SessionsUnavailable = true; }
         }
         return Page();
+    }
+
+    private async Task LoadActivityAsync(CancellationToken ct)
+    {
+        var sessions = db.Set<UserActivitySession>().AsNoTracking();
+        var latest = await sessions.Where(s => db.Users.Any(u => u.Id == s.UserId && u.Role != "deleted") &&
+            !sessions.Any(other => other.UserId == s.UserId && other.StartedUtc > s.StartedUtc)).ToListAsync(ct);
+        LatestSessions = latest.GroupBy(s => s.UserId).ToDictionary(g => g.Key, g => g.OrderByDescending(s => s.LastActiveUtc).ThenBy(s => s.Id).First());
+        var cutoff = Now.AddMinutes(-5);
+        OnlineUsers = (await sessions.Where(s => s.LogoutUtc == null && s.LastActiveUtc > cutoff).Select(s => s.UserId).Distinct().ToListAsync(ct)).ToHashSet();
+    }
+
+    public async Task<IActionResult> OnGetActivityAsync(CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store";
+        try
+        {
+            await LoadActivityAsync(ct);
+            return new JsonResult(LatestSessions.Values.Select(s => new {
+                userId = s.UserId, online = OnlineUsers.Contains(s.UserId),
+                timeIn = DisplayTime.Philippine(s.StartedUtc), lastActive = DisplayTime.Philippine(s.LastActiveUtc),
+                timeOut = s.LogoutUtc.HasValue ? DisplayTime.Philippine(s.LogoutUtc.Value) : UserActivity.Status(s, Now) == "Inactive" ? "~ " + DisplayTime.Philippine(s.LastActiveUtc) : "—"
+            }));
+        }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
+        { logger.LogWarning(ex, "Live user activity unavailable"); return StatusCode(503); }
     }
 
     public async Task<IActionResult> OnGetSessionsAsync(int userId, int pageNumber = 1, CancellationToken ct = default)

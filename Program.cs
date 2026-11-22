@@ -258,6 +258,11 @@ app.Use(async (context, next) =>
                 else context.Response.Redirect("/Login");
                 return;
             }
+            if (HttpMethods.IsGet(context.Request.Method) && context.Request.Headers.Accept.ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase))
+            {
+                var tracked = await UserActivity.EnsureTrackedAsync(db, context, admin.Succeeded ? "AdminCookie" : "Cookies", context.RequestAborted);
+                if (tracked is not null) await UserActivity.Touch(db, tracked, context.RequestAborted);
+            }
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException)
         {
@@ -275,7 +280,7 @@ app.MapPost("/api/user-activity/heartbeat", async (HttpContext context, Applicat
     context.Response.Headers.CacheControl = "no-store";
     // Custom header plus same-origin Fetch Metadata prevents cross-site activity updates.
     if (context.Request.Headers["X-TTS-Activity"] != "1" || context.Request.Headers["Sec-Fetch-Site"] == "cross-site") return Results.BadRequest();
-    await UserActivity.Touch(db, context.User, ct);
+    await UserActivity.HeartbeatAsync(db, context, ct);
     return Results.NoContent();
 }).RequireAuthorization(new Microsoft.AspNetCore.Authorization.AuthorizeAttribute { AuthenticationSchemes = "Cookies,AdminCookie" });
 

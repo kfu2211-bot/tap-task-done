@@ -61,4 +61,35 @@ public static class UserActivity
         await db.Set<UserActivitySession>().Where(s => s.Id == id && s.UserId == userId && s.LogoutUtc == null && s.LastActiveUtc < now.AddSeconds(-45))
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.LastActiveUtc, now), ct);
     }
+
+    // Old authentication cookies predate activity tracking. Upgrade them without
+    // requiring another login, preserving their original authentication expiry.
+    public static async Task<ClaimsPrincipal?> EnsureTrackedAsync(ApplicationDbContext db, HttpContext context, string scheme, CancellationToken ct)
+    {
+        var auth = await context.AuthenticateAsync(scheme);
+        if (!auth.Succeeded || auth.Principal?.Identity is not ClaimsIdentity identity ||
+            !int.TryParse(auth.Principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) return null;
+        if (identity.HasClaim(c => c.Type == Claim)) return auth.Principal;
+        var now = DateTime.UtcNow;
+        var started = auth.Properties?.IssuedUtc?.UtcDateTime ?? now;
+        if (started > now) started = now;
+        // A stable ID makes simultaneous requests from the same old cookie safe.
+        var source = auth.Principal.FindFirstValue("login_session") ?? $"{started.Ticks}:{auth.Principal.FindFirstValue("password_version")}";
+        var id = LoginSecurity.Hash($"activity:{scheme}:{userId}:{source}");
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO user_activity_sessions (Id, UserId, StartedUtc, LastActiveUtc, LogoutUtc) VALUES ({id}, {userId}, {started}, {now}, NULL) ON DUPLICATE KEY UPDATE Id = Id", ct);
+        identity.AddClaim(new(Claim, id));
+        await context.SignInAsync(scheme, auth.Principal, auth.Properties);
+        return auth.Principal;
+    }
+
+    public static async Task HeartbeatAsync(ApplicationDbContext db, HttpContext context, CancellationToken ct)
+    {
+        // Use each authenticated ticket explicitly: a combined principal may have
+        // different users signed into the customer and admin sites in one browser.
+        foreach (var scheme in new[] { "Cookies", "AdminCookie" })
+        {
+            var principal = await EnsureTrackedAsync(db, context, scheme, ct);
+            if (principal is not null) await Touch(db, principal, ct);
+        }
+    }
 }

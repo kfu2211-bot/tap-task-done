@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.AspNetCore.DataProtection;
 using System.Security.Claims;
+await ActivityChecks.Run();
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions { ContentRootPath = Directory.GetCurrentDirectory() });
 builder.Logging.ClearProviders();
 builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
@@ -35,6 +36,7 @@ Func<HttpContext, Task> render = async (HttpContext context) => {
     Set("LatestSessions",new Dictionary<int,UserActivitySession> { [1]=new() { Id="1",UserId=1,StartedUtc=model.Now.AddHours(-2),LastActiveUtc=model.Now }, [2]=new() {Id="2",UserId=2,StartedUtc=model.Now.AddHours(-3),LastActiveUtc=model.Now.AddHours(-1),LogoutUtc=model.Now.AddHours(-1)} });
     Set("OnlineUsers",new HashSet<int> {1});
     var view = context.RequestServices.GetRequiredService<IRazorViewEngine>().GetView(null,"/Pages/AdminUsers.cshtml",true);
+    if (!view.Success) throw new Exception("Compiled Users view not found");
     var route = new Microsoft.AspNetCore.Routing.RouteData(); route.Values["page"]="/AdminUsers";
     var action = new ActionContext(context,route,new Microsoft.AspNetCore.Mvc.Abstractions.ActionDescriptor {RouteValues=new Dictionary<string,string?>{{"page","/AdminUsers"}}});
     var data = new ViewDataDictionary<AdminUsersModel>(context.RequestServices.GetRequiredService<IModelMetadataProvider>(),new ModelStateDictionary()){Model=model};

@@ -31,15 +31,15 @@
             var latest = Model.LatestSessions.GetValueOrDefault(user.Id);
             var online = Model.OnlineUsers.Contains(user.Id);
             var sessionStatus = latest is null ? "No sessions yet" : tts.Data.UserActivity.Status(latest, Model.Now);
-            <article class="user-card" data-user-search="@($"{user.Name} {user.Email}")">
-                <div class="user-head"><div class="user-identity"><span class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(user.Name) ? "U" : user.Name.Trim().Substring(0, 1).ToUpperInvariant())@if (user.HasPhoto) { <img class="user-avatar-photo" src="@Url.Page("/ProfilePhoto", "Staff", new { userId = user.Id })" alt="" loading="lazy" /> }</span><div><strong>@user.Name @if(user.Restricted) { <span class="account-warning-symbol" title="Account warning">⚠</span> }</strong><p>@user.Email <span aria-hidden="true">·</span> @user.Role</p></div></div><span class="badge @(user.Suspended ? "suspended" : user.Restricted ? "restricted" : "")">@user.Moderation.Penalty</span></div>
-                <div class="presence-line"><span class="presence-badge @(online ? "is-online" : "")">@(Model.SessionsUnavailable ? "Activity unavailable" : online ? "Online" : latest is null ? "No sessions yet" : "Offline")</span></div>
+            <article class="user-card" data-user-id="@user.Id" data-user-search="@($"{user.Name} {user.Email}")">
+                <div class="user-head"><div class="user-identity"><span class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(user.Name) ? "U" : user.Name.Trim().Substring(0, 1).ToUpperInvariant())@if (user.HasPhoto) { <img class="user-avatar-photo" src="@Url.Page("/ProfilePhoto", "Staff", new { userId = user.Id })" alt="" loading="lazy" /> }</span><div><strong>@user.Name @if(user.Restricted) { <span class="account-warning-symbol" title="Account warning">⚠</span> }</strong><p>@user.Email <span aria-hidden="true">·</span> @user.Role</p></div></div><span class="badge @(user.Suspended ? "suspended" : user.Restricted ? "restricted" : "")">@(user.Suspended || user.Restricted ? user.Moderation.Penalty : "No penalty")</span></div>
+                <div class="presence-line"><span class="presence-badge @(online ? "is-online" : "")" data-presence>@(Model.SessionsUnavailable ? "Activity unavailable" : online ? "Online" : latest is null ? "Not yet detected" : "Offline")</span></div>
                 <dl class="session-summary">
-                    <div><dt>Time In</dt><dd>@(latest is null ? "—" : tts.Data.DisplayTime.Philippine(latest.StartedUtc))</dd></div>
-                    <div><dt>Last Active</dt><dd>@(latest is null ? "—" : tts.Data.DisplayTime.Philippine(latest.LastActiveUtc))</dd></div>
-                    <div><dt>Time Out</dt><dd>@(latest is null ? "—" : latest.LogoutUtc.HasValue ? tts.Data.DisplayTime.Philippine(latest.LogoutUtc.Value) : sessionStatus == "Inactive" ? "~ " + tts.Data.DisplayTime.Philippine(latest.LastActiveUtc) : "—")</dd></div>
+                    <div><dt>Time In</dt><dd data-time-in>@(latest is null ? "—" : tts.Data.DisplayTime.Philippine(latest.StartedUtc))</dd></div>
+                    <div><dt>Last Active</dt><dd data-last-active>@(latest is null ? "—" : tts.Data.DisplayTime.Philippine(latest.LastActiveUtc))</dd></div>
+                    <div><dt>Time Out</dt><dd data-time-out>@(latest is null ? "—" : latest.LogoutUtc.HasValue ? tts.Data.DisplayTime.Philippine(latest.LogoutUtc.Value) : sessionStatus == "Inactive" ? "~ " + tts.Data.DisplayTime.Philippine(latest.LastActiveUtc) : "—")</dd></div>
                 </dl>
-                <p class="session-note">Latest login shown. Online checks all devices. Inactive time out is estimated.</p>
+                <p class="session-note">Account penalty and online presence are separate. Latest login shown; online checks all devices. ~ means estimated time out. Older logins use the available sign-in cookie time.</p>
                 @if (!tts.Data.AccountModerationRules.IsStaff(user.Role)) {
                     <p><strong>Confirmed offenses: @user.Moderation.Offenses</strong> · Next: @tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)</p>
                     <details class="history penalty-panel" open="@(user.Suspended || user.Restricted)"><summary><strong>Penalty &amp; recovery</strong><span class="chevron" aria-hidden="true">⌄</span></summary><div class="history-content">

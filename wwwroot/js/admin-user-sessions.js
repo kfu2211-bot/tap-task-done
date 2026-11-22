@@ -1,3 +1,33 @@
+// Keep presence current without resetting search, forms or expanded panels.
+(() => {
+    let busy = false;
+    async function update() {
+        if (document.hidden || busy || (window.frameElement && !window.frameElement.getClientRects().length)) return;
+        busy = true;
+        try {
+            const response = await fetch('/AdminUsers?handler=Activity', { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
+            if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) throw new Error('Activity unavailable');
+            const rows = new Map((await response.json()).map(row => [String(row.userId), row]));
+            document.querySelectorAll('.user-card[data-user-id]').forEach(card => {
+                const row = rows.get(card.dataset.userId);
+                const badge = card.querySelector('[data-presence]');
+                badge.textContent = row ? row.online ? 'Online' : 'Offline' : 'Not yet detected';
+                badge.classList.toggle('is-online', !!row?.online);
+                card.querySelector('[data-time-in]').textContent = row?.timeIn ?? '—';
+                card.querySelector('[data-last-active]').textContent = row?.lastActive ?? '—';
+                card.querySelector('[data-time-out]').textContent = row?.timeOut ?? '—';
+            });
+        } catch {
+            document.querySelectorAll('[data-presence]').forEach(badge => {
+                badge.textContent = 'Activity unavailable';
+                badge.classList.remove('is-online');
+            });
+        } finally { busy = false; }
+    }
+    setInterval(update, 30000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) update(); });
+})();
+
 document.querySelectorAll('.session-history').forEach(panel => {
     const feedback = panel.querySelector('.session-feedback');
     const entries = panel.querySelector('.session-entries');

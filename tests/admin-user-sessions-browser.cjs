@@ -7,7 +7,7 @@ const {chromium} = require('C:/Users/Mr_Jh/.cache/codex-runtimes/codex-primary-r
     try {
         const page = await browser.newPage({viewport:{width:1440,height:1100}});
         const errors = []; page.on('pageerror', e => errors.push(e.message));
-        let calls = 0, fail = false;
+        let calls = 0, fail = false, activityFailed = false;
         await page.route('http://users.test/**', async route => {
             const pathname = new URL(route.request().url()).pathname;
             if (pathname === '/fixture') return route.fulfill({contentType:'text/html',body:fs.readFileSync('obj/users-preview.html','utf8')});
@@ -18,6 +18,10 @@ const {chromium} = require('C:/Users/Mr_Jh/.cache/codex-runtimes/codex-primary-r
         });
         await page.route('**/AdminUsers?**', async route => {
             const url = new URL(route.request().url());
+            if (url.searchParams.get('handler') === 'Activity') {
+                if (activityFailed) return route.fulfill({status:503,body:'Unavailable'});
+                return route.fulfill({contentType:'application/json',body:JSON.stringify([{userId:1,online:true,timeIn:'Nov 22, 2026 8:00 AM',lastActive:'Nov 22, 2026 9:30 AM',timeOut:'—'}])});
+            }
             if (url.searchParams.get('handler') !== 'Sessions') return route.continue();
             calls++;
             if (fail) return route.fulfill({status:503,body:'Unavailable'});
@@ -39,6 +43,17 @@ const {chromium} = require('C:/Users/Mr_Jh/.cache/codex-runtimes/codex-primary-r
         assert.equal(await page.locator('#noUserMatches').isVisible(),true);
         await search.fill('');
         assert.equal(await page.locator('.user-card:visible').count(),2);
+        assert.equal(await page.locator('.user-card .badge').first().textContent(),'No penalty');
+        await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+        await page.waitForFunction(()=>document.querySelector('[data-last-active]').textContent==='Nov 22, 2026 9:30 AM');
+        assert.equal(await page.locator('[data-presence]').first().textContent(),'Online');
+        activityFailed = true;
+        await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+        await page.waitForFunction(()=>document.querySelector('[data-presence]').textContent==='Activity unavailable');
+        assert.equal(await page.locator('[data-last-active]').first().textContent(),'Nov 22, 2026 9:30 AM');
+        activityFailed = false;
+        await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+        await page.waitForFunction(()=>document.querySelector('[data-presence]').textContent==='Online');
         assert.equal(await page.locator('.session-summary').count(),2);
         assert.equal(calls,0,'History should load only when opened');
         const history = page.locator('.session-history').first();
@@ -68,6 +83,6 @@ const {chromium} = require('C:/Users/Mr_Jh/.cache/codex-runtimes/codex-primary-r
         const refreshUrl = new URL((await refreshRequest).url());
         assert.equal(refreshUrl.searchParams.get('Search'),'Karl');
         assert.equal(refreshUrl.searchParams.get('Embedded'),'false');
-        console.log('PASS: one-character search shows matching identity/avatar; case-insensitive search, empty/reset, refresh GET preserves search and embedded mode; history pagination/retry and mobile layout.');
+        console.log('PASS: separate penalty/presence labels, live activity refresh, unavailable/recovery states, one-character search, refresh GET, session history and mobile layout.');
     } finally {await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
