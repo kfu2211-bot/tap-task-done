@@ -10,7 +10,7 @@
     </select>
     <small data-i18n>Choose the work category. Set the actual work date and time separately.</small>
     <label for="@(id)-end">Expected finish (Philippine time)</label>
-    <input id="@(id)-end" type="datetime-local" name="workEnd" step="60" value="@Model.WorkEndUtc?.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" data-job-end required="@(Model.RequireEnd || Model.Value == "multi-day")" />
-    <small data-i18n>A finish date is required for Multi-Day Job. Short and Long Jobs finish on their start date. Both participants confirm the final schedule.</small>
+    <input id="@(id)-end" type="datetime-local" name="workEnd" step="60" value="@Model.WorkEndUtc?.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" data-job-end required />
+    <small data-i18n>Every job needs a start and expected finish to check schedule conflicts. Short and Long Jobs finish on their start date.</small>
     <small data-i18n>Multi-Day Job reserves the full period between start and finish.</small>
 </div>

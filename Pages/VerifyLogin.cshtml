@@ -33,7 +33,7 @@
     <form method="post" asp-page="/VerifyLogin" asp-page-handler="Resend" class="verification-resend" data-resend-seconds="@Model.ResendSeconds">
         <button type="submit" disabled="@(Model.ResendSeconds > 0)">Resend code</button>
         <span class="verification-resend-divider" aria-hidden="true"></span>
-        <small role="status" data-resend-label>@(Model.ResendSeconds > 0 ? $"Available in 00:{Model.ResendSeconds:D2}" : "Didn't receive a code?")</small>
+        <small role="status" data-resend-label>@(Model.ResendSeconds > 0 ? $"Available in {Model.ResendSeconds / 60:D2}:{Model.ResendSeconds % 60:D2}" : "Didn't receive a code?")</small>
     </form>
     <a class="verification-back" href="/Login" data-i18n>Back to login</a>
 </main>

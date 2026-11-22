@@ -105,6 +105,15 @@
                         </section>
                     }
                     @if (report.Status is "open" or "reviewing") {
+                        @if (report.Reason == tts.Data.JobCancellation.FollowUpReason) {
+                            <form method="post" asp-page-handler="CancellationReview" class="flow-notice flow-review">
+                                <h3 data-i18n>Resolve cancellation follow-up</h3><input type="hidden" name="id" value="@report.Id" /><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
+                                <p data-i18n>Review the request and both participants' explanations. This decision updates the job and notifies both participants. No automatic penalty applies.</p>
+                                <label><span data-i18n>Decision reason visible to both participants</span><textarea name="note" rows="3" minlength="10" maxlength="500" required></textarea></label>
+                                <label class="flow-check"><input type="checkbox" name="reviewed" value="true" required /><span data-i18n>I reviewed the request and available evidence.</span></label>
+                                <div class="flow-actions"><button class="flow-button" name="decision" value="cancel" data-i18n>Approve cancellation after review</button><button class="flow-button flow-secondary" name="decision" value="continue" data-i18n>Keep job active after review</button></div>
+                            </form>
+                        }
                         <form method="post" asp-page-handler="Update" data-review-save class="safety-form report-action-form"><h3>Review this report</h3><p class="report-review-intro" data-i18n>Choose Resolved or Dismissed to close the report and move it to History.</p><input type="hidden" name="id" value="@report.Id" /><input type="hidden" name="recordId" value="@Model.RecordId" /><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
                         <label>Internal note <span data-i18n>(private; at least 10 characters to close)</span><textarea name="note" maxlength="1000" rows="3" placeholder="Add context for other admins">@Model.ReviewNote</textarea><span class="review-error" data-review-error="note" role="alert">@ViewData.ModelState["note"]?.Errors.FirstOrDefault()?.ErrorMessage</span></label>
                         <label>Review outcome<select name="status" required><option value="" disabled selected="@(string.IsNullOrEmpty(Model.ReviewStatus))">Choose what happens to this report</option>@if(report.Status == "open") { <option value="reviewing" selected="@(Model.ReviewStatus == "reviewing")">Keep open · Under review</option> }<option value="resolved" selected="@(Model.ReviewStatus == "resolved")">Close report · Resolved</option><option value="dismissed" selected="@(Model.ReviewStatus == "dismissed")">Close report · Dismissed</option></select></label>

@@ -7,6 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace tts.Data;
 
+public sealed class LoginCodeWaitException(int retrySeconds, bool requestLimit = false)
+    : InvalidOperationException(requestLimit ? "Too many verification requests. Wait 15 minutes before trying again." : "Wait until the countdown ends before requesting another code.")
+{
+    public int RetrySeconds { get; } = Math.Max(1, retrySeconds);
+    public bool RequestLimit { get; } = requestLimit;
+}
+
 public sealed class LoginChallenge
 {
     public string Id { get; set; } = "";
@@ -73,7 +80,7 @@ public static class LoginSecurity
         var hash = Hash(token!); var version = AccountStore.SessionFingerprint(user.PasswordHash); var now = DateTime.UtcNow;
         return await db.Set<TrustedLoginDevice>().AnyAsync(x => x.Id == hash && x.UserId == user.Id && x.PasswordVersion == version && x.ExpiresUtc > now, ct);
     }
-    public static int ResendCooldown(DateTime createdUtc, DateTime now) => Math.Max(0, (int)Math.Ceiling((createdUtc.AddSeconds(60) - now).TotalSeconds));
+    public static int ResendCooldown(DateTime createdUtc, DateTime now, int sentCount = 1) => OtpResendPolicy.Remaining(createdUtc, now, sentCount);
     public static async Task BeginAsync(ApplicationDbContext db, HttpContext context, AppUser user, IConfiguration config, CancellationToken ct, string? previousToken = null)
     {
         var token = Token(); var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString(); var now = DateTime.UtcNow;
@@ -90,9 +97,9 @@ public static class LoginSecurity
             }
             var cutoff = now.AddMinutes(-15);
             var latest = await db.Set<LoginChallenge>().Where(x => x.UserId == user.Id).MaxAsync(x => (DateTime?)x.CreatedUtc, ct);
-            if (latest.HasValue && ResendCooldown(latest.Value, now) > 0) throw new InvalidOperationException("Wait 60 seconds before requesting another code.");
-            if (await db.Set<LoginChallenge>().CountAsync(x => x.UserId == user.Id && x.CreatedUtc > cutoff, ct) >= 5)
-                throw new InvalidOperationException("Too many verification requests. Wait 15 minutes before trying again.");
+            var recent = await db.Set<LoginChallenge>().Where(x => x.UserId == user.Id && x.CreatedUtc > cutoff).OrderBy(x => x.CreatedUtc).Select(x => x.CreatedUtc).ToListAsync(ct);
+            if (recent.Count >= 5) throw new LoginCodeWaitException((int)Math.Ceiling((recent[0].AddMinutes(15) - now).TotalSeconds), true);
+            if (latest.HasValue && ResendCooldown(latest.Value, now, recent.Count) > 0) throw new LoginCodeWaitException(ResendCooldown(latest.Value, now, recent.Count));
             await db.Set<LoginChallenge>().Where(x => x.UserId == user.Id && !x.Consumed).ExecuteUpdateAsync(s => s.SetProperty(x => x.Consumed, true), ct);
             db.Set<LoginChallenge>().Add(new() { Id = Hash(token), CodeHash = CodeHash(token, code), UserId = user.Id, PasswordVersion = AccountStore.SessionFingerprint(user.PasswordHash), CreatedUtc = now, ExpiresUtc = now.AddMinutes(10) });
             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);

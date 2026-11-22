@@ -78,6 +78,12 @@ namespace tts.Pages
                         return new JsonResult(new { name, email = user.Username, redirect = destination });
                     }
                     try { await LoginSecurity.BeginAsync(db, HttpContext, user, config, cancellationToken); }
+                    catch (LoginCodeWaitException ex)
+                    {
+                        Response.Headers.RetryAfter = ex.RetrySeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        return new JsonResult(new { message = ex.Message, retryAfterSeconds = ex.RetrySeconds,
+                            reason = ex.RequestLimit ? "otp_request_limit" : "otp_cooldown" }) { StatusCode = 429 };
+                    }
                     catch (Exception ex) when (ex is System.Net.Mail.SmtpException or FormatException or InvalidOperationException)
                     {
                         HttpContext.RequestServices.GetRequiredService<ILogger<LoginModel>>().LogWarning("New-device code delivery failed ({Type}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex));

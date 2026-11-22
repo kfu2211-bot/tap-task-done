@@ -79,6 +79,7 @@ builder.Services.AddRazorPages(options => options.Conventions.AuthorizePage("/Ad
 builder.Services.AddScoped<AccountStore>();
 builder.Services.AddHostedService<CompletionReminderWorker>();
 builder.Services.AddHostedService<ScheduleReminderWorker>();
+builder.Services.AddHostedService<ScheduleReminderEmailWorker>();
 builder.Services.AddHostedService<TaskExpiryWorker>();
 builder.Services.AddHostedService<IdentityRetentionWorker>();
 builder.Services.AddHostedService<AccountDeletionWorker>();
@@ -274,6 +275,33 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseAuthorization();
+
+app.MapGet("/api/jobs/schedule-check", async (long id, string kind, HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    if (!int.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) return Results.Unauthorized();
+    MarketplaceTask? task = null; int freelancerId = 0;
+    if (kind == "booking")
+    {
+        var booking = await db.MarketplaceBookings.AsNoTracking().SingleOrDefaultAsync(b => b.Id == id && b.FreelancerId == userId && b.Status == "pending", ct);
+        if (booking is null) return Results.NotFound();
+        task = await db.MarketplaceTasks.AsNoTracking().SingleOrDefaultAsync(t => t.Id == booking.TaskId && (t.Status == "booking-pending" || t.Status == "open"), ct);
+        freelancerId = userId;
+    }
+    else if (kind == "offer")
+    {
+        var offer = await db.MarketplaceOffers.AsNoTracking().SingleOrDefaultAsync(o => o.Id == id && o.Status == "pending" && db.MarketplaceTasks.Any(t => t.Id == o.TaskId && t.ClientId == userId && t.Status == "open"), ct);
+        if (offer is null) return Results.NotFound();
+        task = await db.MarketplaceTasks.AsNoTracking().SingleOrDefaultAsync(t => t.Id == offer.TaskId, ct);
+        freelancerId = offer.FreelancerId;
+    }
+    if (task is null) return Results.NotFound();
+    var message = !JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc) ? JobTypes.IncompleteScheduleMessage
+        : await JobAcceptanceRules.IsLockedAsync(db, freelancerId, ct, task.Id) ? JobAcceptanceRules.Message
+        : await JobTypes.ConflictsAsync(db, freelancerId, task.Id, task.ScheduleText, task.WorkEndUtc, ct)
+            ? "This schedule conflicts with accepted work or an unfinished schedule. Agree on different times before accepting." : "";
+    return Results.Json(new { canAccept = message == "", message });
+}).RequireAuthorization();
 
 app.MapPost("/api/user-activity/heartbeat", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
 {

@@ -417,6 +417,9 @@
         const preservedSuffix = ' Your entries are still here.';
         if (key.endsWith(preservedSuffix)) return filipinoLabel(key.slice(0, -preservedSuffix.length)) + ' Nandito pa ang mga inilagay mo.';
         return key
+            .replace(/^Report #(\d+) · Cancellation follow-up$/, 'Ulat #$1 · Follow-up sa pagkansela')
+            .replace(/^Upcoming job: (.+) PHT\. Starts within (1 hour|24 hours)\. Review your agreed work details in Tracking\.$/, (_, schedule, period) => `Paparating na trabaho: ${schedule} PHT. Magsisimula sa loob ng ${period === '1 hour' ? '1 oras' : '24 oras'}. Tingnan ang napagkasunduang detalye sa Pagsubaybay.`)
+            .replace(/^Schedule overdue: (.+) PHT\. No travel update is recorded\. Contact each other to continue, reschedule, or request cancellation\.$/, 'Lumampas na ang iskedyul: $1 PHT. Wala pang update sa pagbiyahe. Makipag-ugnayan upang magpatuloy, magtakda ng bagong oras, o humiling ng pagkansela.')
             .replace(/^(.+?)( - Tap, Task, Done| · Tap, Task, Done| - Admin)$/, (_, label, suffix) => (labels[label] || label) + suffix)
             .replace(/^(Task record|Task|Original task) #(\d+)$/, (_, label, id) => (label === 'Task record' ? 'Record ng task' : label === 'Original task' ? 'Orihinal na task' : 'Task') + ' #' + id)
             .replace(/^(Task|Your offer|Booking): (.+)$/, (_, label, status) => ({Task:'Task', 'Your offer':'Alok mo', Booking:'Booking'}[label]) + ': ' + (labels[status] || labels[status.toLowerCase()] || status))

@@ -872,4 +872,61 @@ Check your dates, destination, and freelancer availability. Refresh your sign-in
 Could not confirm where this request was saved.	Hindi makumpirma kung saan na-save ang kahilingan.
 Choose a future date and time for the new schedule.	Pumili ng petsa at oras sa hinaharap para sa bagong iskedyul.
 The proposed schedule has already passed. Request a future schedule before confirming.	Lumampas na ang iminungkahing iskedyul. Humiling ng bagong iskedyul bago kumpirmahin.
+Wait until the countdown ends before requesting another code.	Hintaying matapos ang countdown bago humingi ulit ng code.
+Too many verification requests. Wait 15 minutes before trying again.	Masyadong maraming kahilingan ng code. Maghintay nang hanggang 15 minuto bago subukang muli.
+Too many sign-in requests. Please wait before trying again.	Masyadong maraming pag-sign in. Maghintay bago subukang muli.
+You can request a sign-in code now.	Maaari ka nang humingi ulit ng sign-in code.
+The schedule is incomplete. Ask the client to set a start and expected finish before accepting.	Kulang ang iskedyul. Hilinging magtakda ang kliyente ng simula at inaasahang pagtatapos bago tanggapin.
+This schedule conflicts with accepted work or an unfinished schedule. Agree on different times before accepting.	May kasabay na tinanggap na trabaho o hindi kumpletong iskedyul. Magkasundo muna sa ibang oras bago tanggapin.
+Every job needs a start and expected finish to check schedule conflicts. Short and Long Jobs finish on their start date.	Kailangan ng bawat trabaho ang simula at inaasahang pagtatapos para masuri ang magkasabay na iskedyul. Sa parehong araw natatapos ang Short at Long Job.
+Choose a start and expected finish for every job. Finish must be after start; Short/Long jobs finish on the same date, and Multi-Day jobs finish on a later date.	Piliin ang simula at inaasahang pagtatapos ng bawat trabaho. Dapat mas huli ang pagtatapos; parehong araw para sa Short/Long Job, at susunod na petsa para sa Multi-Day Job.
+Choose a finish after the work start.	Pumili ng oras ng pagtatapos na mas huli sa simula.
+Multi-Day Job must finish on a later date.	Dapat sa susunod na petsa matapos ang Multi-Day Job.
+Short and Long Jobs must finish on their start date.	Dapat sa araw ng simula matapos ang Short at Long Job.
+The scheduled time is your arrival time. Travel opens 1 hour earlier.	Ang nakatakdang oras ay oras ng pagdating. Maaari nang bumiyahe 1 oras bago nito.
+Travel opens 1 hour before the scheduled arrival time.	Maaari nang magsimulang bumiyahe 1 oras bago ang nakatakdang pagdating.
+New work remains locked until client confirmation or approved resolution.	Naka-lock pa ang bagong trabaho hanggang kumpirmahin ng kliyente o maaprubahan ang resolusyon.
+No cancellation decision after 24 hours.	Wala pang desisyon sa pagkansela matapos ang 24 oras.
+You can request admin review. No automatic cancellation or penalty applies.	Maaari kang humiling ng pagsusuri ng admin. Walang awtomatikong pagkansela o parusa.
+Ask admin for review	Humiling ng pagsusuri ng admin
+View report updates	Tingnan ang mga update sa ulat
+Admin follow-up becomes available after 24 hours without a decision.	Maaaring humiling ng tulong sa admin pagkalipas ng 24 oras na walang desisyon.
+Admin follow-up is available after 24 hours without a cancellation decision.	Maaaring humiling ng tulong sa admin pagkalipas ng 24 oras na walang desisyon sa pagkansela.
+This cancellation is already with the admin for review.	Nasa admin na ang kahilingan sa pagkansela para suriin.
+Cancellation follow-up submitted. Track the admin response in Safety & Reports.	Naipasa na ang follow-up sa pagkansela. Tingnan ang sagot ng admin sa Kaligtasan at mga ulat.
+Resolve cancellation follow-up	Resolbahin ang follow-up sa pagkansela
+Review the request and both participants' explanations. This decision updates the job and notifies both participants. No automatic penalty applies.	Suriin ang kahilingan at paliwanag ng magkabilang panig. Maa-update ang trabaho at maaabisuhan ang dalawa. Walang awtomatikong parusa.
+Decision reason visible to both participants	Dahilan ng desisyon na makikita ng magkabilang panig
+I reviewed the request and available evidence.	Nasuri ko ang kahilingan at ebidensiyang magagamit.
+Approve cancellation after review	Aprubahan ang pagkansela matapos suriin
+Keep job active after review	Panatilihing aktibo ang trabaho matapos suriin
+Admin approved cancellation after review.	Inaprubahan ng admin ang pagkansela matapos suriin.
+Admin kept the job active after review. Discuss the next steps in Messages.	Pinanatili ng admin na aktibo ang trabaho. Pag-usapan sa Mga mensahe ang susunod na hakbang.
+Cancellation follow-up	Follow-up sa pagkansela
+Cancellation escalated for admin review	Ipinasa sa admin ang pagkansela para suriin
+No cancellation decision after 24 hours. Open Tracking to respond or ask admin for review. No automatic cancellation or penalty applies.	Wala pang desisyon sa pagkansela matapos ang 24 oras. Buksan ang Pagsubaybay para sumagot o humiling ng pagsusuri ng admin. Walang awtomatikong pagkansela o parusa.
+Cancellation follow-up sent for admin review. No automatic cancellation or penalty applies.	Naipasa sa admin ang follow-up sa pagkansela. Walang awtomatikong pagkansela o parusa.
+View scheduled job	Tingnan ang nakatakdang trabaho
+Start and expected finish are required before accepting this job.	Kailangan ang simula at inaasahang pagtatapos bago tanggapin ang trabahong ito.
+Please review the finished work and confirm completion in Tracking. New work remains locked until client confirmation or approved resolution.	Suriin ang natapos na trabaho at kumpirmahin sa Pagsubaybay. Naka-lock pa ang bagong trabaho hanggang kumpirmahin ng kliyente o maaprubahan ang resolusyon.
+Please review the finished work and confirm completion in Tracking. The freelancer can already accept other work.	Suriin ang natapos na trabaho at kumpirmahin sa Pagsubaybay. Maaari nang tumanggap ng ibang trabaho ang freelancer.
+Use Resolve cancellation follow-up to record the job decision and notify both participants.	Gamitin ang Resolbahin ang follow-up sa pagkansela upang itala ang desisyon at abisuhan ang magkabilang panig.
+Confirm that you reviewed the evidence before making a cancellation decision.	Kumpirmahing nasuri mo ang ebidensiya bago magdesisyon sa pagkansela.
+Choose a decision and enter a review reason of 10–500 characters.	Pumili ng desisyon at maglagay ng dahilan na may 10–500 character.
+The cancellation has already changed. Refresh and review the latest history.	Nagbago na ang kahilingan sa pagkansela. I-refresh at suriin ang pinakabagong history.
+Cancellation review could not be saved. Refresh and try again.	Hindi na-save ang pagsusuri sa pagkansela. I-refresh at subukang muli.
+Adjust schedule before acceptance	Ayusin ang iskedyul bago tanggapin
+Set a complete schedule or choose different times to resolve a conflict. Pending applicants will be notified. Accepted work uses the agreement flow in Tracking.	Kumpletuhin ang iskedyul o pumili ng ibang oras upang maiwasan ang sabay na trabaho. Maaabisuhan ang mga naghihintay na aplikante. Sa Pagsubaybay pinagkakasunduan ang pagbabago sa tinanggap nang trabaho.
+Arrival time (Philippine time)	Oras ng pagdating (oras sa Pilipinas)
+Save schedule and notify applicants	I-save ang iskedyul at abisuhan ang mga aplikante
+This work has changed. Use Tracking to agree on a new schedule after acceptance.	Nagbago na ang trabaho. Gamitin ang Pagsubaybay upang magkasundo sa bagong iskedyul pagkatapos tanggapin.
+The schedule is unchanged.	Hindi nagbago ang iskedyul.
+Schedule saved. Pending applicants have been notified.	Na-save ang iskedyul. Naabisuhan na ang mga naghihintay na aplikante.
+The client updated the schedule. Review the start and expected finish before accepting.	In-update ng kliyente ang iskedyul. Suriin ang simula at inaasahang pagtatapos bago tanggapin.
+Set a start and expected finish in the work agreement before starting travel.	Magtakda ng simula at inaasahang pagtatapos sa kasunduan bago simulan ang pagbiyahe.
+Schedule updated before acceptance	Na-update ang iskedyul bago tanggapin
+Wait until the resend timer ends. A maximum of five sends is allowed per 15 minutes.	Hintaying matapos ang resend timer. Hanggang limang pagpapadala lamang bawat 15 minuto.
+Wait until the resend timer ends. Only five sends are allowed per 15 minutes.	Hintaying matapos ang resend timer. Limang pagpapadala lamang ang pinapayagan bawat 15 minuto.
+Email delivery failed. Your status is shown below. Wait until the resend timer ends before requesting another code.	Hindi naipadala ang email. Makikita sa ibaba ang iyong status. Hintaying matapos ang resend timer bago humingi ulit ng code.
+Available in	Maaaring humiling muli sa
 `.trim().split('\n').map(line => line.split('\t')));

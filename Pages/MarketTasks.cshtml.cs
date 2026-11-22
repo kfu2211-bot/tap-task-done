@@ -34,6 +34,32 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         location.Length is >= 1 and <= 120 && schedule.Length <= 120 && budget is > 0 and <= 9999999999m;
 
     public static DateOnly TodayInPhilippines => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(8));
+    public static bool CanAdjustSchedule(MarketplaceTask task, int actor) => actor > 0 && task.ClientId == actor && task.Status is "open" or "booking-pending";
+
+    public async Task<IActionResult> OnPostScheduleAsync(long id, string schedule, string jobType, DateTime? workEnd, CancellationToken ct)
+    {
+        if (UserId <= 0) return Challenge();
+        schedule = (schedule ?? "").Trim();
+        var end = JobTypes.EndUtc(workEnd);
+        if (!ModelState.IsValid || schedule.Length > 120 || !JobTypes.ValidSchedule(jobType, schedule, end) || TaskSchedule.StartUtc(schedule) <= DateTime.UtcNow)
+        { Notice = JobTypes.ScheduleMessage; return RedirectToPage(new { view = "mine" }); }
+        await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
+        if (!await ModerationGuard.AllowedAsync(db, environment, ct, UserId)) return Forbid();
+        await AppTransactions.LockTaskAsync(db, id, ct);
+        var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id, ct);
+        if (task is null || !CanAdjustSchedule(task, UserId) || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.Status == "accepted", ct))
+        { Notice = "This work has changed. Use Tracking to agree on a new schedule after acceptance."; return RedirectToPage(new { view = "mine" }); }
+        if (task.JobType == jobType && task.WorkEndUtc == end && TaskSchedule.SameStart(task.ScheduleText, schedule))
+        { Notice = "The schedule is unchanged."; return RedirectToPage(new { view = "mine" }); }
+        task.JobType = jobType; task.ScheduleText = schedule; task.WorkEndUtc = end;
+        var recipients = await db.MarketplaceOffers.Where(o => o.TaskId == id && o.Status == "pending").Select(o => o.FreelancerId)
+            .Union(db.MarketplaceBookings.Where(b => b.TaskId == id && b.Status == "pending").Select(b => b.FreelancerId)).ToListAsync(ct);
+        foreach (var user in recipients) db.Add(MarketplaceNotification.Create(user, id, "schedule_updated", "The client updated the schedule. Review the start and expected finish before accepting."));
+        db.Add(new TaskProgressEvent { TaskId = id, ActorId = UserId, Status = "schedule-updated", CreatedAtUtc = DateTime.UtcNow, Note = "Client updated the proposed schedule before acceptance." });
+        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
+        Notice = "Schedule saved. Pending applicants have been notified.";
+        return RedirectToPage(new { view = "mine" });
+    }
 
     private static DateTime? ClosingTimeUtc(DateOnly? date) =>
         date?.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc).AddHours(-8);
@@ -331,6 +357,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage(); }
         if (await JobAcceptanceRules.IsLockedAsync(db, offer.FreelancerId, ct, task.Id))
         { Notice = "This freelancer must finish their ongoing Long Job or Multi-Day Job before another offer can be accepted."; return RedirectToPage(); }
+        if (!JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc))
+        { Notice = JobTypes.IncompleteScheduleMessage; return RedirectToPage(); }
         if (await JobTypes.ConflictsAsync(db, offer.FreelancerId, task.Id, task.ScheduleText, task.WorkEndUtc, ct))
         { Notice = "This work schedule overlaps another accepted job for the freelancer. Agree on a different schedule first."; return RedirectToPage(); }
         task.Status = "assigned"; offer.Status = "accepted";

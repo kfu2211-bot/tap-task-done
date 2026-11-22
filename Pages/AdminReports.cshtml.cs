@@ -36,6 +36,16 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     [TempData(Key = "AdminReports.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
 
+    public async Task<IActionResult> OnPostCancellationReviewAsync(long id, string decision, string? note, bool reviewed, CancellationToken ct)
+    {
+        if (AdminId <= 0) return Challenge();
+        if (!reviewed || !ModelState.IsValid) { Notice = "Confirm that you reviewed the evidence before making a cancellation decision."; return RedirectToPage(new { recordId = id, embedded = Embedded }); }
+        try { Notice = (await JobCancellation.ReviewAsync(db, AdminId, id, decision, note, ct)).Message; }
+        catch (Exception ex) when (ex is DbUpdateException or MySqlConnector.MySqlException)
+        { logger.LogWarning("Cancellation review could not be saved ({Type}).", ex.GetType().Name); Notice = "Cancellation review could not be saved. Refresh and try again."; }
+        return RedirectToPage(new { recordId = id, embedded = Embedded, statusFilter = "all" });
+    }
+
     public async Task<IActionResult> OnGetAccountMatchesAsync(long recordId, string? accountSearch, CancellationToken ct)
     {
         if (AdminId <= 0) return Challenge();
@@ -189,6 +199,14 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var report = await db.SafetyReports.AsNoTracking().SingleOrDefaultAsync(r => r.Id == id, ct);
         if (report is null) return NotFound();
+        if (report.Reason == JobCancellation.FollowUpReason && status is "resolved" or "dismissed")
+        {
+            var request = await db.Set<TaskProgressEvent>().Where(e => e.TaskId == report.TaskId &&
+                (e.Status == TaskProgress.CancellationRequested || e.Status == TaskProgress.CancellationDeclined)).OrderByDescending(e => e.Id).FirstOrDefaultAsync(ct);
+            var active = await db.MarketplaceTasks.AnyAsync(t => t.Id == report.TaskId && (t.Status == "assigned" || t.Status == "on-the-way" || t.Status == "arrived" || t.Status == "in-progress" || t.Status == "awaiting-confirmation"), ct);
+            if (active && request?.Status == TaskProgress.CancellationRequested && request.CreatedAtUtc <= report.CreatedAt)
+            { Notice = "Use Resolve cancellation follow-up to record the job decision and notify both participants."; return RedirectToPage(new { recordId = id, embedded = Embedded }); }
+        }
         var changed = await db.SafetyReports.Where(r => r.Id == id && (r.Status == "open" || r.Status == "reviewing") && r.Status != status)
             .ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, status), ct);
         if (changed == 0)

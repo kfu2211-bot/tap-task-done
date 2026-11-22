@@ -641,6 +641,7 @@
     <section class="tracking-schedule-notice" aria-label="Schedule actions">
         <h4>@scheduleStatus</h4>
         <p>Schedule: @task.ScheduleText (PHT)</p>
+        <p data-i18n>The scheduled time is your arrival time. Travel opens 1 hour earlier.</p>
         @if (scheduleStatus is "Due now" or "Schedule overdue") { <p data-i18n>No travel update is recorded. Contact each other to confirm whether work will proceed. Passing the scheduled time does not complete or cancel this job.</p> }
         <div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a><a href="#work-details-@task.Id" data-i18n>Request reschedule</a><a href="/Reports?taskId=@task.Id" data-i18n>Report a problem</a></div>
         <p data-i18n>To reschedule, request changes to the work details below. The current schedule stays in effect until both of you confirm the updated version.</p>
@@ -663,6 +664,13 @@
                 <button name="decision" value="decline" type="submit">Keep job active</button>
             </form>
         } else { <p data-i18n>Waiting for the client's decision.</p> }
+        @if (Model.Progress.LastOrDefault(e => e.TaskId == task.Id && e.Status == JobCancellation.Escalated && e.Id > cancellation.Id) is { } followUpEvent) {
+            <p class="flow-notice" data-i18n>This cancellation is already with the admin for review.</p>
+            @if (User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == followUpEvent.ActorId.ToString()) { <a href="/Reports?taskId=@task.Id" data-i18n>View report updates</a> }
+        } else if (JobCancellation.FollowUpDue(cancellation, DateTime.UtcNow)) {
+            <div class="flow-notice"><strong data-i18n>No cancellation decision after 24 hours.</strong><p data-i18n>You can request admin review. No automatic cancellation or penalty applies.</p>
+            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" /><button name="decision" value="escalate" type="submit" class="flow-button">Ask admin for review</button></form></div>
+        } else { <p class="flow-muted" data-i18n>Admin follow-up becomes available after 24 hours without a decision.</p> }
         </section>
     } else if (!item.IsClient) {
         <details class="tracking-actions"><summary>Request cancellation</summary>
@@ -675,6 +683,9 @@
     }
 }
 @{ var finished = Model.Progress.LastOrDefault(x => x.TaskId == task.Id && x.Status == "awaiting-confirmation"); }
+@if (task.Status == "awaiting-confirmation" && JobAcceptanceRules.RequiresCompletion(task.JobType, task.Status)) {
+    <p class="flow-notice" data-i18n>New work remains locked until client confirmation or approved resolution.</p>
+}
 @if (finished is not null) { <div class="tracking-completion"><strong>Completion details</strong><p style="white-space:pre-wrap">@finished.Note</p>@if (finished.PhotoType?.StartsWith("video/") == true) { <video controls preload="metadata" src="/Tracking?handler=CompletionPhoto&amp;eventId=@finished.Id" style="width:100%;max-height:300px" aria-label="Completion video"></video> } else if (finished.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@finished.Id" target="_blank" rel="noopener"><img src="/Tracking?handler=CompletionPhoto&amp;eventId=@finished.Id" alt="Completion photo" loading="lazy" style="max-width:100%;max-height:240px;border-radius:8px" /></a> }</div> }
 @if (finished is not null && !item.IsClient && task.Status == "awaiting-confirmation") {
     <details class="tracking-actions"><summary>Edit completion note</summary>
@@ -725,7 +736,8 @@
         }
     </section>
 }
-@if (tts.Data.TaskSchedule.IsUpcoming(task, DateTime.UtcNow)) { <p>Scheduled for <strong>@task.ScheduleText</strong>. Travel opens at the scheduled time.</p> }
+@if (task.Status == "assigned" && !JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc)) { <p class="flow-notice" data-i18n>Set a start and expected finish in the work agreement before starting travel.</p> }
+else if (task.Status == "assigned" && !TaskSchedule.TravelOpen(task, DateTime.UtcNow)) { <p class="flow-notice" data-i18n>Travel opens 1 hour before the scheduled arrival time.</p> }
 else if (!Model.ProgressUnavailable && !item.IsClient && task.Status is "assigned" or "arrived" or "in-progress") {
 var action = task.Status switch { "assigned" => "travel", "on-the-way" => "arrive", "arrived" => "start", _ => "finish" };
 var button = action switch { "travel" => "Start travel & share location", "arrive" => "I’ve arrived", "start" => "Start work", _ => "Mark work finished" };

@@ -21,8 +21,14 @@ public sealed class VerifyLoginModel(ApplicationDbContext db, IConfiguration con
         var token = Request.Cookies[LoginSecurity.ChallengeCookie];
         if (!LoginSecurity.ValidToken(token)) return;
         var hash = LoginSecurity.Hash(token!);
-        var created = await db.Set<LoginChallenge>().AsNoTracking().Where(x => x.Id == hash).Select(x => (DateTime?)x.CreatedUtc).SingleOrDefaultAsync(ct);
-        if (created.HasValue) ResendSeconds = LoginSecurity.ResendCooldown(created.Value, DateTime.UtcNow);
+        var challenge = await db.Set<LoginChallenge>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == hash, ct);
+        if (challenge is not null)
+        {
+            var now = DateTime.UtcNow;
+            var recent = await db.Set<LoginChallenge>().Where(x => x.UserId == challenge.UserId && x.CreatedUtc > now.AddMinutes(-15)).OrderBy(x => x.CreatedUtc).Select(x => x.CreatedUtc).ToListAsync(ct);
+            ResendSeconds = recent.Count == 0 ? 0 : LoginSecurity.ResendCooldown(recent[^1], now, recent.Count);
+            if (recent.Count >= 5) ResendSeconds = Math.Max(ResendSeconds, (int)Math.Ceiling((recent[0].AddMinutes(15) - now).TotalSeconds));
+        }
     }
     public async Task<IActionResult> OnPostResendAsync(CancellationToken ct)
     {
@@ -44,6 +50,7 @@ public sealed class VerifyLoginModel(ApplicationDbContext db, IConfiguration con
             logger.LogWarning("Sign-in code resend failed ({Type}; {Reason}).", ex.GetType().Name, SmtpMailer.Diagnostic(ex));
             ResendError = ex switch
             {
+                LoginCodeWaitException wait => wait.Message,
                 System.Net.Mail.SmtpException => "The email could not be sent. Wait for the resend timer, then request another code.",
                 _ => ex.Message switch
                 {
@@ -73,7 +80,7 @@ public sealed class VerifyLoginModel(ApplicationDbContext db, IConfiguration con
                 ErrorMessage = "This sign-in request has expired or was replaced. Return to login to get a new code.";
                 return Page();
             }
-            ResendSeconds = LoginSecurity.ResendCooldown(challenge.CreatedUtc, DateTime.UtcNow);
+            await LoadCooldownAsync(ct);
             if (challenge.Attempts >= 5)
             {
                 ErrorMessage = "Too many incorrect attempts for this code. Request a new code when the resend timer ends.";

@@ -29,6 +29,16 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var resetSend = modelBuilder.Entity<PasswordResetSendState>();
+        resetSend.ToTable("password_reset_send_states"); resetSend.HasKey(r => r.EmailHash);
+        resetSend.Property(r => r.EmailHash).HasMaxLength(64).IsUnicode(false); resetSend.HasIndex(r => r.LastSentUtc);
+        var reminderEmail = modelBuilder.Entity<ScheduleReminderEmail>();
+        reminderEmail.ToTable("schedule_reminder_emails"); reminderEmail.HasKey(e => e.Id);
+        reminderEmail.Property(e => e.Kind).HasMaxLength(30); reminderEmail.Property(e => e.Status).HasMaxLength(16);
+        reminderEmail.HasIndex(e => new { e.TaskId, e.UserId, e.AgreementVersion, e.Kind }).IsUnique();
+        reminderEmail.HasIndex(e => new { e.Status, e.NextAttemptUtc });
+        reminderEmail.HasOne<MarketplaceTask>().WithMany().HasForeignKey(e => e.TaskId).OnDelete(DeleteBehavior.Cascade);
+        reminderEmail.HasOne<AppUser>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
         var activity = modelBuilder.Entity<UserActivitySession>();
         activity.ToTable("user_activity_sessions"); activity.HasKey(x => x.Id);
         activity.Property(x => x.Id).HasMaxLength(64);

@@ -32,7 +32,7 @@ public static class RegistrationVerification
     public static bool ValidEmail(string? email) => email is { Length: > 0 and <= 45 } && new EmailAddressAttribute().IsValid(email);
     public static bool ValidCode(string? code) => code is { Length: 6 } && code.All(char.IsAsciiDigit);
     public static bool CanVerify(RegistrationEmailCode row, DateTime now) => row.VerifiedUtc is null && row.Attempts < 5 && row.ExpiresUtc > now && row.SessionExpiresUtc > now;
-    public static int Cooldown(RegistrationEmailCode row, DateTime now) => row.LastSentUtc.HasValue ? Math.Max(0, (int)Math.Ceiling((row.LastSentUtc.Value.AddSeconds(60) - now).TotalSeconds)) : 0;
+    public static int Cooldown(RegistrationEmailCode row, DateTime now) => row.LastSentUtc.HasValue ? OtpResendPolicy.Remaining(row.LastSentUtc.Value, now, row.SendCount) : 0;
     public static int SendWaitSeconds(RegistrationEmailCode row, DateTime now)
     {
         var windowWait = row.SendCount >= 5
@@ -52,7 +52,7 @@ public static class RegistrationVerification
     private static string NewCode() => RandomNumberGenerator.GetInt32(1000000).ToString("D6", CultureInfo.InvariantCulture);
     private static void Prepare(RegistrationEmailCode row, string token, string code, DateTime now)
     {
-        if (!CanSend(row, now)) throw new RegistrationFlowException("Wait 60 seconds between codes. A maximum of five sends is allowed per 15 minutes.");
+        if (!CanSend(row, now)) throw new RegistrationFlowException("Wait until the resend timer ends. A maximum of five sends is allowed per 15 minutes.");
         if (row.SendWindowUtc <= now.AddMinutes(-15)) { row.SendWindowUtc = now; row.SendCount = 0; }
         row.SendCount++; row.LastSentUtc = now; row.ExpiresUtc = now.AddMinutes(10); row.Attempts = 0;
         row.CodeHash = LoginSecurity.CodeHash(token, code);

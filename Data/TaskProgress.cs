@@ -18,7 +18,7 @@ public static class TaskProgress
 {
     public static readonly string[] States = ["assigned", "on-the-way", "arrived", "in-progress", "awaiting-confirmation", "completed"];
     public static readonly string[] Labels = ["Booking accepted", "On the way", "Arrived", "Work in progress", "Awaiting client confirmation", "Completed"];
-    public static string Label(string status) => Array.IndexOf(States, status) is var i && i >= 0 ? Labels[i] : status == "pending-confirmation" ? "Needs confirmation" : status == "disputed" ? "Paused" : status == "cancelled" ? "Cancelled" : status == "expired" ? "Expired" : status == "moderated" ? "Removed by admin" : status;
+    public static string Label(string status) => Array.IndexOf(States, status) is var i && i >= 0 ? Labels[i] : status == "pending-confirmation" ? "Needs confirmation" : status == "disputed" ? "Paused" : status == "cancelled" ? "Cancelled" : status == "expired" ? "Expired" : status == "moderated" ? "Removed by admin" : status == JobCancellation.Escalated ? "Cancellation escalated for admin review" : status == "schedule-updated" ? "Schedule updated before acceptance" : status;
     public static (string From, string To) Transition(string? action) => action switch
     {
         "travel" => ("assigned", "on-the-way"), "arrive" or "confirm-arrival" => ("on-the-way", "arrived"),
@@ -95,8 +95,10 @@ public static class TaskProgress
         }
         if (action == "arrive" && !await NearDestinationAsync(db, id, freelancer.Value, ct))
             return new(false, "A recent, accurate location near the task pin is needed. Retry location or ask the client to confirm.");
-        if (action == "travel" && TaskSchedule.IsUpcoming(task, DateTime.UtcNow))
-            return new(false, $"Travel opens at the scheduled time: {task.ScheduleText}.");
+        if (action == "travel" && !JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc))
+            return new(false, "Set a start and expected finish in the work agreement before starting travel.");
+        if (action == "travel" && !TaskSchedule.TravelOpen(task, DateTime.UtcNow))
+            return new(false, "Travel opens 1 hour before the scheduled arrival time.");
         if (action == "travel" && !await db.Set<TaskDestination>().AnyAsync(x => x.TaskId == id, ct))
             return new(false, "Ask the client to save the exact destination pin before starting travel.");
         if (action is "travel" or "start" && await FreelancerAvailability.ActiveTasks(db, freelancer.Value).AnyAsync(t => t.Id != id, ct))

@@ -18,7 +18,7 @@
                 root.dataset.workLockState = String(result.locked);
                 root.querySelectorAll('[data-work-guard]').forEach(control => {
                     if (result.locked && !control.disabled) { control.dataset.workLockDisabled = 'true'; control.disabled = true; }
-                    else if (!result.locked && control.dataset.workLockDisabled === 'true') { control.disabled = false; delete control.dataset.workLockDisabled; }
+                    else if (!result.locked && control.dataset.workLockDisabled === 'true') { control.disabled = control.dataset.scheduleBlocked === 'true'; delete control.dataset.workLockDisabled; }
                 });
                 root.querySelectorAll('[data-work-lock-notice]').forEach(notice => notice.hidden = !result.locked);
             }

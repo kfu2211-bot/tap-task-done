@@ -21,6 +21,7 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
     public string Step { get; set; } = "email";
     public string? ErrorMessage { get; set; }
     public string? Notice { get; set; }
+    public int ResendSeconds { get; private set; }
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
     private static string CodeHash(string challenge, string code) => Convert.ToHexString(HMACSHA256.HashData(Convert.FromHexString(challenge), Encoding.UTF8.GetBytes(code)));
     private string? ResetChallenge => Request.Cookies[CookieName] is string c && c.Length == 64 && c.All(Uri.IsHexDigit) ? c : null;
@@ -41,6 +42,9 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
         var stage = "account lookup";
         try
         {
+            var send = await PasswordResetSendState.AcquireAsync(db, email, DateTime.UtcNow, ct);
+            ResendSeconds = send.Wait;
+            if (!send.Allowed) return CodePage(ResetChallenge);
             // Account lookup needs only the ID, not encrypted profile-photo bytes.
             var requireVerified = VerificationMailer.Enabled(config);
             var user = await db.Users.AsNoTracking().Where(u => u.Username == email && (!requireVerified || db.VerifiedEmails.Any(v => v.UserId == u.Id && v.Email == u.Username))).Select(u => new { u.Id }).SingleOrDefaultAsync(ct);
@@ -77,6 +81,11 @@ public class ForgotPasswordModel(ApplicationDbContext db, IConfiguration config,
     public async Task<IActionResult> OnPostVerifyAsync(CancellationToken ct)
     {
         NoStore(); Step = "code";
+        if (!string.IsNullOrWhiteSpace(Email))
+        {
+            try { ResendSeconds = await PasswordResetSendState.CurrentWaitAsync(db, Email, ct); }
+            catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException) { logger.LogWarning("Reset resend timer unavailable ({Type}).", ex.GetType().Name); }
+        }
         var challenge = ResetChallenge; var code = string.Concat(CodeDigits);
         if (challenge is null || code.Length != 6 || code.Any(c => c < '0' || c > '9')) { ErrorMessage = "Enter the 6-digit code."; return Page(); }
         try

@@ -56,20 +56,6 @@
         form.addEventListener('reset', () => { cells.forEach(cell => { cell.value = ''; }); source.value = ''; });
         cells[Math.min(initial.length, 5)].focus();
     }
-    document.querySelectorAll('[data-resend-seconds]').forEach(form => {
-        const button = form.querySelector('button[type=submit]');
-        const label = form.querySelector('[data-resend-label]');
-        const end = Date.now() + Math.max(0, Number(form.dataset.resendSeconds) || 0) * 1000;
-        const tick = () => {
-            if (form.dataset.submitting === 'true') return 0;
-            const seconds = Math.max(0, Math.ceil((end - Date.now()) / 1000));
-            button.disabled = seconds > 0;
-            const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
-            label.textContent = seconds ? `Available in ${minutes}:${String(seconds % 60).padStart(2, '0')}` : 'You can request a new code.';
-            return seconds;
-        };
-        if (tick()) { const timer = setInterval(() => { if (!tick()) clearInterval(timer); }, 1000); }
-    });
     document.querySelectorAll('.email-verification-card form').forEach(form => {
         form.addEventListener('submit', event => {
             if (event.defaultPrevented) return;

@@ -5,6 +5,10 @@ namespace tts.Data;
 // In-app reminder only. No SMTP, automatic completion or repeated daily reminders.
 public sealed class CompletionReminderWorker(IServiceScopeFactory scopes, ILogger<CompletionReminderWorker> logger) : BackgroundService
 {
+    public static string Message(string? jobType) => "Please review the finished work and confirm completion in Tracking. " +
+        (JobAcceptanceRules.RequiresCompletion(jobType, "awaiting-confirmation")
+            ? "New work remains locked until client confirmation or approved resolution."
+            : "The freelancer can already accept other work.");
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -39,7 +43,7 @@ public sealed class CompletionReminderWorker(IServiceScopeFactory scopes, ILogge
                 !await db.MarketplaceNotifications.AnyAsync(n => n.TaskId == item.Id && n.Kind == "completion_reminder" && n.CreatedAt >= item.CreatedAtUtc, ct))
             {
                 db.MarketplaceNotifications.Add(MarketplaceNotification.Create(item.ClientId, item.Id, "completion_reminder",
-                    "Please review the finished work and confirm completion in Tracking. The freelancer can already accept other work."));
+                    Message(tasks[0].JobType)));
                 await db.SaveChangesAsync(ct);
             }
             await tx.CommitAsync(ct);

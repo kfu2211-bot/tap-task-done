@@ -13,6 +13,9 @@ public static class TaskSchedule
     public static bool IsUpcoming(MarketplaceTask task, DateTime nowUtc) =>
         task.Status == "assigned" && StartUtc(task.ScheduleText) > nowUtc;
 
+    public static bool TravelOpen(MarketplaceTask task, DateTime nowUtc) =>
+        task.Status == "assigned" && StartUtc(task.ScheduleText) is { } start && nowUtc >= start.AddHours(-1);
+
     public static bool SameStart(string first, string second) =>
         StartUtc(first) is { } start && StartUtc(second) is { } other ? start == other : first == second;
 

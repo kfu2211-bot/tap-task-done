@@ -53,7 +53,7 @@ public sealed class AccountDeletionModel(ApplicationDbContext db, AccountStore a
                 default: return BadRequest();
             }
         }
-        catch (System.Net.Mail.SmtpException ex) { logger.LogWarning("Deletion email failed ({Reason}).", SmtpMailer.Diagnostic(ex)); Notice = "Email delivery failed. Your status is shown below. Wait 60 seconds before requesting another code."; }
+        catch (System.Net.Mail.SmtpException ex) { logger.LogWarning("Deletion email failed ({Reason}).", SmtpMailer.Diagnostic(ex)); Notice = "Email delivery failed. Your status is shown below. Wait until the resend timer ends before requesting another code."; }
         catch (DeletionFlowException ex) { Notice = ex.Message; }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException) { logger.LogWarning("Deletion request failed ({Type}).", ex.GetType().Name); Notice = "Deletion storage is unavailable. No deletion was performed. Please try again later."; }
         return RedirectToPage();

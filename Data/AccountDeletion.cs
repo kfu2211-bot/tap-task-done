@@ -41,7 +41,7 @@ public static class AccountDeletion
     public static bool Due(AccountDeletionRequest r, DateTime now) => r.Status == "approved" && r.ReviewedById.HasValue && r.RequestedUtc.HasValue && r.EligibleUtc.HasValue && r.EligibleUtc.Value >= r.RequestedUtc.Value.AddHours(72) && now >= r.EligibleUtc.Value;
     public static bool Staff(string? role) => role?.Trim().ToLowerInvariant() is "admin" or "moderator";
     public static bool CodeUsable(AccountDeletionRequest r, DateTime now) => r.Status == "verifying" && r.Attempts < 5 && r.CodeExpiresUtc > now;
-    public static int Cooldown(AccountDeletionRequest r, DateTime now) => r.LastCodeSentUtc.HasValue ? LoginSecurity.ResendCooldown(r.LastCodeSentUtc.Value, now) : 0;
+    public static int Cooldown(AccountDeletionRequest r, DateTime now) => r.LastCodeSentUtc.HasValue ? OtpResendPolicy.Remaining(r.LastCodeSentUtc.Value, now, r.SendCount) : 0;
     public static bool CanSend(AccountDeletionRequest r, DateTime now) => Cooldown(r, now) == 0 && (r.SendWindowUtc <= now.AddMinutes(-15) || r.SendCount < 5);
     private static void ClearCode(AccountDeletionRequest r) { r.CodeHash = r.CodeSalt = r.PasswordVersion = ""; r.CodeExpiresUtc = null; r.Attempts = 0; }
     private static void Event(ApplicationDbContext db, int user, int? actor, string action, string reason, DateTime now) => db.Set<AccountDeletionEvent>().Add(new() { UserId = user, ActorId = actor, Action = action, Reason = reason, CreatedUtc = now });
@@ -61,7 +61,7 @@ public static class AccountDeletion
             var r = await db.Set<AccountDeletionRequest>().SingleOrDefaultAsync(x => x.UserId == id, ct);
             if (r is null) { r = new() { UserId = id }; db.Add(r); }
             if (Pending(r.Status) || r.Status == "deleted") throw new DeletionFlowException("A deletion request is already active.");
-            if (!CanSend(r, now)) throw new DeletionFlowException("Wait 60 seconds between codes. Only five sends are allowed per 15 minutes.");
+            if (!CanSend(r, now)) throw new DeletionFlowException("Wait until the resend timer ends. Only five sends are allowed per 15 minutes.");
             if (r.SendWindowUtc <= now.AddMinutes(-15)) { r.SendWindowUtc = now; r.SendCount = 0; }
             r.SendCount++; r.LastCodeSentUtc = now; r.Attempts = 0; r.CodeSalt = LoginSecurity.Token(); r.CodeHash = LoginSecurity.CodeHash(r.CodeSalt, code);
             r.PasswordVersion = AccountStore.SessionFingerprint(user.PasswordHash); r.CodeExpiresUtc = now.AddMinutes(10); r.Status = "verifying"; r.UpdatedUtc = now;

@@ -200,6 +200,8 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) { Notice = "This request cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             if (await JobAcceptanceRules.IsLockedAsync(db, UserId, ct, task.Id))
             { Notice = JobAcceptanceRules.Message; return RedirectToPage("/MyJobs", new { view = "requests" }); }
+            if (!JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc))
+            { Notice = JobTypes.IncompleteScheduleMessage; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             if (await JobTypes.ConflictsAsync(db, UserId, task.Id, task.ScheduleText, task.WorkEndUtc, ct))
             { Notice = "This booking overlaps another accepted job. Discuss a different schedule with the client."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
             booking.Status = "accepted"; task.Status = "assigned";

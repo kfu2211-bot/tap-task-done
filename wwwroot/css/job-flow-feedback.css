@@ -1,0 +1,37 @@
+/* Shared feedback for the six job flows, with explicit light/dark palettes. */
+.flow-notice, #loginStatus.flow-wait {
+    box-sizing: border-box; padding: 14px 16px; margin: 14px 0; border: 1px solid #d4af65;
+    border-radius: 12px; background: #fff7e4; color: #644414 !important; font-size: .9rem; line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+.flow-notice p { margin: 8px 0; }
+#loginStatus.flow-limit { background: #fff0df; border-color: #d39a60; color: #774216 !important; }
+#loginStatus.flow-danger { padding: 14px 16px; border: 1px solid #d9a39c; border-radius: 12px; background: #fff0ed; color: #883b30 !important; line-height: 1.6; }
+.login-box .verification-resend { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 18px; }
+.login-box .verification-resend .resend-code { margin-top: 0; min-height: 44px; }
+.login-box .verification-resend [data-resend-label] { font-variant-numeric: tabular-nums; color: var(--muted, #526c5d); }
+.login-box .verification-resend button:disabled { opacity: .6; cursor: not-allowed; }
+.flow-notice :is(p, strong, label, small, span) { color: inherit !important; }
+.flow-notice a { color: #175e45; text-underline-offset: 3px; }
+.flow-muted { color: var(--muted, #526c5d); font-size: .85rem; line-height: 1.6; }
+.flow-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; padding: 10px 16px; border: 1px solid #176b50; border-radius: 9px; background: #176b50; color: #fff !important; font: inherit; font-weight: 650; cursor: pointer; }
+.flow-button:disabled { opacity: .6; cursor: not-allowed; }
+.flow-secondary { background: transparent; color: #175e45 !important; }
+.flow-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.flow-review > label { display: grid; gap: 8px; margin: 14px 0; }
+.flow-review > form { display: grid; gap: 14px; margin-top: 14px; }
+.flow-review form > label { display: grid; gap: 8px; }
+.flow-review :is(input[type="datetime-local"], select) { width: 100%; min-height: 44px; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--line, #bfd3c3); border-radius: 8px; font: inherit; }
+.flow-review textarea { box-sizing: border-box; width: 100%; padding: 10px 12px; font: inherit; border: 1px solid var(--line, #bfd3c3); border-radius: 8px; }
+.flow-review .flow-check { display: flex; align-items: flex-start; }
+.flow-check input { width: 20px; height: 20px; flex-shrink: 0; }
+.flow-button:focus-visible, .flow-notice a:focus-visible { outline: 3px solid #72b697; outline-offset: 3px; }
+html[data-theme="dark"] body :is(.flow-notice, #loginStatus.flow-wait) { background: #382f1e; color: #ffe0a2 !important; border-color: #a68448; }
+html[data-theme="dark"] body .flow-notice :is(p, strong, label, small, span) { color: inherit !important; }
+html[data-theme="dark"] body .flow-notice a { color: #a0ecc1 !important; }
+html[data-theme="dark"] body .flow-button { background: #81dbb2; color: #102b1f !important; border-color: #81dbb2; }
+html[data-theme="dark"] body .flow-secondary { background: transparent; color: #a0ecc1 !important; }
+html[data-theme="dark"] body .flow-muted { color: #b3c7bb !important; }
+html[data-theme="dark"] body #loginStatus.flow-limit { background: #392d20; color: #ffcea2 !important; border-color: #a67c50; }
+html[data-theme="dark"] body #loginStatus.flow-danger { background: #392521; color: #ffd1c5 !important; border-color: #a76d61; }
+@media(max-width:600px) { .flow-actions { flex-direction: column; } .flow-actions .flow-button { width: 100%; } }

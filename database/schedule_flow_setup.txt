@@ -1,0 +1,27 @@
+Schedule and cancellation flow deployment
+
+1. Deploy the application changes together. Never commit appsettings.Gmail.json.
+2. The email worker creates only schedule_reminder_emails using CREATE TABLE IF NOT EXISTS.
+   If the database user has no CREATE permission, an operator must run
+   mysql_schedule_reminder_emails.sql in the intended database. In-app reminders
+   remain independent of email queue setup.
+3. Gmail sender credentials must be configured and verified on the deployed server.
+4. Timely reminders require an always-running application instance. A sleeping
+   free web instance cannot guarantee 24-hour/1-hour reminder delivery on time.
+5. Emails are bilingual (English/Filipino), reference the task and arrival time,
+   and do not contain private addresses or OAuth credentials.
+6. The durable queue deduplicates task/user/agreement/window combinations,
+   skips stale reminders, and retries up to eight times with bounded backoff.
+   If Gmail accepts a message but the process stops before saving that outcome,
+   a duplicate remains possible; email transport is not exactly-once delivery.
+7. After 24 hours without a cancellation decision, either participant can request
+   admin review. The reviewer explicitly approves cancellation or keeps work active.
+   Nothing automatically completes/cancels a task or imposes an account penalty.
+8. Verify with two test accounts: conflict/complete schedule, early travel boundary,
+   completion lock message, follow-up/admin decision, queued email delivery and
+   reschedule invalidation. Automated local checks use mock delivery and no live DB writes.
+9. OTP resends start at 10 seconds, then 15, 20, 25 seconds per send within the
+   send window. The separate five-sends-per-15-minutes limit remains in place.
+   Password reset provisions password_reset_send_states on first use; use
+   mysql_password_reset_send_states.sql if the app user cannot CREATE tables.
+   Known and unknown email addresses follow the same countdown to avoid account disclosure.

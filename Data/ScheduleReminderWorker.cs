@@ -11,7 +11,9 @@ public sealed class ScheduleReminderWorker(IServiceScopeFactory scopes, ILogger<
             try
             {
                 using var scope = scopes.CreateScope();
-                await SendDueAsync(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), DateTime.UtcNow, stoppingToken);
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                await SendDueAsync(db, DateTime.UtcNow, stoppingToken, ScheduleReminderEmailWorker.Ready);
+                await CancellationFollowUpsAsync(db, DateTime.UtcNow, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             catch (Exception ex) { logger.LogWarning(ex, "Schedule reminders will retry."); }
@@ -20,7 +22,7 @@ public sealed class ScheduleReminderWorker(IServiceScopeFactory scopes, ILogger<
         }
     }
 
-    public static async Task SendDueAsync(ApplicationDbContext db, DateTime now, CancellationToken ct)
+    public static async Task SendDueAsync(ApplicationDbContext db, DateTime now, CancellationToken ct, bool emailQueueReady = false)
     {
         var ids = await db.MarketplaceTasks.AsNoTracking().Where(t => t.Status == "assigned")
             .Select(t => t.Id).ToListAsync(ct);
@@ -31,9 +33,10 @@ public sealed class ScheduleReminderWorker(IServiceScopeFactory scopes, ILogger<
             await AppTransactions.LockTaskAsync(db, id, ct);
             var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.Status == "assigned", ct);
             if (task is null) continue;
-            var agreement = await db.Set<WorkAgreement>().Where(a => a.TaskId == id && a.ScheduleText == task.ScheduleText &&
-                a.ClientConfirmedAtUtc != null && a.FreelancerConfirmedAtUtc != null).OrderByDescending(a => a.Version).FirstOrDefaultAsync(ct);
-            if (agreement?.Confirmed != true || TaskSchedule.StartUtc(task.ScheduleText) is not { } start) continue;
+            var agreement = await AgreementRules.LatestAsync(db, id, ct);
+            if (agreement?.Confirmed != true || !TaskSchedule.SameStart(agreement.ScheduleText, task.ScheduleText) || TaskSchedule.StartUtc(task.ScheduleText) is not { } start) continue;
+            var cancellation = await db.Set<TaskProgressEvent>().Where(e => e.TaskId == id && (e.Status == TaskProgress.CancellationRequested || e.Status == TaskProgress.CancellationDeclined)).OrderByDescending(e => e.Id).FirstOrDefaultAsync(ct);
+            if (cancellation?.Status == TaskProgress.CancellationRequested) continue;
             var kind = TaskSchedule.ReminderKind(start, now);
             if (kind is null) continue;
             var freelancer = await db.MarketplaceOffers.Where(o => o.TaskId == id && o.Status == "accepted")
@@ -49,9 +52,34 @@ public sealed class ScheduleReminderWorker(IServiceScopeFactory scopes, ILogger<
                 if (!await db.MarketplaceNotifications.AnyAsync(n => n.TaskId == id && n.UserId == user &&
                     n.Kind == kind && n.CreatedAt >= confirmed, ct))
                     db.Add(MarketplaceNotification.Create(user, id, kind, message));
+                if (emailQueueReady && !await db.Set<ScheduleReminderEmail>().AnyAsync(e => e.TaskId == id && e.UserId == user && e.AgreementVersion == agreement.Version && e.Kind == kind, ct))
+                    db.Add(new ScheduleReminderEmail { TaskId = id, UserId = user, AgreementVersion = agreement.Version, Kind = kind, CreatedUtc = now, NextAttemptUtc = now });
             }
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+        }
+    }
+
+    public static async Task CancellationFollowUpsAsync(ApplicationDbContext db, DateTime now, CancellationToken ct)
+    {
+        var cutoff = now.AddHours(-24);
+        var ids = await db.Set<TaskProgressEvent>().AsNoTracking().Where(e => e.Status == TaskProgress.CancellationRequested && e.CreatedAtUtc <= cutoff)
+            .Select(e => e.TaskId).Distinct().ToListAsync(ct);
+        foreach (var id in ids)
+        {
+            db.ChangeTracker.Clear();
+            await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
+            await AppTransactions.LockTaskAsync(db, id, ct);
+            var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id, ct);
+            if (task is null || !JobCancellation.CanRequest(task.Status)) continue;
+            var latest = await db.Set<TaskProgressEvent>().Where(e => e.TaskId == id && (e.Status == TaskProgress.CancellationRequested || e.Status == TaskProgress.CancellationDeclined)).OrderByDescending(e => e.Id).FirstOrDefaultAsync(ct);
+            if (!JobCancellation.FollowUpDue(latest, now)) continue;
+            var freelancer = await db.MarketplaceOffers.Where(o => o.TaskId == id && o.Status == "accepted").Select(o => (int?)o.FreelancerId).SingleOrDefaultAsync(ct);
+            if (!freelancer.HasValue) continue;
+            foreach (var user in new[] { task.ClientId, freelancer.Value }.Distinct())
+                if (!await db.MarketplaceNotifications.AnyAsync(n => n.TaskId == id && n.UserId == user && n.Kind == "cancellation_followup" && n.CreatedAt >= latest!.CreatedAtUtc, ct))
+                    db.Add(MarketplaceNotification.Create(user, id, "cancellation_followup", "No cancellation decision after 24 hours. Open Tracking to respond or ask admin for review. No automatic cancellation or penalty applies."));
+            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         }
     }
 }
