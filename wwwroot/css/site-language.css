@@ -1,6 +1,4 @@
 .site-language-menu { position: relative; }
-.auth-language-picker { width: fit-content; margin: 0 0 12px auto; font-size: .85rem; text-align: left; z-index: 10; }
-.auth-language-picker summary { padding: 6px 10px; border: 1px solid var(--line, #d9e7da); border-radius: 9px; color: var(--text, #193e30); }
 .site-language-menu summary {
     cursor: pointer;
     display: flex;

@@ -28,8 +28,8 @@ const { chromium } = require('C:/Users/Mr_Jh/.cache/codex-runtimes/codex-primary
         await page.waitForFunction(()=>document.querySelector('#dynamic').textContent.startsWith('Nandito pa'));
         await page.locator('#email').evaluate(input=>input.reportValidity());
         assert.equal(await page.locator('#email').evaluate(input=>input.validationMessage),'Punan ang field na ito.');
-        await page.locator('.auth-language-picker summary').click();
-        await page.locator('.auth-language-picker [data-language="en"]').click();
+        assert.equal(await page.locator('.register-box .site-language-menu, .auth-language-picker').count(),0);
+        await page.locator('#headerAccountMenu .account-language-options [data-language="en"]').click();
         assert.equal(await page.locator('h1').textContent(),'Create an Account');
         assert.equal(await page.locator('#name').getAttribute('placeholder'),'Your full name');
         assert.equal(await page.locator('#month').textContent(),'January');

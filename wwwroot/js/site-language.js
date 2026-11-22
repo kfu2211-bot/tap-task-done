@@ -374,12 +374,6 @@
     }
     menuPicker.append(options);
     landing?.querySelector('a[href="#service-areas"]')?.after(menuPicker);
-    const authBox = document.querySelector('.register-box, .login-box, .email-verification-card');
-    if (!landing && authBox) {
-        menuPicker.classList.add('auth-language-picker');
-        authBox.prepend(menuPicker);
-    }
-
     const accountLanguages = document.createElement("div");
     accountLanguages.className = "account-language-options";
     accountLanguages.setAttribute("role", "group");
