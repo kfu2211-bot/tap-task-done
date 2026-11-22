@@ -30,7 +30,7 @@ public class JobRecordModel(ApplicationDbContext db) : PageModel
         CanBookAgain = IsOwner && TaskReuse.CanReuse(task, viewer) && (Offer is not null || Booking is not null);
         // Only the owner/assigned worker sees the accepted work's private progression.
         if (IsOwner || Offer?.Status == "accepted")
-            Events = await db.Set<TaskProgressEvent>().AsNoTracking().Where(e => e.TaskId == taskId)
+            Events = await db.Set<TaskProgressEvent>().AsNoTracking().Where(e => e.TaskId == taskId && e.Status != TaskAcceptanceTerms.EventStatus)
                 .OrderBy(e => e.CreatedAtUtc).ThenBy(e => e.Id)
                 .Select(e => new TaskProgressEvent { Id = e.Id, TaskId = e.TaskId, Status = e.Status, Note = e.Note, ActorId = e.ActorId, CreatedAtUtc = e.CreatedAtUtc, PhotoType = e.PhotoType }).ToListAsync(ct);
         return Page();

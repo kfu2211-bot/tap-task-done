@@ -310,7 +310,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         return RedirectToPage("/Tracking", new { taskId = id });
     }
 
-    public async Task<IActionResult> OnPostOfferAsync(long id, decimal price, string? message, CancellationToken ct, bool applyAtPostedPay = false)
+    public async Task<IActionResult> OnPostOfferAsync(long id, decimal price, string? message, CancellationToken ct, bool applyAtPostedPay = false, string? taskRevision = null)
     {
         IActionResult OfferFailure(string text) {
             if (JsonRequested) return new JsonResult(new { success = false, message = text }) { StatusCode = 422 };
@@ -329,12 +329,14 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         await AppTransactions.LockTaskAsync(db, id, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId != UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         if (task is null || await db.MarketplaceOffers.AnyAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct)) return OfferFailure("This task is unavailable or you already sent an offer. Check My Jobs before retrying.");
+        if (taskRevision != TaskAcceptanceTerms.Revision(task, 0)) return OfferFailure("Task details changed. Reload and review the latest schedule before sending an offer.");
         if (applyAtPostedPay && ((task.BudgetMaximum.HasValue && task.BudgetMaximum.Value != task.Budget) || price != task.Budget))
         {
             return OfferFailure("The posted pay has changed. Review the latest budget before applying.");
         }
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) return OfferFailure("This task cannot receive offers while an account is pending deletion or restricted.");
         await AgreementRules.ConversationAsync(db, id, UserId, ct);
+        db.Add(TaskAcceptanceTerms.Snapshot(task, price, UserId));
         db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = id, FreelancerId = UserId, Price = price, Message = message, Status = "pending", CreatedAt = DateTime.UtcNow });
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(task.ClientId, id, "offer", "A freelancer sent an offer for your task."));
         try {

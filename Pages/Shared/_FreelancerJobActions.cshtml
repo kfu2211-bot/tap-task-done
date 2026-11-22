@@ -25,7 +25,7 @@
     <p class="work-help" data-i18n>You can edit or withdraw this offer until the client accepts. Discuss a counter-offer in Messages first.</p>
     <details class="work-editor"><summary data-i18n>Edit offer</summary>
         <form method="post" asp-page="/MyJobs" asp-page-handler="PendingOffer" class="work-form">
-            <input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="edit" /><input type="hidden" name="revision" value="@OfferRevision.For(Model.Offer)" />
+            <input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="edit" /><input type="hidden" name="taskRevision" value="@TaskAcceptanceTerms.Revision(task, 0)" /><input type="hidden" name="revision" value="@OfferRevision.For(Model.Offer)" />
             <label><span data-i18n>Your offer (₱)</span><input name="price" type="number" min="1" max="9999999999" step="0.01" value="@Model.Offer.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)" required /></label>
             <label><span data-i18n>Message (optional)</span><textarea name="message" maxlength="500" rows="3">@Model.Offer.Message</textarea></label>
             <button class="work-button" type="submit" data-i18n>Save revised offer</button>

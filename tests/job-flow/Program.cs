@@ -21,6 +21,21 @@ revisionOffer.Message = "Original offer";
 revisionOffer.Status = "withdrawn";
 Check(OfferRevision.For(revisionOffer) != originalRevision, "Withdrawal invalidates pending offer controls");
 
+var quickTask = new MarketplaceTask { Id = 51, JobType = "short", ScheduleText = "2026-11-23T10:00", WorkEndUtc = new DateTime(2026,11,23,4,0,0,DateTimeKind.Utc), Description = "Clean room", Location = "Bacolor" };
+var acceptedSnapshot = TaskAcceptanceTerms.Revision(quickTask, 700);
+Check(TaskAcceptanceTerms.Revision(quickTask, 700.00m) == acceptedSnapshot, "Equivalent decimal amounts preserve the same acceptance evidence");
+quickTask.WorkEndUtc = DateTime.SpecifyKind(quickTask.WorkEndUtc!.Value, DateTimeKind.Unspecified);
+Check(TaskAcceptanceTerms.Revision(quickTask, 700) == acceptedSnapshot, "Database DateTime kind does not invalidate unchanged terms");
+Check(TaskAcceptanceTerms.CanUseAcceptance(quickTask, 700, acceptedSnapshot), "Unchanged valid Short Job acceptance supplies initial agreement confirmation");
+Check(!TaskAcceptanceTerms.CanUseAcceptance(quickTask, 701, acceptedSnapshot), "Different agreed price cannot reuse an earlier acceptance");
+quickTask.ScheduleText = "2026-11-23T11:00";
+Check(!TaskAcceptanceTerms.CanUseAcceptance(quickTask, 700, acceptedSnapshot), "Rescheduled Short Job requires a new confirmation");
+quickTask.ScheduleText = "2026-11-23T10:00"; quickTask.Description = "Clean entire house";
+Check(!TaskAcceptanceTerms.CanUseAcceptance(quickTask, 700, acceptedSnapshot), "Changed scope cannot reuse initial acceptance");
+Check(!TaskAcceptanceTerms.CanUseAcceptance(quickTask, 700, null), "Legacy jobs without terms evidence retain explicit review");
+quickTask.JobType = "long";
+Check(!TaskAcceptanceTerms.CanUseAcceptance(quickTask, 700, TaskAcceptanceTerms.Revision(quickTask,700)), "Long Jobs retain the existing explicit agreement flow");
+
 var trackingTasks = new[] {
     new MarketplaceTask { Id = 1, Status = "assigned" },
     new MarketplaceTask { Id = 2, Status = "awaiting-confirmation" },

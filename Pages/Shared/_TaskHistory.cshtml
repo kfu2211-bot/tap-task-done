@@ -2,7 +2,7 @@
 @using tts.Data
 @{
     var item = Model.Tasks.Single();
-    var records = Model.Progress.Where(e => e.TaskId == item.Task.Id).ToList();
+    var records = Model.Progress.Where(e => e.TaskId == item.Task.Id && e.Status != TaskAcceptanceTerms.EventStatus).ToList();
     string EventLabel(string status) => status switch {
         TaskProgress.ArrivalRequest => "Client arrival confirmation requested",
         TaskProgress.CancellationRequested => "Cancellation requested",

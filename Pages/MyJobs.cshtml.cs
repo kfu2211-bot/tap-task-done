@@ -58,7 +58,7 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
         return RedirectToPage("/Tracking", new { taskId = id, shareLocation = result.Success && action == "travel" ? "1" : null });
     }
 
-    public async Task<IActionResult> OnPostPendingOfferAsync(long id, string? action, decimal price, string? message, string? revision, CancellationToken ct)
+    public async Task<IActionResult> OnPostPendingOfferAsync(long id, string? action, decimal price, string? message, string? revision, string? taskRevision, CancellationToken ct)
     {
         if (UserId <= 0) return Challenge();
         IActionResult Back(string text) { Notice = text; return RedirectToPage(new { view = "offers" }); }
@@ -73,7 +73,11 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
             return Back("This offer is no longer pending. Review the latest job status.");
         if (revision != OfferRevision.For(offer)) return Back("This offer changed. Review it before trying again.");
         if (action == "withdraw") { offer.Status = "withdrawn"; offer.WithdrawalReason = "Withdrawn before acceptance."; }
-        else { offer.Price = price; offer.Message = message; }
+        else {
+            if (taskRevision != TaskAcceptanceTerms.Revision(task, 0)) return Back("Task details changed. Reload and review the latest schedule before sending an offer.");
+            offer.Price = price; offer.Message = message;
+            db.Add(TaskAcceptanceTerms.Snapshot(task, price, UserId));
+        }
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(task.ClientId, task.Id, "offer", action == "withdraw" ? "The freelancer withdrew a pending offer." : "The freelancer updated an offer. Review the latest price before accepting."));
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);

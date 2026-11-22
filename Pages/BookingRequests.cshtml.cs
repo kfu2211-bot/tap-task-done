@@ -143,6 +143,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
             TaskLocationRules.Save(db, work.Id, null, latitude!.Value, longitude!.Value);
             if (reuseSource is not null) db.Add(TaskReuse.SourceEvent(work.Id, reuseSource.Id, UserId));
             await AgreementRules.ConversationAsync(db, work.Id, freelancerId, ct);
+            db.Add(TaskAcceptanceTerms.Snapshot(work, work.Budget, UserId));
             db.MarketplaceBookings.Add(new MarketplaceBooking { TaskId = work.Id, FreelancerId = freelancerId, Status = "pending", CreatedAt = DateTime.UtcNow });
             db.MarketplaceNotifications.Add(MarketplaceNotification.Create(freelancerId, work.Id, "booking_request", "A client sent you a private work request. Review it in My Jobs → Booking requests."));
             await db.SaveChangesAsync(ct);
@@ -169,6 +170,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         if (!CanBook(role) || task is null || provider is null || await db.MarketplaceBookings.AnyAsync(b => b.TaskId == taskId && b.FreelancerId == freelancerId, ct))
         { Notice = "Request could not be sent. Check that your task is open, the freelancer is available, and you have not sent this request already."; return RedirectToPage("/FindPost", new { providerId = freelancerId }); }
         await AgreementRules.ConversationAsync(db, taskId, freelancerId, ct);
+        db.Add(TaskAcceptanceTerms.Snapshot(task, task.Budget, UserId));
         db.MarketplaceBookings.Add(new MarketplaceBooking { TaskId = taskId, FreelancerId = freelancerId, Status = "pending", CreatedAt = DateTime.UtcNow });
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(freelancerId, taskId, "booking_request", "A client sent you a booking request."));
         try { await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct); Notice = "Booking request sent. The freelancer can accept or decline it in My Jobs → Booking requests."; }
@@ -176,7 +178,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         return RedirectToPage("/FindPost", new { providerId = freelancerId });
     }
 
-    public async Task<IActionResult> OnPostDecideAsync(long id, string? decision, CancellationToken ct)
+    public async Task<IActionResult> OnPostDecideAsync(long id, string? decision, CancellationToken ct, string? taskRevision = null)
     {
         if (UserId <= 0) return Challenge();
         if (decision is not ("accept" or "decline")) return BadRequest();
@@ -189,6 +191,7 @@ public class BookingRequestsModel(ApplicationDbContext db, ILogger<BookingReques
         var booking = await db.MarketplaceBookings.SingleOrDefaultAsync(b => b.Id == id && b.FreelancerId == UserId && b.Status == "pending", ct);
         var task = booking is null ? null : await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == booking.TaskId && (t.Status == "booking-pending" || t.Status == "open" && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow)), ct);
         if (booking is null || task is null) { Notice = "This request is no longer available."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
+        if (decision == "accept" && taskRevision != TaskAcceptanceTerms.Revision(task, task.Budget)) { Notice = "Booking details changed. Reload and review the latest schedule before accepting."; return RedirectToPage("/MyJobs", new { view = "requests" }); }
         if (decision == "decline")
         {
             booking.Status = "declined";

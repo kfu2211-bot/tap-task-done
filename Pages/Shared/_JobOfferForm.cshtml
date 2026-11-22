@@ -23,7 +23,7 @@
         @if (!hasRange && postedPrice is not null)
         {
             <form method="post" asp-page="/MarketTasks" asp-page-handler="Offer" data-submit-pending="Applying…" data-job-offer-submit>
-                <input type="hidden" name="id" value="@task.Id" />
+                <input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="taskRevision" value="@tts.Data.TaskAcceptanceTerms.Revision(task, 0)" />
                 <input type="hidden" name="price" value="@postedPrice" />
                 <input type="hidden" name="applyAtPostedPay" value="true" />
                 <button class="post-submit-button" type="submit" data-work-guard disabled="@Model.WorkLocked">Apply at @task.BudgetDisplay</button>
@@ -36,8 +36,9 @@
 @if (Model.OfferStatus is null) { <p class="job-notice" data-work-lock-notice hidden="@(!Model.WorkLocked)" role="status">@tts.Data.JobAcceptanceRules.Message <a href="/MyJobs?view=active" data-i18n>View current job</a></p> }
 @if (Model.OfferStatus is null)
 {
+    <p class="work-help" data-i18n>Sending an offer means you agree to the listed schedule and work details. If the client accepts unchanged Short Job terms, you can proceed without another confirmation.</p>
     <form id="@formId" class="job-offer-editor" method="post" asp-page="/MarketTasks" asp-page-handler="Offer" data-submit-pending="Sending offer…" data-job-offer-submit>
-        <input type="hidden" name="id" value="@task.Id" />
+        <input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="taskRevision" value="@tts.Data.TaskAcceptanceTerms.Revision(task, 0)" />
         <fieldset class="job-offer-guard" data-work-guard disabled="@Model.WorkLocked">
         @if (hasRange && postedPrice is not null)
         {

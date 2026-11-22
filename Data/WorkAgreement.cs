@@ -69,9 +69,18 @@ public static class AgreementRules
         var pin = await db.Set<TaskDestination>().SingleOrDefaultAsync(p => p.TaskId == task.Id, ct);
         if (pin is null || !TaskLocationRules.Valid(pin.Latitude, pin.Longitude)) return; // Existing jobs can propose terms in Tracking.
         var previous = await LatestAsync(db, task.Id, ct);
+        // The tracked accepted offer can still be pending in SQL until SaveChanges.
+        var accepted = db.ChangeTracker.Entries<MarketplaceOffer>().Select(e => e.Entity).FirstOrDefault(o => o.TaskId == task.Id && o.Status == "accepted");
+        var otherActor = actor == task.ClientId ? accepted?.FreelancerId ?? 0 : task.ClientId;
+        var snapshot = await db.Set<TaskProgressEvent>().Where(e => e.TaskId == task.Id && e.ActorId == otherActor && e.Status == TaskAcceptanceTerms.EventStatus)
+            .OrderByDescending(e => e.Id).Select(e => e.Note).FirstOrDefaultAsync(ct);
+        var acceptedUnchanged = previous is null && TaskAcceptanceTerms.CanUseAcceptance(task, price, snapshot);
+        var now = DateTime.UtcNow;
         db.Add(new WorkAgreement { TaskId = task.Id, Version = (previous?.Version ?? 0) + 1, ProposedById = actor, Price = price,
+            ClientConfirmedAtUtc = acceptedUnchanged ? now : null, FreelancerConfirmedAtUtc = acceptedUnchanged ? now : null,
             JobType = task.JobType, WorkEndUtc = task.WorkEndUtc, EstimatedMinutes = task.EstimatedMinutes, Scope = task.Description, ScheduleText = string.IsNullOrWhiteSpace(task.ScheduleText) ? "To be agreed" : task.ScheduleText,
-            Location = task.Location, Latitude = pin.Latitude, Longitude = pin.Longitude, CreatedAtUtc = DateTime.UtcNow });
+            Location = task.Location, Latitude = pin.Latitude, Longitude = pin.Longitude, CreatedAtUtc = now });
+        if (acceptedUnchanged) db.Add(new TaskProgressEvent { TaskId = task.Id, ActorId = actor, Status = "agreement-confirmed", CreatedAtUtc = now, Note = "Initial Short Job terms confirmed through unchanged offer or booking acceptance." });
     }
     public static async Task ConversationAsync(ApplicationDbContext db, long taskId, int freelancerId, CancellationToken ct)
     {
