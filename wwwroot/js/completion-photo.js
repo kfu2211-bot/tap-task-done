@@ -39,15 +39,6 @@
             feedback.textContent = 'This video cannot be previewed in this browser. Choose another MP4 or WebM video.';
             feedback.hidden = false;
         });
-        root.closest('form').addEventListener('submit', event => {
-            const note = event.target.elements.namedItem('note');
-            if (!note.value.trim() && !input.files.length) {
-                event.preventDefault();
-                feedback.textContent = 'Add a completion note or choose a video before marking work finished.';
-                feedback.hidden = false;
-                note.focus();
-            }
-        });
         root.querySelector('[data-upload-remove]').addEventListener('click', () => { clear(); input.focus(); });
         window.addEventListener('pagehide', () => { if (url) URL.revokeObjectURL(url); });
     });

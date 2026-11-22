@@ -1,0 +1,14 @@
+@model tts.Data.ClientTaskActions
+@using tts.Data
+@{ var task = Model.Task; var closed = JobActivity.IsClosedTask(task.Status) || task.Status == "completed"; }
+<div class="work-primary-actions" aria-label="Task actions">
+    @if (Model.HasAccepted) { <a class="work-button work-button-secondary" href="/Messages?taskId=@task.Id">@(closed ? "View conversation" : "Message freelancer")</a> }
+    @if (task.Status is "assigned" or "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation" or "completed" || task.Status == "cancelled" && Model.HasAccepted) {
+        <a class="work-button" href="/Tracking?taskId=@task.Id">@(closed ? "View history" : "View progress")</a>
+    }
+    @if (task.Status is "cancelled" or "canceled" or "expired" or "completed") {
+        <a class="work-button work-button-secondary" href="/JobRecord?taskId=@task.Id" data-i18n>View record</a>
+        <a class="work-button work-button-secondary" href="/RepeatTask?sourceTaskId=@task.Id">@(task.Status == "expired" ? "Edit & repost" : "Create similar task")</a>
+        @if (Model.CanBookAgain) { <a class="work-button work-button-secondary" href="/RepeatTask?sourceTaskId=@task.Id&amp;booking=true" data-i18n>Book again</a> }
+    }
+</div>

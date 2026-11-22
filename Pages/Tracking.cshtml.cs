@@ -98,7 +98,7 @@ public class TrackingModel(ApplicationDbContext db, ILogger<TrackingModel> logge
             .Where(e => e.TaskId == id && e.Status == "awaiting-confirmation").OrderByDescending(e => e.Id).FirstOrDefaultAsync(ct);
         if (completion is null) { Notice = "This completion note can no longer be edited."; return RedirectToPage(new { taskId = id }); }
         if (!TaskProgress.ValidCompletion(note, completion.Photo is not null))
-        { Notice = "Keep a completion note or uploaded proof, with a note up to 1,000 characters."; return RedirectToPage(new { taskId = id }); }
+        { Notice = "Keep the optional completion note under 1,000 characters."; return RedirectToPage(new { taskId = id }); }
         completion.Note = note;
         db.Add(MarketplaceNotification.Create(task!.ClientId, id, "finished", "The freelancer updated the completion note. Review it before confirming completion."));
         await db.SaveChangesAsync(ct);

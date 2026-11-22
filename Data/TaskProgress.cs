@@ -35,7 +35,7 @@ public static class TaskProgress
 
     public const string CancellationRequested = "cancellation-requested";
     public const string CancellationDeclined = "cancellation-declined";
-    public static bool ValidCompletion(string? note, bool hasVideo) => (note?.Trim().Length ?? 0) <= 1000 && (!string.IsNullOrWhiteSpace(note) || hasVideo);
+    public static bool ValidCompletion(string? note, bool hasVideo) => (note?.Trim().Length ?? 0) <= 1000;
     public const string ArrivalRequest = "arrival-requested";
 
     public static async Task<bool> NearDestinationAsync(ApplicationDbContext db, long taskId, int freelancerId, CancellationToken ct)
@@ -110,7 +110,7 @@ public static class TaskProgress
 
         note = note?.Trim();
         if (action == "finish" && !ValidCompletion(note, photo is not null))
-            return new(false, "Add a completion note (up to 1,000 characters) or a completion video.");
+            return new(false, "Keep the optional completion note under 1,000 characters.");
         task.Status = to;
         db.Set<TaskProgressEvent>().Add(new TaskProgressEvent { TaskId = id, ActorId = actor, Status = to,
             Note = action == "finish" ? note : null, Photo = action == "finish" ? photo : null,

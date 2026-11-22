@@ -1,0 +1,7 @@
+@model tts.Data.TaskProgressEvent
+<section class="tracking-completion work-completion-details"><h3 data-i18n>Completion details</h3>
+    @if (!string.IsNullOrWhiteSpace(Model.Note)) { <p class="work-user-content" translate="no" style="white-space:pre-wrap">@Model.Note</p> }
+    @if (Model.PhotoType?.StartsWith("video/") == true) { <video controls preload="metadata" src="/Tracking?handler=CompletionPhoto&amp;eventId=@Model.Id" class="work-completion-video" aria-label="Completion video"></video> }
+    else if (Model.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@Model.Id" target="_blank" rel="noopener"><img src="/Tracking?handler=CompletionPhoto&amp;eventId=@Model.Id" alt="Completion photo" loading="lazy" class="work-completion-photo" /></a> }
+    @if (string.IsNullOrWhiteSpace(Model.Note) && Model.PhotoType is null) { <p class="work-help" data-i18n>No note or video was added. The client can still review the work before confirming completion.</p> }
+</section>

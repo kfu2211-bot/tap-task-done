@@ -1,13 +1,13 @@
 @model tts.Data.MarketplaceTask
 @using tts.Data
 @if (Model.Status is "open" or "booking-pending") {
-<details class="flow-notice flow-review"><summary data-i18n>Adjust schedule before acceptance</summary>
+<details class="work-editor work-schedule-editor"><summary><span data-i18n>Adjust schedule before acceptance</span><span class="work-optional-tag" data-i18n>Before acceptance</span></summary>
     <p data-i18n>Set a complete schedule or choose different times to resolve a conflict. Pending applicants will be notified. Accepted work uses the agreement flow in Tracking.</p>
-    <form method="post" asp-page="/MarketTasks" asp-page-handler="Schedule">
+    <form method="post" asp-page="/MarketTasks" asp-page-handler="Schedule" class="work-form work-schedule-form">
         <input name="id" type="hidden" value="@Model.Id" />
         <label><span data-i18n>Arrival time (Philippine time)</span><input type="datetime-local" name="schedule" value="@TaskSchedule.StartUtc(Model.ScheduleText)?.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" min="@DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required /></label>
         <partial name="_JobTypeInput" model="new JobTypeInput(Model.JobType, Model.WorkEndUtc)" />
-        <button class="flow-button" type="submit" data-i18n>Save schedule and notify applicants</button>
+        <button class="work-button" type="submit" data-i18n>Save schedule and notify applicants</button>
     </form>
 </details>
 }

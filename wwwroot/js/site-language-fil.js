@@ -929,4 +929,43 @@ Wait until the resend timer ends. A maximum of five sends is allowed per 15 minu
 Wait until the resend timer ends. Only five sends are allowed per 15 minutes.	Hintaying matapos ang resend timer. Limang pagpapadala lamang ang pinapayagan bawat 15 minuto.
 Email delivery failed. Your status is shown below. Wait until the resend timer ends before requesting another code.	Hindi naipadala ang email. Makikita sa ibaba ang iyong status. Hintaying matapos ang resend timer bago humingi ulit ng code.
 Available in	Maaaring humiling muli sa
+Upcoming job	Paparating na trabaho
+All scheduled jobs	Lahat ng nakatakdang trabaho
+Arrival date and time	Petsa at oras ng pagdating
+Arrival schedule	Iskedyul ng pagdating
+Work details needed	Kailangan ang detalye ng trabaho
+Your confirmation needed	Kailangan ang iyong kumpirmasyon
+Waiting for client confirmation	Hinihintay ang kumpirmasyon ng kliyente
+Work details confirmed	Nakumpirma na ang detalye ng trabaho
+Set the final work details together in Tracking.	Magtakda ng pinal na detalye ng trabaho sa Pagsubaybay.
+Review the work details and confirm your side in Tracking.	Suriin ang detalye at kumpirmahin ang iyong panig sa Pagsubaybay.
+Your confirmation is saved. Ask the client to confirm before travel.	Na-save ang iyong kumpirmasyon. Hilinging magkumpirma ang kliyente bago bumiyahe.
+Both confirmed. Travel opens 1 hour before arrival.	Pareho nang nagkumpirma. Maaaring bumiyahe 1 oras bago ang pagdating.
+No accepted job schedule yet. Accepted jobs appear here even while work details are awaiting confirmation.	Wala pang iskedyul ng tinanggap na trabaho. Lalabas dito ang mga tinanggap na trabaho kahit hinihintay pa ang kumpirmasyon ng detalye.
+Schedule needed	Kailangan ng iskedyul
+Review schedule	Suriin ang iskedyul
+View conversation	Tingnan ang pag-uusap
+Job actions	Mga aksiyon sa trabaho
+Task actions	Mga aksiyon sa task
+BEFORE YOU START	BAGO MAGSIMULA
+Review & confirm work details	Suriin at kumpirmahin ang detalye ng trabaho
+Both confirmed	Pareho nang nagkumpirma
+Confirmation pending	Hinihintay ang kumpirmasyon
+Check the details below. Travel is available only after both participants confirm.	Suriin ang detalye sa ibaba. Maaari lamang bumiyahe kapag pareho nang nagkumpirma.
+Your confirmation is saved	Na-save ang iyong kumpirmasyon
+Waiting for the other participant to confirm the same work details.	Hinihintay ang kabilang panig na kumpirmahin ang parehong detalye ng trabaho.
+Confirm your side after reviewing the price, schedule and destination.	Kumpirmahin ang iyong panig matapos suriin ang presyo, iskedyul, at destinasyon.
+Current arrival schedule	Kasalukuyang iskedyul ng pagdating
+The current agreement stays in effect until both participants confirm a new version.	Mananatili ang kasalukuyang kasunduan hanggang parehong kumpirmahin ang bagong bersiyon.
+Before acceptance	Bago tanggapin
+Revision	Bersiyon
+Add completion details	Magdagdag ng detalye ng pagkumpleto
+You can mark work finished without a note or video. The client still needs to confirm completion.	Maaari mong markahang tapos ang trabaho kahit walang tala o video. Kailangan pa ring kumpirmahin ng kliyente ang pagkumpleto.
+Add any details you want the client to review	Maglagay ng anumang detalyeng nais mong ipasuri sa kliyente
+No note or video was added. The client can still review the work before confirming completion.	Walang idinagdag na tala o video. Maaari pa ring suriin ng kliyente ang trabaho bago kumpirmahin ang pagkumpleto.
+Keep the optional completion note under 1,000 characters.	Panatilihing mas maikli sa 1,000 character ang opsyonal na tala ng pagkumpleto.
+The client reviews the finished work and any optional details.	Sinusuri ng kliyente ang natapos na trabaho at anumang opsyonal na detalye.
+WORK AGREEMENT	KASUNDUAN SA TRABAHO
+Agreed work details	Napagkasunduang detalye ng trabaho
+Both participants confirmed these work details.	Pareho nang kinumpirma ang mga detalyeng ito ng trabaho.
 `.trim().split('\n').map(line => line.split('\t')));

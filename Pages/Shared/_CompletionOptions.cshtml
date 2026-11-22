@@ -1,0 +1,11 @@
+<details class="work-editor work-completion-options">
+    <summary><span data-i18n>Add completion details</span><span class="work-optional-tag" data-i18n>Optional</span></summary>
+    <p class="work-help" data-i18n>You can mark work finished without a note or video. The client still needs to confirm completion.</p>
+    <label><span data-i18n>Completion note</span><textarea name="note" maxlength="1000" rows="3" placeholder="Add any details you want the client to review"></textarea></label>
+    <div class="completion-upload" data-completion-upload>
+        <div class="completion-upload-heading"><strong data-i18n>Completion video</strong><span data-i18n>Optional</span></div>
+        <label class="completion-upload-picker"><input type="file" name="video" accept="video/mp4,video/webm" aria-label="Choose completion video" /><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m10 9 5 3-5 3Z"/></svg><strong data-upload-label>Choose a video</strong><small data-i18n>MP4 or WebM · Up to 10 MB</small></label>
+        <div class="completion-upload-preview" hidden><video controls preload="metadata" aria-label="Selected completion video preview"></video><div><strong data-upload-name></strong><small data-upload-size></small><button type="button" data-upload-remove>Remove video</button></div></div>
+        <p class="completion-upload-feedback" role="status" aria-live="polite" hidden></p>
+    </div>
+</details>

@@ -8,7 +8,7 @@
 @if (Model.Offer is not null && !Model.IsOwner) { <span class="record-status" data-status="@Model.Offer.Status">Your offer: @Model.Offer.Status</span> }
 @if (Model.Booking is not null) { <span class="record-status" data-status="@Model.Booking.Status">Booking: @Model.Booking.Status</span> }
 </div><p class="record-description">@task.Description</p>
-<dl class="record-details"><div><dt data-i18n>Service</dt><dd>@task.CategoryDisplay</dd></div><div><dt data-i18n>Job type</dt><dd>@task.JobTypeDisplay</dd></div><div><dt data-i18n>Budget</dt><dd>@task.BudgetDisplay</dd></div><div><dt data-i18n>Schedule (PHT)</dt><dd>@task.ScheduleText</dd></div></dl>
+<dl class="record-details"><div><dt data-i18n>Service</dt><dd>@task.CategoryDisplay</dd></div><div><dt data-i18n>Job type</dt><dd>@task.JobTypeDisplay</dd></div><div><dt data-i18n>Budget</dt><dd>@task.BudgetDisplay</dd></div><div><dt data-i18n>Schedule (PHT)</dt><dd>@TaskSchedule.Display(task.ScheduleText)</dd></div></dl>
 @if (!string.IsNullOrWhiteSpace(task.CancellationReason)) { <p><strong>Cancellation reason:</strong> @task.CancellationReason</p> }
 @if (!string.IsNullOrWhiteSpace(Model.Offer?.WithdrawalReason)) { <p><strong>Withdrawal reason:</strong> @Model.Offer.WithdrawalReason</p> }
 @if (task.Status == "expired") { <p class="record-info" data-i18n>This public post is closed. Its expiry is separate from the offer’s withdrawal or cancellation.</p> }

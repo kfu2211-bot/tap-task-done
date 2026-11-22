@@ -1,0 +1,21 @@
+@model tts.Data.FreelancerTaskActions
+@using tts.Data
+@{ var task = Model.Task; var closed = JobActivity.IsClosedTask(task.Status) || task.Status == "completed"; }
+<div class="work-primary-actions" aria-label="Job actions">
+    <a class="work-button work-button-secondary" href="/JobRecord?taskId=@task.Id" data-i18n>View record</a>
+    @if (Model.Offer.Status is "accepted" or "pending") {
+        @if (closed) { <a class="work-button work-button-secondary" href="/Messages?taskId=@task.Id" data-i18n>View conversation</a> }
+        else { <form method="post" asp-page="/Messages" asp-page-handler="Start"><input type="hidden" name="taskId" value="@task.Id" /><button type="submit" class="work-button work-button-secondary" data-i18n>Message client</button></form> }
+    }
+    @if (Model.Offer.Status == "accepted" && !closed) { <a class="work-button" href="/Tracking?taskId=@task.Id">@(task.Status == "assigned" ? "Review schedule" : "View progress")</a> }
+    @if (Model.Offer.Status == "accepted" && task.Status is "completed" or "cancelled") { <a class="work-button" href="/Tracking?taskId=@task.Id" data-i18n>View history</a> }
+</div>
+@if (Model.View is "active" or "scheduled" && task.Status == "assigned") { <p class="work-help" data-i18n>The scheduled time is your arrival time. Travel opens 1 hour earlier.</p> }
+<div class="work-secondary-actions">
+@if (Model.View is "active" or "scheduled" && task.Status == "assigned") {
+    <details class="work-editor job-withdraw"><summary data-i18n>Withdraw from this job</summary><p data-i18n>The client will be notified. You cannot reapply to this task.</p>
+        <form method="post" asp-page-handler="Withdraw" data-withdraw-job="@task.Title"><input type="hidden" name="id" value="@task.Id" /><label><span data-i18n>Reason for withdrawing</span><textarea name="reason" maxlength="500" rows="3" required></textarea></label><button type="submit" class="work-button work-button-secondary" data-i18n>Review withdrawal</button></form>
+    </details>
+}
+@if (Model.Offer.Status == "accepted" && JobCancellation.CanRequest(task.Status)) { <a class="work-text-action" href="/Tracking?taskId=@task.Id" data-i18n>Request cancellation in Tracking</a> }
+</div>

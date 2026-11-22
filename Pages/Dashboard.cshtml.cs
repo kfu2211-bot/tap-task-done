@@ -31,7 +31,18 @@ namespace tts.Pages
         [TempData] public string? AvailabilityNotice { get; set; }
         public string AvailableDays { get; private set; } = "";
         public string ServiceArea { get; private set; } = "";
-        public record ScheduledWork(long Id, string Title, string ScheduleText) { public string Status { get; init; } = "Scheduled"; }
+        public record ScheduledWork(long Id, string Title, string ScheduleText)
+        {
+            public string Status { get; init; } = "Scheduled";
+            public bool ClientConfirmed { get; init; }
+            public bool FreelancerConfirmed { get; init; }
+            public bool HasAgreement { get; init; }
+            public string Confirmation => !HasAgreement ? "Work details needed" : !FreelancerConfirmed ? "Your confirmation needed" : !ClientConfirmed ? "Waiting for client confirmation" : "Work details confirmed";
+            public string NextStep => !HasAgreement ? "Set the final work details together in Tracking."
+                : !FreelancerConfirmed ? "Review the work details and confirm your side in Tracking."
+                : !ClientConfirmed ? "Your confirmation is saved. Ask the client to confirm before travel."
+                : "Both confirmed. Travel opens 1 hour before arrival.";
+        }
         public ScheduledWork? ScheduledJob { get; private set; }
         public bool TasksUnavailable { get; private set; }
         public AccountSetup? Setup { get; private set; }
@@ -114,8 +125,11 @@ namespace tts.Pages
                     scheduled = scheduled is null ? null : new
                     {
                         scheduled.Title,
-                        scheduled.ScheduleText,
+                        ScheduleText = TaskSchedule.Display(scheduled.ScheduleText),
                         scheduled.Status,
+                        scheduled.Confirmation,
+                        scheduled.NextStep,
+                        AgreementConfirmed = scheduled.ClientConfirmed && scheduled.FreelancerConfirmed,
                         url = Url.Page("/Tracking", new { taskId = scheduled.Id })
                     }
                 });
@@ -149,18 +163,21 @@ namespace tts.Pages
             var candidates = await (from task in db.MarketplaceTasks.AsNoTracking()
                                     join offer in db.MarketplaceOffers.AsNoTracking() on task.Id equals offer.TaskId
                                     where task.Status == "assigned" && offer.Status == "accepted" && offer.FreelancerId == userId
-                                        && db.Set<WorkAgreement>().Any(a => a.TaskId == task.Id && a.ScheduleText == task.ScheduleText &&
-                                            a.ClientConfirmedAtUtc != null && a.FreelancerConfirmedAtUtc != null)
                                     select new ScheduledWork(task.Id, task.Title, task.ScheduleText)).ToListAsync(ct);
+            var ids = candidates.Select(job => job.Id).ToArray();
+            var agreements = (await db.Set<WorkAgreement>().AsNoTracking().Where(a => ids.Contains(a.TaskId))
+                .OrderByDescending(a => a.Version).ToListAsync(ct)).GroupBy(a => a.TaskId).ToDictionary(g => g.Key, g => g.First());
+            candidates = candidates.Select(job => agreements.TryGetValue(job.Id, out var terms)
+                ? job with { HasAgreement = true, ClientConfirmed = terms.ClientConfirmedAtUtc.HasValue, FreelancerConfirmed = terms.FreelancerConfirmedAtUtc.HasValue } : job).ToList();
             var now = DateTime.UtcNow;
             return SelectScheduledWork(candidates, now);
         }
 
         public static ScheduledWork? SelectScheduledWork(IEnumerable<ScheduledWork> candidates, DateTime now) =>
             candidates.Select(job => (Job: job, Start: TaskSchedule.StartUtc(job.ScheduleText)))
-                .Where(entry => entry.Start.HasValue).OrderBy(entry => entry.Start > now ? 1 : 0)
+                .OrderBy(entry => entry.Start is null ? 2 : entry.Start > now ? 1 : 0)
                 .ThenBy(entry => entry.Start).ThenBy(entry => entry.Job.Id)
-                .Select(entry => entry.Job with { Status = TaskSchedule.ScheduleLabel(entry.Start!.Value, now) }).FirstOrDefault();
+                .Select(entry => entry.Job with { Status = entry.Start.HasValue ? TaskSchedule.ScheduleLabel(entry.Start.Value, now) : "Schedule needed" }).FirstOrDefault();
 
         public async Task OnGetAsync(CancellationToken ct, string? view = null, string? filter = null)
         {

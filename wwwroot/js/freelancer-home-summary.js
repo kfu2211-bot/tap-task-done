@@ -28,7 +28,7 @@
                 scheduledDetails.hidden = !scheduled;
                 scheduledEmpty.hidden = !!scheduled;
                 const attention = scheduled && ['Due now', 'Schedule overdue'].includes(scheduled.status);
-                document.querySelector('[data-schedule-heading]').textContent = attention ? 'Schedule needs attention' : 'Scheduled job';
+                document.querySelector('[data-schedule-heading]').textContent = attention ? 'Schedule needs attention' : 'Upcoming job';
                 const help = scheduledDetails.querySelector('[data-scheduled-help]');
                 if (help) help.hidden = !attention;
                 if (scheduled) {
@@ -36,8 +36,12 @@
                     scheduledDetails.querySelector('[data-scheduled-title]').textContent = scheduled.title;
                     scheduledDetails.querySelector('[data-scheduled-time]').textContent = scheduled.scheduleText;
                     scheduledDetails.querySelector('[data-scheduled-link]').href = scheduled.url;
+                    const confirmation = scheduledDetails.querySelector('[data-scheduled-confirmation]');
+                    const next = scheduledDetails.querySelector('[data-scheduled-next]');
+                    if (confirmation) { confirmation.textContent = scheduled.confirmation || ''; confirmation.dataset.ready = String(scheduled.agreementConfirmed === true); }
+                    if (next) next.textContent = scheduled.nextStep || '';
                 } else {
-                    scheduledEmpty.textContent = 'No confirmed job schedule yet.';
+                    scheduledEmpty.textContent = 'No accepted job schedule yet. Accepted jobs appear here even while work details are awaiting confirmation.';
                 }
             }
         } catch {

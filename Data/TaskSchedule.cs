@@ -4,6 +4,9 @@ namespace tts.Data;
 
 public static class TaskSchedule
 {
+    public static string Display(string? text) => StartUtc(text) is { } start
+        ? start.AddHours(8).ToString("MMM d, yyyy · h:mm tt", CultureInfo.InvariantCulture) + " PHT"
+        : string.IsNullOrWhiteSpace(text) ? "To be scheduled" : text;
     public static DateTime? StartUtc(string? text) =>
         DateTime.TryParseExact(text?.Trim(),
             ["MMM d, yyyy 'at' h:mm tt '(PHT)'", "MMM d, yyyy, h:mm tt", "yyyy-MM-dd'T'HH:mm"],

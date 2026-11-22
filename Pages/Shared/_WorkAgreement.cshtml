@@ -1,35 +1,48 @@
 @model tts.Data.AgreementView
 @using tts.Data
-@{ var agreement = Model.Agreement; var task = Model.Task; var price = agreement?.Price ?? task.Budget; var scope = agreement?.Scope ?? task.Description; var schedule = agreement?.ScheduleText ?? task.ScheduleText; var address = agreement?.Location ?? task.Location; }
-<section class="work-agreement" data-agreement-task="@task.Id" data-agreement-version="@(agreement?.Version ?? 0)">
+@{
+    var agreement = Model.Agreement; var task = Model.Task;
+    var price = agreement?.Price ?? task.Budget; var scope = agreement?.Scope ?? task.Description;
+    var schedule = agreement?.ScheduleText ?? task.ScheduleText; var address = agreement?.Location ?? task.Location;
+    var mineConfirmed = Model.IsClient ? agreement?.ClientConfirmedAtUtc.HasValue == true : agreement?.FreelancerConfirmedAtUtc.HasValue == true;
+}
+<section class="work-agreement work-agreement-panel" data-agreement-task="@task.Id" data-agreement-version="@(agreement?.Version ?? 0)">
     <div data-agreement-summary>
-    <h3>Confirm work details</h3>
-    <p data-i18n>Review the price, schedule, work scope and destination. Both participants must confirm updated terms before continuing work.</p>
-    @if(agreement is not null) {
-        <dl><div><dt data-i18n>Agreed price</dt><dd>₱@agreement.Price.ToString("N2")</dd></div><div><dt data-i18n>Job type</dt><dd>@JobTypes.Label(agreement.JobType)</dd></div><div><dt data-i18n>Schedule</dt><dd>@agreement.ScheduleText</dd></div><div><dt data-i18n>Expected finish</dt><dd>@(agreement.WorkEndUtc?.AddHours(8).ToString("MMM d, yyyy h:mm tt") ?? "To be agreed")</dd></div><div><dt data-i18n>Work scope</dt><dd>@agreement.Scope</dd></div><div><dt data-i18n>Work destination</dt><dd>@agreement.Location</dd></div></dl>
-        <p>Client: @(agreement.ClientConfirmedAtUtc.HasValue ? "Confirmed" : "Waiting for confirmation") · Freelancer: @(agreement.FreelancerConfirmedAtUtc.HasValue ? "Confirmed" : "Waiting for confirmation")</p>
-        @if(agreement.Confirmed) { <p><strong>Both confirmed.</strong> The agreed destination is saved and ready.</p> }
-        else if(AgreementRules.Editable(task.Status)) {
-            <p>Current schedule: @task.ScheduleText</p><p><strong>Agreement pending.</strong> @if(task.Status is "on-the-way" or "arrived" or "in-progress") { <span data-i18n>Pause travel or work until you both approve the changes. The existing map destination remains until then.</span> }</p>
-            @if(!(Model.IsClient ? agreement.ClientConfirmedAtUtc.HasValue : agreement.FreelancerConfirmedAtUtc.HasValue)) {
-                <form method="post" asp-page="/Agreement" asp-page-handler="Confirm"><input type="hidden" name="taskId" value="@task.Id" /><input type="hidden" name="version" value="@agreement.Version" /><button type="submit">Confirm work details</button></form>
+        <header class="work-section-heading"><div><span class="work-eyebrow" data-i18n>@(task.Status == "assigned" ? "BEFORE YOU START" : "WORK AGREEMENT")</span><h3 data-i18n>@(agreement?.Confirmed == true ? "Agreed work details" : "Review & confirm work details")</h3></div><span class="work-status" data-ready="@(agreement?.Confirmed == true ? "true" : "false")">@(agreement?.Confirmed == true ? "Both confirmed" : "Confirmation pending")</span></header>
+        <p class="work-help" data-i18n>Check the details below. Travel is available only after both participants confirm.</p>
+        @if (agreement is not null) {
+            <dl class="work-agreement-grid">
+                <div><dt data-i18n>Agreed price</dt><dd>₱@agreement.Price.ToString("N2")</dd></div><div><dt data-i18n>Job type</dt><dd>@JobTypes.Label(agreement.JobType)</dd></div>
+                <div><dt data-i18n>Arrival date and time</dt><dd>@TaskSchedule.Display(agreement.ScheduleText)</dd></div><div><dt data-i18n>Expected finish</dt><dd>@(agreement.WorkEndUtc is { } end ? DisplayTime.Philippine(end) + " PHT" : "To be agreed")</dd></div>
+                <div class="work-field-wide"><dt data-i18n>Work scope</dt><dd class="work-user-content" translate="no">@agreement.Scope</dd></div><div class="work-field-wide"><dt data-i18n>Work destination</dt><dd class="work-user-content" translate="no">@agreement.Location</dd></div>
+            </dl>
+            <div class="work-confirmations">
+                <div data-confirmed="@agreement.ClientConfirmedAtUtc.HasValue.ToString().ToLowerInvariant()"><strong data-i18n>Client</strong><span>@(agreement.ClientConfirmedAtUtc.HasValue ? "Confirmed" : "Waiting for confirmation")</span></div>
+                <div data-confirmed="@agreement.FreelancerConfirmedAtUtc.HasValue.ToString().ToLowerInvariant()"><strong data-i18n>Freelancer</strong><span>@(agreement.FreelancerConfirmedAtUtc.HasValue ? "Confirmed" : "Waiting for confirmation")</span></div>
+            </div>
+            @if (agreement.Confirmed) { <p class="work-next-step" data-i18n>@(task.Status == "assigned" ? "Both confirmed. Travel opens 1 hour before arrival." : "Both participants confirmed these work details.")</p> }
+            else if (AgreementRules.Editable(task.Status)) {
+                <div class="work-next-step"><strong data-i18n>@(mineConfirmed ? "Your confirmation is saved" : "Your confirmation needed")</strong><p data-i18n>@(mineConfirmed ? "Waiting for the other participant to confirm the same work details." : "Confirm your side after reviewing the price, schedule and destination.")</p>
+                    @if (!TaskSchedule.SameStart(agreement.ScheduleText, task.ScheduleText)) { <p><span data-i18n>Current arrival schedule</span>: @TaskSchedule.Display(task.ScheduleText)</p> }
+                    @if (task.Status is "on-the-way" or "arrived" or "in-progress") { <p data-i18n>Pause travel or work until you both approve the changes. The existing map destination remains until then.</p> }
+                    @if (!mineConfirmed) { <form method="post" asp-page="/Agreement" asp-page-handler="Confirm"><input type="hidden" name="taskId" value="@task.Id" /><input type="hidden" name="version" value="@agreement.Version" /><button type="submit" class="work-button" data-i18n>Confirm work details</button></form> }
+                </div>
             }
-        }
-    } else { <p data-i18n>No final agreement yet. Propose the terms and exact location below.</p> }
+        } else { <p class="work-next-step" data-i18n>No final agreement yet. Propose the terms and exact location below.</p> }
     </div>
-    @if(agreement is not null) { <details class="agreement-history"><summary>Agreement record</summary><p>Revision @agreement.Version · Saved @agreement.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm tt") PHT</p></details> }
-    @if(AgreementRules.Editable(task.Status)) {
-        <details><summary>@(agreement is null ? "Set final terms and destination" : "Request reschedule or other changes")</summary>
-            <form method="post" asp-page="/Agreement" asp-page-handler="Propose">
+    @if (AgreementRules.Editable(task.Status)) {
+        <details class="work-editor" data-agreement-editor open="@(agreement is null)"><summary>@(agreement is null ? "Set final terms and destination" : "Request reschedule or other changes")</summary>
+            <p class="work-help" data-i18n>The current agreement stays in effect until both participants confirm a new version.</p>
+            <form method="post" asp-page="/Agreement" asp-page-handler="Propose" class="work-form">
                 <input type="hidden" name="taskId" value="@task.Id" /><input type="hidden" name="expectedVersion" value="@(agreement?.Version ?? 0)" />
-                <label>Final price (₱)<input name="price" type="number" min="0.01" max="9999999999" step="0.01" value="@price.ToString(System.Globalization.CultureInfo.InvariantCulture)" required /></label>
-                <label>Schedule (Philippine time)<input name="schedule" type="datetime-local" step="60" value="@TaskSchedule.StartUtc(schedule)?.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required /></label>
-                <partial name="_JobTypeInput" model="new tts.Data.JobTypeInput(agreement?.JobType ?? task.JobType, agreement?.WorkEndUtc ?? task.WorkEndUtc, true)" />
-                <label>Agreed scope<textarea name="scope" rows="3" maxlength="5000" required>@scope</textarea></label>
+                <label><span data-i18n>Final price (₱)</span><input name="price" type="number" min="0.01" max="9999999999" step="0.01" value="@price.ToString(System.Globalization.CultureInfo.InvariantCulture)" required /></label>
+                <label><span data-i18n>Arrival time (Philippine time)</span><input name="schedule" type="datetime-local" step="60" value="@TaskSchedule.StartUtc(schedule)?.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" required /></label>
+                <partial name="_JobTypeInput" model="new JobTypeInput(agreement?.JobType ?? task.JobType, agreement?.WorkEndUtc ?? task.WorkEndUtc, true)" />
+                <label><span data-i18n>Agreed scope</span><textarea name="scope" rows="3" maxlength="5000" required>@scope</textarea></label>
                 <partial name="_TaskLocationPicker" model="new TaskLocationInput(address, agreement?.Latitude ?? Model.Destination?.Latitude, agreement?.Longitude ?? Model.Destination?.Longitude)" />
-                <p data-i18n>Both participants must confirm updated details again. The destination stays unchanged until then.</p>
-                <button type="submit">Send updated details</button>
+                <button type="submit" class="work-button" data-i18n>Send updated details</button>
             </form>
         </details>
     }
+    @if (agreement is not null) { <details class="agreement-history work-editor work-history-editor"><summary data-i18n>Agreement record</summary><p><span data-i18n>Revision</span> @agreement.Version · @DisplayTime.Philippine(agreement.CreatedAtUtc) PHT</p></details> }
 </section>

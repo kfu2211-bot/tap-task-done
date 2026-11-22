@@ -48,7 +48,7 @@ Check(!TaskTracking.VisibleTasks(trackingTasks, 999).Any(t => t.Status == "compl
 Check(TaskProgress.ValidCompletion("Work completed.", false), "Completion note alone is accepted");
 Check(TaskProgress.ValidCompletion(null, true), "Video alone is accepted");
 Check(TaskProgress.ValidCompletion("Finished", true), "Note and video together are accepted");
-Check(!TaskProgress.ValidCompletion("   ", false), "Empty completion is rejected");
+Check(TaskProgress.ValidCompletion("   ", false), "Completion note and video are optional");
 Check(!TaskProgress.ValidCompletion(new string('a', 1001), true), "Oversized completion note is rejected even with video");
 
 var mp4 = new byte[32];
@@ -136,7 +136,11 @@ var upcomingWork = new tts.Pages.DashboardModel.ScheduledWork(2, "Future", start
 var overdueWork = new tts.Pages.DashboardModel.ScheduledWork(1, "Missed", startText);
 Check(tts.Pages.DashboardModel.SelectScheduledWork(new[] { upcomingWork, overdueWork }, startUtc.AddHours(1)) is { Id: 1, Status: "Schedule overdue" }, "Home prioritizes missed work over the next upcoming schedule");
 Check(tts.Pages.DashboardModel.SelectScheduledWork(new[] { upcomingWork }, startUtc.AddHours(1)) is { Id: 2, Status: "Scheduled" }, "Home displays the next schedule after overdue work is resolved");
-Check(tts.Pages.DashboardModel.SelectScheduledWork(new[] { new tts.Pages.DashboardModel.ScheduledWork(3, "Unset", "To be scheduled") }, startUtc) is null, "Unparseable schedules are not invented or shown as confirmed dates");
+Check(tts.Pages.DashboardModel.SelectScheduledWork(new[] { new tts.Pages.DashboardModel.ScheduledWork(3, "Unset", "To be scheduled") }, startUtc) is { Status: "Schedule needed" }, "Accepted work missing a date stays visible with a clear next step");
+Check(new tts.Pages.DashboardModel.ScheduledWork(3, "Accepted", startText).Confirmation == "Work details needed", "Accepted work is visible before agreement setup");
+Check(new tts.Pages.DashboardModel.ScheduledWork(3, "Accepted", startText) { HasAgreement = true, ClientConfirmed = true }.Confirmation == "Your confirmation needed", "Home identifies freelancer confirmation as the next step");
+Check(new tts.Pages.DashboardModel.ScheduledWork(3, "Accepted", startText) { HasAgreement = true, FreelancerConfirmed = true }.Confirmation == "Waiting for client confirmation", "Home identifies the other participant's pending confirmation");
+Check(TaskSchedule.Display(startText).Contains("Nov 25, 2026") && !TaskSchedule.Display(startText).Contains("T09"), "Native dates display as human-readable Philippine time");
 Check(JobTypes.ValidSchedule("short", startText, startUtc.AddHours(2), true), "Short job may end later on the same Philippine date");
 Check(JobTypes.ValidSchedule("long", startText, startUtc.AddHours(8), true), "Long job may end on the same Philippine date");
 Check(!JobTypes.ValidSchedule("short", startText, startUtc.AddDays(1), true), "Same-day job cannot cross into another date");

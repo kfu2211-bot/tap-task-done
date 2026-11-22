@@ -18,7 +18,7 @@ html[data-theme="dark"] body :is(#headerAccountMenu,#headerAccountButton,#notifi
     background:#202a25 !important; color:#edf5ef !important; border-color:#38483f !important;
 }
 html[data-theme="dark"] body :is(.profile-summary,.thread-agreement,.conversation-link.selected,.related-task-options button[aria-pressed="true"],.sidebar a.active) { background:#254537 !important; }
-html[data-theme="dark"] body :is(h1,h2,h3,h4,h5,legend,label,p,small,dt,dd,strong,.brand span,.sidebar a,.navigation a,#headerAccountMenu a,#headerAccountMenu button,#headerAccountButton span):not(.sidebar-view-switch a, .desktop-view-switch a) { color:#edf5ef !important; }
+html[data-theme="dark"] body :is(h1,h2,h3,h4,h5,legend,label,p,small,dt,dd,strong,.brand span,.sidebar a,.navigation a,#headerAccountMenu a,#headerAccountMenu button,#headerAccountButton span):not(.sidebar-view-switch a, .desktop-view-switch a, .review-star-input label, .work-help, .work-help p, .work-agreement-grid dt, .home-schedule-next) { color:#edf5ef !important; }
 html[data-theme="dark"] body :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select,option) { color-scheme:dark; background:#171f1c !important; color:#edf5ef !important; border-color:#567264 !important; }
 html[data-theme="dark"] body :is(input,textarea)::placeholder { color:#aabdb3; }
 html[data-theme="dark"] body a:not([class]) { color:#a0ecc1; }
