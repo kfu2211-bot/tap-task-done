@@ -58,6 +58,28 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
         return RedirectToPage("/Tracking", new { taskId = id, shareLocation = result.Success && action == "travel" ? "1" : null });
     }
 
+    public async Task<IActionResult> OnPostPendingOfferAsync(long id, string? action, decimal price, string? message, string? revision, CancellationToken ct)
+    {
+        if (UserId <= 0) return Challenge();
+        IActionResult Back(string text) { Notice = text; return RedirectToPage(new { view = "offers" }); }
+        message = (message ?? "").Trim();
+        if (!ModelState.IsValid || action is not ("edit" or "withdraw") || (action == "edit" && (price <= 0 || price > 9999999999m || message.Length > 500)))
+            return Back("Check your offer amount and message.");
+        await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
+        await AppTransactions.LockTaskAsync(db, id, ct);
+        var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id, ct);
+        var offer = await db.MarketplaceOffers.SingleOrDefaultAsync(o => o.TaskId == id && o.FreelancerId == UserId, ct);
+        if (task is null || offer is null || task.Status != "open" || task.IsPrivate || task.PostExpiresUtc <= DateTime.UtcNow || offer.Status != "pending")
+            return Back("This offer is no longer pending. Review the latest job status.");
+        if (revision != OfferRevision.For(offer)) return Back("This offer changed. Review it before trying again.");
+        if (action == "withdraw") { offer.Status = "withdrawn"; offer.WithdrawalReason = "Withdrawn before acceptance."; }
+        else { offer.Price = price; offer.Message = message; }
+        db.MarketplaceNotifications.Add(MarketplaceNotification.Create(task.ClientId, task.Id, "offer", action == "withdraw" ? "The freelancer withdrew a pending offer." : "The freelancer updated an offer. Review the latest price before accepting."));
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        return Back(action == "withdraw" ? "Offer withdrawn. You cannot reapply to this task." : "Offer updated. Waiting for the client response.");
+    }
+
     public async Task<IActionResult> OnPostWithdrawAsync(long id, string? reason, CancellationToken ct)
     {
         if (UserId <= 0) return Challenge();

@@ -56,7 +56,7 @@ document.querySelectorAll('[data-job-offer-submit]').forEach(form => {
             const link = document.createElement('a');
             link.className = 'task-chat-action';
             link.href = `/MyJobs?view=offers&offerFilter=pending#job-${encodeURIComponent(data.get('id'))}`;
-            link.textContent = 'View my offer';
+            link.textContent = 'Manage my offer';
             feedback.append(text, link);
         } catch (error) {
             feedback.setAttribute('role', 'alert');

@@ -628,7 +628,7 @@
                     var steps = TaskProgress.Labels;
                     <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><span class="db-tracking-status">@label</span></div>
                     <div class="db-tracking-details"><div><span data-i18n>Job type</span><strong>@task.JobTypeDisplay</strong></div><div><span data-i18n>Expected finish</span><strong>@(task.WorkEndUtc?.AddHours(8).ToString("MMM d, yyyy h:mm tt") ?? "To be agreed")</strong></div><div><span data-i18n>Client</span><strong>@item.Client</strong></div><div><span data-i18n>Freelancer</span><strong>@item.Freelancer</strong></div><div><span data-i18n>Task budget</span><strong>@task.BudgetDisplay</strong></div><div><span data-i18n>Schedule</span><strong>@TaskSchedule.Display(task.ScheduleText)</strong></div></div>
-                    <div class="tracking-detail-layout"><section class="tracking-panel"><h4>@(Model.IsHistory ? "Recorded progression" : "Task progress")</h4>
+                    <div class="tracking-detail-layout tracking-workspace"><section class="tracking-panel tracking-progress-column"><h4>@(Model.IsHistory ? "Recorded progression" : "Task progress")</h4>
                     @if (Model.IsHistory) { <partial name="_TaskHistory" model="Model" /> }
                     @if (!Model.IsHistory && status >= 0) { var descriptions = new[] { "The booking or offer has been accepted.", "The freelancer is travelling to the work location.", "The freelancer has confirmed arrival. Travel tracking stops.", "The freelancer is performing the agreed work.", "The client reviews the finished work and any optional details.", "The client has confirmed completion. Reviews are available." }; <ol class="tracking-timeline">@for (var i = 0; i < steps.Length; i++) { <li class="@(i == 0 ? "done" : status == i ? "current" : status > i ? "done" : "")"><span>@(i == 0 || status > i ? "✓" : (i + 1).ToString())</span><div>@steps[i]<small>@descriptions[i]</small>
 @{ var recorded = Model.Progress.LastOrDefault(x => x.TaskId == task.Id && x.Status == TaskProgress.States[i]); }
@@ -636,52 +636,6 @@
 
 @if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
 @if (Model.ProgressUnavailable) { <p role="alert" data-i18n>Progress updates need the task_progress_events database table.</p> }
-@if (!Model.IsHistory && task.Status == "assigned") {
-    var scheduleStatus = TaskSchedule.DisplayStatus(task, DateTime.UtcNow);
-    <section class="tracking-schedule-notice work-schedule-notice" data-schedule-status="@scheduleStatus" aria-label="Schedule actions">
-        <div class="work-section-heading"><h3 data-i18n>Arrival schedule</h3><span class="work-status">@scheduleStatus</span></div>
-        <p class="work-arrival-time">@TaskSchedule.Display(task.ScheduleText)</p>
-        <p data-i18n>The scheduled time is your arrival time. Travel opens 1 hour earlier.</p>
-        @if (scheduleStatus is "Due now" or "Schedule overdue") { <p data-i18n>No travel update is recorded. Contact each other to confirm whether work will proceed. Passing the scheduled time does not complete or cancel this job.</p> }
-        <div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a><a href="#work-details-@task.Id" data-i18n>Request reschedule</a><a href="/Reports?taskId=@task.Id" data-i18n>Report a problem</a></div>
-        <p data-i18n>To reschedule, request changes to the work details below. The current schedule stays in effect until both of you confirm the updated version.</p>
-    </section>
-}
-@if (!Model.IsHistory && AgreementRules.Editable(task.Status)) {
-    <div id="work-details-@task.Id"><partial name="_WorkAgreement" model="new AgreementView(task, Model.Agreements.GetValueOrDefault(task.Id), Model.Destinations.GetValueOrDefault(task.Id), item.IsClient)" /></div>
-}
-@{
-    var cancellation = Model.Progress.LastOrDefault(e => e.TaskId == task.Id &&
-        (e.Status == TaskProgress.CancellationRequested || e.Status == TaskProgress.CancellationDeclined));
-}
-@if (JobCancellation.CanRequest(task.Status)) {
-    if (cancellation?.Status == TaskProgress.CancellationRequested) {
-        <section class="tracking-completion"><h3>Cancellation requested</h3><p>@cancellation.Note</p>
-        <p data-i18n>Discuss any work and payment already agreed upon in Messages.</p>
-        @if (item.IsClient) {
-            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" />
-                <button name="decision" value="accept" type="submit">Approve cancellation</button>
-                <button name="decision" value="decline" type="submit">Keep job active</button>
-            </form>
-        } else { <p data-i18n>Waiting for the client's decision.</p> }
-        @if (Model.Progress.LastOrDefault(e => e.TaskId == task.Id && e.Status == JobCancellation.Escalated && e.Id > cancellation.Id) is { } followUpEvent) {
-            <p class="flow-notice" data-i18n>This cancellation is already with the admin for review.</p>
-            @if (User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == followUpEvent.ActorId.ToString()) { <a href="/Reports?taskId=@task.Id" data-i18n>View report updates</a> }
-        } else if (JobCancellation.FollowUpDue(cancellation, DateTime.UtcNow)) {
-            <div class="flow-notice"><strong data-i18n>No cancellation decision after 24 hours.</strong><p data-i18n>You can request admin review. No automatic cancellation or penalty applies.</p>
-            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" /><button name="decision" value="escalate" type="submit" class="flow-button">Ask admin for review</button></form></div>
-        } else { <p class="flow-muted" data-i18n>Admin follow-up becomes available after 24 hours without a decision.</p> }
-        </section>
-    } else if (!item.IsClient) {
-        <details class="work-editor work-cancellation-editor"><summary>Request cancellation</summary>
-            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="decision" value="request" />
-                <label>Reason<textarea name="reason" required maxlength="500" rows="3"></textarea></label>
-                <p data-i18n>The client will review your request. Discuss completed work and payment in Messages.</p>
-                <button type="submit">Send cancellation request</button>
-            </form>
-        </details>
-    }
-}
 @{ var finished = Model.Progress.LastOrDefault(x => x.TaskId == task.Id && x.Status == "awaiting-confirmation"); }
 @if (task.Status == "awaiting-confirmation" && JobAcceptanceRules.RequiresCompletion(task.JobType, task.Status)) {
     <p class="flow-notice" data-i18n>New work remains locked until client confirmation or approved resolution.</p>
@@ -695,7 +649,23 @@
         </form>
     </details>
 }
-<div class="tracking-actions">
+@if (!Model.IsHistory) {
+    <section class="tracking-next-step" data-tracking-next-step data-task-state="@task.Status" data-ready="@AgreementRules.CanProceed(Model.Agreements.GetValueOrDefault(task.Id)).ToString().ToLowerInvariant()">
+        <h4 data-i18n>Next step</h4>
+        @if (task.Status == "assigned" && !AgreementRules.CanProceed(Model.Agreements.GetValueOrDefault(task.Id))) {
+            <strong data-i18n>Confirm work details first</strong>
+            <p data-i18n>Travel unlocks after both participants confirm the same work details.</p>
+            <a class="work-button" href="#work-details-@task.Id" data-review-details data-i18n>Review details</a>
+        } else if (task.Status == "assigned") {
+            <p data-i18n>Work details are confirmed. Check your arrival schedule before travelling.</p>
+        } else if (task.Status == "awaiting-confirmation") {
+            <p data-i18n>@(item.IsClient ? "Review the finished work, then confirm completion." : "Waiting for the client to review and confirm completion.")</p>
+        } else {
+            <p data-i18n>Follow the current progress step below.</p>
+        }
+    </section>
+}
+<div class="tracking-actions tracking-current-actions">
 @if (!Model.ProgressUnavailable && task.Status == "on-the-way")
 {
     var requested = Model.Progress.Any(x => x.TaskId == task.Id && x.Status == TaskProgress.ArrivalRequest);
@@ -736,7 +706,8 @@
         }
     </section>
 }
-@if (task.Status == "assigned" && !JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc)) { <p class="flow-notice" data-i18n>Set a start and expected finish in the work agreement before starting travel.</p> }
+@if (task.Status == "assigned" && !AgreementRules.CanProceed(Model.Agreements.GetValueOrDefault(task.Id))) { <p class="flow-notice" data-i18n>Both participants must confirm work details before travel.</p> }
+else if (task.Status == "assigned" && !JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc)) { <p class="flow-notice" data-i18n>Set a start and expected finish in the work agreement before starting travel.</p> }
 else if (task.Status == "assigned" && !TaskSchedule.TravelOpen(task, DateTime.UtcNow)) { <p class="flow-notice" data-i18n>Travel opens 1 hour before the scheduled arrival time.</p> }
 else if (!Model.ProgressUnavailable && !item.IsClient && task.Status is "assigned" or "arrived" or "in-progress") {
 var action = task.Status switch { "assigned" => "travel", "on-the-way" => "arrive", "arrived" => "start", _ => "finish" };
@@ -752,6 +723,38 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
 
 <a href="@(item.IsClient ? "/MarketTasks?view=mine" : (TaskSchedule.IsUpcoming(task, DateTime.UtcNow) ? "/MyJobs?view=scheduled" : "/MyJobs?view=active"))">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a>
 </div>
+@{
+    var cancellation = Model.Progress.LastOrDefault(e => e.TaskId == task.Id &&
+        (e.Status == TaskProgress.CancellationRequested || e.Status == TaskProgress.CancellationDeclined));
+}
+@if (JobCancellation.CanRequest(task.Status)) {
+    if (cancellation?.Status == TaskProgress.CancellationRequested) {
+        <section class="tracking-completion"><h3>Cancellation requested</h3><p>@cancellation.Note</p>
+        <p data-i18n>Discuss any work and payment already agreed upon in Messages.</p>
+        @if (item.IsClient) {
+            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" />
+                <button name="decision" value="accept" type="submit">Approve cancellation</button>
+                <button name="decision" value="decline" type="submit">Keep job active</button>
+            </form>
+        } else { <p data-i18n>Waiting for the client's decision.</p> }
+        @if (Model.Progress.LastOrDefault(e => e.TaskId == task.Id && e.Status == JobCancellation.Escalated && e.Id > cancellation.Id) is { } followUpEvent) {
+            <p class="flow-notice" data-i18n>This cancellation is already with the admin for review.</p>
+            @if (User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == followUpEvent.ActorId.ToString()) { <a href="/Reports?taskId=@task.Id" data-i18n>View report updates</a> }
+        } else if (JobCancellation.FollowUpDue(cancellation, DateTime.UtcNow)) {
+            <div class="flow-notice"><strong data-i18n>No cancellation decision after 24 hours.</strong><p data-i18n>You can request admin review. No automatic cancellation or penalty applies.</p>
+            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" /><button name="decision" value="escalate" type="submit" class="flow-button">Ask admin for review</button></form></div>
+        } else { <p class="flow-muted" data-i18n>Admin follow-up becomes available after 24 hours without a decision.</p> }
+        </section>
+    } else if (!item.IsClient) {
+        <details class="work-editor work-cancellation-editor"><summary>Request cancellation</summary>
+            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="decision" value="request" />
+                <label>Reason<textarea name="reason" required maxlength="500" rows="3"></textarea></label>
+                <p data-i18n>The client will review your request. Discuss completed work and payment in Messages.</p>
+                <button type="submit">Send cancellation request</button>
+            </form>
+        </details>
+    }
+}
 @if (task.Status == "completed")
 {
     var canReviewFreelancer = item.FreelancerId > 0 && !await Model.HasReviewAsync(task.Id, !item.IsClient);
@@ -781,7 +784,7 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
     }
 }
 </section>
-                    <aside class="tracking-aside"><section class="tracking-panel"><h4>@(item.IsClient ? "Freelancer" : "Client")</h4><a asp-page="/ReviewProfile" asp-route-id="@(item.IsClient ? item.FreelancerId : task.ClientId)" asp-route-role="@(item.IsClient ? "freelancer" : "client")" class="tracking-person" data-account-id="@(item.IsClient ? item.FreelancerId : task.ClientId)">@(item.IsClient ? item.Freelancer : item.Client)</a><p data-i18n>Assigned to this task</p>@if (Model.SharedPhones.TryGetValue(task.Id, out var sharedPhone)) { <p class="tracking-shared-phone"><strong>Mobile number</strong> <bdi dir="ltr" style="user-select: all">@sharedPhone</bdi></p> }<div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a></div></section><section class="tracking-location"><strong>Task location</strong><span>@(string.IsNullOrWhiteSpace(task.Location) ? "Location not provided" : task.Location)</span>
+                    <aside class="tracking-aside tracking-work-column"><section class="tracking-panel tracking-contact-panel"><h4>@(item.IsClient ? "Freelancer" : "Client")</h4><a asp-page="/ReviewProfile" asp-route-id="@(item.IsClient ? item.FreelancerId : task.ClientId)" asp-route-role="@(item.IsClient ? "freelancer" : "client")" class="tracking-person" data-account-id="@(item.IsClient ? item.FreelancerId : task.ClientId)">@(item.IsClient ? item.Freelancer : item.Client)</a><p data-i18n>Assigned to this task</p>@if (Model.SharedPhones.TryGetValue(task.Id, out var sharedPhone)) { <p class="tracking-shared-phone"><strong>Mobile number</strong> <bdi dir="ltr" style="user-select: all">@sharedPhone</bdi></p> }<div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a></div></section><section class="tracking-location"><strong>Task location</strong><span>@(string.IsNullOrWhiteSpace(task.Location) ? "Location not provided" : task.Location)</span>
 @if (!string.IsNullOrWhiteSpace(task.ArrivalInstructions))
 {
     <div class="tracking-arrival location-arrival-note">
@@ -801,7 +804,22 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
 }
 <form hidden data-location-token>@Html.AntiForgeryToken()</form>
 </div>
-</section></aside></div></article>
+</section>
+@if (!Model.IsHistory && task.Status == "assigned") {
+    var scheduleStatus = TaskSchedule.DisplayStatus(task, DateTime.UtcNow);
+    <section class="tracking-schedule-notice work-schedule-notice" data-schedule-status="@scheduleStatus" aria-label="Schedule actions">
+        <div class="work-section-heading"><h3 data-i18n>Arrival schedule</h3><span class="work-status">@scheduleStatus</span></div>
+        <p class="work-arrival-time">@TaskSchedule.Display(task.ScheduleText)</p>
+        <p data-i18n>The scheduled time is your arrival time. Travel opens 1 hour earlier.</p>
+        @if (scheduleStatus is "Due now" or "Schedule overdue") { <p data-i18n>No travel update is recorded. Contact each other to confirm whether work will proceed. Passing the scheduled time does not complete or cancel this job.</p> }
+        <div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a><a href="#work-details-@task.Id" data-i18n>Request reschedule</a><a href="/Reports?taskId=@task.Id" data-i18n>Report a problem</a></div>
+        <p data-i18n>To reschedule, request changes to the work details below. The current schedule stays in effect until both of you confirm the updated version.</p>
+    </section>
+}
+@if (!Model.IsHistory && AgreementRules.Editable(task.Status)) {
+    <div id="work-details-@task.Id"><partial name="_WorkAgreement" model="new AgreementView(task, Model.Agreements.GetValueOrDefault(task.Id), Model.Destinations.GetValueOrDefault(task.Id), item.IsClient)" /></div>
+}
+</aside></div></article>
                 }
             </section>
             }

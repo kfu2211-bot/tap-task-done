@@ -16,7 +16,7 @@
     @if (Model.OfferStatus is { } status)
     {
         <span class="jobs-offer-status">Offer sent · @status</span>
-        <a class="task-chat-action" href="/MyJobs?view=@(status is "withdrawn" or "cancelled" ? "closed" : status == "accepted" ? "active" : "offers")&amp;offerFilter=@(status is "declined" or "rejected" ? "declined" : "pending")#job-@task.Id" data-i18n>View offer</a>
+        <a class="task-chat-action" href="/MyJobs?view=@(status is "withdrawn" or "cancelled" ? "closed" : status == "accepted" ? "active" : "offers")&amp;offerFilter=@(status is "declined" or "rejected" ? "declined" : "pending")#job-@task.Id" data-i18n>Manage my offer</a>
     }
     else
     {

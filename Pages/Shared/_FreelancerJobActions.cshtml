@@ -19,3 +19,21 @@
 }
 @if (Model.Offer.Status == "accepted" && JobCancellation.CanRequest(task.Status)) { <a class="work-text-action" href="/Tracking?taskId=@task.Id" data-i18n>Request cancellation in Tracking</a> }
 </div>
+
+@if (Model.Offer.Status == "pending" && task.Status == "open" && (task.PostExpiresUtc == null || task.PostExpiresUtc > DateTime.UtcNow)) {
+<div class="pending-offer-controls">
+    <p class="work-help" data-i18n>You can edit or withdraw this offer until the client accepts. Discuss a counter-offer in Messages first.</p>
+    <details class="work-editor"><summary data-i18n>Edit offer</summary>
+        <form method="post" asp-page="/MyJobs" asp-page-handler="PendingOffer" class="work-form">
+            <input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="edit" /><input type="hidden" name="revision" value="@OfferRevision.For(Model.Offer)" />
+            <label><span data-i18n>Your offer (₱)</span><input name="price" type="number" min="1" max="9999999999" step="0.01" value="@Model.Offer.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)" required /></label>
+            <label><span data-i18n>Message (optional)</span><textarea name="message" maxlength="500" rows="3">@Model.Offer.Message</textarea></label>
+            <button class="work-button" type="submit" data-i18n>Save revised offer</button>
+        </form>
+    </details>
+    <details class="work-editor"><summary data-i18n>Withdraw offer</summary>
+        <p data-i18n>Withdrawing is final. You cannot reapply to this task.</p>
+        <form method="post" asp-page="/MyJobs" asp-page-handler="PendingOffer"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="withdraw" /><input type="hidden" name="revision" value="@OfferRevision.For(Model.Offer)" /><button class="work-button work-button-secondary" type="submit" data-i18n>Confirm withdrawal</button></form>
+    </details>
+</div>
+}

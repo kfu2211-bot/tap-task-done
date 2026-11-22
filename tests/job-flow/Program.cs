@@ -10,6 +10,17 @@ void Check(bool condition, string label)
     Console.WriteLine("PASS " + label);
 }
 
+var revisionOffer = new MarketplaceOffer { Id = 42, Status = "pending", Price = 700, Message = "Original offer" };
+var originalRevision = OfferRevision.For(revisionOffer);
+revisionOffer.Price = 701;
+Check(OfferRevision.For(revisionOffer) != originalRevision, "A revised price invalidates stale acceptance");
+revisionOffer.Price = 700;
+revisionOffer.Message = "Changed scope";
+Check(OfferRevision.For(revisionOffer) != originalRevision, "Changed offer terms invalidate stale acceptance");
+revisionOffer.Message = "Original offer";
+revisionOffer.Status = "withdrawn";
+Check(OfferRevision.For(revisionOffer) != originalRevision, "Withdrawal invalidates pending offer controls");
+
 var trackingTasks = new[] {
     new MarketplaceTask { Id = 1, Status = "assigned" },
     new MarketplaceTask { Id = 2, Status = "awaiting-confirmation" },

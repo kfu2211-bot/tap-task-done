@@ -103,3 +103,28 @@ html[data-theme="dark"] body .task-review .task-review-icon { color:#f4c55c !imp
     html body .work-editor { padding:14px; }
     html body .work-schedule-notice { padding:16px; }
 }
+
+.task-management-actions {display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px;margin-top:20px}.task-management-actions>.cancel-task{order:3;flex-basis:100%}.task-management-actions>.edit-task{flex:0 1 auto;min-width:180px}.task-management-actions>.edit-task[open]{flex-basis:100%}.task-management-actions>[data-confirm-task]{order:-1}.task-management-actions>.edit-task>summary{width:auto!important;padding:12px 20px!important}.task-management-actions .task-edit-form{padding:16px}.pending-offer-controls{display:grid;gap:12px;margin-top:16px}.offer>form{display:inline-block;margin:12px 0 0 12px}.pending-offer-controls textarea{width:100%;box-sizing:border-box}
+
+/* Tracking: progress/actions on the left; destination, schedule and agreement on the right. */
+html body .db-tracking .tracking-workspace {display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.7fr);gap:20px;align-items:start}
+html body .tracking-workspace>.tracking-progress-column,html body .tracking-workspace>.tracking-work-column{min-width:0;width:auto;max-width:100%}
+html body .tracking-workspace>.tracking-work-column{display:flex;flex-direction:column;gap:18px}
+html body .tracking-workspace .tracking-location,html body .tracking-workspace .work-agreement-panel,html body .tracking-workspace .work-schedule-notice{margin:0;min-width:0;background:var(--work-surface);border-color:var(--work-line);color:var(--work-text)}
+html body .tracking-workspace .tracking-contact-panel{order:3;margin:0}
+html body .tracking-workspace .work-agreement-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+html body .tracking-workspace .tracking-timeline{padding-inline-start:0;margin-bottom:20px}
+html body .tracking-workspace .tracking-timeline li{min-width:0}
+html body .tracking-workspace .tracking-timeline small{line-height:1.5}
+html body .tracking-next-step{padding:18px;margin:20px 0 12px;border:1px solid var(--work-line);border-radius:12px;background:var(--work-soft);color:var(--work-text)}
+html body .tracking-next-step h4{margin:0 0 12px;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+html body .tracking-next-step>strong{display:block;font-size:1.1rem;line-height:1.4}
+html body .tracking-next-step p{font-size:.9rem;line-height:1.6}
+html body .tracking-current-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+html body .tracking-current-actions>.tracking-progress-form,html body .tracking-current-actions>.tracking-arrival{width:100%;min-width:0}
+html body .tracking-workspace .job-location-map{height:320px;min-height:250px}
+html body .tracking-workspace .work-section-heading{flex-wrap:wrap;gap:10px}
+html body .tracking-workspace #completed-reviews{min-width:0}
+html body .tracking-workspace [id^="work-details-"]{scroll-margin-top:95px}
+@media(max-width:1050px){html body .db-tracking .tracking-workspace{grid-template-columns:minmax(0,1fr)}html body .tracking-workspace .tracking-contact-panel{order:3}}
+@media(max-width:520px){html body .tracking-workspace .work-agreement-grid{grid-template-columns:minmax(0,1fr)}html body .tracking-workspace .work-field-wide{grid-column:auto}html body .tracking-workspace .job-location-map{height:260px}html body .tracking-workspace .tracking-actions{flex-wrap:wrap}html body .tracking-next-step{padding:14px}}

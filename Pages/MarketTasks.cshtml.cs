@@ -345,7 +345,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         }
         catch (DbUpdateException) { return OfferFailure("Your offer could not be saved. Please try again."); }
     }
-    public async Task<IActionResult> OnPostAcceptAsync(long id, CancellationToken ct)
+    public async Task<IActionResult> OnPostAcceptAsync(long id, string? revision, CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
         var hint = await db.MarketplaceOffers.AsNoTracking().SingleOrDefaultAsync(o => o.Id == id && o.Status == "pending", ct);
@@ -354,6 +354,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var offer = await db.MarketplaceOffers.SingleOrDefaultAsync(o => o.Id == id && o.Status == "pending", ct);
         var task = offer is null ? null : await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == offer.TaskId && t.ClientId == UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         if (task is null || offer is null) { Notice = "This offer is no longer available."; return RedirectToPage(); }
+        if (revision != OfferRevision.For(offer)) { Notice = "This offer changed. Review the latest price and message before accepting."; return RedirectToPage(); }
         if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage(); }
         if (await JobAcceptanceRules.IsLockedAsync(db, offer.FreelancerId, ct, task.Id))
         { Notice = "This freelancer must finish their ongoing Long Job or Multi-Day Job before another offer can be accepted."; return RedirectToPage(); }
