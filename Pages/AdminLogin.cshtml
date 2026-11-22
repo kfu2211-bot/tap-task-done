@@ -13,9 +13,9 @@
     <main class="admin-login-page">
         <a class="admin-login-brand" href="/"><span>✓</span><strong>Tap, Task, Done</strong></a>
         <section class="admin-login-card" aria-labelledby="adminLoginTitle">
-            <p class="admin-eyebrow">RESTRICTED AREA</p>
+            <p class="admin-eyebrow" data-i18n>RESTRICTED AREA</p>
             <h1 id="adminLoginTitle">Sign in to<br />Admin Center</h1>
-            <p class="admin-login-copy">Review local verification requests, reports, and account activity.</p>
+            <p class="admin-login-copy" data-i18n>Review local verification requests, reports, and account activity.</p>
             <form id="adminLoginForm" method="post">
                 <label for="adminEmail">ADMIN EMAIL</label>
                 <input id="adminEmail" name="email" type="email" autocomplete="username" placeholder="admin@example.com" required />
@@ -24,9 +24,9 @@
                 <p id="adminLoginError" class="admin-login-error" role="alert">@Model.ErrorMessage</p>
                 <button type="submit">Sign in securely <span>→</span></button>
             </form>
-            <a class="return-link" href="/Login">← Return to regular sign in</a>
+            <a class="return-link" href="/Login" data-i18n>← Return to regular sign in</a>
         </section>
-        <p class="local-warning">Local testing only. Admin access is disabled in production until MFA is ready.</p>
+        <p class="local-warning" data-i18n>Local testing only. Admin access is disabled in production until MFA is ready.</p>
     </main>
 </body>
 </html>

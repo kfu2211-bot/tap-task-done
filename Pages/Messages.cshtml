@@ -40,37 +40,37 @@
 
             <a href="/Dashboard">
                 <span class="nav-icon">⌂</span>
-                <span>Home</span>
+                <span data-i18n>Home</span>
             </a>
 
             <a href="/FindPost">
                 <span class="nav-icon">⌕</span>
-                <span>Find &amp; Post</span>
+                <span data-i18n>Find &amp; Post</span>
             </a>
 
             <a href="/MyTasks">
                 <span class="nav-icon">▤</span>
-                <span>My Tasks</span>
+                <span data-i18n>My Tasks</span>
             </a>
 
             <a href="/Messages" class="active">
                 <span class="nav-icon">□</span>
-                <span>Messages</span>
+                <span data-i18n>Messages</span>
             </a>
 
             <a href="/IdentityVerification">
                 <span class="nav-icon">✓</span>
-                <span>Identity Verification</span>
+                <span data-i18n>Identity Verification</span>
             </a>
 
             <a href="/Tracking">
                 <span class="nav-icon">➤</span>
-                <span>Tracking</span>
+                <span data-i18n>Tracking</span>
             </a>
 
             <a href="/Reviews">
                 <span class="nav-icon">☆</span>
-                <span>Reviews</span>
+                <span data-i18n>Reviews</span>
             </a>
 
         </nav>
@@ -119,7 +119,7 @@
         =============================== -->
 
         @if (Request.Query["legacy"] == "1") {
-        <p style="padding: 15px">Older browser-only messages have not been imported. <a href="/Messages">Back to current messages</a></p>
+        <p style="padding: 15px">Older browser-only messages have not been imported. <a href="/Messages" data-i18n>Back to current messages</a></p>
         <section class="messages-wrapper">
 
             <!-- CONVERSATION LIST -->
@@ -144,11 +144,11 @@
                 </div>
                 <div class="conversation" onclick="openConversation('Marisol')">
                     <div class="conversation-avatar">Ma</div>
-                    <div class="conversation-details"><div class="conversation-top"><strong>Marisol</strong><span>Yesterday</span></div><p>See you on Saturday morning!</p></div>
+                    <div class="conversation-details"><div class="conversation-top"><strong>Marisol</strong><span data-i18n>Yesterday</span></div><p>See you on Saturday morning!</p></div>
                 </div>
                 <div class="conversation" onclick="openConversation('Dante')">
                     <div class="conversation-avatar">Da</div>
-                    <div class="conversation-details"><div class="conversation-top"><strong>Dante</strong><span>Mon</span></div><p>Could you send a photo of the future...</p></div>
+                    <div class="conversation-details"><div class="conversation-top"><strong>Dante</strong><span data-i18n>Mon</span></div><p>Could you send a photo of the future...</p></div>
                 </div>
                 <div class="conversation" onclick="openConversation('Lea')">
                     <div class="conversation-avatar">Le</div>
@@ -168,7 +168,7 @@
 
                 <div class="chat-header">
                     <div class="chat-avatar">Of</div>
-                    <div><strong id="chatName">Ofrac</strong><span>Plumber</span></div>
+                    <div><strong id="chatName">Ofrac</strong><span data-i18n>Plumber</span></div>
                 </div>
 
 
@@ -189,7 +189,7 @@
                               rows="2"
                               placeholder="Write a message…"></textarea>
                     <button type="button" id="sendMessage" aria-label="Send message">➤</button>
-                    <small>Press Enter to send · Shift + Enter for a new line</small>
+                    <small data-i18n>Press Enter to send · Shift + Enter for a new line</small>
                 </div>
 
             </div>
@@ -199,14 +199,14 @@
         <section class="messages-current">
 
             @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="messages-notice" role="status">@Model.Notice</p> }
-            @if (Model.Unavailable) { <div class="messages-empty" role="alert">Messages are unavailable. Check the database setup and try again.</div> }
+            @if (Model.Unavailable) { <div class="messages-empty" role="alert" data-i18n>Messages are unavailable. Check the database setup and try again.</div> }
             else {
             <div class="messages-grid @(Model.Selected is null ? "" : "has-open-thread")"><nav class="messages-conversations" aria-label="Conversations">
-                <div class="conversations-toolbar"><div class="conversations-title"><h2>Conversations</h2><span class="conversation-count">@Model.Conversations.Count</span></div><label class="conversation-search"><span class="messages-sr-only">Search conversations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="conversationSearch" type="search" placeholder="Search conversations" autocomplete="off" /></label></div>
+                <div class="conversations-toolbar"><div class="conversations-title"><h2>Conversations</h2><span class="conversation-count">@Model.Conversations.Count</span></div><label class="conversation-search"><span class="messages-sr-only" data-i18n>Search conversations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="conversationSearch" type="search" placeholder="Search conversations" autocomplete="off" /></label></div>
                 <div class="conversation-results">
                 <div class="messages-inbox-tabs" aria-label="Conversation filters">
-                    <a asp-page="/Messages" aria-current="@(!Model.Archived ? "page" : null)">Active</a>
-                    <a asp-page="/Messages" asp-route-archived="true" aria-current="@(Model.Archived ? "page" : null)">Archived</a>
+                    <a asp-page="/Messages" aria-current="@(!Model.Archived ? "page" : null)" data-i18n>Active</a>
+                    <a asp-page="/Messages" asp-route-archived="true" aria-current="@(Model.Archived ? "page" : null)" data-i18n>Archived</a>
                 </div>
                 @if (Model.Conversations.Count == 0) { <p class="conversation-list-empty">@(Model.Archived ? "No archived conversations yet." : "No active conversations yet. Ask about a task or discuss a booking to start one.")</p> }
                 @foreach (var conversation in Model.Conversations) {
@@ -228,7 +228,7 @@
                         @if (unread > 0) { <span class="conversation-unread" aria-label="@unread unread">@(unread > 99 ? "99+" : unread.ToString())</span> }
                     </a>
                 }
-                </div><p id="conversationNoMatches" class="conversation-list-empty" hidden>No conversations match your search.</p>
+                </div><p id="conversationNoMatches" class="conversation-list-empty" hidden data-i18n>No conversations match your search.</p>
             </nav><div class="messages-thread">
                 @if (Model.Selected == null)
                 {
@@ -239,12 +239,12 @@
                         <h3>@(Model.Conversations.Count > 0 ? "Open a conversation" : "Your inbox is empty")</h3>
                         @if (Model.Conversations.Count > 0)
                         {
-                            <p>Choose a person from your inbox to see your messages and shared tasks.</p>
+                            <p data-i18n>Choose a person from your inbox to see your messages and shared tasks.</p>
                         }
                         else
                         {
-                            <p>Ask about a task or discuss a booking to start a conversation.</p>
-                            <a class="thread-task-link" href="/FindPost">Find tasks and freelancers</a>
+                            <p data-i18n>Ask about a task or discuss a booking to start a conversation.</p>
+                            <a class="thread-task-link" href="/FindPost" data-i18n>Find tasks and freelancers</a>
                         }
                     </div>
                 }
@@ -274,12 +274,12 @@
                             {
                                 @if (Model.Selected.ClientId == Model.UserId)
                                 {
-                                    <a class="thread-task-link inquiry-booking-action" asp-page="/FindPost" asp-route-providerId="@Model.Selected.FreelancerId" asp-route-inquiryId="@Model.Selected.Id">Request booking</a>
+                                    <a class="thread-task-link inquiry-booking-action" asp-page="/FindPost" asp-route-providerId="@Model.Selected.FreelancerId" asp-route-inquiryId="@Model.Selected.Id" data-i18n>Request booking</a>
                                 }
                             }
                             else
                             {
-                                <a class="thread-task-link" asp-page="/TaskDetails" asp-route-taskId="@Model.Selected.TaskId" asp-route-conversationId="@Model.Selected.Id">View task</a>
+                                <a class="thread-task-link" asp-page="/TaskDetails" asp-route-taskId="@Model.Selected.TaskId" asp-route-conversationId="@Model.Selected.Id" data-i18n>View task</a>
                             }
                         </div>
                         @if (Model.SharedPhone is { } phone)
@@ -301,22 +301,22 @@
                             }
                             else
                             {
-                                <a class="thread-task-link" asp-page="/Settings" asp-route-view="profile">Add mobile number</a>
+                                <a class="thread-task-link" asp-page="/Settings" asp-route-view="profile" data-i18n>Add mobile number</a>
                             }
                         </div>
                     }
                     @if (Model.Selected.Assigned)
                     {
                         <div class="thread-agreement">
-                            <div><strong>Task progress</strong><p>Follow the work and discuss any changes here.</p></div>
-                            <a href="/Tracking?taskId=@Model.Selected.TaskId">View progress</a>
+                            <div><strong>Task progress</strong><p data-i18n>Follow the work and discuss any changes here.</p></div>
+                            <a href="/Tracking?taskId=@Model.Selected.TaskId" data-i18n>View progress</a>
                         </div>
                     }
                     <div class="thread-messages" data-account="@Model.Selected.OtherId" data-task-context="@Model.Selected.Id" aria-label="Conversation messages">
                         @if (Model.Messages.Count == 0) { <div class="thread-empty-state">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 11a8 8 0 0 1-8 8H8l-5 2 2-5a8 8 0 1 1 16-5Z"/><path d="M8 10h8m-8 4h5"/></svg>
                                 <strong>@(Model.Selected.CanSend ? "Start the conversation" : "No messages")</strong>
-                                @if (Model.Selected.CanSend) { <p>Send a message to discuss the task details.</p> }
+                                @if (Model.Selected.CanSend) { <p data-i18n>Send a message to discuss the task details.</p> }
                             </div> }
                         @{ DateTime? messageDay = null; }
                         @foreach (var message in Model.Messages) {

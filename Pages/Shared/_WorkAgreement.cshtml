@@ -4,18 +4,18 @@
 <section class="work-agreement" data-agreement-task="@task.Id" data-agreement-version="@(agreement?.Version ?? 0)">
     <div data-agreement-summary>
     <h3>Confirm work details</h3>
-    <p>Review the price, schedule, work scope and destination. Both participants must confirm updated terms before continuing work.</p>
+    <p data-i18n>Review the price, schedule, work scope and destination. Both participants must confirm updated terms before continuing work.</p>
     @if(agreement is not null) {
-        <dl><div><dt>Agreed price</dt><dd>₱@agreement.Price.ToString("N2")</dd></div><div><dt>Job type</dt><dd>@JobTypes.Label(agreement.JobType)</dd></div><div><dt>Schedule</dt><dd>@agreement.ScheduleText</dd></div><div><dt>Expected finish</dt><dd>@(agreement.WorkEndUtc?.AddHours(8).ToString("MMM d, yyyy h:mm tt") ?? "To be agreed")</dd></div><div><dt>Work scope</dt><dd>@agreement.Scope</dd></div><div><dt>Work destination</dt><dd>@agreement.Location</dd></div></dl>
+        <dl><div><dt data-i18n>Agreed price</dt><dd>₱@agreement.Price.ToString("N2")</dd></div><div><dt data-i18n>Job type</dt><dd>@JobTypes.Label(agreement.JobType)</dd></div><div><dt data-i18n>Schedule</dt><dd>@agreement.ScheduleText</dd></div><div><dt data-i18n>Expected finish</dt><dd>@(agreement.WorkEndUtc?.AddHours(8).ToString("MMM d, yyyy h:mm tt") ?? "To be agreed")</dd></div><div><dt data-i18n>Work scope</dt><dd>@agreement.Scope</dd></div><div><dt data-i18n>Work destination</dt><dd>@agreement.Location</dd></div></dl>
         <p>Client: @(agreement.ClientConfirmedAtUtc.HasValue ? "Confirmed" : "Waiting for confirmation") · Freelancer: @(agreement.FreelancerConfirmedAtUtc.HasValue ? "Confirmed" : "Waiting for confirmation")</p>
         @if(agreement.Confirmed) { <p><strong>Both confirmed.</strong> The agreed destination is saved and ready.</p> }
         else if(AgreementRules.Editable(task.Status)) {
-            <p>Current schedule: @task.ScheduleText</p><p><strong>Agreement pending.</strong> @if(task.Status is "on-the-way" or "arrived" or "in-progress") { <span>Pause travel or work until you both approve the changes. The existing map destination remains until then.</span> }</p>
+            <p>Current schedule: @task.ScheduleText</p><p><strong>Agreement pending.</strong> @if(task.Status is "on-the-way" or "arrived" or "in-progress") { <span data-i18n>Pause travel or work until you both approve the changes. The existing map destination remains until then.</span> }</p>
             @if(!(Model.IsClient ? agreement.ClientConfirmedAtUtc.HasValue : agreement.FreelancerConfirmedAtUtc.HasValue)) {
                 <form method="post" asp-page="/Agreement" asp-page-handler="Confirm"><input type="hidden" name="taskId" value="@task.Id" /><input type="hidden" name="version" value="@agreement.Version" /><button type="submit">Confirm work details</button></form>
             }
         }
-    } else { <p>No final agreement yet. Propose the terms and exact location below.</p> }
+    } else { <p data-i18n>No final agreement yet. Propose the terms and exact location below.</p> }
     </div>
     @if(agreement is not null) { <details class="agreement-history"><summary>Agreement record</summary><p>Revision @agreement.Version · Saved @agreement.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm tt") PHT</p></details> }
     @if(AgreementRules.Editable(task.Status)) {
@@ -27,7 +27,7 @@
                 <partial name="_JobTypeInput" model="new tts.Data.JobTypeInput(agreement?.JobType ?? task.JobType, agreement?.WorkEndUtc ?? task.WorkEndUtc, true)" />
                 <label>Agreed scope<textarea name="scope" rows="3" maxlength="5000" required>@scope</textarea></label>
                 <partial name="_TaskLocationPicker" model="new TaskLocationInput(address, agreement?.Latitude ?? Model.Destination?.Latitude, agreement?.Longitude ?? Model.Destination?.Longitude)" />
-                <p>Both participants must confirm updated details again. The destination stays unchanged until then.</p>
+                <p data-i18n>Both participants must confirm updated details again. The destination stays unchanged until then.</p>
                 <button type="submit">Send updated details</button>
             </form>
         </details>

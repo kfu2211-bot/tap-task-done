@@ -338,7 +338,18 @@
         "Request cancellation in Tracking": "Humiling ng pagkansela sa Tracking",
         "Reason": "Dahilan", "Rating": "Rating"
     });
+    Object.assign(labels, window.TTS_FIL_LABELS || {});
+    const normalizedLabels = new Map(Object.entries(labels).map(([key, value]) => [key.toLowerCase(), value]));
+    const reverseLabels = new Map();
+    for (const [key, value] of Object.entries(labels)) if (!reverseLabels.has(value.toLowerCase())) reverseLabels.set(value.toLowerCase(), key);
+    const englishSource = text => {
+        const key = text.trim().replace(/\s+/g, ' ');
+        const source = !normalizedLabels.has(key.toLowerCase()) && reverseLabels.get(key.toLowerCase());
+        return source ? text.replace(text.trim(), source) : text;
+    };
     const tracked = new WeakMap();
+    const trackedAttributes = new WeakMap();
+    const nativeErrors = new Map();
     let language = "en";
     try { language = localStorage.getItem("tts-language") === "fil" ? "fil" : "en"; } catch {}
     const landing = document.querySelector(".landing-header nav");
@@ -363,6 +374,11 @@
     }
     menuPicker.append(options);
     landing?.querySelector('a[href="#service-areas"]')?.after(menuPicker);
+    const authBox = document.querySelector('.register-box, .login-box, .email-verification-card');
+    if (!landing && authBox) {
+        menuPicker.classList.add('auth-language-picker');
+        authBox.prepend(menuPicker);
+    }
 
     const accountLanguages = document.createElement("div");
     accountLanguages.className = "account-language-options";
@@ -390,12 +406,29 @@
         "[data-account-setup]",
         ".db-tracking-details span, .tracking-timeline li > div, .db-tracking-card :is(button, summary), .tracking-actions a, .tracking-panel p, .tracking-shared-phone strong, .tracking-location strong, .map-place-search :is(label, button, p)",
         ".reviews-hero-copy, .reviews-action, .reviews-overview, .reviews-tabs a, .reviews-section-heading span, .review-person p, .review-task span, .reviews-empty",
-        "button[data-toggle-specialties], [data-specialty-count], #selectedServices, #selectAllServiceAreas, #jobsFilterCount"
+        "button[data-toggle-specialties], [data-specialty-count], #selectedServices, #selectAllServiceAreas, #jobsFilterCount",
+        ".registration-page, .login-page, .email-verification-shell, .security-page, .deletion-page, .birthday-page",
+        "label, legend, button, option, summary, [role='alert'], [role='status'], .field-validation-error, .validation-summary-errors",
+        ".compact-page-description, .client-tasks-intro, .jobs-page-description, .closed-job-filters a, .client-closed-filter",
+        ".home-matching-jobs, .home-panel, .task-reuse-page, .work-agreement, .tracking-schedule-notice",
+        ".settings-card, .page-intro, .notification-page, .safety-page, .admin-page, .admin-content, .login-group",
+        ".job-reference, .offer-application-details, .record-eyebrow, .record-status, .record-details dt, .record-back, .record-info, .record-readonly",
+        "[data-i18n], title, .password-popup, [data-password-checklist-panel], [data-password-match]"
     ].join(", ");
 
     function filipinoLabel(key) {
         if (Object.hasOwn(labels, key)) return labels[key];
+        const insensitive = normalizedLabels.get(key.toLowerCase());
+        if (insensitive) return key === key.toUpperCase() ? insensitive.toUpperCase() : insensitive;
+        const preservedSuffix = ' Your entries are still here.';
+        if (key.endsWith(preservedSuffix)) return filipinoLabel(key.slice(0, -preservedSuffix.length)) + ' Nandito pa ang mga inilagay mo.';
         return key
+            .replace(/^(.+?)( - Tap, Task, Done| · Tap, Task, Done| - Admin)$/, (_, label, suffix) => (labels[label] || label) + suffix)
+            .replace(/^(Task record|Task|Original task) #(\d+)$/, (_, label, id) => (label === 'Task record' ? 'Record ng task' : label === 'Original task' ? 'Orihinal na task' : 'Task') + ' #' + id)
+            .replace(/^(Task|Your offer|Booking): (.+)$/, (_, label, status) => ({Task:'Task', 'Your offer':'Alok mo', Booking:'Booking'}[label]) + ': ' + (labels[status] || labels[status.toLowerCase()] || status))
+            .replace(/^Offer sent · (.+)$/, (_, status) => 'Naipadala ang alok · ' + (labels[status] || labels[status.toLowerCase()] || status))
+            .replace(/^(\d+) of 5 requirements met$/, 'Natugunan ang $1 sa 5 kailangan')
+            .replace(/^Task #(\d+) · Client: (.+)$/, 'Task #$1 · Kliyente: $2')
             .replace(/^(\d+) (?:tasks?|available)$/, (_, count) => count + (key.endsWith("available") ? " na available" : " na task"))
             .replace(/^(\d+) reviews?$/, "$1 review")
             .replace(/^(\d+) pending offers?$/, "$1 alok na naghihintay")
@@ -412,7 +445,8 @@
         if (darkMode && darkMode.nextElementSibling !== accountLanguages) darkMode.after(accountLanguages);
         const currentLabel = language === "fil" ? "Filipino" : "English";
         if (summary.textContent !== currentLabel) summary.textContent = currentLabel;
-        accountLanguages.setAttribute("aria-label", language === "fil" ? "Wika" : "Language");
+        const languageGroupLabel = language === 'fil' ? 'Wika' : 'Language';
+        if (accountLanguages.getAttribute('aria-label') !== languageGroupLabel) accountLanguages.setAttribute('aria-label', languageGroupLabel);
         for (const option of [...options.children, ...accountLanguages.children]) {
             option.setAttribute("aria-pressed", String(option.dataset.language === language));
         }
@@ -434,11 +468,34 @@
             });
         }
         document.documentElement.lang = language;
+        for (const [input, error] of nativeErrors) {
+            if (!input.isConnected || input.validationMessage !== error.rendered) { nativeErrors.delete(input); continue; }
+            const next = language === 'fil' ? filipinoLabel(error.source) : error.original;
+            input.setCustomValidity(next);
+            error.rendered = input.validationMessage;
+        }
+        // Localize display attributes while retaining their English source when switching back.
+        document.querySelectorAll('[placeholder], [aria-label], [title], [data-submit-pending]').forEach(element => {
+            if (element.closest('[data-no-translate], [translate="no"]')) return;
+            const history = trackedAttributes.get(element) || {};
+            for (const attribute of ['placeholder', 'aria-label', 'title', 'data-submit-pending']) {
+                const current = element.getAttribute(attribute);
+                if (current === null) continue;
+                const previous = history[attribute];
+                const original = previous?.rendered === current ? previous.original : englishSource(current);
+                const localized = filipinoLabel(original.trim());
+                const next = language === 'fil' ? localized : original;
+                history[attribute] = { original, rendered: next };
+                if (current !== next) element.setAttribute(attribute, next);
+            }
+            trackedAttributes.set(element, history);
+        });
         document.querySelectorAll(interfaceSelectors).forEach(element => {
             const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
             for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                if (node.parentElement?.closest('script, style, textarea, [data-no-translate], [translate="no"], .message-text, .message-bubble, .thread-message p, blockquote, .task-description, .record-description, .task-record-events p, .tracking-completion p[style], .jobs-card > h3, .jobs-card > p, .job-card-head h2, .job-card-head p, .task-title-line > strong, .home-row-copy > strong, article.task-record > h2, .conversation-link strong, .client-profile-copy strong, .provider-name strong, .review-feedback, .review-profile-feedback, .review-comment, #sidebarName, #sidebarEmail, #profileSummaryName, [data-own-account-name]')) continue;
                 const previous = tracked.get(node);
-                const original = previous?.rendered === node.data ? previous.original : node.data;
+                const original = previous?.rendered === node.data ? previous.original : englishSource(node.data);
                 const key = original.trim().replace(/\s+/g, " ");
                 const localized = filipinoLabel(key);
                 if (localized === key) continue;
@@ -454,6 +511,27 @@
         translate();
         window.dispatchEvent(new Event("site-language-changed"));
     }
+    window.ttsTranslate = text => language === 'fil' ? filipinoLabel(text) : text;
+    document.addEventListener('invalid', event => {
+        const input = event.target;
+        if (language !== 'fil' || typeof input.setCustomValidity !== 'function' || nativeErrors.has(input)) return;
+        const validity = input.validity;
+        const original = validity.customError ? input.validationMessage : '';
+        const source = original ? englishSource(original) : validity.valueMissing ? 'Please complete this field.' :
+            validity.typeMismatch ? (input.type === 'email' ? 'Enter a valid email address.' : 'Enter a valid value.') :
+            validity.patternMismatch ? (input.getAttribute('title') ? englishSource(input.getAttribute('title')) : 'Check the required format.') :
+            validity.rangeOverflow || validity.rangeUnderflow ? 'The value is outside the allowed range.' : 'Enter a valid value.';
+        const translated = filipinoLabel(source);
+        if (translated === source) return;
+        input.setCustomValidity(translated);
+        nativeErrors.set(input, { original, source, rendered: input.validationMessage });
+    }, true);
+    document.addEventListener('input', event => {
+        const input = event.target, error = nativeErrors.get(input);
+        if (!error) return;
+        if (input.validationMessage === error.rendered) input.setCustomValidity(error.original);
+        nativeErrors.delete(input);
+    });
     window.addEventListener("storage", event => {
         if (event.key !== "tts-language") return;
         language = event.newValue === "fil" ? "fil" : "en";
@@ -461,5 +539,10 @@
         window.dispatchEvent(new Event("site-language-changed"));
     });
     translate();
-    new MutationObserver(translate).observe(document.body, { childList: true, subtree: true, characterData: true });
+    let queued = false;
+    new MutationObserver(() => {
+        if (queued) return;
+        queued = true;
+        queueMicrotask(() => { queued = false; translate(); });
+    }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'aria-label', 'title', 'data-submit-pending'] });
 })();

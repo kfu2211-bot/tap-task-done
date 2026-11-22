@@ -24,12 +24,12 @@
         <aside class="sidebar">
             <a class="brand" asp-page="/Landing" aria-label="Tap, Task, Done landing page" style="text-decoration:none"><span class="brand-icon">✓</span><strong>Tap, Task, Done</strong></a>
             <nav class="sidebar-menu">
-                <a href="/Dashboard"><span class="menu-icon">⌂</span><span>Home</span></a>
-                <a href="/FindPost"><span class="menu-icon">⌕</span><span>Find &amp; Post</span></a>
-                <a href="/MyTasks"><span class="menu-icon">▤</span><span>My Tasks</span></a>
-                <a href="/Messages"><span class="menu-icon">□</span><span>Messages</span></a>
-                <a href="/Tracking"><span class="menu-icon">➤</span><span>Tracking</span></a>
-                <a href="/Reviews"><span class="menu-icon">☆</span><span>Reviews</span></a>
+                <a href="/Dashboard"><span class="menu-icon">⌂</span><span data-i18n>Home</span></a>
+                <a href="/FindPost"><span class="menu-icon">⌕</span><span data-i18n>Find &amp; Post</span></a>
+                <a href="/MyTasks"><span class="menu-icon">▤</span><span data-i18n>My Tasks</span></a>
+                <a href="/Messages"><span class="menu-icon">□</span><span data-i18n>Messages</span></a>
+                <a href="/Tracking"><span class="menu-icon">➤</span><span data-i18n>Tracking</span></a>
+                <a href="/Reviews"><span class="menu-icon">☆</span><span data-i18n>Reviews</span></a>
             </nav>
             <div class="sidebar-account"><span class="account-avatar">@(Model.DisplayName.FirstOrDefault())</span><div><strong id="sidebarName">@Model.DisplayName</strong><span id="sidebarEmail">@Model.Email</span></div></div>
         </aside>
@@ -39,7 +39,7 @@
                 @if (showProfile)
                 {
                 <div class="page-intro">
-                    <p>Manage your display name and profile photo.</p>
+                    <p data-i18n>Manage your display name and profile photo.</p>
                 </div>
                 <section class="settings-card account-card" data-submit-pending="Saving…">
                     <div class="profile-summary" aria-label="Current profile">
@@ -48,14 +48,14 @@
                         
                     </div>
                     <section class="photo-settings" aria-labelledby="photoHeading">
-                        <div class="photo-settings-copy"><h3 id="photoHeading">Profile photo</h3><p>Use a clear photo so people can recognize you.</p></div>
+                        <div class="photo-settings-copy"><h3 id="photoHeading">Profile photo</h3><p data-i18n>Use a clear photo so people can recognize you.</p></div>
                         <div class="photo-actions">
                             <label class="photo-upload-button" for="profilePhotoInput">Change photo</label>
                             <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" />
                             <div id="profilePhotoToken" hidden>@Html.AntiForgeryToken()</div>
                             <dialog id="profilePhotoCrop" aria-labelledby="profilePhotoCropTitle">
                                 <h2 id="profilePhotoCropTitle">Crop profile photo</h2>
-                                <p class="crop-hint">Adjust the image inside the circle before saving.</p>
+                                <p class="crop-hint" data-i18n>Adjust the image inside the circle before saving.</p>
                                 <canvas width="320" height="320" role="img" aria-label="Circular crop preview"></canvas>
                                 <p><label>Zoom <input type="range" min="1" max="3" step="0.01" value="1" /></label></p>
                                 <p><label>Horizontal position <input type="range" min="0" max="100" value="50" /></label></p>
@@ -66,7 +66,7 @@
                                 </form>
                             </dialog>
                             <button id="removePhotoButton" class="remove-photo-button" type="button">Remove photo</button>
-                            <span class="photo-file-note">JPG, PNG or WEBP · Max 5 MB</span>
+                            <span class="photo-file-note" data-i18n>JPG, PNG or WEBP · Max 5 MB</span>
                             <p id="photoMessage" class="photo-message" aria-live="polite"></p>
                         </div>
                     </section>
@@ -74,10 +74,10 @@
                 <section class="settings-card profile-personal-details" aria-labelledby="personalDetailsTitle">
                     <h2 id="personalDetailsTitle">Personal details</h2>
                     <dl>
-                        <div><dt>Display name</dt><dd>@Model.DisplayName</dd></div>
-                        <div><dt>Login email</dt><dd>@Model.Email</dd></div>
-                        <div><dt>Date of birth</dt><dd>@(Model.DateOfBirth?.ToString("MMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture) ?? "Not provided")</dd></div>
-                        <div><dt>Phone number</dt><dd>@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</dd></div>
+                        <div><dt data-i18n>Display name</dt><dd>@Model.DisplayName</dd></div>
+                        <div><dt data-i18n>Login email</dt><dd>@Model.Email</dd></div>
+                        <div><dt data-i18n>Date of birth</dt><dd>@(Model.DateOfBirth?.ToString("MMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture) ?? "Not provided")</dd></div>
+                        <div><dt data-i18n>Phone number</dt><dd>@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</dd></div>
                     </dl>
                     @if (!string.IsNullOrWhiteSpace(Model.Message))
                     {
@@ -99,8 +99,8 @@
                     </details>
                     <details class="profile-name-editor" id="contact-details" open="@(Request.Query["editPhone"] == "true")">
                         <summary>Edit phone number</summary>
-                        @if (Model.ContactUnavailable) { <p>Contact settings are temporarily unavailable.</p> }
-                        else { <form method="post" asp-page-handler="Contact" class="profile-contact-form"><label>Phone number (optional)<input name="phoneNumber" type="tel" maxlength="25" autocomplete="tel" value="@Model.PhoneNumber" /></label><p>Choose when to share your number from the task conversation in Messages.</p><button class="settings-security-link" type="submit">Save contact details</button></form> }
+                        @if (Model.ContactUnavailable) { <p data-i18n>Contact settings are temporarily unavailable.</p> }
+                        else { <form method="post" asp-page-handler="Contact" class="profile-contact-form"><label>Phone number (optional)<input name="phoneNumber" type="tel" maxlength="25" autocomplete="tel" value="@Model.PhoneNumber" /></label><p data-i18n>Choose when to share your number from the task conversation in Messages.</p><button class="settings-security-link" type="submit">Save contact details</button></form> }
                     </details>
                 </section>
                 @if (Model.WorkRole is "freelancer" or "both")
@@ -108,39 +108,39 @@
                     <section class="settings-card profile-personal-details" aria-labelledby="workSummaryTitle">
                         <h2 id="workSummaryTitle">Work summary</h2>
                         <dl>
-                            <div><dt>Service</dt><dd>@(string.IsNullOrWhiteSpace(Model.Service) ? "Not set" : Model.Service)</dd></div>
-                            <div><dt>Service location</dt><dd>@(string.IsNullOrWhiteSpace(Model.Location) ? "Not set" : Model.Location)</dd></div>
-                            <div><dt>Service rate</dt><dd>@(Model.SavedServiceRate is int rate ? $"₱{rate:N0}" : Model.HasRateRange ? "Update needed" : "Not set")</dd></div>
+                            <div><dt data-i18n>Service</dt><dd>@(string.IsNullOrWhiteSpace(Model.Service) ? "Not set" : Model.Service)</dd></div>
+                            <div><dt data-i18n>Service location</dt><dd>@(string.IsNullOrWhiteSpace(Model.Location) ? "Not set" : Model.Location)</dd></div>
+                            <div><dt data-i18n>Service rate</dt><dd>@(Model.SavedServiceRate is int rate ? $"₱{rate:N0}" : Model.HasRateRange ? "Update needed" : "Not set")</dd></div>
                         </dl>
                     </section>
                 }
                 <section class="settings-card signout-card profile-shortcuts" aria-labelledby="profileShortcutsTitle">
                     <div>
                         <h2 id="profileShortcutsTitle">Manage your account</h2>
-                        <p>Update your work preferences or review where your account is signed in.</p>
+                        <p data-i18n>Update your work preferences or review where your account is signed in.</p>
                     </div>
                     <div class="profile-shortcut-links">
-                        <a class="settings-security-link" href="/Settings">Work preferences</a>
-                        <a class="settings-security-link" href="/Security">Security &amp; devices</a>
+                        <a class="settings-security-link" href="/Settings" data-i18n>Work preferences</a>
+                        <a class="settings-security-link" href="/Security" data-i18n>Security &amp; devices</a>
                     </div>
                 </section>
                 }
                 else
                 {
                 <div class="page-intro">
-                    <p>Manage your work preferences, availability, and account security.</p>
+                    <p data-i18n>Manage your work preferences, availability, and account security.</p>
                 </div>
                 <div class="account-settings-grid">
                 <form method="post" id="profileForm" class="settings-preferences" data-submit-pending="Saving…">
                     <div id="workPreferencesErrors" class="preferences-errors" role="alert" tabindex="-1" hidden="@(Model.WorkPreferencesError is null)">
                         <strong>Please check the details below before saving.</strong>
-                        <p>Your entries are still here. Nothing has been reset.</p>
+                        <p data-i18n>Your entries are still here. Nothing has been reset.</p>
                         <ul></ul>
                         @if (Model.WorkPreferencesError is not null) { <p>@Model.WorkPreferencesError</p> }
                     </div>
                     <div class="settings-card account-role" id="work-preferences"><h3 id="workRoleTitle">Work role</h3><select aria-labelledby="workRoleTitle" aria-describedby="workRoleHelp" asp-for="WorkRole"><option value="client">Client</option><option value="freelancer">Freelancer</option><option value="both">Client &amp; Freelancer</option></select><p id="workRoleHelp" class="form-message"></p></div>                    <dialog id="roleAgreementDialog" class="role-agreement-dialog" aria-labelledby="roleAgreementTitle">
                         <h2 id="roleAgreementTitle" tabindex="-1" autofocus>Work role agreements</h2>
-                        <p>Review the terms for your selected role, then scroll down to accept.</p>
+                        <p data-i18n>Review the terms for your selected role, then scroll down to accept.</p>
                         <input type="hidden" name="AgreementVersion" value="@tts.Data.RoleAgreementAcceptance.CurrentVersion" />
                         <section data-agreement-role="client" data-accepted="@(Model.AcceptedRoles.Contains("client").ToString().ToLowerInvariant())">
                             <h3>Client Agreement</h3>
@@ -148,7 +148,7 @@
                             <p><strong>Before accepting an offer or confirming task terms,</strong> answer the freelancer’s questions and agree on the work, expected outcome, materials, location, and schedule.</p>
                             <div class="role-agreement-payment">
                                 <h4>Payments happen outside the app</h4>
-                                <p>Agree on a payment method directly with your freelancer in Messages or by phone if a number has been shared.</p>
+                                <p data-i18n>Agree on a payment method directly with your freelancer in Messages or by phone if a number has been shared.</p>
                             </div>
                             <partial name="_RoleAgreementTerms" />
                             <label><input type="checkbox" name="AcceptedAgreements" value="client" /> I agree to the Client Agreement.</label>
@@ -159,12 +159,12 @@
                             <p><strong>Before submitting an offer or confirming task terms,</strong> use <strong>Ask about this task</strong> to clarify the work, materials, location, and schedule with the client.</p>
                             <div class="role-agreement-payment">
                                 <h4>Payments happen outside the app</h4>
-                                <p>Agree on a payment method directly with your client in Messages or by phone if a number has been shared.</p>
+                                <p data-i18n>Agree on a payment method directly with your client in Messages or by phone if a number has been shared.</p>
                             </div>
                             <partial name="_RoleAgreementTerms" />
                             <label><input type="checkbox" name="AcceptedAgreements" value="freelancer" /> I agree to the Freelancer Agreement.</label>
                         </section>
-                        <p>If you discuss task terms by phone, confirm the agreed details in Messages.</p>
+                        <p data-i18n>If you discuss task terms by phone, confirm the agreed details in Messages.</p>
                         <div class="role-agreement-actions">
                             <button type="button" data-agreement-cancel>Cancel</button>
                             <button type="button" data-agreement-confirm>Agree and activate</button>
@@ -256,12 +256,12 @@
                     </div>
                     </details>
                     <details id="availability" class="settings-card settings-disclosure">
-                        <summary>Availability <span>Work days and preferred hours</span></summary>
+                        <summary>Availability <span data-i18n>Work days and preferred hours</span></summary>
                         <div class="settings-disclosure-content">
-                            <div class="field-grid"><label>Availability preference<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label></div><div class="availability-summary"><span>Current status <strong class="account-status">@Model.EffectiveAvailability</strong></span><p>Your chosen availability returns after work is finished or cancelled. You can accept new work while awaiting client confirmation.</p></div>
-                    <h4>Weekly availability</h4><p class="form-message">Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> } <button type="button" id="selectAllDays" class="weekly-day">All</button></div>
+                            <div class="field-grid"><label>Availability preference<select asp-for="Availability"><option value="Available">Available</option><option value="Busy">Busy</option><option value="Day off">Day off</option></select></label></div><div class="availability-summary"><span>Current status <strong class="account-status">@Model.EffectiveAvailability</strong></span><p data-i18n>Your chosen availability returns after work is finished or cancelled. You can accept new work while awaiting client confirmation.</p></div>
+                    <h4>Weekly availability</h4><p class="form-message" data-i18n>Choose the days you normally accept work.</p><div id="weeklyAvailability">@foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" }) { <label class="weekly-day"><input type="checkbox" name="Days" value="@day" checked="@Model.Days.Contains(day)" /><span>@day</span></label> } <button type="button" id="selectAllDays" class="weekly-day">All</button></div>
                     <h4>Preferred hours</h4>
-                    <p class="form-message">Set your usual hours in Philippine time, or leave both blank.</p>
+                    <p class="form-message" data-i18n>Set your usual hours in Philippine time, or leave both blank.</p>
                     <div class="field-grid">
                         <label>Start time<input asp-for="PreferredStart" type="time" asp-format="{0:HH:mm}" /></label>
                         <label>End time<input asp-for="PreferredEnd" type="time" asp-format="{0:HH:mm}" /></label>
@@ -278,16 +278,16 @@
                     </section>
                 </div>
                 <section class="settings-card demo-card" aria-labelledby="demoDataHeading" hidden>
-                    <div class="demo-title"><h2 id="demoDataHeading">Saved data</h2><span>On this device</span></div>
-                    <p>Clear tasks, offers, messages, reviews, reports, and notifications. Your profile stays saved.</p>
-                    <div class="demo-actions"><button id="resetDemoButton" class="danger-button" type="button">⌫&nbsp; Clear saved data</button><span class="demo-hint">Use this only when you want to start over.</span></div>
+                    <div class="demo-title"><h2 id="demoDataHeading">Saved data</h2><span data-i18n>On this device</span></div>
+                    <p data-i18n>Clear tasks, offers, messages, reviews, reports, and notifications. Your profile stays saved.</p>
+                    <div class="demo-actions"><button id="resetDemoButton" class="danger-button" type="button">⌫&nbsp; Clear saved data</button><span class="demo-hint" data-i18n>Use this only when you want to start over.</span></div>
                 </section>
                 <section class="settings-card signout-card" aria-labelledby="deleteAccountHeading">
                     <div>
                         <h2 id="deleteAccountHeading">Delete account</h2>
-                        <p>Request deletion with a 72-hour waiting period and admin review.</p>
+                        <p data-i18n>Request deletion with a 72-hour waiting period and admin review.</p>
                     </div>
-                    <a class="signout-button settings-delete-link" href="/AccountDeletion">Delete account</a>
+                    <a class="signout-button settings-delete-link" href="/AccountDeletion" data-i18n>Delete account</a>
                 </section>
                 }
             </section>

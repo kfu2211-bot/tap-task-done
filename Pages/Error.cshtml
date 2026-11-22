@@ -5,11 +5,11 @@
 }
 
 <h1 class="text-danger">Something went wrong</h1>
-<p>We couldn't complete your request. Please try again in a moment.</p>
-<p>If the problem continues, contact support and include the request ID below, if shown.</p>
+<p data-i18n>We couldn't complete your request. Please try again in a moment.</p>
+<p data-i18n>If the problem continues, contact support and include the request ID below, if shown.</p>
 
 <p>
-    <a asp-page="/Index" class="btn btn-primary">Return to home</a>
+    <a asp-page="/Index" class="btn btn-primary" data-i18n>Return to home</a>
 </p>
 
 @if (Model.ShowRequestId)

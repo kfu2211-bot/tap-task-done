@@ -17,7 +17,7 @@
         <form method="dialog"><button type="submit" aria-label="Close Task Help">×</button></form>
     </header>
     <div class="task-help-content">
-        <p data-help-prompt>What would you like to do?</p>
+        <p data-help-prompt data-i18n>What would you like to do?</p>
         <div class="task-help-topics">
             <button type="button" data-topic="post">Post a task</button>
             <button type="button" data-topic="jobs">Find jobs</button>
@@ -26,7 +26,7 @@
             <button type="button" data-topic="report">Report an issue</button>
         </div>
         <div class="task-help-history" role="log" aria-label="Task Help conversation" tabindex="0" hidden>
-            <p class="task-help-bubble assistant" data-help-greeting>Hi! I can help you post a task, find work, or use Tap, Task, Done.</p>
+            <p class="task-help-bubble assistant" data-help-greeting data-i18n>Hi! I can help you post a task, find work, or use Tap, Task, Done.</p>
         </div>
         <p class="task-help-answer" role="status" id="task-help-answer" hidden></p>
         <a class="task-help-action" id="task-help-report" hidden>@(User.Identity?.IsAuthenticated == true ? "Open Safety & Reports" : "Log in to report")</a>
@@ -36,13 +36,13 @@
                 <input id="task-help-input" maxlength="250" autocomplete="off" aria-describedby="task-help-language" required />
                 <button type="submit">Send</button>
             </div>
-            <small id="task-help-language">You can ask questions in English, Filipino, or Taglish.</small>
+            <small id="task-help-language" data-i18n>You can ask questions in English, Filipino, or Taglish.</small>
         </form>
         @if (User.Identity?.IsAuthenticated != true)
         {
             <nav aria-label="Task Help links">
-                <a asp-page="/Login">Log in</a>
-                <a asp-page="/Index">Create account</a>
+                <a asp-page="/Login" data-i18n>Log in</a>
+                <a asp-page="/Index" data-i18n>Create account</a>
             </nav>
         }
     </div>

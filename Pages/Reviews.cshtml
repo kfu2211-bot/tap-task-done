@@ -57,37 +57,37 @@
 
                 <a href="/Dashboard" class="nav-item">
                     <span class="nav-icon">⌂</span>
-                    <span>Home</span>
+                    <span data-i18n>Home</span>
                 </a>
 
                 <a href="/FindPost" class="nav-item">
                     <span class="nav-icon">⌕</span>
-                    <span>Find &amp; Post</span>
+                    <span data-i18n>Find &amp; Post</span>
                 </a>
 
                 <a href="/MyTasks" class="nav-item">
                     <span class="nav-icon">▤</span>
-                    <span>My Tasks</span>
+                    <span data-i18n>My Tasks</span>
                 </a>
 
                 <a href="/Messages" class="nav-item">
                     <span class="nav-icon">□</span>
-                    <span>Messages</span>
+                    <span data-i18n>Messages</span>
                 </a>
 
                 <a href="/IdentityVerification" class="nav-item">
                     <span class="nav-icon">✓</span>
-                    <span>Identity Verification</span>
+                    <span data-i18n>Identity Verification</span>
                 </a>
 
                 <a href="/Tracking" class="nav-item">
                     <span class="nav-icon">➤</span>
-                    <span>Tracking</span>
+                    <span data-i18n>Tracking</span>
                 </a>
 
                 <a href="/Reviews" class="nav-item active">
                     <span class="nav-icon">☆</span>
-                    <span>Reviews</span>
+                    <span data-i18n>Reviews</span>
                 </a>
 
             </nav>
@@ -151,8 +151,8 @@
             {
             <section class="reviews-live">
                 <div class="reviews-live-heading">
-                    <p class="compact-page-description">See feedback you’ve received and reviews you’ve shared.</p>
-                    <a class="reviews-action" href="/MarketTasks?view=mine">View my tasks</a>
+                    <p class="compact-page-description" data-i18n>See feedback you’ve received and reviews you’ve shared.</p>
+                    <a class="reviews-action" href="/MarketTasks?view=mine" data-i18n>View my tasks</a>
                 </div>
                 @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="reviews-notice" role="status">@Model.Notice</p> }
                 @if (!Model.Unavailable)
@@ -162,32 +162,33 @@
                         <div><span class="reviews-overview-label">@(Model.View == "given" ? "FEEDBACK YOU'VE SHARED" : "YOUR REPUTATION")</span><strong>@Model.Items.Count @(Model.Items.Count == 1 ? "review" : "reviews")</strong><p>@(Model.Items.Count == 0 ? "Your review history will appear here." : "Based on the reviews shown below.")</p></div>
                         @if (Model.Items.Count > 0)
                         {
-                            <div class="reviews-overview-score"><span>AVERAGE RATING</span><strong>@Model.Items.Average(x => x.Review.Rating).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) <small>/ 5</small></strong></div>
+                            <div class="reviews-overview-score"><span data-i18n>AVERAGE RATING</span><strong>@Model.Items.Average(x => x.Review.Rating).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) <small>/ 5</small></strong></div>
                         }
                     </div>
                 }
                 <nav class="reviews-tabs" aria-label="Review type">
-                    <a class="@(Model.View == "received" ? "selected" : "")" href="/Reviews?view=received" aria-current="@(Model.View == "received" ? "page" : null)">Received</a>
-                    <a class="@(Model.View == "given" ? "selected" : "")" href="/Reviews?view=given" aria-current="@(Model.View == "given" ? "page" : null)">Given</a>
+                    <a class="@(Model.View == "received" ? "selected" : "")" href="/Reviews?view=received" aria-current="@(Model.View == "received" ? "page" : null)" data-i18n>Received</a>
+                    <a class="@(Model.View == "given" ? "selected" : "")" href="/Reviews?view=given" aria-current="@(Model.View == "given" ? "page" : null)" data-i18n>Given</a>
                 </nav>
                 @if (Model.Unavailable)
                 {
-                    <div class="reviews-empty" role="alert">Reviews are temporarily unavailable. Please try again later.</div>
+                    <div class="reviews-empty" role="alert" data-i18n>Reviews are temporarily unavailable. Please try again later.</div>
                 }
                 else
                 {
                     <div class="reviews-section-heading"><h3>@(Model.View == "given" ? "Reviews you gave" : "Reviews you received")</h3><span>@Model.Items.Count @(Model.Items.Count == 1 ? "review" : "reviews")</span></div>
                     @if (Model.Items.Count == 0)
                     {
-                        <div class="reviews-empty"><strong>No reviews @(Model.View == "given" ? "given" : "received") yet</strong><p>@(Model.View == "given" ? "After confirming a task is complete, open My Tasks to rate your freelancer." : "Client feedback will appear here after they review a completed task.")</p><a href="/MarketTasks?view=mine">Go to My Tasks</a></div>
+                        <div class="reviews-empty"><strong>No reviews @(Model.View == "given" ? "given" : "received") yet</strong><p>@(Model.View == "given" ? "After confirming a task is complete, open My Tasks to rate your freelancer." : "Client feedback will appear here after they review a completed task.")</p><a href="/MarketTasks?view=mine" data-i18n>Go to My Tasks</a></div>
                     }
                     @foreach (var item in Model.Items)
                     {
                         <article class="review-card live-review">
                             <div class="review-top"><div class="review-person"><span class="review-avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(item.OtherName) ? "U" : item.OtherName.Trim()[0].ToString().ToUpperInvariant())</span><div><strong>@(string.IsNullOrWhiteSpace(item.OtherName) ? "User" : item.OtherName)</strong><p>@(Model.View == "given" ? "Review given" : "Review received")</p></div></div><time>@tts.Data.DisplayTime.PhilippineDate(item.Review.CreatedAt)</time></div>
                             <div class="review-rating" aria-label="@item.Review.Rating out of 5 stars"><span class="review-stars" aria-hidden="true">@(new string('★', item.Review.Rating))@(new string('☆', 5 - item.Review.Rating))</span> <span>@item.Review.Rating / 5</span></div>
-                            <p class="review-feedback">@(string.IsNullOrWhiteSpace(item.Review.Feedback) ? "No written feedback." : item.Review.Feedback)</p>
-                            <div class="review-task"><span aria-hidden="true">▧</span> <span>Completed task</span><strong>@item.TaskTitle</strong></div>
+                            @if (string.IsNullOrWhiteSpace(item.Review.Feedback)) { <p class="review-empty-feedback" data-i18n>No written feedback.</p> }
+                            else { <p class="review-feedback" translate="no">@item.Review.Feedback</p> }
+                            <div class="review-task"><span aria-hidden="true">▧</span> <span data-i18n>Completed task</span><strong>@item.TaskTitle</strong></div>
                         </article>
                     }
                 }
@@ -195,7 +196,7 @@
             }
             else
             {
-            <p style="margin: 24px"><a href="/Reviews">← Back to MySQL reviews</a> · Older browser-only reviews are not imported.</p>
+            <p style="margin: 24px"><a href="/Reviews" data-i18n>← Back to MySQL reviews</a> · Older browser-only reviews are not imported.</p>
             <section class="reviews-content">
 
 
@@ -368,7 +369,7 @@
                                         Ofrac
                                     </strong>
 
-                                    <span>
+                                    <span data-i18n>
                                         Plumber
                                     </span>
 
@@ -429,7 +430,7 @@
                                         Marisol
                                     </strong>
 
-                                    <span>
+                                    <span data-i18n>
                                         House Cleaner
                                     </span>
 
@@ -490,7 +491,7 @@
                                         Lea
                                     </strong>
 
-                                    <span>
+                                    <span data-i18n>
                                         Errand Runner
                                     </span>
 
@@ -551,7 +552,7 @@
                                         Dante
                                     </strong>
 
-                                    <span>
+                                    <span data-i18n>
                                         Electrician
                                     </span>
 

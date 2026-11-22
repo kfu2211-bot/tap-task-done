@@ -8,10 +8,10 @@
 <link rel="stylesheet" href="/css/task-reuse.css" asp-append-version="true" />
 <script defer src="/js/task-repeat.js" asp-append-version="true"></script>
 <script defer src="/lib/maplibre-gl/maplibre-gl.js" asp-append-version="true"></script><link rel="stylesheet" href="/lib/maplibre-gl/maplibre-gl.css" asp-append-version="true" /><script defer src="/js/task-location-picker.js" asp-append-version="true"></script>
-<partial name="_AccountTheme" /></head><body class="task-reuse-screen"><main class="task-reuse-page"><header><h1>@title</h1><a class="record-back" href="/JobRecord?taskId=@source.Id">Back to original record</a></header>
+<partial name="_AccountTheme" /></head><body class="task-reuse-screen"><main class="task-reuse-page"><header><h1>@title</h1><a class="record-back" href="/JobRecord?taskId=@source.Id" data-i18n>Back to original record</a></header>
 <p>This creates a new @(Model.Booking ? "private booking request" : "public task draft") linked to <a href="/JobRecord?taskId=@source.Id">task #@source.Id</a>. The original record stays unchanged.</p>
 @if (Model.Booking) { <p><strong>Freelancer:</strong> @Model.FreelancerName. They must accept this new request. Both of you must confirm the work details again.</p> }
-else { <p>Review the details and choose fresh dates. You will confirm publication after saving the draft. Previous offers and agreements are not copied.</p> }
+else { <p data-i18n>Review the details and choose fresh dates. You will confirm publication after saving the draft. Previous offers and agreements are not copied.</p> }
 <form method="post" asp-page="@(Model.Booking ? "/BookingRequests" : "/MarketTasks")" asp-page-handler="@(Model.Booking ? "Direct" : "Create")" class="task-reuse-form" data-task-repeat>
 <p data-repeat-message role="alert" hidden></p>
 <input type="hidden" name="sourceTaskId" value="@source.Id" />
@@ -26,6 +26,6 @@ else { <p>Review the details and choose fresh dates. You will confirm publicatio
 <partial name="_JobTypeInput" model="new JobTypeInput(source.JobType, null)" />
 @if (!Model.Booking) { <label>New post closing date<input name="postEndDate" type="date" min="@MarketTasksModel.TodayInPhilippines.ToString("yyyy-MM-dd")" required /></label> }
 <partial name="_TaskLocationPicker" model="new TaskLocationInput(source.Location, Model.Destination?.Latitude, Model.Destination?.Longitude, true, source.ArrivalInstructions)" />
-<p>Check the destination pin and dates before proceeding.</p>
+<p data-i18n>Check the destination pin and dates before proceeding.</p>
 <button type="submit">@(Model.Booking ? "Send new booking request" : "Save new draft for review")</button>
 </form></main><partial name="_TaskHelp" /></body></html>

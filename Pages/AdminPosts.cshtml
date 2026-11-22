@@ -17,7 +17,7 @@
 </head>
 <body class="post-moderation-page @(Model.Embedded ? "embedded" : null)">
 <main>
-    @if (!Model.Embedded) { <header><a asp-page="/Admin" asp-fragment="posts">‹ Admin workspace</a><h1>Post Moderation</h1></header> }
+    @if (!Model.Embedded) { <header><a asp-page="/Admin" asp-fragment="posts" data-i18n>‹ Admin workspace</a><h1>Post Moderation</h1></header> }
     @if (Model.Notice is { } notice) { <p role="status" class="notice">@notice</p> }
     <div class="review-layout">
         <section aria-label="Public task listings">
@@ -48,14 +48,14 @@
             <p class="meta">#@task.Id · @task.Category · @TaskProgress.Label(task.Status)</p>
             <p class="details">@task.Description</p>
             <h3>Linked reports</h3>
-            @if (Model.Reports.Count == 0) { <p>No linked reports.</p> }
+            @if (Model.Reports.Count == 0) { <p data-i18n>No linked reports.</p> }
             @foreach (var report in Model.Reports)
             {
                 <details><summary>@report.Reason · @report.Status</summary><p>@report.Description</p><a asp-page="/AdminReports" asp-route-recordId="@report.Id" asp-route-embedded="@Model.Embedded">Review report #@report.Id</a></details>
             }
             <h3>Moderation history</h3>
-            @if (Model.Unavailable) { <p>Moderation storage is unavailable.</p> }
-            else if (Model.History.Count == 0) { <p>No actions recorded.</p> }
+            @if (Model.Unavailable) { <p data-i18n>Moderation storage is unavailable.</p> }
+            else if (Model.History.Count == 0) { <p data-i18n>No actions recorded.</p> }
             @foreach (var entry in Model.History)
             {
                 <p><strong>@entry.Reason</strong><br /><small>Staff #@entry.ActorId · @DisplayTime.Philippine(entry.CreatedAtUtc)</small></p>
@@ -78,10 +78,10 @@
             }
             else if (task.Status is "assigned" or "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation")
             {
-                <p>This task has an active assignment. Review its linked reports before taking action on the booking.</p>
+                <p data-i18n>This task has an active assignment. Review its linked reports before taking action on the booking.</p>
             }
         }
-        else { <h2>Review a post</h2><p>Select a task to see its details and moderation history.</p> }
+        else { <h2>Review a post</h2><p data-i18n>Select a task to see its details and moderation history.</p> }
         </section>
     </div>
 </main>

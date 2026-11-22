@@ -8,14 +8,14 @@
 <body class="report-admin-body @(Model.Embedded ? "report-embedded" : "")"><div class="report-admin-layout">
     <aside class="report-admin-sidebar" aria-label="Admin navigation">
         <a class="report-brand" href="/Admin"><span>✓</span><strong>Tap, Task, Done</strong></a>
-        <nav><a href="/Admin">⌂ <span>Admin overview</span></a><a class="current" href="/AdminReports" aria-current="page">⚑ <span>Safety reports</span></a></nav>
-        <p>Admin workspace</p>
+        <nav><a href="/Admin">⌂ <span data-i18n>Admin overview</span></a><a class="current" href="/AdminReports" aria-current="page">⚑ <span data-i18n>Safety reports</span></a></nav>
+        <p data-i18n>Admin workspace</p>
     </aside>
     <main class="report-admin-main">
-        <header class="report-admin-header"><a href="/Admin">← Admin Center</a><span>Admin workspace</span></header>
+        <header class="report-admin-header"><a href="/Admin" data-i18n>← Admin Center</a><span data-i18n>Admin workspace</span></header>
         <div class="admin-report-page">
             <div class="report-page-heading"><div>@if (!Model.Embedded) { <h1>Safety reports</h1> }</div><span class="report-total">@(Model.DatabaseUnavailable ? "Unable to load reports" : $"{Model.Reports.Count} reports")</span></div>
-            @if (Model.RecordId.HasValue) { <div class="report-guidance"><strong>Review carefully</strong><p>Reported names are entered by users and are not automatically verified. Treat attachments as untrusted files. No account is suspended automatically.</p></div> }
+            @if (Model.RecordId.HasValue) { <div class="report-guidance"><strong>Review carefully</strong><p data-i18n>Reported names are entered by users and are not automatically verified. Treat attachments as untrusted files. No account is suspended automatically.</p></div> }
             <nav class="report-queue-tabs" aria-label="Report queues">
                 @foreach (var tab in new[] { (Key: "open", Label: "New"), (Key: "reviewing", Label: "Under review"), (Key: "history", Label: "History") })
                 {
@@ -33,8 +33,8 @@
                 <button type="submit">Apply filters</button>
             </form>
             }
-            @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <div class="report-notice @(Model.DatabaseUnavailable ? "report-notice-error" : "")" role="status"><strong>@(Model.DatabaseUnavailable ? "Reports are temporarily unavailable" : "Report update")</strong><p>@Model.Notice</p>@if(Model.DatabaseUnavailable){<a href="">Try again</a>}</div> }
-            @if (!Model.DatabaseUnavailable && Model.Reports.Count == 0) { <section class="report-empty"><h2>No matching reports</h2><p>Try another filter or check again when a report is submitted.</p></section> }
+            @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <div class="report-notice @(Model.DatabaseUnavailable ? "report-notice-error" : "")" role="status"><strong>@(Model.DatabaseUnavailable ? "Reports are temporarily unavailable" : "Report update")</strong><p>@Model.Notice</p>@if(Model.DatabaseUnavailable){<a href="" data-i18n>Try again</a>}</div> }
+            @if (!Model.DatabaseUnavailable && Model.Reports.Count == 0) { <section class="report-empty"><h2>No matching reports</h2><p data-i18n>Try another filter or check again when a report is submitted.</p></section> }
             @foreach (var item in Model.Reports) {
                 var report = item.Report;
                 var statusLabel = report.Status switch { "open" => "Open", "reviewing" => "Under review", "resolved" => "Resolved", "dismissed" => "Dismissed", _ => report.Status };
@@ -45,21 +45,21 @@
                     {
                         <div class="report-list-meta">
                             <time datetime="@report.CreatedAt.ToString("O")">@tts.Data.DisplayTime.Philippine(report.CreatedAt)</time>
-                            <a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-route-recordId="@report.Id">Open report →</a>
+                            <a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-route-recordId="@report.Id" data-i18n>Open report →</a>
                         </div>
                     }
                     else
                     {
-                    <dl class="report-details"><div><dt>Reported person</dt><dd>@report.Target</dd></div><div><dt>Submitted by</dt><dd>@item.Reporter</dd></div><div><dt>Related task</dt><dd>@(report.TaskId.HasValue ? (Model.TaskTitles.TryGetValue(report.TaskId.Value, out var taskTitle) ? taskTitle : "Task unavailable") : "Not provided")</dd></div><div><dt>Submitted</dt><dd>@tts.Data.DisplayTime.Philippine(report.CreatedAt)</dd></div></dl>
+                    <dl class="report-details"><div><dt data-i18n>Reported person</dt><dd>@report.Target</dd></div><div><dt data-i18n>Submitted by</dt><dd>@item.Reporter</dd></div><div><dt data-i18n>Related task</dt><dd>@(report.TaskId.HasValue ? (Model.TaskTitles.TryGetValue(report.TaskId.Value, out var taskTitle) ? taskTitle : "Task unavailable") : "Not provided")</dd></div><div><dt data-i18n>Submitted</dt><dd>@tts.Data.DisplayTime.Philippine(report.CreatedAt)</dd></div></dl>
                     <div class="report-message"><h3>What happened</h3><p class="admin-report-description">@report.Description</p></div>
-<div class="report-message report-evidence"><h3>Supporting evidence</h3>@if (Model.EvidenceUnavailable) { <p>Attachments could not be loaded.</p> } else if (!Model.Evidence.Any(e => e.ReportId == report.Id)) { <p>No files attached.</p> } else { <ul>@foreach (var file in Model.Evidence.Where(e => e.ReportId == report.Id)) { <li><a asp-page="/AdminReports" asp-page-handler="Evidence" asp-route-id="@file.Id">Download evidence #@file.Id (@(file.ContentType == "application/pdf" ? "PDF" : "Image"))</a></li> }</ul> }</div>
+<div class="report-message report-evidence"><h3>Supporting evidence</h3>@if (Model.EvidenceUnavailable) { <p data-i18n>Attachments could not be loaded.</p> } else if (!Model.Evidence.Any(e => e.ReportId == report.Id)) { <p data-i18n>No files attached.</p> } else { <ul>@foreach (var file in Model.Evidence.Where(e => e.ReportId == report.Id)) { <li><a asp-page="/AdminReports" asp-page-handler="Evidence" asp-route-id="@file.Id">Download evidence #@file.Id (@(file.ContentType == "application/pdf" ? "PDF" : "Image"))</a></li> }</ul> }</div>
                     @if (report.Status != "dismissed" || Model.RecordedOffense is not null)
                     {
                         <section class="report-guidance report-account-panel" id="@(Model.RecordId.HasValue ? "reported-account" : $"account-{report.Id}")">
                             <h3>Reported account</h3>
                             @if (!Model.RecordId.HasValue)
                             {
-                                <a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-route-recordId="@report.Id" asp-fragment="reported-account">Review account in this report →</a>
+                                <a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-route-recordId="@report.Id" asp-fragment="reported-account" data-i18n>Review account in this report →</a>
                             }
                             else if (Model.RecordedOffense is { } offense)
                             {
@@ -82,11 +82,11 @@
                                         <button name="action" value="offense">Record offense #@(moderation.Offenses + 1)</button>
                                     </form>
                                 }
-                                <a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-route-recordId="@report.Id" asp-fragment="reported-account">Choose a different account</a>
+                                <a asp-page="/AdminReports" asp-route-embedded="@Model.Embedded" asp-route-recordId="@report.Id" asp-fragment="reported-account" data-i18n>Choose a different account</a>
                             }
                             else
                             {
-                                <p>Search by name or email and verify the account against the report evidence.</p>
+                                <p data-i18n>Search by name or email and verify the account against the report evidence.</p>
                                 <form method="get" asp-page="/AdminReports" asp-fragment="reported-account" class="safety-form" data-account-search data-lookup-url="@Url.Page("/AdminReports", "AccountMatches")" data-photo-url="@Url.Page("/ProfilePhoto", "Staff")">
                                     <input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
                                     <input type="hidden" name="recordId" value="@report.Id" />
@@ -105,16 +105,16 @@
                         </section>
                     }
                     @if (report.Status is "open" or "reviewing") {
-                        <form method="post" asp-page-handler="Update" data-review-save class="safety-form report-action-form"><h3>Review this report</h3><p class="report-review-intro">Choose Resolved or Dismissed to close the report and move it to History.</p><input type="hidden" name="id" value="@report.Id" /><input type="hidden" name="recordId" value="@Model.RecordId" /><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
-                        <label>Internal note <span>(private; at least 10 characters to close)</span><textarea name="note" maxlength="1000" rows="3" placeholder="Add context for other admins">@Model.ReviewNote</textarea><span class="review-error" data-review-error="note" role="alert">@ViewData.ModelState["note"]?.Errors.FirstOrDefault()?.ErrorMessage</span></label>
+                        <form method="post" asp-page-handler="Update" data-review-save class="safety-form report-action-form"><h3>Review this report</h3><p class="report-review-intro" data-i18n>Choose Resolved or Dismissed to close the report and move it to History.</p><input type="hidden" name="id" value="@report.Id" /><input type="hidden" name="recordId" value="@Model.RecordId" /><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
+                        <label>Internal note <span data-i18n>(private; at least 10 characters to close)</span><textarea name="note" maxlength="1000" rows="3" placeholder="Add context for other admins">@Model.ReviewNote</textarea><span class="review-error" data-review-error="note" role="alert">@ViewData.ModelState["note"]?.Errors.FirstOrDefault()?.ErrorMessage</span></label>
                         <label>Review outcome<select name="status" required><option value="" disabled selected="@(string.IsNullOrEmpty(Model.ReviewStatus))">Choose what happens to this report</option>@if(report.Status == "open") { <option value="reviewing" selected="@(Model.ReviewStatus == "reviewing")">Keep open · Under review</option> }<option value="resolved" selected="@(Model.ReviewStatus == "resolved")">Close report · Resolved</option><option value="dismissed" selected="@(Model.ReviewStatus == "dismissed")">Close report · Dismissed</option></select></label>
-                        <label>Message to the reporter <span>(required; visible to the reporter and sent by email)</span><textarea name="publicMessage" minlength="10" maxlength="1000" required rows="3" placeholder="Explain the findings, action taken, and next steps. Avoid private information about another person.">@Model.ReviewMessage</textarea><span class="review-error" data-review-error="publicMessage" role="alert">@ViewData.ModelState["publicMessage"]?.Errors.FirstOrDefault()?.ErrorMessage</span></label><label class="report-review-confirm"><input type="checkbox" name="reviewConfirmed" value="true" checked="@Model.ReviewConfirmed" /> I reviewed the evidence, considered explanations from both parties where available, and documented missing information before closing.</label><span class="review-error" data-review-error="reviewConfirmed" role="alert">@ViewData.ModelState["reviewConfirmed"]?.Errors.FirstOrDefault()?.ErrorMessage</span><p>Closing requires an internal decision reason of at least 10 characters. Resolve after the concern has been addressed; dismiss with a clear evidence-based reason. New evidence can be submitted in a follow-up report.</p><span class="review-error" role="alert">@ViewData.ModelState["review"]?.Errors.FirstOrDefault()?.ErrorMessage @ViewData.ModelState["status"]?.Errors.FirstOrDefault()?.ErrorMessage</span><button type="submit">Save review and notify reporter</button></form>
-                    } else { <p class="report-closed">This report is closed. Its action history is available below.</p> }
-                    <details class="report-history"><summary>Admin action history <span>View decisions and notes</span></summary>@if(Model.HistoryUnavailable) { <p>Action history could not be loaded.</p> } else if(!Model.Actions.Any(a => a.Action.ReportId == report.Id)) { <p>No actions recorded yet.</p> } <div class="report-history-list">@foreach(var entry in Model.Actions.Where(a => a.Action.ReportId == report.Id)) { <div class="report-history-entry"><div class="report-history-marker" aria-hidden="true"></div><div><strong>@(entry.Action.Status == "reviewing" ? "Under review" : entry.Action.Status == "resolved" ? "Resolved" : entry.Action.Status == "dismissed" ? "Dismissed" : entry.Action.Status)</strong><span class="report-history-meta">@entry.AdminName · @tts.Data.DisplayTime.Philippine(entry.Action.CreatedAt)</span>@if(!string.IsNullOrWhiteSpace(entry.Action.PublicMessage)){<p><strong>Reporter update:</strong> @entry.Action.PublicMessage</p>}@if(!string.IsNullOrWhiteSpace(entry.Action.Note)) { <p>@entry.Action.Note</p> }</div></div> }</div></details>
+                        <label>Message to the reporter <span data-i18n>(required; visible to the reporter and sent by email)</span><textarea name="publicMessage" minlength="10" maxlength="1000" required rows="3" placeholder="Explain the findings, action taken, and next steps. Avoid private information about another person.">@Model.ReviewMessage</textarea><span class="review-error" data-review-error="publicMessage" role="alert">@ViewData.ModelState["publicMessage"]?.Errors.FirstOrDefault()?.ErrorMessage</span></label><label class="report-review-confirm"><input type="checkbox" name="reviewConfirmed" value="true" checked="@Model.ReviewConfirmed" /> I reviewed the evidence, considered explanations from both parties where available, and documented missing information before closing.</label><span class="review-error" data-review-error="reviewConfirmed" role="alert">@ViewData.ModelState["reviewConfirmed"]?.Errors.FirstOrDefault()?.ErrorMessage</span><p data-i18n>Closing requires an internal decision reason of at least 10 characters. Resolve after the concern has been addressed; dismiss with a clear evidence-based reason. New evidence can be submitted in a follow-up report.</p><span class="review-error" role="alert">@ViewData.ModelState["review"]?.Errors.FirstOrDefault()?.ErrorMessage @ViewData.ModelState["status"]?.Errors.FirstOrDefault()?.ErrorMessage</span><button type="submit">Save review and notify reporter</button></form>
+                    } else { <p class="report-closed" data-i18n>This report is closed. Its action history is available below.</p> }
+                    <details class="report-history"><summary>Admin action history <span data-i18n>View decisions and notes</span></summary>@if(Model.HistoryUnavailable) { <p data-i18n>Action history could not be loaded.</p> } else if(!Model.Actions.Any(a => a.Action.ReportId == report.Id)) { <p data-i18n>No actions recorded yet.</p> } <div class="report-history-list">@foreach(var entry in Model.Actions.Where(a => a.Action.ReportId == report.Id)) { <div class="report-history-entry"><div class="report-history-marker" aria-hidden="true"></div><div><strong>@(entry.Action.Status == "reviewing" ? "Under review" : entry.Action.Status == "resolved" ? "Resolved" : entry.Action.Status == "dismissed" ? "Dismissed" : entry.Action.Status)</strong><span class="report-history-meta">@entry.AdminName · @tts.Data.DisplayTime.Philippine(entry.Action.CreatedAt)</span>@if(!string.IsNullOrWhiteSpace(entry.Action.PublicMessage)){<p><strong>Reporter update:</strong> @entry.Action.PublicMessage</p>}@if(!string.IsNullOrWhiteSpace(entry.Action.Note)) { <p>@entry.Action.Note</p> }</div></div> }</div></details>
                     }
                 </article>
             }
-            <p class="report-footnote">Showing up to 100 reports for the selected filters.</p>
+            <p class="report-footnote" data-i18n>Showing up to 100 reports for the selected filters.</p>
         </div>
     </main>
 </div>

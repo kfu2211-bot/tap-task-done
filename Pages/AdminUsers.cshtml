@@ -12,12 +12,12 @@
 <body>
 <main class="users-page">
     @if (!Model.Embedded) { <h1>Users</h1> }
-    <p class="intro">Look up an account to check its status and moderation history. Review new offenses in Safety Reports.</p>
+    <p class="intro" data-i18n>Look up an account to check its status and moderation history. Review new offenses in Safety Reports.</p>
     @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="notice" role="status">@Model.Notice</p> }
-    @if (Model.Unavailable) { <div class="empty" role="alert">Account moderation is unavailable. Check the account moderation database setup.</div> }
+    @if (Model.Unavailable) { <div class="empty" role="alert" data-i18n>Account moderation is unavailable. Check the account moderation database setup.</div> }
     else {
         <div class="users-toolbar"><p class="users-total"><strong>@Model.Users.Count</strong> total users</p><span id="userSearchCount" role="status"></span></div>
-        <label class="search"><span class="sr-only">Search users</span><input id="search" type="search" placeholder="Search by name or email" /></label>
+        <label class="search"><span class="sr-only" data-i18n>Search users</span><input id="search" type="search" placeholder="Search by name or email" /></label>
         <div class="user-list">
         @foreach (var user in Model.Users) {
             var history = Model.History.Where(h => h.UserId == user.Id).ToList();
@@ -26,12 +26,12 @@
                 @if (!tts.Data.AccountModerationRules.IsStaff(user.Role)) {
                     <p><strong>Confirmed offenses: @user.Moderation.Offenses</strong> · Next: @tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)</p>
                     @if(user.Moderation.Target > 0 && !user.Moderation.Permanent) { <p>Recovery progress: @user.Moderation.Completed / @user.Moderation.Target completed tasks. Temporary suspension ends automatically; completion credit starts after it ends.</p> }
-                    @if(user.Moderation.Legacy) { <p>Previous actions remain in history; they are not automatically counted as new offenses.</p> }
+                    @if(user.Moderation.Legacy) { <p data-i18n>Previous actions remain in history; they are not automatically counted as new offenses.</p> }
                     @if (user.Suspended || user.Restricted)
                     {
                     <form method="post" data-moderation-account="@user.Name" data-next-penalty="@tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)">
                         <input type="hidden" name="userId" value="@user.Id" /><input type="hidden" name="expectedNumber" value="@(user.Moderation.Offenses + 1)" /><input type="hidden" name="Embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
-                        <label class="reason-label" for="reason-@user.Id">Reason for this decision <span>(required)</span></label>
+                        <label class="reason-label" for="reason-@user.Id">Reason for this decision <span data-i18n>(required)</span></label>
                         <textarea id="reason-@user.Id" name="reason" required maxlength="500" rows="2" placeholder="Describe the reviewed evidence and decision"></textarea>
                         <div class="actions"><button type="submit" name="action" value="restore">Lift penalty after review</button></div>
                     </form>
@@ -50,13 +50,13 @@
                         </form>
                     </details>
                 }
-                <details class="history"><summary><span><strong>Admin action history</strong><small>View decisions and notes</small></span><span class="chevron" aria-hidden="true">⌄</span></summary>
-                    <div class="history-content">@if (history.Count == 0) { <p class="history-empty">No decisions recorded for this account yet.</p> } else { @foreach (var item in history) { <div class="history-entry"><div><strong>@(item.Action == "warn" ? "Warning" : item.Action == "restrict" ? "Restricted" : item.Action == "suspend" ? "Suspended (legacy)" : item.Action == "offense" ? "Confirmed offense" : "Penalty lifted")</strong><small>@item.Admin · @tts.Data.DisplayTime.Philippine(item.CreatedAt)</small></div><p>@item.Reason</p></div> } }</div>
+                <details class="history"><summary><span><strong>Admin action history</strong><small data-i18n>View decisions and notes</small></span><span class="chevron" aria-hidden="true">⌄</span></summary>
+                    <div class="history-content">@if (history.Count == 0) { <p class="history-empty" data-i18n>No decisions recorded for this account yet.</p> } else { @foreach (var item in history) { <div class="history-entry"><div><strong>@(item.Action == "warn" ? "Warning" : item.Action == "restrict" ? "Restricted" : item.Action == "suspend" ? "Suspended (legacy)" : item.Action == "offense" ? "Confirmed offense" : "Penalty lifted")</strong><small>@item.Admin · @tts.Data.DisplayTime.Philippine(item.CreatedAt)</small></div><p>@item.Reason</p></div> } }</div>
                 </details>
             </article>
         }
         </div>
-        <p class="empty" id="noMatches" hidden>No accounts match your search.</p>
+        <p class="empty" id="noMatches" hidden data-i18n>No accounts match your search.</p>
     }
 </main>
 <dialog id="moderationDecision" aria-labelledby="moderationTitle" aria-describedby="moderationDescription">

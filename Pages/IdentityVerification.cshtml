@@ -7,13 +7,13 @@
 <link rel="stylesheet" href="/css/workspace-spacing.css" asp-append-version="true" />
 <script defer src="/js/identity-capture-countdown.js" asp-append-version="true"></script>
 <link rel="stylesheet" href="/css/identity-selfie.css" asp-append-version="true" /><script defer src="/js/identity-face-visibility.js" asp-append-version="true"></script><script defer src="/js/identity-face-guide.js" asp-append-version="true"></script><script defer src="/js/identity-selfie.js" asp-append-version="true"></script><script defer src="/js/identity-id-crop.js" asp-append-version="true"></script><link rel="stylesheet" href="/css/identity-workspace.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
-<body><div class="verification-page"><aside class="sidebar"><a class="sidebar-logo" asp-page="/Landing" aria-label="Tap, Task, Done landing page" style="text-decoration:none"><div class="mini-logo">✓</div><span>Tap, Task, Done</span></a><nav class="navigation"><a href="/Dashboard" class="nav-item"><span class="nav-icon">⌂</span><span>Home</span></a><a href="/FindPost" class="nav-item"><span class="nav-icon">⌕</span><span>Find &amp; Post</span></a><a href="/MyTasks" class="nav-item"><span class="nav-icon">▤</span><span>My Tasks</span></a><a href="/Messages" class="nav-item"><span class="nav-icon">□</span><span>Messages</span></a><a href="/IdentityVerification" class="nav-item active"><span class="nav-icon">✓</span><span>Identity Verification</span></a><a href="/Tracking" class="nav-item"><span class="nav-icon">➤</span><span>Tracking</span></a><a href="/Reviews" class="nav-item"><span class="nav-icon">☆</span><span>Reviews</span></a></nav><div class="sidebar-user"><div class="user-avatar" id="sidebarAvatar">U</div><div class="user-info"><strong id="sidebarName">User</strong><small id="sidebarEmail"></small></div></div></aside>
-<main class="main-content"><header class="topbar"><h1>Identity Verification</h1></header><div class="content"><div class="page-heading"><span class="identity-eyebrow">TRUST &amp; SAFETY</span><h2>Verify your identity</h2><p>Submit your documents to help keep Tap, Task, Done safe and trusted.</p></div>
+<body><div class="verification-page"><aside class="sidebar"><a class="sidebar-logo" asp-page="/Landing" aria-label="Tap, Task, Done landing page" style="text-decoration:none"><div class="mini-logo">✓</div><span>Tap, Task, Done</span></a><nav class="navigation"><a href="/Dashboard" class="nav-item"><span class="nav-icon">⌂</span><span data-i18n>Home</span></a><a href="/FindPost" class="nav-item"><span class="nav-icon">⌕</span><span data-i18n>Find &amp; Post</span></a><a href="/MyTasks" class="nav-item"><span class="nav-icon">▤</span><span data-i18n>My Tasks</span></a><a href="/Messages" class="nav-item"><span class="nav-icon">□</span><span data-i18n>Messages</span></a><a href="/IdentityVerification" class="nav-item active"><span class="nav-icon">✓</span><span data-i18n>Identity Verification</span></a><a href="/Tracking" class="nav-item"><span class="nav-icon">➤</span><span data-i18n>Tracking</span></a><a href="/Reviews" class="nav-item"><span class="nav-icon">☆</span><span data-i18n>Reviews</span></a></nav><div class="sidebar-user"><div class="user-avatar" id="sidebarAvatar">U</div><div class="user-info"><strong id="sidebarName">User</strong><small id="sidebarEmail"></small></div></div></aside>
+<main class="main-content"><header class="topbar"><h1>Identity Verification</h1></header><div class="content"><div class="page-heading"><span class="identity-eyebrow" data-i18n>TRUST &amp; SAFETY</span><h2>Verify your identity</h2><p data-i18n>Submit your documents to help keep Tap, Task, Done safe and trusted.</p></div>
 @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="identity-notice" role="status">@Model.Notice</p> }
 <section class="status-card @(Model.Status == "approved" ? "status-approved" : "")"><div class="status-icon" aria-hidden="true">@(Model.Status == "approved" ? "✓" : "!")</div><div class="status-text"><strong>@Model.Status.ToUpperInvariant()</strong><p>@(Model.Status == "pending" ? "Your submission is waiting for review." : Model.Status == "approved" ? "Your identity has been verified." : Model.Status == "resubmit" ? "Please submit your ID and a new selfie again. See the admin note below." : Model.Status == "rejected" ? "Your submission was not approved. You may submit again." : "Your identity has not been verified yet.")</p>@if (!string.IsNullOrWhiteSpace(Model.ReviewNote)) { <p>Admin note: @Model.ReviewNote</p> }</div></section>
 @if (Model.Status != "pending" && Model.Status != "approved") { <div class="identity-workspace"><section class="verification-card"><div class="card-heading">
     <h3>Identity Documents</h3>
-    <p>Upload clear and readable copies of your documents.</p>
+    <p data-i18n>Upload clear and readable copies of your documents.</p>
 </div>
 <form id="identityForm" method="post" enctype="multipart/form-data">
     <input type="hidden" id="idCheckToken" name="idCheckToken" value="" />
@@ -23,7 +23,7 @@
     <div id="captureFiles" hidden></div>
     <div class="identity-id-fields">
         <div class="id-number-section">
-            <label for="documentType">Government photo ID type <span>Required</span></label>
+            <label for="documentType">Government photo ID type <span data-i18n>Required</span></label>
             <select id="documentType" name="documentType" required>
                 <option value="" selected disabled hidden>Select your ID type</option>
                 @foreach (var type in tts.Data.IdentityDocumentTypes.Accepted)
@@ -32,24 +32,24 @@
                     <option value="@type" data-number-label="@numberField.Label" data-number-help="@numberField.Help">@type</option>
                 }
             </select>
-            <small>Select the type that matches your document. File acceptance does not establish document authenticity; an admin reviews the ID and selfie.</small>
+            <small data-i18n>Select the type that matches your document. File acceptance does not establish document authenticity; an admin reviews the ID and selfie.</small>
         </div>
         <div class="id-number-section">
-            <label for="idNumber"><span id="idNumberLabel">ID number</span> <span>Required</span></label>
+            <label for="idNumber"><span id="idNumberLabel" data-i18n>ID number</span> <span data-i18n>Required</span></label>
             <input type="text" id="idNumber" name="idNumber" minlength="4" maxlength="50" pattern="[A-Za-z0-9 \-]{4,50}" title="Use the letters and digits printed on your ID. Spaces and hyphens are allowed." required autocomplete="off" spellcheck="false" aria-describedby="idNumberHelp" placeholder="Enter your government ID number" />
-            <small id="idNumberHelp">Select your ID type to see which number to enter.</small>
+            <small id="idNumberHelp" data-i18n>Select your ID type to see which number to enter.</small>
         </div>
     </div>
     <div class="document-row">
         <div class="document-info">
-            <div class="document-title"><strong>Valid Government ID</strong><span class="required">Required</span></div>
-            <p>Upload a valid government-issued identification card.</p>
+            <div class="document-title"><strong>Valid Government ID</strong><span class="required" data-i18n>Required</span></div>
+            <p data-i18n>Upload a valid government-issued identification card.</p>
         </div>
         <div class="upload-area">
             <input type="file" id="governmentId" name="governmentId" accept=".jpg,.jpeg,.png,.pdf" aria-label="Upload government ID" aria-describedby="governmentIdHelp" required />
-            <small id="governmentIdHelp">JPG, PNG or PDF · Max. 5MB</small><p id="governmentIdSelection" class="id-file-selection" role="status" aria-live="polite">No ID file selected.</p></div>
+            <small id="governmentIdHelp" data-i18n>JPG, PNG or PDF · Max. 5MB</small><p id="governmentIdSelection" class="id-file-selection" role="status" aria-live="polite" data-i18n>No ID file selected.</p></div>
             <details class="id-crop-editor" id="idCropEditor"><summary>Crop ID photo (optional)</summary>
-                <p>Trim the background. Keep all ID edges and text visible.</p>
+                <p data-i18n>Trim the background. Keep all ID edges and text visible.</p>
                 <canvas id="idCropPreview" aria-label="Preview of the cropped ID photo" hidden></canvas>
                 <div class="id-crop-controls" id="idCropControls" hidden>
                     @foreach (var edge in new[] { "Left", "Right", "Top", "Bottom" }) {
@@ -58,33 +58,33 @@
                     }
                     <div class="selfie-actions"><button type="button" id="applyIdCrop">Use cropped photo</button><button type="button" id="resetIdCrop">Reset crop</button></div>
                 </div>
-                <p id="idCropMessage" role="status">Choose a JPG or PNG photo to crop.</p>
+                <p id="idCropMessage" role="status" data-i18n>Choose a JPG or PNG photo to crop.</p>
             </details>
 
     </div>
-<div class="document-row"><div class="document-info"><div class="document-title"><strong>Certification</strong><span class="optional">Optional</span></div><p>Upload a professional or relevant certification.</p></div><div class="upload-area"><input type="file" name="certification" aria-label="Certification" accept=".jpg,.jpeg,.png,.pdf" /><small>JPG, PNG or PDF · Max. 5MB</small></div></div><div class="document-row"><div class="document-info"><div class="document-title"><strong>Other Supporting Document</strong><span class="optional">Optional</span></div><p>Upload another document that may support your verification.</p></div><div class="upload-area"><input type="file" name="supportingDocument" aria-label="Other supporting document" accept=".jpg,.jpeg,.png,.pdf" /><small>JPG, PNG or PDF · Max. 5MB</small></div></div><section class="selfie-section" aria-labelledby="selfieHeading">
-<h3 id="selfieHeading">Selfie verification <span class="required">Required</span></h3>
-<ul class="selfie-requirements" aria-label="Before taking your selfie"><li>No glasses or mask</li><li>Full face visible</li><li>Good lighting</li></ul>
-<p class="selfie-short-guide">Follow the circle. Your selfie is taken automatically after a 3–2–1 countdown.</p>
-<label class="selfie-consent"><input type="checkbox" name="consent" value="true" id="selfieConsent" required /> <span>I agree to encrypted storage of my ID, full ID number and face photos for admin review.</span></label>
-<details class="selfie-privacy"><summary>Privacy &amp; storage details</summary><p>Your ID, full number, selfie and movement photos are accessible to authorized admins for review. They are removed 30 days after review while the service is running. The decision, last four ID characters and consent record are retained.</p><p>Automatic checks can make mistakes and do not establish document authenticity. An admin reviews your ID and face photos before approval.</p></details>
-<div class="selfie-camera" id="selfieCamera" hidden><div class="selfie-frame"><video id="selfieVideo" autoplay muted playsinline hidden></video><img id="selfiePreview" alt="Your captured selfie" hidden /><div class="selfie-guide" aria-hidden="true"></div><span id="faceTarget" class="face-target" aria-hidden="true"></span><span id="selfieCountdown" class="selfie-countdown" role="status" aria-live="polite" hidden></span></div><p class="selfie-frame-hint" id="faceInstruction" role="status" aria-live="polite">Center your face in the circle</p><progress id="faceProgress" max="5" value="0" aria-label="Camera movements completed"></progress><p id="faceStepCount">0 of 5 steps saved</p><button type="button" id="resumeFaceGuide" hidden>Resume face checks</button><button type="button" id="restartFaceGuide">Restart all steps</button></div>
+<div class="document-row"><div class="document-info"><div class="document-title"><strong>Certification</strong><span class="optional" data-i18n>Optional</span></div><p data-i18n>Upload a professional or relevant certification.</p></div><div class="upload-area"><input type="file" name="certification" aria-label="Certification" accept=".jpg,.jpeg,.png,.pdf" /><small data-i18n>JPG, PNG or PDF · Max. 5MB</small></div></div><div class="document-row"><div class="document-info"><div class="document-title"><strong>Other Supporting Document</strong><span class="optional" data-i18n>Optional</span></div><p data-i18n>Upload another document that may support your verification.</p></div><div class="upload-area"><input type="file" name="supportingDocument" aria-label="Other supporting document" accept=".jpg,.jpeg,.png,.pdf" /><small data-i18n>JPG, PNG or PDF · Max. 5MB</small></div></div><section class="selfie-section" aria-labelledby="selfieHeading">
+<h3 id="selfieHeading">Selfie verification <span class="required" data-i18n>Required</span></h3>
+<ul class="selfie-requirements" aria-label="Before taking your selfie"><li data-i18n>No glasses or mask</li><li data-i18n>Full face visible</li><li data-i18n>Good lighting</li></ul>
+<p class="selfie-short-guide" data-i18n>Follow the circle. Your selfie is taken automatically after a 3–2–1 countdown.</p>
+<label class="selfie-consent"><input type="checkbox" name="consent" value="true" id="selfieConsent" required /> <span data-i18n>I agree to encrypted storage of my ID, full ID number and face photos for admin review.</span></label>
+<details class="selfie-privacy"><summary>Privacy &amp; storage details</summary><p data-i18n>Your ID, full number, selfie and movement photos are accessible to authorized admins for review. They are removed 30 days after review while the service is running. The decision, last four ID characters and consent record are retained.</p><p data-i18n>Automatic checks can make mistakes and do not establish document authenticity. An admin reviews your ID and face photos before approval.</p></details>
+<div class="selfie-camera" id="selfieCamera" hidden><div class="selfie-frame"><video id="selfieVideo" autoplay muted playsinline hidden></video><img id="selfiePreview" alt="Your captured selfie" hidden /><div class="selfie-guide" aria-hidden="true"></div><span id="faceTarget" class="face-target" aria-hidden="true"></span><span id="selfieCountdown" class="selfie-countdown" role="status" aria-live="polite" hidden></span></div><p class="selfie-frame-hint" id="faceInstruction" role="status" aria-live="polite" data-i18n>Center your face in the circle</p><progress id="faceProgress" max="5" value="0" aria-label="Camera movements completed"></progress><p id="faceStepCount">0 of 5 steps saved</p><button type="button" id="resumeFaceGuide" hidden>Resume face checks</button><button type="button" id="restartFaceGuide">Restart all steps</button></div>
 <input type="file" name="selfie" id="selfieFile" accept="image/jpeg,image/png" hidden />
-<p id="idCheckMessage" class="id-check-status" data-state="neutral" role="status" aria-live="polite">Open camera to automatically check your ID details first.</p>
+<p id="idCheckMessage" class="id-check-status" data-state="neutral" role="status" aria-live="polite" data-i18n>Open camera to automatically check your ID details first.</p>
 <div class="selfie-actions"><button type="button" id="openCamera">Open camera</button><button type="button" id="continueManualId" hidden>Continue to camera</button><button type="button" id="captureSelfie" hidden disabled>Capture selfie</button><button type="button" id="retakeSelfie" hidden>Retake</button></div>
 <p id="selfieMessage" role="status" aria-live="polite"></p>
 </section>
 <div class="submit-area"><button type="button" id="reviewIdentity">Review submission</button></div>
-<section id="identityReview" class="selfie-section" hidden><h3>Review your submission</h3><p>Check that your ID photo and selfie are clear. Retake your selfie if it is blurry, too dark, or shows glasses or a face mask. Optional attachments will be included.</p><div id="idPreview"></div><p id="reviewSummary"></p><div class="selfie-actions"><button type="button" id="editIdentity">Back to edit</button><button type="submit" id="submitIdentity">Submit for verification</button></div></section>
-<noscript><p>Enable JavaScript to capture a selfie and review your submission.</p></noscript></form></section>
+<section id="identityReview" class="selfie-section" hidden><h3>Review your submission</h3><p data-i18n>Check that your ID photo and selfie are clear. Retake your selfie if it is blurry, too dark, or shows glasses or a face mask. Optional attachments will be included.</p><div id="idPreview"></div><p id="reviewSummary"></p><div class="selfie-actions"><button type="button" id="editIdentity">Back to edit</button><button type="submit" id="submitIdentity">Submit for verification</button></div></section>
+<noscript><p data-i18n>Enable JavaScript to capture a selfie and review your submission.</p></noscript></form></section>
 <aside class="identity-guide" aria-labelledby="identityGuideTitle">
     <h3 id="identityGuideTitle">Before you submit</h3>
     <ol>
-        <li><strong>Prepare your government photo ID</strong><p>Choose the matching ID type and make sure the document is readable.</p></li>
-        <li><strong>Take a clear selfie</strong><p>Use good lighting and keep your full face visible.</p></li>
-        <li><strong>Review and submit</strong><p>Check your files and selfie. An admin will review your submission and update your status here.</p></li>
+        <li><strong>Prepare your government photo ID</strong><p data-i18n>Choose the matching ID type and make sure the document is readable.</p></li>
+        <li><strong>Take a clear selfie</strong><p data-i18n>Use good lighting and keep your full face visible.</p></li>
+        <li><strong>Review and submit</strong><p data-i18n>Check your files and selfie. An admin will review your submission and update your status here.</p></li>
     </ol>
 </aside></div> }
-@if (Model.IsDevelopment) { <p class="page-note">Use test documents only while this feature is being tested locally.</p> }</div></main></div>
+@if (Model.IsDevelopment) { <p class="page-note" data-i18n>Use test documents only while this feature is being tested locally.</p> }</div></main></div>
     <partial name="_TaskHelp" />
 </body></html>

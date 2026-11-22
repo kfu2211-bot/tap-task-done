@@ -3,27 +3,27 @@
 @using tts.Data
 @{ Layout = null; var task = Model.Work; }
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Task record - Tap, Task, Done</title><link rel="stylesheet" href="/css/settings.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-reuse.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
-<body class="task-reuse-screen"><main class="task-reuse-page"><header><div><span class="record-eyebrow">WORK HISTORY</span><h1>Task record #@task.Id</h1></div><a class="record-back" href="@(Model.IsOwner ? "/MarketTasks?view=mine" : "/MyJobs?view=closed")">← Back to @(Model.IsOwner ? "My Tasks" : "My Jobs")</a></header>
+<body class="task-reuse-screen"><main class="task-reuse-page"><header><div><span class="record-eyebrow" data-i18n>WORK HISTORY</span><h1>Task record #@task.Id</h1></div><a class="record-back" href="@(Model.IsOwner ? "/MarketTasks?view=mine" : "/MyJobs?view=closed")">← Back to @(Model.IsOwner ? "My Tasks" : "My Jobs")</a></header>
 <article class="task-record"><h2>@task.Title</h2><div class="record-statuses"><span class="record-status" data-status="@task.Status">Task: @TaskSchedule.DisplayStatus(task, DateTime.UtcNow)</span>
 @if (Model.Offer is not null && !Model.IsOwner) { <span class="record-status" data-status="@Model.Offer.Status">Your offer: @Model.Offer.Status</span> }
 @if (Model.Booking is not null) { <span class="record-status" data-status="@Model.Booking.Status">Booking: @Model.Booking.Status</span> }
 </div><p class="record-description">@task.Description</p>
-<dl class="record-details"><div><dt>Service</dt><dd>@task.CategoryDisplay</dd></div><div><dt>Job type</dt><dd>@task.JobTypeDisplay</dd></div><div><dt>Budget</dt><dd>@task.BudgetDisplay</dd></div><div><dt>Schedule (PHT)</dt><dd>@task.ScheduleText</dd></div></dl>
+<dl class="record-details"><div><dt data-i18n>Service</dt><dd>@task.CategoryDisplay</dd></div><div><dt data-i18n>Job type</dt><dd>@task.JobTypeDisplay</dd></div><div><dt data-i18n>Budget</dt><dd>@task.BudgetDisplay</dd></div><div><dt data-i18n>Schedule (PHT)</dt><dd>@task.ScheduleText</dd></div></dl>
 @if (!string.IsNullOrWhiteSpace(task.CancellationReason)) { <p><strong>Cancellation reason:</strong> @task.CancellationReason</p> }
 @if (!string.IsNullOrWhiteSpace(Model.Offer?.WithdrawalReason)) { <p><strong>Withdrawal reason:</strong> @Model.Offer.WithdrawalReason</p> }
-@if (task.Status == "expired") { <p class="record-info">This public post is closed. Its expiry is separate from the offer’s withdrawal or cancellation.</p> }
-@if (JobActivity.IsClosedTask(task.Status) || task.Status == "completed") { <p class="record-readonly">Read-only history · Reposting or booking again creates a new task.</p> }
+@if (task.Status == "expired") { <p class="record-info" data-i18n>This public post is closed. Its expiry is separate from the offer’s withdrawal or cancellation.</p> }
+@if (JobActivity.IsClosedTask(task.Status) || task.Status == "completed") { <p class="record-readonly" data-i18n>Read-only history · Reposting or booking again creates a new task.</p> }
 <div class="task-record-actions">
 @if (Model.IsOwner && task.Status is "cancelled" or "canceled" or "expired" or "completed") {
     <a class="task-record-button" href="/RepeatTask?sourceTaskId=@task.Id">@(task.Status == "expired" ? "Edit & repost" : "Create similar task")</a>
-    @if (Model.CanBookAgain) { <a class="task-record-button" href="/RepeatTask?sourceTaskId=@task.Id&amp;booking=true">Book again</a> }
+    @if (Model.CanBookAgain) { <a class="task-record-button" href="/RepeatTask?sourceTaskId=@task.Id&amp;booking=true" data-i18n>Book again</a> }
 }
-@if (Model.Offer?.Status == "accepted" && (task.Status is "completed" or "cancelled")) { <a class="task-record-button" href="/Tracking?taskId=@task.Id">View full history</a> }
+@if (Model.Offer?.Status == "accepted" && (task.Status is "completed" or "cancelled")) { <a class="task-record-button" href="/Tracking?taskId=@task.Id" data-i18n>View full history</a> }
 </div></article>
 @if (Model.Events.Count > 0) { <section class="task-record"><h2>Recorded history</h2><ol class="task-record-events">@foreach (var entry in Model.Events) {
 <li><strong>@(entry.Status == TaskReuse.EventStatus ? "Created from a previous task" : TaskProgress.Label(entry.Status))</strong><small>@DisplayTime.Philippine(entry.CreatedAtUtc) · Account #@entry.ActorId</small>
 @if (entry.Status == TaskReuse.EventStatus && long.TryParse(entry.Note, out var sourceId)) { <a href="/JobRecord?taskId=@sourceId">Original task #@sourceId</a> }
 else if (!string.IsNullOrWhiteSpace(entry.Note)) { <p style="white-space:pre-wrap">@entry.Note</p> }
-@if (entry.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@entry.Id">View completion proof</a> }
+@if (entry.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@entry.Id" data-i18n>View completion proof</a> }
 </li> }</ol></section> }
 </main><partial name="_TaskHelp" /></body></html>

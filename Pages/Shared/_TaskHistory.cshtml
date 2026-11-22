@@ -14,21 +14,21 @@
         _ => TaskProgress.Label(status)
     };
 }
-<p>This record is read-only. Times are shown in Philippine time (PHT).</p>
-@if (records.Count == 0) { <p>No progress events were recorded for this task.</p> }
+<p data-i18n>This record is read-only. Times are shown in Philippine time (PHT).</p>
+@if (records.Count == 0) { <p data-i18n>No progress events were recorded for this task.</p> }
 else {
     <ol class="tracking-timeline">
     @foreach (var entry in records) {
         <li class="done"><span aria-hidden="true">✓</span><div><strong>@EventLabel(entry.Status)</strong>
             <small>@entry.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm:ss tt") PHT</small>
             <small>Recorded by: @(Model.ActorNames.GetValueOrDefault(entry.ActorId) is { Length: > 0 } actor ? actor : "Account unavailable") · Account #@entry.ActorId</small>
-            @if (entry.Status == TaskReuse.EventStatus && long.TryParse(entry.Note, out var originalId)) { <p>Original task #@originalId @if (item.IsClient) { <a href="/JobRecord?taskId=@originalId">View original record</a> }</p> }
+            @if (entry.Status == TaskReuse.EventStatus && long.TryParse(entry.Note, out var originalId)) { <p>Original task #@originalId @if (item.IsClient) { <a href="/JobRecord?taskId=@originalId" data-i18n>View original record</a> }</p> }
             else if (!string.IsNullOrWhiteSpace(entry.Note)) { <p style="white-space:pre-wrap;overflow-wrap:anywhere">@entry.Note</p> }
-            @if (entry.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@entry.Id" target="_blank" rel="noopener">View attached completion proof</a> }
+            @if (entry.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@entry.Id" target="_blank" rel="noopener" data-i18n>View attached completion proof</a> }
         </div></li>
     }
     </ol>
-    @if (!records.Any(e => e.Status == "assigned")) { <p>The booking acceptance time was not recorded for this older task.</p> }
+    @if (!records.Any(e => e.Status == "assigned")) { <p data-i18n>The booking acceptance time was not recorded for this older task.</p> }
 }
 @if (!string.IsNullOrWhiteSpace(item.Task.CancellationReason)) { <p><strong>Cancellation reason:</strong> @item.Task.CancellationReason</p> }
 @if (Model.AgreementHistory.Count > 0) {

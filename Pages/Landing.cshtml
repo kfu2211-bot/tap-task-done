@@ -24,6 +24,7 @@
 <script defer src="~/js/task-submit.js" asp-append-version="true"></script>
 <link rel="stylesheet" href="~/css/task-submit.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/site-language.css" asp-append-version="true" />
+<script defer src="~/js/site-language-fil.js" asp-append-version="true"></script>
 <script defer src="~/js/site-language.js" asp-append-version="true"></script>
     <script defer src="/js/home-service-photos.js" asp-append-version="true"></script>
 </head>
@@ -31,17 +32,17 @@
     <header class="landing-header">
         <a class="landing-brand" asp-page="/Landing"><img src="/tap-task-icon.svg" alt="" width="38" height="38" /> Tap, Task, Done</a>
         <nav aria-label="Main navigation">
-            <a href="#how-it-works">How it works</a>
-            <a href="#community-reviews">Community reviews</a>
-            <a href="#service-areas">Service areas</a>
+            <a href="#how-it-works" data-i18n>How it works</a>
+            <a href="#community-reviews" data-i18n>Community reviews</a>
+            <a href="#service-areas" data-i18n>Service areas</a>
             @if (signedIn)
             {
-                <a class="landing-button" asp-page="/Dashboard">Dashboard</a>
+                <a class="landing-button" asp-page="/Dashboard" data-i18n>Dashboard</a>
             }
             else
             {
-                <a asp-page="/Login">Log in</a>
-                <a class="landing-button" asp-page="/Index">Create account</a>
+                <a asp-page="/Login" data-i18n>Log in</a>
+                <a class="landing-button" asp-page="/Index" data-i18n>Create account</a>
             }
         </nav>
     </header>
@@ -49,10 +50,10 @@
         <section class="landing-hero" aria-labelledby="landing-title">
             <div class="hero-copy">
                 <h1 id="landing-title">Local help,<br />made simple.</h1>
-                <p>Find local freelancers in Bacolor, Pampanga.</p>
+                <p data-i18n>Find local freelancers in Bacolor, Pampanga.</p>
                 <div class="hero-actions">
-                    <a class="landing-button" asp-page="@(signedIn ? "/FindPost" : "/Login")" asp-route-mode="@(signedIn ? "post" : null)">Post a task</a>
-                    <a class="landing-button landing-outline" asp-page="@(signedIn ? "/FindPost" : "/Login")">Find a freelancer</a>
+                    <a class="landing-button" asp-page="@(signedIn ? "/FindPost" : "/Login")" asp-route-mode="@(signedIn ? "post" : null)" data-i18n>Post a task</a>
+                    <a class="landing-button landing-outline" asp-page="@(signedIn ? "/FindPost" : "/Login")" data-i18n>Find a freelancer</a>
                 </div>
             </div>
             <div class="hero-photo" data-service-carousel aria-hidden="true">
@@ -78,11 +79,11 @@
         <section class="landing-section" id="how-it-works">
             <h2>How it works</h2>
             <ol class="landing-steps">
-                <li><strong>Choose your role</strong><span>In Settings, choose Client, Freelancer, or Client &amp; Freelancer.</span></li>
-                <li><strong>Verify your identity</strong><span>Get your identity verification approved before posting a task or finding jobs.</span></li>
-                <li><strong>Post a task or find jobs</strong><span>Clients post tasks. Freelancers look for jobs. Choose both roles to do both.</span></li>
-                <li><strong>Connect</strong><span>Discuss the task details with the client or freelancer.</span></li>
-                <li><strong>Get it done</strong><span>Complete the task together.</span></li>
+                <li><strong>Choose your role</strong><span data-i18n>In Settings, choose Client, Freelancer, or Client &amp; Freelancer.</span></li>
+                <li><strong>Verify your identity</strong><span data-i18n>Get your identity verification approved before posting a task or finding jobs.</span></li>
+                <li><strong>Post a task or find jobs</strong><span data-i18n>Clients post tasks. Freelancers look for jobs. Choose both roles to do both.</span></li>
+                <li><strong>Connect</strong><span data-i18n>Discuss the task details with the client or freelancer.</span></li>
+                <li><strong>Get it done</strong><span data-i18n>Complete the task together.</span></li>
             </ol>
         </section>
         <section id="community-reviews" class="landing-section landing-community" aria-labelledby="community-reviews-title">
@@ -97,8 +98,8 @@
                 }
             </div>
             <div class="landing-review-list">
-                @if (Model.ReviewsUnavailable) { <p>Community reviews could not be loaded. Please try again later.</p> }
-                else if (Model.Reviews.Count == 0) { <p>No community feedback to display yet.</p> }
+                @if (Model.ReviewsUnavailable) { <p data-i18n>Community reviews could not be loaded. Please try again later.</p> }
+                else if (Model.Reviews.Count == 0) { <p data-i18n>No community feedback to display yet.</p> }
                 @foreach (var review in Model.Reviews)
                 {
                     var name = string.IsNullOrWhiteSpace(review.DisplayName) ? "Community member" : review.DisplayName;

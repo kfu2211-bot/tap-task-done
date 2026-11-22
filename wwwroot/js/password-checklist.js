@@ -22,7 +22,7 @@
             panel.querySelector('[data-password-rule-summary]').textContent = value ? `${count} of 5 requirements met` : 'Enter a strong password';
             if (confirm) {
                 const mismatch = Boolean(confirm.value && confirm.value !== value);
-                confirm.setCustomValidity(mismatch ? 'The passwords do not match.' : '');
+                confirm.setCustomValidity(mismatch ? (window.ttsTranslate?.('The passwords do not match.') || 'The passwords do not match.') : '');
                 if (feedback) {
                     feedback.textContent = confirm.value ? (mismatch ? 'The passwords do not match.' : 'Passwords match.') : '';
                     feedback.dataset.state = mismatch ? 'error' : 'success';
@@ -39,6 +39,7 @@
             if (!form.checkValidity()) { event.preventDefault(); form.reportValidity(); }
         });
         window.addEventListener('resize', position);
+        window.addEventListener('site-language-changed', update);
         update();
     });
 })();

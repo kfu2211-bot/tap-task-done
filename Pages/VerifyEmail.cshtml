@@ -16,18 +16,18 @@
 <div class="email-verification-shell">
 <main class="email-verification-card">
     <a class="verification-brand" href="/Index"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6" /></svg></span>Tap, Task, Done</a>
-    <nav class="verification-steps" aria-label="Registration progress"><span>Create account</span><span aria-hidden="true">/</span><strong aria-current="step">@(Model.Completed ? "Email verified" : "Verify email")</strong></nav>
+    <nav class="verification-steps" aria-label="Registration progress"><span data-i18n>Create account</span><span aria-hidden="true">/</span><strong aria-current="step">@(Model.Completed ? "Email verified" : "Verify email")</strong></nav>
     <div class="verification-heading">
         <span class="verification-envelope" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">@if(Model.Completed) { <path d="m5 12 4 4L19 6" /> } else { <rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/> }</svg></span>
         <div><h1>@(Model.Completed ? "Email verified" : "Verify your email")</h1>
         @if(Model.Completed) { <p>Your account is ready. Please log in with <strong>@Model.DestinationEmail</strong></p> }
         else if(Model.Pending) { <p>Enter the 6-digit code for <strong>@Model.DestinationEmail</strong></p> }
-        else { <p>Finish verifying your email to start using your account.</p> }</div>
+        else { <p data-i18n>Finish verifying your email to start using your account.</p> }</div>
     </div>
     @if(Model.Completed) {
-        <p class="verification-success" role="status">Your email has been verified successfully.</p>
-        <a class="verification-primary verification-login" href="/Login">Go to login</a>
-        <p class="verification-note">Verification did not sign you in automatically.</p>
+        <p class="verification-success" role="status" data-i18n>Your email has been verified successfully.</p>
+        <a class="verification-primary verification-login" href="/Login" data-i18n>Go to login</a>
+        <p class="verification-note" data-i18n>Verification did not sign you in automatically.</p>
     } else {
         @if(Model.RegistrationNotice is not null) { <div class="verification-status" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 10v7m0-11v1"/></svg><div><strong>Verification pending</strong><p>@Model.RegistrationNotice</p></div></div> }
         @if(Model.ErrorMessage is not null) { <p class="verification-error" role="alert">@Model.ErrorMessage</p> }
@@ -35,7 +35,7 @@
             <form method="post" asp-page-handler="Confirm" class="verification-code-form" data-code-form>
                 <label id="verification-code-label" for="Code">Verification code</label>
                 <input asp-for="Code" data-code-source inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="verification-expiry" required autofocus />
-                <p id="verification-expiry" class="verification-expiry">Code expires in 10 minutes</p>
+                <p id="verification-expiry" class="verification-expiry" data-i18n>Code expires in 10 minutes</p>
                 <button type="submit" class="verification-primary" data-idle-label="Verify email">Verify email</button>
             </form>
             <form method="post" asp-page-handler="Resend" class="verification-resend" data-resend-seconds="@Model.ResendSeconds">
@@ -44,12 +44,12 @@
                 <small role="status" data-resend-label>@(Model.ResendSeconds > 0 ? $"Available in {Model.ResendSeconds / 60:D2}:{Model.ResendSeconds % 60:D2}" : "You can request a new code.")</small>
             </form>
             <details class="verification-change" open="@(!string.IsNullOrWhiteSpace(Model.NewEmail))">
-                <summary><span class="verification-change-question"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15Z"/></svg>Wrong email address?</span><span class="verification-change-action">Change email</span></summary>
+                <summary><span class="verification-change-question"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15Z"/></svg>Wrong email address?</span><span class="verification-change-action" data-i18n>Change email</span></summary>
                 <p>Enter the corrected address and the password you chose when creating your account. Select <strong>Send code to corrected email</strong> to update the address shown above. Verify the new code to finish changing your login email.</p>
                 <form method="post" asp-page-handler="Change" data-resend-seconds="@Model.ResendSeconds"><label>Correct email<input asp-for="NewEmail" type="email" autocomplete="email" maxlength="45" required /></label><label>Registration password<input asp-for="Password" type="password" autocomplete="current-password" maxlength="256" required /></label><button type="submit" class="verification-primary" disabled="@(Model.ResendSeconds > 0)" data-idle-label="Send code to corrected email">Send code to corrected email</button><small role="status" data-resend-label>@(Model.ResendSeconds > 0 ? $"Available in {Model.ResendSeconds / 60:D2}:{Model.ResendSeconds % 60:D2}" : "You can request a new code.")</small></form>
             </details>
         } else {
-            <p class="verification-resume">Create an account, or log in with your email and password to resume a pending registration.</p><a class="verification-primary verification-login" href="/Index">Create account</a>
+            <p class="verification-resume" data-i18n>Create an account, or log in with your email and password to resume a pending registration.</p><a class="verification-primary verification-login" href="/Index" data-i18n>Create account</a>
         }
         <a class="verification-back" href="/Login"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m10 5-7 7 7 7M3 12h18"/></svg>Back to login</a>
     }

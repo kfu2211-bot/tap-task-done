@@ -8,9 +8,9 @@
         <option value="long" selected="@(Model.Value == "long")">Long Job</option>
         <option value="multi-day" selected="@(Model.Value == "multi-day")">Multi-Day Job</option>
     </select>
-    <small>Choose the work category. Set the actual work date and time separately.</small>
+    <small data-i18n>Choose the work category. Set the actual work date and time separately.</small>
     <label for="@(id)-end">Expected finish (Philippine time)</label>
     <input id="@(id)-end" type="datetime-local" name="workEnd" step="60" value="@Model.WorkEndUtc?.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" data-job-end required="@(Model.RequireEnd || Model.Value == "multi-day")" />
-    <small>A finish date is required for Multi-Day Job. Short and Long Jobs finish on their start date. Both participants confirm the final schedule.</small>
-    <small>Multi-Day Job reserves the full period between start and finish.</small>
+    <small data-i18n>A finish date is required for Multi-Day Job. Short and Long Jobs finish on their start date. Both participants confirm the final schedule.</small>
+    <small data-i18n>Multi-Day Job reserves the full period between start and finish.</small>
 </div>

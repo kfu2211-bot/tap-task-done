@@ -3,9 +3,9 @@
 @{ Layout = null; }
 <!DOCTYPE html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/tap-task-icon.svg" /><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Verification requests - Admin</title><link rel="stylesheet" href="/css/admin-polish.css" asp-append-version="true" /><link rel="stylesheet" href="/css/identity-selfie.css" asp-append-version="true" /><link rel="stylesheet" href="/css/admin-design.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
 <body class="identity-admin @(Model.Embedded ? "identity-embedded" : "")">
-@if (!Model.Embedded) { <header class="identity-topbar"><a href="/Admin" class="identity-back">← Admin Center</a><span>Admin workspace</span></header> }
+@if (!Model.Embedded) { <header class="identity-topbar"><a href="/Admin" class="identity-back" data-i18n>← Admin Center</a><span data-i18n>Admin workspace</span></header> }
 <main class="identity-workspace">
-    <div class="identity-heading"><div><p class="identity-eyebrow">IDENTITY CHECKS</p><h1>Verification requests</h1><p>Review submitted documents and record your decision.</p></div><span class="identity-count">@(Model.DatabaseUnavailable ? "Unavailable" : $"{Model.Items.Count} requests")</span></div>
+    <div class="identity-heading"><div><p class="identity-eyebrow" data-i18n>IDENTITY CHECKS</p><h1>Verification requests</h1><p data-i18n>Review submitted documents and record your decision.</p></div><span class="identity-count">@(Model.DatabaseUnavailable ? "Unavailable" : $"{Model.Items.Count} requests")</span></div>
     <nav class="identity-queues" aria-label="Verification queues">
         @foreach (var filter in new[] { (Key: "pending", Label: "Pending"), (Key: "approved", Label: "Approved"), (Key: "rejected", Label: "Rejected / Resubmit") })
         {
@@ -13,24 +13,24 @@
                aria-current="@(Model.Queue == filter.Key && !Request.Query.ContainsKey("recordId") ? "page" : null)">@filter.Label</a>
         }
     </nav>
-    <div class="identity-guidance"><span aria-hidden="true">✓</span><div><strong>Review with care</strong><p>Request resubmission if the images are unclear, the selfie shows glasses or a mask, or the match is uncertain. Reject if the photos clearly show different people. Review notes are visible to the user.</p></div></div>
+    <div class="identity-guidance"><span aria-hidden="true">✓</span><div><strong>Review with care</strong><p data-i18n>Request resubmission if the images are unclear, the selfie shows glasses or a mask, or the match is uncertain. Reject if the photos clearly show different people. Review notes are visible to the user.</p></div></div>
     @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="identity-notice" role="status">@Model.Notice</p> }
-    @if (!Model.DatabaseUnavailable && Model.Items.Count == 0) { <section class="identity-empty"><div class="identity-empty-icon" aria-hidden="true">✓</div><h2>No requests in this view</h2><p>New submissions appear in Pending. Reviewed requests appear under their decision.</p>@if (!Model.Embedded) { <a href="/Admin">Back to Admin Center</a> }</section> }
+    @if (!Model.DatabaseUnavailable && Model.Items.Count == 0) { <section class="identity-empty"><div class="identity-empty-icon" aria-hidden="true">✓</div><h2>No requests in this view</h2><p data-i18n>New submissions appear in Pending. Reviewed requests appear under their decision.</p>@if (!Model.Embedded) { <a href="/Admin" data-i18n>Back to Admin Center</a> }</section> }
     @foreach (var item in Model.Items) {
         <article class="identity-request">
             <div class="identity-request-heading"><div><p class="identity-eyebrow">REQUEST #@item.Id</p><h2>@(string.IsNullOrWhiteSpace(item.Name) ? "User" : item.Name)</h2></div><span class="identity-status identity-status-@item.Status">@item.Status</span></div>
-            <dl class="identity-details"><div><dt>ID number</dt><dd>•••• @item.IdLast4</dd></div><div><dt>Submitted</dt><dd>@tts.Data.DisplayTime.Philippine(item.CreatedAt) PHT</dd></div></dl>
+            <dl class="identity-details"><div><dt data-i18n>ID number</dt><dd>•••• @item.IdLast4</dd></div><div><dt data-i18n>Submitted</dt><dd>@tts.Data.DisplayTime.Philippine(item.CreatedAt) PHT</dd></div></dl>
             @if (Model.ManualNumberReviews.Contains(item.Id)) { <p class="identity-notice"><strong>Manual ID-number review required.</strong> Automatic reading did not verify this number. Read the full number and type from the uploaded ID and enter them below before approval.</p> }
             @if (Model.ReviewEnabled) {
-                <p><strong>Declared ID type:</strong> @(Model.DocumentTypes.TryGetValue(item.Id, out var declaredType) ? declaredType : "Not provided (older submission)")</p><div class="identity-comparison"><div><h3>Government ID</h3><a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="id" target="_blank" rel="noopener">Open ID (image or PDF)</a>@if (item.GovernmentType is "image/jpeg" or "image/png") { <img src="@Url.Page("/AdminIdentity", "Document", new { id = item.Id, kind = "id" })" alt="Government ID for manual comparison" loading="lazy" /> } else { <p>Use Open ID to inspect PDF or legacy documents.</p> }</div><div><h3>Camera selfie</h3>@if (item.HasSelfie) { <img src="@Url.Page("/AdminIdentity", "Document", new { id = item.Id, kind = "selfie" })" alt="Submitted selfie for manual comparison" loading="lazy" /> } else { <p>No selfie available (older request or retention period ended). Pending requests need a new submission before approval.</p> }</div></div>
+                <p><strong>Declared ID type:</strong> @(Model.DocumentTypes.TryGetValue(item.Id, out var declaredType) ? declaredType : "Not provided (older submission)")</p><div class="identity-comparison"><div><h3>Government ID</h3><a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="id" target="_blank" rel="noopener" data-i18n>Open ID (image or PDF)</a>@if (item.GovernmentType is "image/jpeg" or "image/png") { <img src="@Url.Page("/AdminIdentity", "Document", new { id = item.Id, kind = "id" })" alt="Government ID for manual comparison" loading="lazy" /> } else { <p data-i18n>Use Open ID to inspect PDF or legacy documents.</p> }</div><div><h3>Camera selfie</h3>@if (item.HasSelfie) { <img src="@Url.Page("/AdminIdentity", "Document", new { id = item.Id, kind = "selfie" })" alt="Submitted selfie for manual comparison" loading="lazy" /> } else { <p data-i18n>No selfie available (older request or retention period ended). Pending requests need a new submission before approval.</p> }</div></div>
 @if (Model.CaptureSequences.TryGetValue(item.Id, out var steps)) {
-    <section class="identity-captures"><h3>Guided camera evidence</h3><p>Browser checks are not certified liveness. Inspect every frame for the same person and the requested movements.</p><div class="capture-grid">
+    <section class="identity-captures"><h3>Guided camera evidence</h3><p data-i18n>Browser checks are not certified liveness. Inspect every frame for the same person and the requested movements.</p><div class="capture-grid">
     @for (var i = 0; i < steps.Length && i < 5; i++) { <figure><img src="@Url.Page("/AdminIdentity", "Document", new { id = item.Id, kind = $"capture-{i}" })" alt="Camera step @(i + 1): @steps[i]" loading="lazy" /><figcaption>@(i + 1). @steps[i]</figcaption></figure> }
     </div></section>
-} else { <p>No guided movement evidence. Request resubmission before approving.</p> }
-<div class="identity-documents"><h3>Submitted documents</h3><p>Documents open in a new tab. Close it to return to your review.</p><div class="identity-document-links"><a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="id" target="_blank" rel="noopener">View Government ID</a>@if(item.HasCertification) { <a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="certification" target="_blank" rel="noopener">View Certification</a> } @if(item.HasSupporting) { <a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="supporting" target="_blank" rel="noopener">View Supporting document</a> }</div></div>
+} else { <p data-i18n>No guided movement evidence. Request resubmission before approving.</p> }
+<div class="identity-documents"><h3>Submitted documents</h3><p data-i18n>Documents open in a new tab. Close it to return to your review.</p><div class="identity-document-links"><a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="id" target="_blank" rel="noopener" data-i18n>View Government ID</a>@if(item.HasCertification) { <a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="certification" target="_blank" rel="noopener" data-i18n>View Certification</a> } @if(item.HasSupporting) { <a asp-page-handler="Document" asp-route-id="@item.Id" asp-route-kind="supporting" target="_blank" rel="noopener" data-i18n>View Supporting document</a> }</div></div>
             }
-            @if(item.Status == "pending" && Model.ReviewEnabled) { <form method="post" asp-page-handler="Review" class="identity-review"><input type="hidden" name="id" value="@item.Id"/><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" /><label for="review-note-@item.Id">Review note <span>(required for rejection or resubmission; visible to user)</span></label><textarea id="review-note-@item.Id" name="note" maxlength="500" rows="3" placeholder="Add a note about your decision"></textarea><label for="document-type-@item.Id">ID type read from the document</label><select id="document-type-@item.Id" name="typeOnDocument"><option value="">Choose the type shown on the uploaded ID</option>@foreach (var type in tts.Data.IdentityDocumentTypes.Accepted) { <option value="@type">@type</option> }</select>
+            @if(item.Status == "pending" && Model.ReviewEnabled) { <form method="post" asp-page-handler="Review" class="identity-review"><input type="hidden" name="id" value="@item.Id"/><input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" /><label for="review-note-@item.Id">Review note <span data-i18n>(required for rejection or resubmission; visible to user)</span></label><textarea id="review-note-@item.Id" name="note" maxlength="500" rows="3" placeholder="Add a note about your decision"></textarea><label for="document-type-@item.Id">ID type read from the document</label><select id="document-type-@item.Id" name="typeOnDocument"><option value="">Choose the type shown on the uploaded ID</option>@foreach (var type in tts.Data.IdentityDocumentTypes.Accepted) { <option value="@type">@type</option> }</select>
 <label for="document-number-@item.Id">Full ID number read from the document</label><input id="document-number-@item.Id" name="numberOnDocument" type="text" maxlength="50" autocomplete="off" spellcheck="false" placeholder="Read and enter the number on the ID" />
 <label class="selfie-consent"><input type="checkbox" name="documentConfirmed" value="true" /> I checked the document for legibility, validity, visible alterations, and matching account name.</label>
 <label class="selfie-consent"><input type="checkbox" name="movementConfirmed" value="true" /> I inspected all five movement photos and confirmed the requested poses show the same person.</label>
@@ -40,16 +40,16 @@
                 <form method="post" asp-page-handler="Renew" class="identity-review">
                     <input type="hidden" name="id" value="@item.Id" />
                     <input type="hidden" name="embedded" value="@Model.Embedded.ToString().ToLowerInvariant()" />
-                    <label for="renew-note-@item.Id">Renewal reason <span>(required and visible to the user)</span></label>
+                    <label for="renew-note-@item.Id">Renewal reason <span data-i18n>(required and visible to the user)</span></label>
                     <textarea id="renew-note-@item.Id" name="note" maxlength="500" rows="3" required
                               placeholder="Specify the expired or expiring document and what to submit."></textarea>
                     <div class="identity-actions"><button type="submit">Request document renewal</button></div>
                 </form>
             }
-            else if (item.Status != "pending") { <p class="identity-reviewed">This request has already been reviewed.</p> }
+            else if (item.Status != "pending") { <p class="identity-reviewed" data-i18n>This request has already been reviewed.</p> }
         </article>
     }
-    @if (!Model.DatabaseUnavailable && Model.Items.Count > 0) { <p class="identity-footnote">Showing up to 100 most recent requests.</p> }
+    @if (!Model.DatabaseUnavailable && Model.Items.Count > 0) { <p class="identity-footnote" data-i18n>Showing up to 100 most recent requests.</p> }
 </main>@if (Model.Embedded)
 {
     <script>

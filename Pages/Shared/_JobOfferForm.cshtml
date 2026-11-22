@@ -16,7 +16,7 @@
     @if (Model.OfferStatus is { } status)
     {
         <span class="jobs-offer-status">Offer sent · @status</span>
-        <a class="task-chat-action" href="/MyJobs?view=@(status is "withdrawn" or "cancelled" ? "closed" : status == "accepted" ? "active" : "offers")&amp;offerFilter=@(status is "declined" or "rejected" ? "declined" : "pending")#job-@task.Id">View offer</a>
+        <a class="task-chat-action" href="/MyJobs?view=@(status is "withdrawn" or "cancelled" ? "closed" : status == "accepted" ? "active" : "offers")&amp;offerFilter=@(status is "declined" or "rejected" ? "declined" : "pending")#job-@task.Id" data-i18n>View offer</a>
     }
     else
     {
@@ -31,9 +31,9 @@
         }
         <button class="job-offer-toggle" type="button" aria-controls="@formId" aria-expanded="false" data-work-guard disabled="@Model.WorkLocked" hidden>Make an offer</button>
     }
-    <a class="task-chat-action" asp-page="/Reports" asp-route-taskId="@task.Id">Report this task</a>
+    <a class="task-chat-action" asp-page="/Reports" asp-route-taskId="@task.Id" data-i18n>Report this task</a>
 </div>
-@if (Model.OfferStatus is null) { <p class="job-notice" data-work-lock-notice hidden="@(!Model.WorkLocked)" role="status">@tts.Data.JobAcceptanceRules.Message <a href="/MyJobs?view=active">View current job</a></p> }
+@if (Model.OfferStatus is null) { <p class="job-notice" data-work-lock-notice hidden="@(!Model.WorkLocked)" role="status">@tts.Data.JobAcceptanceRules.Message <a href="/MyJobs?view=active" data-i18n>View current job</a></p> }
 @if (Model.OfferStatus is null)
 {
     <form id="@formId" class="job-offer-editor" method="post" asp-page="/MarketTasks" asp-page-handler="Offer" data-submit-pending="Sending offer…" data-job-offer-submit>
