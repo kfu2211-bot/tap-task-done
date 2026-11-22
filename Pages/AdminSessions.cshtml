@@ -1,0 +1,43 @@
+@page
+@model tts.Pages.AdminSessionsModel
+@using tts.Data
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>User Sessions - Admin Center</title>
+    <link rel="stylesheet" href="/css/admin-sessions.css" asp-append-version="true" />
+</head>
+<body>
+<main>
+    <header><div><h1>User Sessions</h1><p>Sign-in history and site presence · Philippine time (UTC+8)</p></div><a href="/Admin#sessions" target="_top">Admin Center</a></header>
+    <p class="note">Online means the site was visible within the last 5 minutes. Inactive time out is estimated from the last update. This is site activity, not work attendance. Tracking starts with the next login after this update.</p>
+    <form method="get">
+        <label>User name or email<input type="search" name="Search" value="@Model.Search" maxlength="100" /></label>
+        <label>Login date (PHT)<input type="date" name="Date" value="@(Model.Date?.ToString("yyyy-MM-dd"))" /></label>
+        <button type="submit">Apply filters / Refresh</button><a href="/AdminSessions">Clear</a>
+    </form>
+    @if (Model.Unavailable)
+    { <p role="alert">Unable to load sessions. Check the database connection or filter values and try again.</p> }
+    else if (Model.Rows.Count == 0)
+    { <p role="status">No sessions match these filters. New logins will appear here.</p> }
+    else
+    {
+        <div class="table-wrap" tabindex="0" role="region" aria-label="User session history">
+        <table><caption>Latest sessions · Page @Model.PageNumber · Updated @DisplayTime.Philippine(Model.Now)</caption>
+        <thead><tr><th scope="col">User</th><th scope="col">Role</th><th scope="col">Time In</th><th scope="col">Last Active</th><th scope="col">Time Out</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+        @foreach (var row in Model.Rows)
+        {
+            var s = row.Session; var status = UserActivity.Status(s, Model.Now);
+            <tr><td><strong>@row.Name</strong><small>@row.Email</small></td><td>@row.Role</td><td>@DisplayTime.Philippine(s.StartedUtc)</td><td>@DisplayTime.Philippine(s.LastActiveUtc)</td><td>@(s.LogoutUtc.HasValue ? DisplayTime.Philippine(s.LogoutUtc.Value) : status == "Inactive" ? "~ " + DisplayTime.Philippine(s.LastActiveUtc) : "—")</td><td><span class="status @(status == "Online" ? "online" : "")">@status</span></td></tr>
+        }
+        </tbody></table></div>
+    }
+    <nav aria-label="Session pages">
+    @if (Model.PageNumber > 1) { <a asp-page="/AdminSessions" asp-route-Search="@Model.Search" asp-route-Date="@(Model.Date?.ToString("yyyy-MM-dd"))" asp-route-PageNumber="@(Model.PageNumber - 1)">Previous</a> }
+    @if (Model.HasNext) { <a asp-page="/AdminSessions" asp-route-Search="@Model.Search" asp-route-Date="@(Model.Date?.ToString("yyyy-MM-dd"))" asp-route-PageNumber="@(Model.PageNumber + 1)">Next</a> }
+    </nav>
+</main>
+</body></html>

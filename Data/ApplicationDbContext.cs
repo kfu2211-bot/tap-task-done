@@ -29,6 +29,11 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var activity = modelBuilder.Entity<UserActivitySession>();
+        activity.ToTable("user_activity_sessions"); activity.HasKey(x => x.Id);
+        activity.Property(x => x.Id).HasMaxLength(64);
+        activity.HasIndex(x => new { x.UserId, x.StartedUtc });
+        activity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         var contact = modelBuilder.Entity<UserContact>();
         contact.ToTable("user_contacts");
         contact.HasKey(x => x.UserId);

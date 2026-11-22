@@ -87,6 +87,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     options.LoginPath = "/Login";
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Events.OnSigningIn = UserActivity.SigningIn;
+    options.Events.OnSigningOut = UserActivity.SigningOut;
 });
 builder.Services.AddAuthentication().AddCookie("BirthdayPending", options =>
 {
@@ -100,6 +102,8 @@ builder.Services.AddAuthentication().AddCookie("BirthdayPending", options =>
 builder.Services.AddAuthentication().AddCookie("AdminCookie", options =>
 {
     options.Cookie.Name = "tts.admin";
+    options.Events.OnSigningIn = UserActivity.SigningIn;
+    options.Events.OnSigningOut = UserActivity.SigningOut;
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Strict;
     options.LoginPath = "/Login";
@@ -181,6 +185,11 @@ if (renderDeployment)
 }
 
 var app = builder.Build();
+// Additive activity storage; no changes to existing security session tables.
+await using (var activityScope = app.Services.CreateAsyncScope())
+{
+    await activityScope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.ExecuteSqlRawAsync(UserActivity.Schema);
+}
 
 if (renderDeployment)
 {
@@ -260,6 +269,15 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseAuthorization();
+
+app.MapPost("/api/user-activity/heartbeat", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    // Custom header plus same-origin Fetch Metadata prevents cross-site activity updates.
+    if (context.Request.Headers["X-TTS-Activity"] != "1" || context.Request.Headers["Sec-Fetch-Site"] == "cross-site") return Results.BadRequest();
+    await UserActivity.Touch(db, context.User, ct);
+    return Results.NoContent();
+}).RequireAuthorization(new Microsoft.AspNetCore.Authorization.AuthorizeAttribute { AuthenticationSchemes = "Cookies,AdminCookie" });
 
 app.MapGet("/api/providers/availability", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
 {
