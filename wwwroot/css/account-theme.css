@@ -1,4 +1,14 @@
 #headerAccountMenu .header-theme-toggle { min-height:44px; }
+/* Secondary account history copy must remain readable in the light palette. */
+html:not([data-theme="dark"]) body .users-page :is(.history summary small,.history-empty,.history-entry small) { color:#4c685a; }
+html[data-theme="dark"] body.task-reuse-screen .record-info { background:#493b1d; color:#ffe09a !important; border-color:#c59a44; }
+html[data-theme="dark"] body :is(.job-location-map,[data-location-map]) { background:#171f1c; border-color:#567264; }
+html[data-theme="dark"] body :is(.job-location-map,[data-location-map]) :is(.maplibregl-ctrl-group,.maplibregl-ctrl-attrib,.maplibregl-popup-content) { background:#202a25; color:#edf5ef; }
+html[data-theme="dark"] body :is(.job-location-map,[data-location-map]) :is(.maplibregl-ctrl-attrib a,.maplibregl-popup-close-button) { color:#a5edcc; }
+html[data-theme="dark"] body :is(.job-location-map,[data-location-map]) .maplibregl-ctrl-group button { background:#202a25; color:#a5edcc; border-color:#567264; }
+html[data-theme="dark"] body :is(.job-location-map,[data-location-map]) .maplibregl-ctrl-icon { filter:invert(1); }
+html[data-theme="dark"] body :is(.job-location-map,[data-location-map]) .maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color:#202a25; }
+html[data-theme="dark"] body :is(.job-location-map,[data-location-map]) .maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color:#202a25; }
 .theme-switch-track { margin-inline-start:auto; width:34px; height:20px; border-radius:20px; background:#61766a; padding:3px; box-sizing:border-box; }
 .theme-switch-track::before { content:""; display:block; width:14px; height:14px; border-radius:50%; background:white; }
 [aria-checked="true"] .theme-switch-track { background:#17885c; }
@@ -384,12 +394,12 @@ html[data-theme="dark"] body .db-tracking .tracking-intro .db-tracking-header {
     background: transparent !important;
 }
 
-html[data-theme="dark"] body .market-content .task-card :is(.task-status strong, .offer-status, .task-review-icon, .task-chat-action),
+html[data-theme="dark"] body .market-content .task-card :is(.task-status strong, .task-review-icon, .task-chat-action),
 html[data-theme="dark"] body .db-tracking :is(.tracking-picker summary svg, .tracking-picker-check, .tracking-timeline li.done, .tracking-timeline li.current, .tracking-agreement summary),
 html[data-theme="dark"] body .reviews-live .reviews-overview-icon {
     color: var(--brand) !important;
 }
-html[data-theme="dark"] body .market-content .task-card :is(.task-status strong, .offer-status, .task-review-icon),
+html[data-theme="dark"] body .market-content .task-card :is(.task-status strong, .task-review-icon),
 html[data-theme="dark"] body .reviews-live .reviews-overview-icon,
 html[data-theme="dark"] body .db-tracking .tracking-picker-options a:is(:hover, [aria-current="page"]) {
     background: var(--surface-2) !important;

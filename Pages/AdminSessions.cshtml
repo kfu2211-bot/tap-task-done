@@ -8,8 +8,9 @@
     <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>User Sessions - Admin Center</title>
     <link rel="stylesheet" href="/css/admin-sessions.css" asp-append-version="true" />
+    <partial name="_AccountTheme" />
 </head>
-<body>
+<body class="admin-sessions-page">
 <main>
     <header><div><h1>User Sessions</h1><p>Sign-in history and site presence · Philippine time (UTC+8)</p></div><a href="/Admin#sessions" target="_top">Admin Center</a></header>
     <p class="note">Online means the site was visible within the last 5 minutes. Inactive time out is estimated from the last update. This is site activity, not work attendance. Tracking starts with the next login after this update.</p>
@@ -25,7 +26,7 @@
     else
     {
         <div class="table-wrap" tabindex="0" role="region" aria-label="User session history">
-        <table><caption>Latest sessions · Page @Model.PageNumber · Updated @DisplayTime.Philippine(Model.Now)</caption>
+        <table><caption><span data-i18n>Latest sessions</span> · <span data-i18n>Page</span> @Model.PageNumber · <span data-i18n>Updated</span> @DisplayTime.Philippine(Model.Now)</caption>
         <thead><tr><th scope="col">User</th><th scope="col">Role</th><th scope="col">Time In</th><th scope="col">Last Active</th><th scope="col">Time Out</th><th scope="col">Status</th></tr></thead>
         <tbody>
         @foreach (var row in Model.Rows)

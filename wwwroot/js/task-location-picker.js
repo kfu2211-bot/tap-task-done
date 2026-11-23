@@ -138,12 +138,13 @@
             try {
                 map=new maplibregl.Map({
                     container:root.querySelector('[data-location-map]'),
-                    style:'https://tiles.openfreemap.org/styles/liberty',
+                    style:window.ttsMapTheme?.style() || 'https://tiles.openfreemap.org/styles/liberty',
                     center:areaCenter||candidate||[120.653,15.000],
                     zoom:areaCenter||candidate?16:13,
                     minZoom:12,
                     renderWorldCopies:false
                 });
+                window.ttsMapTheme?.bind(map);
                 map.addControl(new maplibregl.NavigationControl({showCompass:false}));map.addControl(new maplibregl.FullscreenControl());
                 map.on('click',e=>pick([e.lngLat.lng,e.lngLat.lat]));
                 map.on('error',()=>{status.textContent=(lat.value&&lon.value?'Your destination pin is still confirmed. ':'')+'Some map details could not load. You can search or use current location instead.';});

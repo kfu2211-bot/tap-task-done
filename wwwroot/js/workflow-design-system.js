@@ -1,5 +1,5 @@
 (() => {
- const targets = '.job-status[data-status],.task-status-badge[data-status],.offer-status[data-status],.db-tracking-status[data-status],.work-status[data-status],.work-status[data-ready],[data-scheduled-status],[data-scheduled-confirmation]';
+ const targets = '.job-status[data-status],.task-status-badge[data-status],.offer-status[data-status],.db-tracking-status[data-status],.task-detail-status[data-status],.record-status[data-status],.work-status[data-status],.work-status[data-ready],[data-scheduled-status],[data-scheduled-confirmation]';
  function tone(value) {
   switch ((value || '').trim().toLowerCase()) {
    case 'completed': case 'both confirmed': return 'completed';

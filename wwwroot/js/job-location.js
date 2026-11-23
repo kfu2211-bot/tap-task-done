@@ -37,6 +37,7 @@
     let following = root.dataset.freelancer === "true", previousPosition, heading = 0;
     function setStatus(element, text, visible = false) {
         if (!element) return;
+        element.setAttribute('data-i18n', '');
         element.textContent = text;
         element.hidden = !visible || !text;
     }
@@ -64,7 +65,7 @@
         }
         const date = new Date(latest.recordedAtUtc.endsWith('Z') ? latest.recordedAtUtc : latest.recordedAtUtc + 'Z');
         const fresh = active && Date.now() - date.getTime() < 60000;
-        setStatus(status, `${fresh ? 'Recent freelancer location' : 'Last known freelancer location'} · ${date.toLocaleString()}${latest.accuracyMeters == null ? '' : ` · accuracy ±${Math.round(latest.accuracyMeters)} m`}${fresh ? '' : ' · Not live'}`);
+        setStatus(status, `${fresh ? 'Recent freelancer location' : 'Last known freelancer location'} · ${date.toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) + ' PHT'}${latest.accuracyMeters == null ? '' : ` · accuracy ±${Math.round(latest.accuracyMeters)} m`}${fresh ? '' : ' · Not live'}`);
         if (!map) return;
         const position = [latest.longitude, latest.latitude];
         if (!marker) {
@@ -207,7 +208,7 @@
         if (map.getSource('job-route')) map.getSource('job-route').setData(data);
         else {
             map.addSource('job-route', { type: 'geojson', data });
-            map.addLayer({ id: 'job-route', type: 'line', source: 'job-route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#19765a', 'line-width': 5, 'line-opacity': 0.85 } });
+            map.addLayer({ id: 'job-route', type: 'line', source: 'job-route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': document.documentElement.dataset.theme === 'dark' ? '#81dbb2' : '#19765a', 'line-width': 5, 'line-opacity': 0.85 } });
         }
     }
     function distanceToRoute(point, coordinates) {
@@ -320,10 +321,11 @@
         try {
             map = new maplibregl.Map({
                 container: root.querySelector('[data-map]'),
-                style: 'https://tiles.openfreemap.org/styles/liberty',
+                style: window.ttsMapTheme?.style() || 'https://tiles.openfreemap.org/styles/liberty',
                 center: [120.653, 15.000], zoom: 13,
                 attributionControl: { customAttribution: '<a href="https://project-osrm.org/" target="_blank" rel="noopener noreferrer">OSRM</a> · <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">Fix map</a>' }
             });
+            window.ttsMapTheme?.bind(map, drawRoute);
             map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
             root.dispatchEvent(new CustomEvent('job-map-ready', { detail: { map } }));
             map.addControl({

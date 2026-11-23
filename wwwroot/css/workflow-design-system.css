@@ -1,12 +1,12 @@
 /* Shared status semantics and compact layouts for the task workspaces. */
 :root{--wf-blue-bg:#e6efff;--wf-blue-text:#214f90;--wf-amber-bg:#fff1cb;--wf-amber-text:#785008;--wf-teal-bg:#dff4f0;--wf-teal-text:#11645c;--wf-green-bg:#e0f1e4;--wf-green-text:#24643b;--wf-red-bg:#fce7e7;--wf-red-text:#9d3030;--wf-gray-bg:#edf0f2;--wf-gray-text:#4d5b66}
 html[data-theme=dark]{--wf-blue-bg:#213857;--wf-blue-text:#bed7ff;--wf-amber-bg:#493b1d;--wf-amber-text:#ffe09a;--wf-teal-bg:#193e38;--wf-teal-text:#a5e6db;--wf-green-bg:#24452f;--wf-green-text:#b1e5bd;--wf-red-bg:#4a282a;--wf-red-text:#ffc1c3;--wf-gray-bg:#333e43;--wf-gray-text:#d2dce2}
-html body .workflow-status{display:inline-flex;align-items:center;gap:6px;width:fit-content;max-width:100%;box-sizing:border-box;padding:6px 11px!important;border:1px solid transparent;border-radius:20px;font-size:.8rem!important;font-weight:700;line-height:1.4;white-space:normal;overflow-wrap:anywhere;background:var(--wf-blue-bg)!important;color:var(--wf-blue-text)!important}
-html body .workflow-status[data-work-state=pending]{background:var(--wf-amber-bg)!important;color:var(--wf-amber-text)!important}
-html body .workflow-status[data-work-state=active]{background:var(--wf-teal-bg)!important;color:var(--wf-teal-text)!important}
-html body .workflow-status[data-work-state=completed],html body .workflow-status[data-work-state=open]{background:var(--wf-green-bg)!important;color:var(--wf-green-text)!important}
-html body .workflow-status[data-work-state=cancelled]{background:var(--wf-red-bg)!important;color:var(--wf-red-text)!important}
-html body .workflow-status[data-work-state=closed]{background:var(--wf-gray-bg)!important;color:var(--wf-gray-text)!important}
+html[data-theme] body .workflow-status.workflow-status{display:inline-flex;align-items:center;gap:6px;width:fit-content;max-width:100%;box-sizing:border-box;padding:6px 11px!important;border:1px solid transparent;border-radius:20px;font-size:.8rem!important;font-weight:700;line-height:1.4;white-space:normal;overflow-wrap:anywhere;background:var(--wf-blue-bg)!important;color:var(--wf-blue-text)!important}
+html[data-theme] body .workflow-status.workflow-status[data-work-state=pending]{background:var(--wf-amber-bg)!important;color:var(--wf-amber-text)!important}
+html[data-theme] body .workflow-status.workflow-status[data-work-state=active]{background:var(--wf-teal-bg)!important;color:var(--wf-teal-text)!important}
+html[data-theme] body .workflow-status.workflow-status[data-work-state=completed],html[data-theme] body .workflow-status.workflow-status[data-work-state=open]{background:var(--wf-green-bg)!important;color:var(--wf-green-text)!important}
+html[data-theme] body .workflow-status.workflow-status[data-work-state=cancelled]{background:var(--wf-red-bg)!important;color:var(--wf-red-text)!important}
+html[data-theme] body .workflow-status.workflow-status[data-work-state=closed]{background:var(--wf-gray-bg)!important;color:var(--wf-gray-text)!important}
 html body .workflow-legend{margin:14px 0 20px;padding:0;border:1px solid var(--work-line);border-radius:12px;background:var(--work-surface);color:var(--work-text)}
 .workflow-legend>summary{padding:12px 16px;min-height:44px;box-sizing:border-box;cursor:pointer;font-weight:600}
 .workflow-legend dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0;padding:0 16px 18px}
