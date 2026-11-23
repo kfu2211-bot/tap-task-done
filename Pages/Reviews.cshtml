@@ -54,7 +54,7 @@
             </a>
 
 
-            <nav class="sidebar-nav">
+            <nav class="sidebar-nav" data-home-view="@Model.RoleFilter">
 
                 <a href="/Dashboard" class="nav-item">
                     <span class="nav-icon">⌂</span>
@@ -154,14 +154,18 @@
                 <p class="compact-page-description" data-i18n>Feedback from completed tasks, clearly organized.</p>
                 @if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
                 @if (Model.FocusTaskId is not null) {
-                    <section class="service-rating-focus"><strong translate="no">@Model.FocusTaskTitle · #@Model.FocusTaskId</strong><div class="work-primary-actions"><a class="work-button work-button-secondary" href="/Reviews" data-i18n>All service ratings</a><a class="work-button work-button-secondary" href="/Tracking?taskId=@Model.FocusTaskId" data-i18n>Task history</a>@if(Model.CanRate) { <a class="work-button" href="/Tracking?taskId=@Model.FocusTaskId#completed-reviews">@(Model.FocusIsClient ? "Rate freelancer" : "Rate client")</a> }</div></section>
-                } else {
-                    <nav class="service-rating-roles" aria-label="Rating role">
-                    @foreach (var role in new[] { ("all","All roles"),("client","As client"),("freelancer","As freelancer") }) {
-                        <a href="@Url.Page("/Reviews",new { view=Model.View,asRole=role.Item1 })" aria-current="@(Model.RoleFilter == role.Item1 ? "page" : null)" data-i18n>@role.Item2</a>
-                    }
-                    </nav>
+                    <section class="service-rating-focus"><strong translate="no">@Model.FocusTaskTitle · #@Model.FocusTaskId</strong><div class="work-primary-actions"><a class="work-button work-button-secondary" href="@Url.Page("/Reviews", new { asRole=Model.RoleFilter })" data-i18n>All service ratings</a><a class="work-button work-button-secondary" href="/Tracking?taskId=@Model.FocusTaskId" data-i18n>Task history</a>@if(Model.CanRate) { <a class="work-button" href="/Tracking?taskId=@Model.FocusTaskId#completed-reviews">@(Model.FocusIsClient ? "Rate freelancer" : "Rate client")</a> }</div></section>
                 }
+                <header class="service-rating-context">
+                    <div><span class="service-rating-context-label" data-i18n>@(Model.RoleFilter == "client" ? "Client view" : "Freelancer view")</span><h2 data-i18n>@Model.ContextTitle</h2><p data-i18n>@Model.ContextHelp</p></div>
+                    @if (Model.CanSwitchRoles && Model.FocusTaskId is null) {
+                        <nav class="service-rating-roles" aria-label="Rating workspace">
+                            @foreach (var role in new[] { ("client","As client"),("freelancer","As freelancer") }) {
+                                <a href="@Url.Page("/Reviews",new { view=Model.View,asRole=role.Item1 })" aria-current="@(Model.RoleFilter == role.Item1 ? "page" : null)" data-i18n>@role.Item2</a>
+                            }
+                        </nav>
+                    }
+                </header>
                 <nav class="service-rating-tabs" aria-label="Rating direction"><a href="@Url.Page("/Reviews",new { view="received",asRole=Model.RoleFilter,taskId=Model.FocusTaskId })" aria-current="@(Model.View == "received" ? "page" : null)"><span data-i18n>Ratings received</span> (@Model.ReceivedCount)</a><a href="@Url.Page("/Reviews",new { view="given",asRole=Model.RoleFilter,taskId=Model.FocusTaskId })" aria-current="@(Model.View == "given" ? "page" : null)"><span data-i18n>Ratings given</span> (@Model.GivenCount)</a></nav>
                 @if(Model.Unavailable) { <div class="workflow-empty" role="alert"><p data-i18n>Ratings are temporarily unavailable. Please try again.</p><a class="work-button work-button-secondary" href="/Reviews" data-i18n>Try again</a></div> }
                 else { <div class="service-rating-layout"><partial name="_ServiceRatingSummary" model="Model.Items" /><partial name="_ServiceRatingsList" model="new tts.Data.ServiceRatingsView(Model.Items,true,ratingsGiven)" /></div> }

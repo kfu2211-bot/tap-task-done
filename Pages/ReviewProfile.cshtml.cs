@@ -14,6 +14,7 @@ public class ReviewProfileModel(ApplicationDbContext db) : PageModel
     public string Availability { get; private set; } = "";
     public bool CanOpenBooking { get; private set; }
     public bool HasFreelancerProfile { get; private set; }
+    public bool CanSwitchRatingRole { get; private set; }
     public string Location { get; private set; } = "";
     public Dictionary<string, string[]> ServiceGroups { get; private set; } = [];
     public int? ServiceRate { get; private set; }
@@ -29,11 +30,12 @@ public class ReviewProfileModel(ApplicationDbContext db) : PageModel
         if (user is null || user.Role == "deleted") return NotFound();
         ProfileId = id;
         DisplayName = $"{user.FirstName} {user.LastName}".Trim();
-        ProfileRole = role == "client" ? "Client" : "Freelancer";
-        HasFreelancerProfile = await db.FreelancerProfiles.AnyAsync(p=>p.UserId == id && (p.WorkRole == "freelancer" || p.WorkRole == "both"),ct);
+        var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == id, ct);
+        CanSwitchRatingRole = ServiceRatingRules.CanSwitchRoles(profile?.WorkRole);
+        HasFreelancerProfile = profile?.WorkRole is "freelancer" or "both";
+        ProfileRole = ServiceRatingRules.ResolveRole(profile?.WorkRole,role,HasFreelancerProfile ? "freelancer" : "client") == "client" ? "Client" : "Freelancer";
         if (ProfileRole == "Freelancer")
         {
-            var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == id, ct);
             if (profile is null) return NotFound();
             Location = profile.Location;
             var specialties = ServiceCatalog.Read(profile.ServiceSpecialties);

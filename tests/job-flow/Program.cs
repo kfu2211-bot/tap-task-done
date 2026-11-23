@@ -79,10 +79,24 @@ Check(ServiceRatingRules.ViewerRole(false,false) == "freelancer", "A client revi
 Check(ServiceRatingRules.ViewerRole(true,false) == "client", "A freelancer review is received in the client role");
 Check(ServiceRatingRules.ViewerRole(false,true) == "client", "Client-written feedback appears in given/client ratings");
 Check(ServiceRatingRules.ViewerRole(true,true) == "freelancer", "Freelancer-written feedback appears in given/freelancer ratings");
-Check(ServiceRatingRules.RoleFilter("admin") == "all", "Unknown rating-role filters cannot select privileged views");
+Check(ServiceRatingRules.ResolveRole("both","admin",null) == "client", "Unknown rating-role filters cannot select privileged views");
 var scopedRatings = new[] { new MarketplaceReview { Id=1,ClientId=10,FreelancerId=20 },new MarketplaceReview { Id=2,ClientId=30,FreelancerId=10 },new MarketplaceReview { Id=3,ClientId=30,FreelancerId=40 } }.AsQueryable();
 Check(ServiceRatingRules.VisibleTo(scopedRatings,10).Select(r=>r.Id).SequenceEqual(new long[]{1,2}), "Personal ratings include both participant roles and exclude other accounts");
 Check(!ServiceRatingRules.VisibleTo(scopedRatings,0).Any(), "Unauthenticated identity cannot select private ratings");
+
+Check(ServiceRatingRules.ResolveRole("client",null,"freelancer") == "client", "Client-only account cannot inherit an old freelancer workspace");
+Check(ServiceRatingRules.ResolveRole("client","freelancer","freelancer") == "client", "Client-only account cannot force freelancer ratings with a URL");
+Check(ServiceRatingRules.ResolveRole("freelancer","client","client") == "freelancer", "Freelancer-only account cannot switch into client ratings");
+Check(ServiceRatingRules.ResolveRole("both",null,"client") == "client", "Dual-role ratings default to the active client workspace");
+Check(ServiceRatingRules.ResolveRole("both",null,"freelancer") == "freelancer", "Dual-role ratings default to the active freelancer workspace");
+Check(ServiceRatingRules.ResolveRole("both","freelancer","client") == "freelancer", "Dual-role account can explicitly choose freelancer ratings");
+Check(ServiceRatingRules.ResolveRole("both","all","client") == "client", "All-roles URL cannot mix client and freelancer ratings");
+Check(ServiceRatingRules.CanSwitchRoles("both") && !ServiceRatingRules.CanSwitchRoles("client") && !ServiceRatingRules.CanSwitchRoles("freelancer"), "Only accounts with both saved roles receive the role switcher");
+var directionalRatings = new[] { (ByFreelancer:true, Given:false,Rating:5), (ByFreelancer:false,Given:true,Rating:4), (ByFreelancer:false,Given:false,Rating:1), (ByFreelancer:true,Given:true,Rating:3) };
+Check(directionalRatings.Where(r=>!r.Given && ServiceRatingRules.ViewerRole(r.ByFreelancer,r.Given)=="client").Average(r=>r.Rating)==5, "Client average includes ratings from freelancers only");
+Check(directionalRatings.Where(r=>!r.Given && ServiceRatingRules.ViewerRole(r.ByFreelancer,r.Given)=="freelancer").Average(r=>r.Rating)==1, "Freelancer average includes ratings from clients only");
+Check(directionalRatings.Single(r=>r.Given && ServiceRatingRules.ViewerRole(r.ByFreelancer,r.Given)=="client").Rating==4, "Client given tab shows only ratings written for freelancers");
+Check(directionalRatings.Single(r=>r.Given && ServiceRatingRules.ViewerRole(r.ByFreelancer,r.Given)=="freelancer").Rating==3, "Freelancer given tab shows only ratings written for clients");
 
 var trackingTasks = new[] {
     new MarketplaceTask { Id = 1, Status = "assigned" },

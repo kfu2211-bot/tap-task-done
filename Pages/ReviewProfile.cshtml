@@ -30,7 +30,7 @@
 </section>
 <section class="review-profile-card profile-review-list" id="service-ratings">
 <div class="profile-section-heading"><h2 data-i18n>Service Ratings</h2></div>
-@if (Model.HasFreelancerProfile) { <nav class="service-rating-roles" aria-label="Profile rating role"><a href="@Url.Page("/ReviewProfile",new { id=Model.ProfileId,role="client" })" aria-current="@(Model.ProfileRole == "Client" ? "page" : null)" data-i18n>As client</a><a href="@Url.Page("/ReviewProfile",new { id=Model.ProfileId,role="freelancer" })" aria-current="@(Model.ProfileRole == "Freelancer" ? "page" : null)" data-i18n>As freelancer</a></nav> }
+@if (Model.CanSwitchRatingRole) { <nav class="service-rating-roles" aria-label="Profile rating role"><a href="@Url.Page("/ReviewProfile",new { id=Model.ProfileId,role="client" })" aria-current="@(Model.ProfileRole == "Client" ? "page" : null)" data-i18n>As client</a><a href="@Url.Page("/ReviewProfile",new { id=Model.ProfileId,role="freelancer" })" aria-current="@(Model.ProfileRole == "Freelancer" ? "page" : null)" data-i18n>As freelancer</a></nav> }
 <p data-i18n>@(Model.ProfileRole == "Client" ? "Ratings from freelancers" : "Ratings from clients")</p>
 @if(Model.Unavailable) { <p role="alert" data-i18n>Ratings are temporarily unavailable. Please try again.</p> }
 else { <div class="service-rating-layout profile-ratings-layout"><partial name="_ServiceRatingSummary" model="Model.RatingItems" /><partial name="_ServiceRatingsList" model="new tts.Data.ServiceRatingsView(Model.RatingItems,false)" /></div> }
