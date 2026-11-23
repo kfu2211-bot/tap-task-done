@@ -605,7 +605,7 @@
                     var selectedTask = long.TryParse(Request.Query["taskId"], out var requestedTask) && Model.Tasks.Any(x => x.Task.Id == requestedTask) ? requestedTask : Model.Tasks.FirstOrDefault()?.Task.Id;
                     var activeEntry = Model.Tasks.FirstOrDefault(x => x.Task.Id == selectedTask);
                 }
-                <partial name="_WorkStatusGuide" /><div class="tracking-intro">
+                <div class="tracking-intro">
                     <p class="compact-page-description">@(Model.IsHistory ? "Review this task’s recorded progression, work details, and completion history." : "Follow your active work and review the next steps.")</p>
                     @if (activeEntry is not null && !Model.IsHistory) {
                         <span class="tracking-picker-label" id="tracking-picker-label" data-i18n>Select a task</span>
