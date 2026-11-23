@@ -1,0 +1,14 @@
+Schedule reminder email design setup
+
+The application automatically creates email_presentation_preferences if its database user has CREATE permission.
+If CREATE is not allowed, run mysql_email_presentation_preferences.sql on the same database before deployment.
+No existing records are altered or deleted.
+
+Signed-in pages sync the selected site language and theme for future reminder emails.
+Accounts without a saved preference receive English/light emails until the next signed-in visit.
+The email app may adjust colors using its own dark-mode rules.
+
+Tracking links use EmailDelivery:PublicBaseUrl, then RENDER_EXTERNAL_URL, then https://tap-task-done.onrender.com.
+Use an HTTPS public base URL when hosting on a different domain. No host header from an incoming request is used.
+HTML email and plain-text fallback contain the same task-specific Tracking URL.
+No changes are made to reminder timing, retries, cancellation rules, or OTP delivery.

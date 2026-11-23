@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using System.Text;
 using tts.Data;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,24 @@ Check(!TaskAcceptanceTerms.CanUseAcceptance(quickTask, 700, acceptedSnapshot), "
 Check(!TaskAcceptanceTerms.CanUseAcceptance(quickTask, 700, null), "Legacy jobs without terms evidence retain explicit review");
 quickTask.JobType = "long";
 Check(!TaskAcceptanceTerms.CanUseAcceptance(quickTask, 700, TaskAcceptanceTerms.Revision(quickTask,700)), "Long Jobs retain the existing explicit agreement flow");
+
+var reminderConfig = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?> { ["RENDER_EXTERNAL_URL"] = "https://example.test" }).Build();
+Directory.CreateDirectory("obj/schedule-email-previews");
+foreach (var mailLanguage in new[] { "en", "fil" }) foreach (var mailTheme in new[] { "light", "dark" }) foreach (var mailKind in new[] { "schedule_overdue", "schedule_1h", "schedule_24h" }) {
+    var mail = ScheduleReminderTemplate.Create(90041, "Cleaning <script>alert(1)</script>", new DateTime(2026,11,22,15,11,0,DateTimeKind.Utc), mailKind, mailLanguage, mailTheme, reminderConfig);
+    Check(mail.Html.Contains("&lt;script&gt;") && !mail.Html.Contains("<script>"), "Email safely encodes task content");
+    Check(mail.Html.Contains("https://example.test/Tracking?taskId=90041") && mail.Text.Contains("https://example.test/Tracking?taskId=90041"), "HTML and plain-text reminders link to the task on the configured site");
+    Check(mail.Html.Contains("11:11 PM PHT"), "Reminder displays arrival in Philippine time");
+    Check(mail.Subject.Length < 70 && !mail.Subject.Contains(" / "), "Reminder subject is concise and uses one language");
+    Check(mailLanguage == "fil" ? mail.Text.Contains("Buksan ang Tracking") && !mail.Text.Contains("Open Tracking") : mail.Text.Contains("Open Tracking") && !mail.Text.Contains("Buksan ang Tracking"), "Reminder uses the recipient language without duplicate bilingual paragraphs");
+    File.WriteAllText($"obj/schedule-email-previews/{mailLanguage}-{mailTheme}-{mailKind}.html", mail.Html);
+}
+File.WriteAllText("obj/schedule-email-previews/preview-light.html", ScheduleReminderTemplate.Create(90041,"Cleaning",new DateTime(2026,11,22,15,11,0,DateTimeKind.Utc),"schedule_overdue","fil","light",reminderConfig).Html);
+File.WriteAllText("obj/schedule-email-previews/preview-dark.html", ScheduleReminderTemplate.Create(90041,"Cleaning",new DateTime(2026,11,22,15,11,0,DateTimeKind.Utc),"schedule_overdue","en","dark",reminderConfig).Html);
+var unsafeReminderConfig = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?> { ["EmailDelivery:PublicBaseUrl"] = "javascript:alert(1)" }).Build();
+var rejectedReminderUrl = false;
+try { ScheduleReminderTemplate.Create(1,"Task",DateTime.UtcNow,"schedule_1h","en","light",unsafeReminderConfig); } catch (InvalidOperationException) { rejectedReminderUrl = true; }
+Check(rejectedReminderUrl, "Email buttons reject unsafe base URLs");
 
 var trackingTasks = new[] {
     new MarketplaceTask { Id = 1, Status = "assigned" },

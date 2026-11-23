@@ -53,6 +53,7 @@ public sealed class ScheduleReminderEmailWorker(IServiceScopeFactory scopes, ICo
                         // An operator may have provisioned the table for a least-privilege application user.
                         await db.Set<ScheduleReminderEmail>().AsNoTracking().Take(1).ToListAsync(stoppingToken);
                     }
+                    await EmailPresentationPreference.EnsureAsync(db, stoppingToken);
                     Ready = true;
                 }
                 await SendPendingAsync(db, config, logger, stoppingToken);
@@ -94,13 +95,10 @@ public sealed class ScheduleReminderEmailWorker(IServiceScopeFactory scopes, ICo
                 email.Attempts++;
                 try
                 {
-                    // Bilingual reminders work with either site language without collecting a new preference.
-                    var heading = email.Kind == "schedule_overdue" ? "Schedule needs attention / Kailangang tingnan ang iskedyul" : "Upcoming job / Paparating na trabaho";
-                    var body = $"{heading}\n\nTask #{task.Id}\nArrival / Oras ng pagdating: {start.Value.AddHours(8):MMM d, yyyy h:mm tt} PHT\n\n" +
-                        "Open Tracking on the website to contact your counterpart, review your agreement, or request a reschedule.\nBuksan ang Tracking sa website para makipag-ugnayan, tingnan ang kasunduan, o humiling ng bagong iskedyul.\n\n" +
-                        "This reminder does not cancel or complete the job and applies no penalty.\nHindi nito kinakansela o kinukumpleto ang trabaho at walang awtomatikong parusa.";
-                    if (deliver is null) await SmtpMailer.SendAsync(config, recipient, "Tap, Task, Done — " + heading, body, ct);
-                    else await deliver(recipient, "Tap, Task, Done — " + heading, body, ct);
+                    var preference = await db.Set<EmailPresentationPreference>().AsNoTracking().SingleOrDefaultAsync(p => p.UserId == email.UserId, ct);
+                    var content = ScheduleReminderTemplate.Create(task.Id, task.Title, start.Value, email.Kind, preference?.Language, preference?.Theme, config);
+                    if (deliver is null) await SmtpMailer.SendAsync(config, recipient, content.Subject, content.Text, ct, content.Html);
+                    else await deliver(recipient, content.Subject, content.Text, ct);
                     email.Status = "sent";
                 }
                 catch (Exception ex) when (ex is System.Net.Mail.SmtpException or InvalidOperationException or FormatException)

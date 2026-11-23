@@ -29,6 +29,10 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var emailPreference = modelBuilder.Entity<EmailPresentationPreference>();
+        emailPreference.ToTable("email_presentation_preferences"); emailPreference.HasKey(p => p.UserId);
+        emailPreference.Property(p => p.Language).HasMaxLength(3); emailPreference.Property(p => p.Theme).HasMaxLength(5);
+        emailPreference.HasOne<AppUser>().WithOne().HasForeignKey<EmailPresentationPreference>(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
         var resetSend = modelBuilder.Entity<PasswordResetSendState>();
         resetSend.ToTable("password_reset_send_states"); resetSend.HasKey(r => r.EmailHash);
         resetSend.Property(r => r.EmailHash).HasMaxLength(64).IsUnicode(false); resetSend.HasIndex(r => r.LastSentUtc);

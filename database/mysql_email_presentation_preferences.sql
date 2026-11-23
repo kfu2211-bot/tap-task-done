@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS email_presentation_preferences (
+ UserId INT NOT NULL PRIMARY KEY, Language VARCHAR(3) NOT NULL DEFAULT 'en', Theme VARCHAR(5) NOT NULL DEFAULT 'light',
+ CONSTRAINT FK_email_preference_user FOREIGN KEY (UserId) REFERENCES tbl_user(Id) ON DELETE CASCADE
+) ENGINE=InnoDB;

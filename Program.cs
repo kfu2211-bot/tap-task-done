@@ -303,6 +303,20 @@ app.MapGet("/api/jobs/schedule-check", async (long id, string kind, HttpContext 
     return Results.Json(new { canAccept = message == "", message });
 }).RequireAuthorization();
 
+app.MapPost("/api/email-presentation", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
+{
+    context.Response.Headers.CacheControl = "no-store";
+    if (context.Request.Headers["X-TTS-Preference"] != "1" || context.Request.Headers["Sec-Fetch-Site"] == "cross-site") return Results.BadRequest();
+    if (!int.TryParse(context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var userId) || userId <= 0) return Results.Unauthorized();
+    var language = context.Request.Query["language"].ToString(); var theme = context.Request.Query["theme"].ToString();
+    if (language is not ("en" or "fil") || theme is not ("light" or "dark")) return Results.BadRequest();
+    try {
+        await EmailPresentationPreference.EnsureAsync(db, ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO email_presentation_preferences (UserId, Language, Theme) VALUES ({userId}, {language}, {theme}) ON DUPLICATE KEY UPDATE Language = {language}, Theme = {theme}", ct);
+        return Results.NoContent();
+    } catch (MySqlConnector.MySqlException) { return Results.StatusCode(503); }
+}).RequireAuthorization();
+
 app.MapPost("/api/user-activity/heartbeat", async (HttpContext context, ApplicationDbContext db, CancellationToken ct) =>
 {
     context.Response.Headers.CacheControl = "no-store";
