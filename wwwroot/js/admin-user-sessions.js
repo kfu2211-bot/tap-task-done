@@ -11,7 +11,9 @@
             document.querySelectorAll('.user-card[data-user-id]').forEach(card => {
                 const row = rows.get(card.dataset.userId);
                 const badge = card.querySelector('[data-presence]');
-                badge.textContent = row ? row.online ? 'Online' : 'Offline' : 'Not yet detected';
+                card.dataset.userPresence = row ? row.online ? 'online' : 'offline' : 'undetected';
+                const label = row ? row.online ? 'Online' : 'Offline' : 'Not yet detected';
+                badge.textContent = window.ttsTranslate?.(label) || label;
                 badge.classList.toggle('is-online', !!row?.online);
                 card.querySelector('[data-time-in]').textContent = row?.timeIn ?? '—';
                 card.querySelector('[data-last-active]').textContent = row?.lastActive ?? '—';
@@ -19,10 +21,11 @@
             });
         } catch {
             document.querySelectorAll('[data-presence]').forEach(badge => {
-                badge.textContent = 'Activity unavailable';
+                badge.closest('[data-user-id]').dataset.userPresence = 'unavailable';
+                badge.textContent = window.ttsTranslate?.('Activity unavailable') || 'Activity unavailable';
                 badge.classList.remove('is-online');
             });
-        } finally { busy = false; }
+        } finally { busy = false; window.dispatchEvent(new Event('admin-user-activity-updated')); }
     }
     setInterval(update, 30000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) update(); });

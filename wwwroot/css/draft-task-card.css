@@ -1,0 +1,26 @@
+/* Draft preview and publish controls. All selectors stay inside unpublished task cards. */
+html body .market-content #my-tasks-section .task-card[data-task-status="pending-confirmation"]:has(>.task-disclosure){margin:14px 18px;border:1px solid var(--work-line);border-radius:14px;background:var(--work-surface);overflow:hidden}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-list-summary{padding:18px 20px;gap:16px;border:0!important;border-radius:0!important}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-disclosure[open]>.task-list-summary{border-bottom:1px solid var(--work-line)!important}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-list-detail{padding:20px}
+.draft-task-overview{display:grid;gap:18px;min-width:0;color:var(--work-text)}
+html body .draft-work-scope{padding:16px 18px;background:var(--work-soft);border:1px solid var(--work-line);border-radius:10px}
+html body .draft-work-scope p{margin:8px 0 0!important;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+html body .draft-task-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 22px;margin:0;padding:0}
+.draft-task-facts>div{min-width:0}.draft-task-facts .draft-task-location{grid-column:1/-1;padding-top:16px;border-top:1px solid var(--work-line)}
+html body .draft-task-facts dt,html body .draft-field-label{font-size:.8rem;font-weight:500;color:var(--work-muted);line-height:1.5}
+html body .draft-task-facts dd{margin:6px 0 0;font-size:.925rem;font-weight:600;line-height:1.5;overflow-wrap:anywhere;color:var(--work-text)}
+html body .draft-publish-note{margin:0!important;font-size:.875rem;line-height:1.6;color:var(--work-muted)}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-management-actions{display:grid;grid-template-columns:max-content max-content minmax(0,1fr);align-items:start;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--work-line)}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-management-actions>[data-confirm-task]{margin:0;padding:0;grid-column:1;order:-1}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-management-actions>.edit-task{min-width:0;max-width:100%;margin:0;padding:0;border:0;background:transparent;grid-column:2}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-management-actions>.edit-task>summary{min-height:48px;margin:0;padding:12px 18px!important;border:1px solid var(--work-line);border-radius:9px;background:var(--work-surface);color:var(--work-text);font-size:.875rem;line-height:1.4;justify-content:center}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] [data-confirm-task]>.work-button{min-height:48px}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-management-actions>.edit-task[open]{grid-column:1/-1;padding:16px;border:1px solid var(--work-line);border-radius:10px;background:var(--work-soft)}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .edit-task[open]>.task-edit-form{padding:18px 0 0}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-management-actions>.cancel-task{grid-column:1/-1;min-width:0;max-width:100%;margin:4px 0 0;padding-top:12px;border-top:1px solid var(--work-line)}
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .cancel-task>summary{display:list-item;width:fit-content;min-height:44px;padding:10px 0;background:transparent;color:var(--wf-red-text);font-size:.875rem;font-weight:500;cursor:pointer}
+@media(max-width:900px){html body .draft-task-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-list-summary{padding:16px}html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-list-detail{padding:16px}html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-management-actions{grid-template-columns:minmax(0,1fr)}html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-management-actions>:is(.edit-task,[data-confirm-task]){grid-column:1;width:100%}html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] [data-confirm-task]>.work-button{width:100%}html body .draft-task-facts{grid-template-columns:minmax(0,1fr);gap:16px}.draft-task-facts .draft-task-location{grid-column:1}}
+
+html body #my-tasks-section .task-card[data-task-status="pending-confirmation"] .task-status-badge{text-transform:none!important}

@@ -1,0 +1,12 @@
+@model tts.Data.MarketplaceTask
+<div class="draft-task-overview">
+    <section class="draft-work-scope"><span class="draft-field-label" data-i18n>Work details</span><p translate="no">@Model.Description</p></section>
+    <dl class="draft-task-facts">
+        <div><dt data-i18n>Job type</dt><dd data-i18n>@Model.JobTypeDisplay</dd></div>
+        <div><dt data-i18n>Category</dt><dd data-i18n>@Model.CategoryDisplay</dd></div>
+        <div><dt data-i18n>Arrival date and time</dt><dd>@tts.Data.TaskSchedule.Display(Model.ScheduleText)</dd></div>
+        <div><dt data-i18n>Expected finish</dt><dd>@(Model.WorkEndUtc is { } end ? tts.Data.DisplayTime.Philippine(end) + " PHT" : "To be agreed")</dd></div>
+        <div class="draft-task-location"><dt data-i18n>Location</dt><dd translate="no">@Model.Location</dd></div>
+    </dl>
+    <p class="draft-publish-note" data-i18n>Review the details before publishing. Freelancers can send offers after you confirm.</p>
+</div>
