@@ -16,6 +16,8 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
     public List<ActionRow> History { get; private set; } = [];
     public bool Unavailable { get; private set; }
     public bool SessionsUnavailable { get; private set; }
+    public bool VerificationUnavailable { get; private set; }
+    public Dictionary<int, AccountVerificationState> VerificationStates { get; private set; } = [];
     public Dictionary<int, UserActivitySession> LatestSessions { get; private set; } = [];
     public HashSet<int> OnlineUsers { get; private set; } = [];
     public DateTime Now { get; } = DateTime.UtcNow;
@@ -32,7 +34,7 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
         {
             var canDelete = User.IsInRole("admin") && VerificationMailer.Enabled(config);
             var users = await db.Users.AsNoTracking().Where(u => u.Role != "deleted").OrderByDescending(u => u.Id).Select(u => new { u.Id, u.FirstName, u.LastName, u.Username, u.Role, HasPhoto = u.ProfilePicture != null, CanDelete = canDelete && u.Username != null && u.Username != "" &&
-                !db.VerifiedEmails.Any(v => v.UserId == u.Id && v.Email == u.Username) }).ToListAsync(ct);
+                !db.VerifiedEmails.Any(v => v.UserId == u.Id && v.Email == u.Username) && !db.AccountModerationActions.Any(a => a.UserId == u.Id && a.Action == "email-unverify") }).ToListAsync(ct);
             foreach (var u in users)
             {
                 var moderation = AccountModerationRules.IsStaff(u.Role) ? OffensePolicy.Evaluate(null, 0, DateTime.UtcNow) : await OffensePolicy.GetAsync(db, u.Id, ct);
@@ -42,6 +44,20 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         { logger.LogWarning(ex, "Account moderation unavailable"); Unavailable = true; }
+        if (!Unavailable) {
+            try {
+                var ids = Users.Select(u => u.Id).ToArray();
+                var emails = await db.VerifiedEmails.AsNoTracking().Where(v => ids.Contains(v.UserId)).ToDictionaryAsync(v => v.UserId, ct);
+                var identities = await db.IdentityRequests.AsNoTracking().Where(r => ids.Contains(r.UserId) && !db.IdentityRequests.Any(n => n.UserId == r.UserId && n.Id > r.Id))
+                    .Select(r => new { r.Id, r.UserId, r.Status, r.ReviewedAt }).ToDictionaryAsync(r => r.UserId, ct);
+                foreach (var user in Users) {
+                    var email = emails.GetValueOrDefault(user.Id); var identity = identities.GetValueOrDefault(user.Id);
+                    VerificationStates[user.Id] = new(user.Id, user.Email, email?.Email == user.Email && email is not null, email?.VerifiedUtc, identity?.Id ?? 0, identity?.Status ?? "not verified", identity?.ReviewedAt);
+                }
+            } catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) {
+                logger.LogWarning(ex, "Account verification controls unavailable"); VerificationUnavailable = true;
+            }
+        }
         if (!Unavailable)
         {
             try
@@ -96,6 +112,20 @@ public sealed class AdminUsersModel(ApplicationDbContext db, ILogger<AdminUsersM
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         { logger.LogWarning(ex, "User session history unavailable"); return StatusCode(503); }
+    }
+
+    public async Task<IActionResult> OnPostVerificationAsync(int userId, string type, string change, string? reason, string? revision, bool confirmChange, CancellationToken ct)
+    {
+        if (!User.IsInRole("admin") || AdminId <= 0) return Forbid("AdminCookie");
+        if (!ModelState.IsValid) { Notice = "Check the verification action and reason."; return RedirectToPage(new { embedded = Embedded }); }
+        try {
+            await AdminAccountVerification.ChangeAsync(db, AdminId, userId, type, change, reason, confirmChange, revision, ct);
+            Notice = "Verification change saved. The decision is recorded in admin history.";
+        } catch (VerificationChangeException ex) { Notice = ex.Message; }
+        catch (Exception ex) when (ex is MySqlConnector.MySqlException or DbUpdateException or InvalidOperationException) {
+            logger.LogWarning(ex, "Unable to change account verification"); Notice = "Verification could not be updated. Please try again.";
+        }
+        return RedirectToPage("/AdminUsers", null, new { embedded = Embedded }, "user-" + userId);
     }
 
     public async Task<IActionResult> OnPostDeleteUnverifiedAsync(int userId, bool confirmDeletion, CancellationToken ct)

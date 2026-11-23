@@ -55,6 +55,26 @@ var rejectedReminderUrl = false;
 try { ScheduleReminderTemplate.Create(1,"Task",DateTime.UtcNow,"schedule_1h","en","light",unsafeReminderConfig); } catch (InvalidOperationException) { rejectedReminderUrl = true; }
 Check(rejectedReminderUrl, "Email buttons reject unsafe base URLs");
 
+Check(AdminAccountVerification.CanManage("admin",1,"client",2), "Admin may manually verify another client account");
+Check(AdminAccountVerification.CanManage("admin",1,"freelancer",2), "Admin may manually verify another freelancer account");
+Check(!AdminAccountVerification.CanManage("moderator",1,"client",2), "Moderator cannot force verification");
+Check(!AdminAccountVerification.CanManage("client",1,"client",2), "Ordinary users cannot force verification");
+Check(!AdminAccountVerification.CanManage("admin",1,"client",1), "Admin cannot change own verification");
+Check(!AdminAccountVerification.CanManage("admin",1,"admin",2) && !AdminAccountVerification.CanManage("admin",1,"moderator",2), "Staff verification is protected");
+Check(!AdminAccountVerification.CanManage("admin",1,"deleted",2), "Deleted accounts cannot be verified");
+Check(AdminAccountVerification.ValidInput("identity","verify","Testing override",true), "Explicitly confirmed identity testing override is valid");
+Check(!AdminAccountVerification.ValidInput("email","verify","Testing",false), "Verification cannot be changed without explicit confirmation");
+Check(!AdminAccountVerification.ValidInput("email","verify","  ",true) && !AdminAccountVerification.ValidInput("email","verify",new string('x',401),true), "Admin verification requires a bounded reason");
+Check(!AdminAccountVerification.ValidInput("role","admin","Testing",true), "Verification action cannot promote privileges");
+Check(!AdminAccountVerification.ValidInput("email","delete","Testing",true), "Verification action cannot delete an account");
+var verificationState = new AccountVerificationState(2,"user@example.test",true,DateTime.UtcNow,10,"approved",DateTime.UtcNow);
+Check(verificationState.Revision != (verificationState with { IdentityStatus = "resubmit" }).Revision, "Revoked identity invalidates stale admin verification forms");
+Check(verificationState.Revision != (verificationState with { Email = "other@example.test" }).Revision, "Email changes invalidate old verification confirmation");
+Check(verificationState.Revision != (verificationState with { IdentityId = 11 }).Revision, "New identity submissions invalidate old admin review");
+Check((verificationState with { IdentityStatus = "resubmit" }).IdentityLabel == "Needs re-verification", "Identity revocation displays a clear re-verification status");
+Check(!IdentityWorkGate.ApprovedStatus("resubmit") && !IdentityWorkGate.ApprovedStatus("pending") && IdentityWorkGate.ApprovedStatus("approved"), "Identity approval gate denies revoked or pending identity");
+Check(AdminAccountVerification.ActionLabel("email-unverify") != "Penalty lifted" && AdminAccountVerification.ActionLabel("id-verify") == "Identity verified by admin", "Verification decisions have accurate history labels");
+
 var trackingTasks = new[] {
     new MarketplaceTask { Id = 1, Status = "assigned" },
     new MarketplaceTask { Id = 2, Status = "awaiting-confirmation" },

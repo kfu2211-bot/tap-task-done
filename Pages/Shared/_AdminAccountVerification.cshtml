@@ -1,0 +1,25 @@
+@model tts.Data.AdminVerificationView
+<details class="history admin-verification" data-account-verification>
+    <summary><span><strong data-i18n>Account verification</strong><small><span data-i18n>Email</span>: <span data-i18n>@Model.State.EmailLabel</span> · <span data-i18n>Identity</span>: <span data-i18n>@Model.State.IdentityLabel</span></small></span><span aria-hidden="true">⌄</span></summary>
+    <div class="history-content">
+        <dl class="admin-verification-statuses">
+            <div><dt data-i18n>Email verification</dt><dd><span class="workflow-status" data-work-state="@(Model.State.EmailVerified ? "completed" : "pending")" data-i18n>@Model.State.EmailLabel</span></dd></div>
+            <div><dt data-i18n>Identity verification</dt><dd><span class="workflow-status" data-work-state="@(Model.State.IdentityStatus == "approved" ? "completed" : "pending")" data-i18n>@Model.State.IdentityLabel</span></dd></div>
+        </dl>
+        @if (Model.CanManage) {
+            <form method="post" asp-page="/AdminUsers" asp-page-handler="Verification" data-verification-form data-account-name="@Model.Name · @Model.State.Email · #@Model.UserId" data-email-verified="@Model.State.EmailVerified.ToString().ToLowerInvariant()" data-identity-status="@Model.State.IdentityStatus">
+                <input type="hidden" name="userId" value="@Model.UserId" /><input type="hidden" name="revision" value="@Model.State.Revision" />
+                <input type="hidden" name="Embedded" value="@Context.Request.Query["embedded"]" /><input type="hidden" name="confirmChange" value="false" />
+                <div class="admin-verification-fields">
+                    <label><span data-i18n>Verification type</span><select name="type" required><option value="identity" data-i18n>Identity</option><option value="email" data-i18n>Email</option></select></label>
+                    <label><span data-i18n>Action</span><select name="change" required><option value="" data-i18n>Choose an action</option><option value="verify" data-i18n>Force verify</option><option value="unverify" data-i18n>Require re-verification</option></select></label>
+                </div>
+                <p class="admin-verification-impact" data-verification-impact role="status" data-i18n>Choose an action to review its effect.</p>
+                <label><span data-i18n>Reason (required, up to 400 characters)</span><textarea name="reason" rows="3" maxlength="400" required placeholder="Explain the manual override or testing purpose" data-i18n></textarea></label>
+                <p class="work-help" data-i18n>Manual verification is recorded as an admin override. It does not remove penalties or disable sign-in OTP.</p>
+                <button type="submit" class="work-button" data-i18n>Review change</button>
+                <noscript><p>JavaScript is required to review and confirm verification changes.</p></noscript>
+            </form>
+        } else { <p data-i18n>Only administrators can change verification for another non-staff account.</p> }
+    </div>
+</details>

@@ -8,7 +8,7 @@ public static class ModerationGuard
     public static async Task<bool> NewWorkAllowedAsync(ApplicationDbContext db, IWebHostEnvironment environment, CancellationToken ct, params int[] userIds)
     {
         if (!await AllowedAsync(db, environment, ct, userIds)) return false;
-        try { foreach (var id in userIds.Distinct()) if (await AccountDeletion.BlocksNewWorkAsync(db, id, ct)) return false; return true; }
+        try { foreach (var id in userIds.Distinct()) if (await AccountDeletion.BlocksNewWorkAsync(db, id, ct) || !await IdentityWorkGate.IsApprovedAsync(db, id, ct)) return false; return true; }
         catch (MySqlConnector.MySqlException) { return false; }
     }
     public static async Task<bool> IsSuspendedAsync(ApplicationDbContext db, int userId, CancellationToken ct = default)

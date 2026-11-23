@@ -31,7 +31,7 @@
             var latest = Model.LatestSessions.GetValueOrDefault(user.Id);
             var online = Model.OnlineUsers.Contains(user.Id);
             var sessionStatus = latest is null ? "No sessions yet" : tts.Data.UserActivity.Status(latest, Model.Now);
-            <article class="user-card" data-user-id="@user.Id" data-user-search="@($"{user.Name} {user.Email}")">
+            <article class="user-card" id="user-@user.Id" data-user-id="@user.Id" data-user-search="@($"{user.Name} {user.Email}")">
                 <div class="user-head"><div class="user-identity"><span class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(user.Name) ? "U" : user.Name.Trim().Substring(0, 1).ToUpperInvariant())@if (user.HasPhoto) { <img class="user-avatar-photo" src="@Url.Page("/ProfilePhoto", "Staff", new { userId = user.Id })" alt="" loading="lazy" /> }</span><div><strong>@user.Name @if(user.Restricted) { <span class="account-warning-symbol" title="Account warning">⚠</span> }</strong><p>@user.Email <span aria-hidden="true">·</span> @user.Role</p></div></div><span class="badge @(user.Suspended ? "suspended" : user.Restricted ? "restricted" : "")">@(user.Suspended || user.Restricted ? user.Moderation.Penalty : "No penalty")</span></div>
                 <div class="presence-line"><span class="presence-badge @(online ? "is-online" : "")" data-presence>@(Model.SessionsUnavailable ? "Activity unavailable" : online ? "Online" : latest is null ? "Not yet detected" : "Offline")</span></div>
                 <dl class="session-summary">
@@ -40,6 +40,10 @@
                     <div><dt>Time Out</dt><dd data-time-out>@(latest is null ? "—" : latest.LogoutUtc.HasValue ? tts.Data.DisplayTime.Philippine(latest.LogoutUtc.Value) : sessionStatus == "Inactive" ? "~ " + tts.Data.DisplayTime.Philippine(latest.LastActiveUtc) : "—")</dd></div>
                 </dl>
                 <p class="session-note">Philippine time · Latest session · ~ Estimated time out</p>
+                @{ var canManageVerification = User.IsInRole("admin") && !tts.Data.AccountModerationRules.IsStaff(user.Role) && User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value != user.Id.ToString(); }
+                @if (Model.VerificationStates.TryGetValue(user.Id, out var verificationState)) {
+                    <partial name="_AdminAccountVerification" model="new tts.Data.AdminVerificationView(user.Id, user.Name, verificationState, canManageVerification)" />
+                } else if (Model.VerificationUnavailable) { <p role="status" data-i18n>Verification controls are temporarily unavailable.</p> }
                 @if (!tts.Data.AccountModerationRules.IsStaff(user.Role)) {
                     <p><strong>Confirmed offenses: @user.Moderation.Offenses</strong> · Next: @tts.Data.OffensePolicy.NextPenalty(user.Moderation.Offenses + 1)</p>
                     <details class="history penalty-panel" open="@(user.Suspended || user.Restricted)"><summary><span><strong>Penalty &amp; recovery</strong><small>@(user.Suspended || user.Restricted ? "Review the current penalty and recovery progress" : "No current penalty")</small></span><span class="chevron" aria-hidden="true">⌄</span></summary><div class="history-content">
@@ -76,7 +80,7 @@
                 }
                 <details class="history session-history" data-user-id="@user.Id"><summary><strong>Session history</strong><span class="chevron" aria-hidden="true">⌄</span></summary><div class="history-content"><p class="session-feedback" role="status">Open to load sessions.</p><div class="session-entries"></div><button type="button" class="session-more" hidden>Load more sessions</button></div></details>
                 <details class="history"><summary><span><strong>Admin action history</strong><small data-i18n>View decisions and notes</small></span><span class="chevron" aria-hidden="true">⌄</span></summary>
-                    <div class="history-content">@if (history.Count == 0) { <p class="history-empty" data-i18n>No decisions recorded for this account yet.</p> } else { @foreach (var item in history) { <div class="history-entry"><div><strong>@(item.Action == "warn" ? "Warning" : item.Action == "restrict" ? "Restricted" : item.Action == "suspend" ? "Suspended (legacy)" : item.Action == "offense" ? "Confirmed offense" : "Penalty lifted")</strong><small>@item.Admin · @tts.Data.DisplayTime.Philippine(item.CreatedAt)</small></div><p>@item.Reason</p></div> } }</div>
+                    <div class="history-content">@if (history.Count == 0) { <p class="history-empty" data-i18n>No decisions recorded for this account yet.</p> } else { @foreach (var item in history) { <div class="history-entry"><div><strong>@tts.Data.AdminAccountVerification.ActionLabel(item.Action)</strong><small>@item.Admin · @tts.Data.DisplayTime.Philippine(item.CreatedAt)</small></div><p>@item.Reason</p></div> } }</div>
                 </details>
             </article>
         }
@@ -84,6 +88,7 @@
         <p id="noUserMatches" class="empty" hidden>No users match your search. Try another name or email.</p>
     }
 </main>
+<partial name="_AdminVerificationDialog" />
 <dialog id="moderationDecision" aria-labelledby="moderationTitle" aria-describedby="moderationDescription">
     <h2 id="moderationTitle"></h2>
     <p id="moderationDescription"></p>
@@ -195,4 +200,6 @@
         reportHeight();
     }
 </script>
+<script defer src="/js/admin-account-verification.js" asp-append-version="true"></script>
+<link rel="stylesheet" href="/css/admin-account-verification.css" asp-append-version="true" />
 </body></html>

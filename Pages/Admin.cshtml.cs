@@ -164,7 +164,7 @@ public sealed class AdminModel(ApplicationDbContext db, ILogger<AdminModel> logg
             {
                 var moderation = await (from a in db.AccountModerationActions.AsNoTracking() join u in db.Users.AsNoTracking() on a.AdminId equals u.Id
                     orderby a.Id descending select new { a.UserId, a.Action, a.CreatedAt, u.FirstName, u.LastName }).Take(100).ToListAsync(cancellationToken);
-                Activities.AddRange(moderation.Select(a => new AdminActivity(a.CreatedAt, ($"{a.FirstName} {a.LastName}").Trim(), "Account " + a.Action, $"Account #{a.UserId}")));
+                Activities.AddRange(moderation.Select(a => new AdminActivity(a.CreatedAt, ($"{a.FirstName} {a.LastName}").Trim(), AdminAccountVerification.ActionLabel(a.Action), $"Account #{a.UserId}")));
             }
             catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException) { ActivityIncomplete = true; logger.LogWarning(ex, "Unable to load account moderation activity."); }
         }

@@ -97,9 +97,9 @@ public static class RegistrationVerification
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
             var user = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id={pending.UserId} FOR UPDATE").AsNoTracking().ToListAsync(ct)).SingleOrDefault();
-            var row = await db.Set<RegistrationEmailCode>().SingleAsync(x => x.UserId == pending.UserId, ct);
+            var row = await db.Set<RegistrationEmailCode>().SingleOrDefaultAsync(x => x.UserId == pending.UserId, ct);
             var now = DateTime.UtcNow;
-            if (user is null || row.TokenHash != LoginSecurity.Hash(token) || row.VerifiedUtc.HasValue || row.SessionExpiresUtc <= now || row.PasswordVersion != AccountStore.SessionFingerprint(user.PasswordHash) || await VerificationMailer.IsVerifiedAsync(db, user, ct))
+            if (user is null || row is null || row.TokenHash != LoginSecurity.Hash(token) || row.VerifiedUtc.HasValue || row.SessionExpiresUtc <= now || row.PasswordVersion != AccountStore.SessionFingerprint(user.PasswordHash) || await VerificationMailer.IsVerifiedAsync(db, user, ct))
                 throw new RegistrationFlowException("Your account changed. Return to login.");
             if (newEmail is not null)
             {
@@ -125,8 +125,8 @@ public static class RegistrationVerification
         var now = DateTime.UtcNow; var firstToken = LoginSecurity.Token();
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var user = (await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id={pending.UserId} FOR UPDATE").ToListAsync(ct)).SingleOrDefault();
-        var row = await db.Set<RegistrationEmailCode>().SingleAsync(x => x.UserId == pending.UserId, ct);
-        if (user is null || row.TokenHash != LoginSecurity.Hash(token) || row.PasswordVersion != AccountStore.SessionFingerprint(user.PasswordHash) || !CanVerify(row, now) || await VerificationMailer.IsVerifiedAsync(db, user, ct)) return false;
+        var row = await db.Set<RegistrationEmailCode>().SingleOrDefaultAsync(x => x.UserId == pending.UserId, ct);
+        if (user is null || row is null || row.TokenHash != LoginSecurity.Hash(token) || row.PasswordVersion != AccountStore.SessionFingerprint(user.PasswordHash) || !CanVerify(row, now) || await VerificationMailer.IsVerifiedAsync(db, user, ct)) return false;
         row.Attempts++;
         if (!LoginSecurity.SameHash(row.CodeHash, LoginSecurity.CodeHash(token, code)))
         { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return false; }

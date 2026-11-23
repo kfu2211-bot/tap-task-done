@@ -242,7 +242,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var role = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
         if (role is not ("client" or "both")) { return DraftFailure("Choose Client or Client & Freelancer in Settings to post tasks."); }
         await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
-        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { return DraftFailure("This account cannot create new tasks while restricted or pending account deletion."); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { return DraftFailure("This account cannot create new tasks while awaiting identity approval, restricted, or pending account deletion."); }
         // Serialize task creation by this client so simultaneous retries see the first draft.
         await db.Users.FromSqlInterpolated($"SELECT * FROM tbl_user WHERE Id = {UserId} FOR UPDATE").AsNoTracking().ToListAsync(ct);
         var duration = postDurationDays ?? 7;
@@ -274,7 +274,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         if (UserId <= 0) return Challenge();
         if (!await IdentityWorkGate.IsApprovedAsync(db, UserId, ct)) { TempData["IdentityVerification.Notice"] = IdentityWorkGate.Message; return RedirectToPage("/IdentityVerification"); }
         await using var tx = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
-        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot confirm new tasks while restricted or pending account deletion."; return RedirectToPage(); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId)) { Notice = "This account cannot confirm new tasks while awaiting identity approval, restricted, or pending account deletion."; return RedirectToPage(); }
         var destination = await db.Set<TaskDestination>().AsNoTracking().SingleOrDefaultAsync(d => d.TaskId == id, ct);
         if (!TaskLocationRules.Valid(destination?.Latitude, destination?.Longitude)) { Notice = "Edit this draft and confirm a work-location pin before publishing."; return RedirectToPage(new { view = "mine" }); }
         var now = DateTime.UtcNow;
@@ -332,7 +332,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         { return OfferFailure("Check your freelancer role, availability and offer."); }
         var owner = await db.MarketplaceTasks.Where(t => t.Id == id).Select(t => t.ClientId).SingleOrDefaultAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(AppTransactions.Isolation, ct);
-        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, owner)) return OfferFailure("This account cannot send offers while restricted or pending account deletion.");
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, owner)) return OfferFailure("This account cannot send offers while awaiting identity approval, restricted, or pending account deletion.");
         if (await JobAcceptanceRules.IsLockedAsync(db, UserId, ct)) return OfferFailure(JobAcceptanceRules.Message);
         await AppTransactions.LockTaskAsync(db, id, ct);
         var task = await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == id && t.ClientId != UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
@@ -342,7 +342,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         {
             return OfferFailure("The posted pay has changed. Review the latest budget before applying.");
         }
-        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) return OfferFailure("This task cannot receive offers while an account is pending deletion or restricted.");
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, task.ClientId)) return OfferFailure("This task cannot receive offers while an account needs identity approval, is pending deletion, or is restricted.");
         await AgreementRules.ConversationAsync(db, id, UserId, ct);
         db.Add(TaskAcceptanceTerms.Snapshot(task, price, UserId));
         db.MarketplaceOffers.Add(new MarketplaceOffer { TaskId = id, FreelancerId = UserId, Price = price, Message = message, Status = "pending", CreatedAt = DateTime.UtcNow });
@@ -365,7 +365,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
         var task = offer is null ? null : await db.MarketplaceTasks.SingleOrDefaultAsync(t => t.Id == offer.TaskId && t.ClientId == UserId && t.Status == "open" && !t.IsPrivate && (t.PostExpiresUtc == null || t.PostExpiresUtc > DateTime.UtcNow), ct);
         if (task is null || offer is null) { Notice = "This offer is no longer available."; return RedirectToPage(); }
         if (revision != OfferRevision.For(offer)) { Notice = "This offer changed. Review the latest price and message before accepting."; return RedirectToPage(); }
-        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account is restricted or has a pending deletion request."; return RedirectToPage(); }
+        if (!await ModerationGuard.NewWorkAllowedAsync(db, environment, ct, UserId, offer.FreelancerId)) { Notice = "This offer cannot be accepted while either account needs identity approval, is restricted, or has a pending deletion request."; return RedirectToPage(); }
         if (await JobAcceptanceRules.IsLockedAsync(db, offer.FreelancerId, ct, task.Id))
         { Notice = "This freelancer must finish their ongoing Long Job or Multi-Day Job before another offer can be accepted."; return RedirectToPage(); }
         if (!JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc))

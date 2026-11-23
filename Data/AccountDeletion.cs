@@ -155,6 +155,8 @@ public static class AccountDeletion
             await VerificationMailer.IsVerifiedAsync(db, user, ct))
             throw new DeletionFlowException("Only unverified non-staff accounts can be deleted here.");
 
+        if (await db.AccountModerationActions.AnyAsync(a => a.UserId == userId && a.Action == "email-unverify", ct))
+            throw new DeletionFlowException("This account requires email re-verification. Use the normal deletion request flow to preserve its history.");
         var request = await db.Set<AccountDeletionRequest>().SingleOrDefaultAsync(r => r.UserId == userId, ct);
         if (request is not null && Pending(request.Status))
             throw new DeletionFlowException("Use Deletion requests to review the existing request.");
