@@ -59,7 +59,7 @@
         count.textContent = `${visible} ${visible === 1 ? 'task' : 'tasks'}`;
         empty.hidden = visible !== 0 || cards.length === 0;
         const noTasks = section.querySelector('.market-empty');
-        if (noTasks) noTasks.hidden = selected !== 'all';
+        if (noTasks) noTasks.hidden = cards.length > 0;
     });
     typeFilter?.addEventListener('change', () => filters.querySelector('button[aria-pressed="true"]')?.click());
     closedFilter?.addEventListener('change', () => filters.querySelector('button[data-filter="closed"]')?.click());

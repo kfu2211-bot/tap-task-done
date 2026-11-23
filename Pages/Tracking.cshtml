@@ -605,7 +605,7 @@
                     var selectedTask = long.TryParse(Request.Query["taskId"], out var requestedTask) && Model.Tasks.Any(x => x.Task.Id == requestedTask) ? requestedTask : Model.Tasks.FirstOrDefault()?.Task.Id;
                     var activeEntry = Model.Tasks.FirstOrDefault(x => x.Task.Id == selectedTask);
                 }
-                <div class="tracking-intro">
+                <partial name="_WorkStatusGuide" /><div class="tracking-intro">
                     <p class="compact-page-description">@(Model.IsHistory ? "Review this task’s recorded progression, work details, and completion history." : "Follow your active work and review the next steps.")</p>
                     @if (activeEntry is not null && !Model.IsHistory) {
                         <span class="tracking-picker-label" id="tracking-picker-label" data-i18n>Select a task</span>
@@ -619,14 +619,14 @@
                         </details>
                     }
                 </div>
-                @if (Model.Unavailable) { <div class="db-tracking-empty"><h3>Tracking is unavailable</h3><p data-i18n>Please check the database connection and try again.</p></div> }
+                @if (Model.Unavailable) { <div class="db-tracking-empty"><h3>Tracking is unavailable</h3><p data-i18n>Please check the database connection and try again.</p><a class="work-button work-button-secondary" href="/Tracking" data-i18n>Try again</a></div> }
                 else if (Model.Tasks.Count == 0) { <div class="db-tracking-empty"><span class="tracking-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12h4l3-6 3 12 2-6h4"/></svg></span><h3>No active tasks to track</h3><p data-i18n>Your next accepted task will appear here. Finished tasks remain in your completed history.</p><a class="workspace-action" href="/FindPost" data-i18n>Explore Find &amp; Post</a></div> }
                 @foreach (var item in Model.Tasks.Where(x => x.Task.Id == selectedTask)) {
                     var task = item.Task;
                     var status = Array.IndexOf(TaskProgress.States, task.Status);
                     var label = TaskSchedule.DisplayStatus(task, DateTime.UtcNow);
                     var steps = TaskProgress.Labels;
-                    <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><span class="db-tracking-status">@label</span></div>
+                    <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><span class="db-tracking-status" data-status="@label">@label</span></div>
                     <div class="db-tracking-details"><div><span data-i18n>Job type</span><strong>@task.JobTypeDisplay</strong></div><div><span data-i18n>Expected finish</span><strong>@(task.WorkEndUtc?.AddHours(8).ToString("MMM d, yyyy h:mm tt") ?? "To be agreed")</strong></div><div><span data-i18n>Client</span><strong>@item.Client</strong></div><div><span data-i18n>Freelancer</span><strong>@item.Freelancer</strong></div><div><span data-i18n>Task budget</span><strong>@task.BudgetDisplay</strong></div><div><span data-i18n>Schedule</span><strong>@TaskSchedule.Display(task.ScheduleText)</strong></div></div>
                     <div class="tracking-detail-layout tracking-workspace"><section class="tracking-panel tracking-progress-column"><h4>@(Model.IsHistory ? "Recorded progression" : "Task progress")</h4>
                     @if (Model.IsHistory) { <partial name="_TaskHistory" model="Model" /> }
@@ -808,7 +808,7 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
 @if (!Model.IsHistory && task.Status == "assigned") {
     var scheduleStatus = TaskSchedule.DisplayStatus(task, DateTime.UtcNow);
     <section class="tracking-schedule-notice work-schedule-notice" data-schedule-status="@scheduleStatus" aria-label="Schedule actions">
-        <div class="work-section-heading"><h3 data-i18n>Arrival schedule</h3><span class="work-status">@scheduleStatus</span></div>
+        <div class="work-section-heading"><h3 data-i18n>Arrival schedule</h3><span class="work-status" data-status="@scheduleStatus">@scheduleStatus</span></div>
         <p class="work-arrival-time">@TaskSchedule.Display(task.ScheduleText)</p>
         <p data-i18n>The scheduled time is your arrival time. Travel opens 1 hour earlier.</p>
         @if (scheduleStatus is "Due now" or "Schedule overdue") { <p data-i18n>No travel update is recorded. Contact each other to confirm whether work will proceed. Passing the scheduled time does not complete or cancel this job.</p> }

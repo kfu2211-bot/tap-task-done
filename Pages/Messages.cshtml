@@ -199,7 +199,7 @@
         <section class="messages-current">
 
             @if (!string.IsNullOrWhiteSpace(Model.Notice)) { <p class="messages-notice" role="status">@Model.Notice</p> }
-            @if (Model.Unavailable) { <div class="messages-empty" role="alert" data-i18n>Messages are unavailable. Check the database setup and try again.</div> }
+            @if (Model.Unavailable) { <div class="messages-empty workflow-empty" data-empty-kind="error" role="alert" data-i18n>Messages are unavailable. Check the database setup and try again.</div><a class="work-button work-button-secondary" href="/Messages" data-i18n>Try again</a> }
             else {
             <div class="messages-grid @(Model.Selected is null ? "" : "has-open-thread")"><nav class="messages-conversations" aria-label="Conversations">
                 <div class="conversations-toolbar"><div class="conversations-title"><h2>Conversations</h2><span class="conversation-count">@Model.Conversations.Count</span></div><label class="conversation-search"><span class="messages-sr-only" data-i18n>Search conversations</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="conversationSearch" type="search" placeholder="Search conversations" autocomplete="off" /></label></div>
@@ -269,6 +269,7 @@
                             <button type="submit" data-task-submit>Switch</button>
                         </form>
                         }
+                        @if (Model.Selected.Status != "inquiry") { <span class="job-status" data-status="@Model.Selected.StatusLabel">@Model.Selected.StatusLabel</span> }
                         <div class="thread-task-actions">
                             @if (Model.Selected.Status == "inquiry")
                             {

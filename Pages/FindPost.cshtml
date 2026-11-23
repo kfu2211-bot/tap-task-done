@@ -711,16 +711,16 @@
                                 <button type="button" id="jobsFilterReset" class="task-chat-action">Clear filters</button>
                             </div>
                         }
-                        @if (Model.DirectoryUnavailable) { <div class="jobs-empty"><h3>Jobs are unavailable right now</h3><p data-i18n>Please try again later.</p></div> }
-                        else if (Model.WorkRole is not ("freelancer" or "both")) { <div class="jobs-empty"><h3>Ready to find work?</h3><p data-i18n>Set your work role to Freelancer or Client &amp; Freelancer to find jobs and send offers.</p><a href="/Settings" data-i18n>Open settings</a></div> }
-                        else if (Model.OpenTasks.Count == 0) { <div class="jobs-empty"><span class="jobs-empty-icon" aria-hidden="true">⌕</span><h3>No open jobs yet</h3><p data-i18n>When another client confirms a task, it will appear here. Check back later for new opportunities.</p></div> }
+                        @if (Model.DirectoryUnavailable) { <div class="jobs-empty workflow-empty" data-empty-kind="error" role="alert"><h3>Jobs are unavailable right now</h3><p data-i18n>Please try again later.</p><a class="work-button work-button-secondary" href="/FindPost?mode=jobs" data-i18n>Try again</a></div> }
+                        else if (Model.WorkRole is not ("freelancer" or "both")) { <div class="jobs-empty workflow-empty" data-empty-kind="records"><h3>Ready to find work?</h3><p data-i18n>Set your work role to Freelancer or Client &amp; Freelancer to find jobs and send offers.</p><a href="/Settings" data-i18n>Open settings</a></div> }
+                        else if (Model.OpenTasks.Count == 0) { <div class="jobs-empty workflow-empty" data-empty-kind="records"><span class="jobs-empty-icon" aria-hidden="true">⌕</span><h3>No open jobs yet</h3><p data-i18n>When another client confirms a task, it will appear here. Check back later for new opportunities.</p></div> }
                         @foreach (var item in Model.OpenTasks) {
                             var task = item.Task;
                             var existing = Model.Offers.FirstOrDefault(o => o.Offer.TaskId == task.Id);
                             <article class="jobs-card" data-work-lock-state="@(Model.WorkLocked ? "true" : "false")" id="task-@task.Id" data-job-type="@task.JobType" data-job-category="@task.Category" data-job-specific-service="@task.SpecificService"><div class="jobs-card-top"><span class="jobs-tag">@task.CategoryDisplay</span><strong>@task.BudgetDisplay</strong></div><h3>@task.Title</h3><p>@task.Description</p><div class="jobs-meta"><span>@task.JobTypeDisplay</span>@if (task.WorkEndUtc.HasValue) { <span>Finish: @task.WorkEndUtc.Value.AddHours(8).ToString("MMM d, yyyy h:mm tt") PHT</span> }<span>⌖ @tts.Data.TaskLocationRules.PublicArea</span><span>◷ @(string.IsNullOrWhiteSpace(task.ScheduleText) ? "Schedule to be arranged" : task.ScheduleText)</span><span><a asp-page="/ReviewProfile" asp-route-id="@task.ClientId" asp-route-role="client">@item.ClientName</a></span></div>
                             <partial name="_JobOfferForm" model="new tts.Data.JobOfferView(task, existing?.Offer.Status, Model.WorkLocked)" /></article>
                         }
-                        <div id="jobsFilterEmpty" class="jobs-empty" hidden role="status"><h3>No jobs match these filters</h3><p data-i18n>Try All jobs or change your category and specific service.</p></div>
+                        <div id="jobsFilterEmpty" class="jobs-empty workflow-empty" data-empty-kind="filtered" hidden role="status"><h3>No jobs match these filters</h3><p data-i18n>Try All jobs or change your category and specific service.</p><button class="work-button work-button-secondary" type="button" data-reset-job-filters data-i18n>Clear filters</button></div>
                     </div>
 
 

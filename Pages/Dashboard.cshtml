@@ -772,9 +772,9 @@
                             <div class="home-panel-heading"><div><span class="matching-eyebrow" data-i18n>RECOMMENDED FOR YOU</span><h3 id="matchingJobsTitle">Jobs matching your skills</h3><p class="matching-subtitle" data-i18n>Based on your saved services and specific skills.</p></div></div>
                             @if (Model.TasksUnavailable || Model.AvailableTasks.Count == 0)
                             {
-                                <div class="matching-empty" role="status">
+                                <div class="matching-empty" data-empty-kind="@(Model.TasksUnavailable ? "error" : "records")" role="status">
                                     <span class="matching-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="14" rx="3"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a22 22 0 0 0 18 0M10 12h4"/></svg></span>
-                                    <div><h4>@(Model.TasksUnavailable ? "Jobs are temporarily unavailable" : !Model.HasMatchingServices ? "Let’s find work that fits you" : "No matching jobs yet")</h4><p>@(Model.TasksUnavailable ? "Please try again in a moment." : !Model.HasMatchingServices ? "Add your services and skills to start seeing relevant jobs here." : "New jobs that match your skills will appear here when posted.")</p></div>
+                                    <div>@if (Model.TasksUnavailable) { <a class="work-button work-button-secondary" href="/Dashboard" data-i18n>Try again</a> }<h4>@(Model.TasksUnavailable ? "Jobs are temporarily unavailable" : !Model.HasMatchingServices ? "Let’s find work that fits you" : "No matching jobs yet")</h4><p>@(Model.TasksUnavailable ? "Please try again in a moment." : !Model.HasMatchingServices ? "Add your services and skills to start seeing relevant jobs here." : "New jobs that match your skills will appear here when posted.")</p></div>
                                 </div>
                             }
                             @foreach (var task in Model.AvailableTasks)
@@ -792,7 +792,7 @@
                                 <div class="home-panel-heading"><h3 data-schedule-heading>@(Model.ScheduledJob?.Status is "Schedule overdue" or "Due now" ? "Schedule needs attention" : "Upcoming job")</h3><a href="/MyJobs?view=scheduled" data-i18n>All scheduled jobs</a></div>
                                 <div data-scheduled-details hidden="@(Model.ScheduledJob is null)">
                                     <p class="home-schedule-job-title" data-scheduled-title>@Model.ScheduledJob?.Title</p>
-                                    <p class="home-schedule-status" data-scheduled-status role="status">@Model.ScheduledJob?.Status</p>
+                                    <p class="home-schedule-status" data-scheduled-status data-status="@Model.ScheduledJob?.Status" role="status">@Model.ScheduledJob?.Status</p>
                                     <p class="home-confirmation-status" data-scheduled-confirmation data-ready="@(Model.ScheduledJob?.ClientConfirmed == true && Model.ScheduledJob?.FreelancerConfirmed == true ? "true" : "false")">@Model.ScheduledJob?.Confirmation</p>
                                     <p class="home-schedule-next" data-scheduled-next>@Model.ScheduledJob?.NextStep</p>
                                     <p data-scheduled-help hidden="@(Model.ScheduledJob?.Status is not ("Schedule overdue" or "Due now"))" data-i18n>No travel update is recorded. Contact your client to continue, reschedule, or request cancellation.</p>

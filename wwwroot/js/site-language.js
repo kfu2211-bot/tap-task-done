@@ -408,7 +408,7 @@
         ".home-matching-jobs, .home-panel, .task-reuse-page, .work-agreement, .tracking-schedule-notice",
         ".settings-card, .page-intro, .notification-page, .safety-page, .admin-page, .admin-content, .login-group",
         ".job-reference, .offer-application-details, .record-eyebrow, .record-status, .record-details dt, .record-back, .record-info, .record-readonly",
-        "[data-i18n], title, .password-popup, [data-password-checklist-panel], [data-password-match]"
+        ".workflow-status, .workflow-legend summary, .workflow-legend dd, .workflow-legend .workflow-status, .workflow-empty p, .workflow-empty a, .workflow-empty button, [data-i18n], title, .password-popup, [data-password-checklist-panel], [data-password-match]"
     ].join(", ");
 
     function filipinoLabel(key) {

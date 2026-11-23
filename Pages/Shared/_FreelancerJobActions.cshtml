@@ -2,13 +2,15 @@
 @using tts.Data
 @{ var task = Model.Task; var closed = JobActivity.IsClosedTask(task.Status) || task.Status == "completed"; }
 <div class="work-primary-actions" aria-label="Job actions">
+    @if (Model.Offer.Status == "accepted" && !closed) { <a class="work-button" data-work-primary href="/Tracking?taskId=@task.Id">@(task.Status == "assigned" ? "Review schedule" : "View progress")</a> }
+    @if (Model.Offer.Status == "accepted" && task.Status is "completed" or "cancelled") { <a class="work-button" href="/Tracking?taskId=@task.Id" data-work-primary data-i18n>View history</a> }
+
+    @if (Model.Offer.Status == "pending" && task.Status == "open" && (task.PostExpiresUtc == null || task.PostExpiresUtc > DateTime.UtcNow)) { <a class="work-button" data-work-primary data-open-offer-editor href="#offer-editor-@task.Id" data-i18n>Edit offer</a> }
     <a class="work-button work-button-secondary" href="/JobRecord?taskId=@task.Id" data-i18n>View record</a>
     @if (Model.Offer.Status is "accepted" or "pending") {
         @if (closed) { <a class="work-button work-button-secondary" href="/Messages?taskId=@task.Id" data-i18n>View conversation</a> }
         else { <form method="post" asp-page="/Messages" asp-page-handler="Start"><input type="hidden" name="taskId" value="@task.Id" /><button type="submit" class="work-button work-button-secondary" data-i18n>Message client</button></form> }
     }
-    @if (Model.Offer.Status == "accepted" && !closed) { <a class="work-button" href="/Tracking?taskId=@task.Id">@(task.Status == "assigned" ? "Review schedule" : "View progress")</a> }
-    @if (Model.Offer.Status == "accepted" && task.Status is "completed" or "cancelled") { <a class="work-button" href="/Tracking?taskId=@task.Id" data-i18n>View history</a> }
 </div>
 @if (Model.View is "active" or "scheduled" && task.Status == "assigned") { <p class="work-help" data-i18n>The scheduled time is your arrival time. Travel opens 1 hour earlier.</p> }
 <div class="work-secondary-actions">
@@ -23,7 +25,7 @@
 @if (Model.Offer.Status == "pending" && task.Status == "open" && (task.PostExpiresUtc == null || task.PostExpiresUtc > DateTime.UtcNow)) {
 <div class="pending-offer-controls">
     <p class="work-help" data-i18n>You can edit or withdraw this offer until the client accepts. Discuss a counter-offer in Messages first.</p>
-    <details class="work-editor"><summary data-i18n>Edit offer</summary>
+    <details class="work-editor" id="offer-editor-@task.Id"><summary data-i18n>Edit offer</summary>
         <form method="post" asp-page="/MyJobs" asp-page-handler="PendingOffer" class="work-form">
             <input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="edit" /><input type="hidden" name="taskRevision" value="@TaskAcceptanceTerms.Revision(task, 0)" /><input type="hidden" name="revision" value="@OfferRevision.For(Model.Offer)" />
             <label><span data-i18n>Your offer (₱)</span><input name="price" type="number" min="1" max="9999999999" step="0.01" value="@Model.Offer.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)" required /></label>

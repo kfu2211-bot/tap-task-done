@@ -23,6 +23,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     public Dictionary<long, MarketplaceReview> Reviews { get; private set; } = [];
     public Dictionary<long, TaskDestination> Destinations { get; private set; } = [];
     public bool ReviewsUnavailable { get; private set; }
+    public bool LoadUnavailable { get; private set; }
     public string WorkRole { get; private set; } = "client";
     public bool WorkLocked { get; private set; }
     [TempData] public string? Notice { get; set; }
@@ -100,6 +101,8 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
 
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
+        if (UserId == 0) return Challenge();
+        try {
         var openedAt = DateTime.UtcNow;
         if (UserId == 0 || !await db.Users.AnyAsync(x => x.Id == UserId, ct)) return Challenge();
         WorkRole = (await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == UserId, ct))?.WorkRole ?? "client";
@@ -144,6 +147,11 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
                 .ExecuteUpdateAsync(update => update.SetProperty(n => n.IsRead, true), ct);
         }
         return Page();
+        } catch (Exception ex) when (ex is MySqlException or InvalidOperationException) {
+            logger?.LogWarning(ex, "Unable to load client tasks");
+            LoadUnavailable = true;
+            return Page();
+        }
     }
 
     public async Task<IActionResult> OnPostReviewAsync(long id, int rating, string? feedback, bool fromTracking, CancellationToken ct)

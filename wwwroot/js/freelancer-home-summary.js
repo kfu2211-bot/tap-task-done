@@ -33,6 +33,7 @@
                 if (help) help.hidden = !attention;
                 if (scheduled) {
                     scheduledDetails.querySelector('[data-scheduled-status]').textContent = scheduled.status;
+                    scheduledDetails.querySelector('[data-scheduled-status]').dataset.status = scheduled.status;
                     scheduledDetails.querySelector('[data-scheduled-title]').textContent = scheduled.title;
                     scheduledDetails.querySelector('[data-scheduled-time]').textContent = scheduled.scheduleText;
                     scheduledDetails.querySelector('[data-scheduled-link]').href = scheduled.url;

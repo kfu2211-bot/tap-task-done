@@ -9,7 +9,8 @@ namespace tts.Pages;
 public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logger) : PageModel
 {
     public record Conversation(long TaskId, string Title, int ClientId, int FreelancerId, string OtherName)
-    { public long Id { get; init; } public int OtherId { get; init; } public bool CanSend { get; init; } public bool Assigned { get; init; } public string Status { get; init; } = ""; }
+    { public long Id { get; init; } public int OtherId { get; init; } public bool CanSend { get; init; } public bool Assigned { get; init; } public string Status { get; init; } = ""; public string? ScheduleText { get; init; }
+      public string StatusLabel => Status == "assigned" && TaskSchedule.StartUtc(ScheduleText) is { } start ? TaskSchedule.ScheduleLabel(start, DateTime.UtcNow) : TaskProgress.Label(Status); }
     public List<Conversation> Conversations { get; private set; } = [];
     public List<Conversation> SelectedTasks { get; private set; } = [];
     public Dictionary<int, int> UnreadCounts { get; private set; } = [];
@@ -43,9 +44,9 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
                 let selected = db.MarketplaceOffers.Any(o => o.TaskId == t.Id && o.FreelancerId == c.FreelancerId && o.Status == "accepted")
                 let pending = db.MarketplaceBookings.Any(b => b.TaskId == t.Id && b.FreelancerId == c.FreelancerId && b.Status == "pending")
                 orderby t.CreatedAt descending, c.CreatedAtUtc descending, c.Id descending
-                select new { c.Id, c.CreatedAtUtc, TaskId = t.Id, t.Title, t.ClientId, c.FreelancerId, t.Status, t.IsPrivate, Assigned = selected, Pending = pending, ClientName = (client.FirstName ?? "") + " " + (client.LastName ?? ""), FreelancerName = (freelancer.FirstName ?? "") + " " + (freelancer.LastName ?? "") }).ToListAsync(ct);
+                select new { c.Id, c.CreatedAtUtc, TaskId = t.Id, t.Title, t.ClientId, c.FreelancerId, t.Status, t.ScheduleText, t.IsPrivate, Assigned = selected, Pending = pending, ClientName = (client.FirstName ?? "") + " " + (client.LastName ?? ""), FreelancerName = (freelancer.FirstName ?? "") + " " + (freelancer.LastName ?? "") }).ToListAsync(ct);
             var rowsByCreation = rows.ToDictionary(r => r.Id, r => r.CreatedAtUtc);
-            var tasks = rows.Select(r => new Conversation(r.TaskId, r.Title, r.ClientId, r.FreelancerId, (r.ClientId == UserId ? r.FreelancerName : r.ClientName).Trim()) { Id = r.Id, OtherId = r.ClientId == UserId ? r.FreelancerId : r.ClientId, Assigned = r.Assigned, Status = r.Status, CanSend = MaySend(r.Status, r.Assigned, r.Pending, r.IsPrivate) }).ToList();
+            var tasks = rows.Select(r => new Conversation(r.TaskId, r.Title, r.ClientId, r.FreelancerId, (r.ClientId == UserId ? r.FreelancerName : r.ClientName).Trim()) { Id = r.Id, OtherId = r.ClientId == UserId ? r.FreelancerId : r.ClientId, Assigned = r.Assigned, Status = r.Status, ScheduleText = r.ScheduleText, CanSend = MaySend(r.Status, r.Assigned, r.Pending, r.IsPrivate) }).ToList();
             var ids = tasks.Select(c => c.Id).ToArray();
             var unread = db.MarketplaceNotifications.Where(n => n.UserId == UserId && !n.IsRead && n.Kind == "message" && n.ConversationId.HasValue && ids.Contains(n.ConversationId.Value));
             var groups = tasks.GroupBy(c => c.OtherId).ToDictionary(g => g.Key, g => g.ToList());
