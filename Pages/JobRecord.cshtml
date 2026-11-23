@@ -1,9 +1,9 @@
 @page
 @model tts.Pages.JobRecordModel
 @using tts.Data
-@{ Layout = null; var task = Model.Work; }
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Task record - Tap, Task, Done</title><link rel="stylesheet" href="/css/settings.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-reuse.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
-<body class="task-reuse-screen"><main class="task-reuse-page"><header><div><span class="record-eyebrow" data-i18n>WORK HISTORY</span><h1>Task record #@task.Id</h1></div><a class="record-back" href="@(Model.IsOwner ? "/MarketTasks?view=mine" : "/MyJobs?view=closed")">← Back to @(Model.IsOwner ? "My Tasks" : "My Jobs")</a></header>
+@{ Layout = null; var task = Model.Work; var recordTitle = JobActivity.IsClosedTask(task.Status) || task.Status == "completed" ? "Task history" : "Task details"; }
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>@recordTitle - Tap, Task, Done</title><link rel="stylesheet" href="/css/settings.css" asp-append-version="true" /><link rel="stylesheet" href="/css/task-reuse.css" asp-append-version="true" /><partial name="_AccountTheme" /></head>
+<body class="task-reuse-screen"><main class="task-reuse-page"><header><div><span class="record-eyebrow" data-i18n>WORK HISTORY</span><h1>@recordTitle #@task.Id</h1></div><a class="record-back" href="@(Model.IsOwner ? "/MarketTasks?view=mine" : "/MyJobs?view=closed")">← Back to @(Model.IsOwner ? "My Tasks" : "My Jobs")</a></header>
 <article class="task-record"><h2>@task.Title</h2><div class="record-statuses"><span class="record-status" data-status="@task.Status">Task: @TaskSchedule.DisplayStatus(task, DateTime.UtcNow)</span>
 @if (Model.Offer is not null && !Model.IsOwner) { <span class="record-status" data-status="@Model.Offer.Status">Your offer: @Model.Offer.Status</span> }
 @if (Model.Booking is not null) { <span class="record-status" data-status="@Model.Booking.Status">Booking: @Model.Booking.Status</span> }

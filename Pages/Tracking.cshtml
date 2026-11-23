@@ -605,12 +605,11 @@
                     var selectedTask = long.TryParse(Request.Query["taskId"], out var requestedTask) && Model.Tasks.Any(x => x.Task.Id == requestedTask) ? requestedTask : Model.Tasks.FirstOrDefault()?.Task.Id;
                     var activeEntry = Model.Tasks.FirstOrDefault(x => x.Task.Id == selectedTask);
                 }
-                <div class="tracking-intro">
+                <div class="tracking-intro @(TaskTracking.ShowPicker(Model.IsHistory, Model.Tasks.Count) ? "" : "tracking-intro-simple")">
                     <p class="compact-page-description">@(Model.IsHistory ? "Review this task’s recorded progression, work details, and completion history." : "Follow your active work and review the next steps.")</p>
-                    @if (activeEntry is not null && !Model.IsHistory) {
-                        <span class="tracking-picker-label" id="tracking-picker-label" data-i18n>Select a task</span>
-                        <details class="tracking-picker">
-                            <summary aria-labelledby="tracking-picker-label tracking-picker-current"><span><strong id="tracking-picker-current">@activeEntry.Task.Title</strong><small>@(activeEntry.IsClient ? "Posted task" : "Accepted job") · #@activeEntry.Task.Id</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+                    @if (activeEntry is not null && TaskTracking.ShowPicker(Model.IsHistory, Model.Tasks.Count)) {
+                        <details class="tracking-picker tracking-picker-compact">
+                            <summary><span><strong id="tracking-picker-current" data-i18n>Switch task</strong><small translate="no">@activeEntry.Task.Title · #@activeEntry.Task.Id</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
                             <nav class="tracking-picker-options" aria-label="Tasks available to track">
                                 @foreach (var entry in Model.Tasks) {
                                     <a href="/Tracking?taskId=@entry.Task.Id" aria-current="@(entry.Task.Id == selectedTask ? "page" : null)"><span><strong>@entry.Task.Title</strong><small>@(entry.IsClient ? "Posted task" : "Accepted job") · #@entry.Task.Id</small></span>@if(entry.Task.Id == selectedTask) { <span class="tracking-picker-check" aria-hidden="true">✓</span> }</a>
@@ -628,6 +627,10 @@
                     var steps = TaskProgress.Labels;
                     <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><span class="db-tracking-status" data-status="@label">@label</span></div>
                     <div class="db-tracking-details"><div><span data-i18n>Job type</span><strong>@task.JobTypeDisplay</strong></div><div><span data-i18n>Expected finish</span><strong>@(task.WorkEndUtc?.AddHours(8).ToString("MMM d, yyyy h:mm tt") ?? "To be agreed")</strong></div><div><span data-i18n>Client</span><strong>@item.Client</strong></div><div><span data-i18n>Freelancer</span><strong>@item.Freelancer</strong></div><div><span data-i18n>Task budget</span><strong>@task.BudgetDisplay</strong></div><div><span data-i18n>Schedule</span><strong>@TaskSchedule.Display(task.ScheduleText)</strong></div></div>
+                    @if (Model.IsHistory) {
+                    var acceptedTerms = Model.AgreementHistory.FirstOrDefault(a => a.TaskId == task.Id && a.Confirmed);
+                    <section class="tracking-history-overview"><h4 data-i18n>Task details</h4><p translate="no">@task.Description</p><dl><div><dt data-i18n>Service</dt><dd>@task.CategoryDisplay</dd></div>@if (acceptedTerms is not null) { <div><dt data-i18n>Agreed price</dt><dd>₱@acceptedTerms.Price.ToString("N2")</dd></div> }</dl><p class="work-help" data-i18n>Task details, progression, schedule changes and completion proof are kept together in this history.</p></section>
+                    }
                     <div class="tracking-detail-layout tracking-workspace"><section class="tracking-panel tracking-progress-column"><h4>@(Model.IsHistory ? "Recorded progression" : "Task progress")</h4>
                     @if (Model.IsHistory) { <partial name="_TaskHistory" model="Model" /> }
                     @if (!Model.IsHistory && status >= 0) { var descriptions = new[] { "The booking or offer has been accepted.", "The freelancer is travelling to the work location.", "The freelancer has confirmed arrival. Travel tracking stops.", "The freelancer is performing the agreed work.", "The client reviews the finished work and any optional details.", "The client has confirmed completion. Reviews are available." }; <ol class="tracking-timeline">@for (var i = 0; i < steps.Length; i++) { <li class="@(i == 0 ? "done" : status == i ? "current" : status > i ? "done" : "")"><span>@(i == 0 || status > i ? "✓" : (i + 1).ToString())</span><div>@steps[i]<small>@descriptions[i]</small>
@@ -721,7 +724,7 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
 @if (task.Status == "disputed") { <p data-i18n>This older task is paused. Contact support through Safety &amp; Reports.</p> }
 @if (task.Status == "cancelled") { <p data-i18n>This task was cancelled.</p> }
 
-<a href="@(item.IsClient ? "/MarketTasks?view=mine" : (TaskSchedule.IsUpcoming(task, DateTime.UtcNow) ? "/MyJobs?view=scheduled" : "/MyJobs?view=active"))">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a>
+<a href="@(item.IsClient ? "/MarketTasks?view=mine" : (task.Status == "completed" ? "/MyJobs?view=completed" : task.Status == "cancelled" ? "/MyJobs?view=closed" : TaskSchedule.IsUpcoming(task, DateTime.UtcNow) ? "/MyJobs?view=scheduled" : "/MyJobs?view=active"))">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a>
 </div>
 @{
     var cancellation = Model.Progress.LastOrDefault(e => e.TaskId == task.Id &&

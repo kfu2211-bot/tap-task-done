@@ -98,6 +98,17 @@ Check(directionalRatings.Where(r=>!r.Given && ServiceRatingRules.ViewerRole(r.By
 Check(directionalRatings.Single(r=>r.Given && ServiceRatingRules.ViewerRole(r.ByFreelancer,r.Given)=="client").Rating==4, "Client given tab shows only ratings written for freelancers");
 Check(directionalRatings.Single(r=>r.Given && ServiceRatingRules.ViewerRole(r.ByFreelancer,r.Given)=="freelancer").Rating==3, "Freelancer given tab shows only ratings written for clients");
 
+Check(!TaskTracking.ShowPicker(false,0) && !TaskTracking.ShowPicker(false,1), "Tracking omits the selector when there is zero or one active task");
+Check(TaskTracking.ShowPicker(false,2), "Tracking keeps a switcher for multiple active tasks");
+Check(!TaskTracking.ShowPicker(true,2), "Historical task view never shows the active task switcher");
+var historyTask = new MarketplaceTask { Id=77,ClientId=10,Status="completed" };
+var historyOffer = new MarketplaceOffer { TaskId=77,FreelancerId=20,Status="accepted" };
+Check(TaskTracking.FullHistory(historyTask,historyOffer,10) && TaskTracking.FullHistory(historyTask,historyOffer,20), "Owner and assigned freelancer share the canonical completed-task history");
+Check(!TaskTracking.FullHistory(historyTask,historyOffer,30) && !TaskTracking.FullHistory(historyTask,historyOffer,0), "Unrelated or anonymous accounts cannot open canonical private history");
+Check(!TaskTracking.FullHistory(historyTask,new MarketplaceOffer {FreelancerId=30,Status="declined"},30), "Unselected bidders cannot enter private progression through a record link");
+historyTask.Status="cancelled"; Check(TaskTracking.FullHistory(historyTask,historyOffer,20), "Accepted cancelled work keeps its consolidated history");
+historyTask.Status="expired"; Check(!TaskTracking.FullHistory(historyTask,historyOffer,10), "Unassigned expired records retain their separate closed-post history");
+
 var trackingTasks = new[] {
     new MarketplaceTask { Id = 1, Status = "assigned" },
     new MarketplaceTask { Id = 2, Status = "awaiting-confirmation" },

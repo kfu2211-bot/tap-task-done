@@ -26,6 +26,7 @@ public class JobRecordModel(ApplicationDbContext db) : PageModel
         if (task is null) return NotFound();
         Work = task; IsOwner = task.ClientId == viewer;
         Offer = await db.MarketplaceOffers.AsNoTracking().Where(o => o.TaskId == taskId && (IsOwner ? o.Status == "accepted" : o.FreelancerId == viewer)).OrderByDescending(o => o.Id).FirstOrDefaultAsync(ct);
+        if (TaskTracking.FullHistory(task, Offer, viewer)) return RedirectToPage("/Tracking", new { taskId });
         Booking = await db.MarketplaceBookings.AsNoTracking().Where(b => b.TaskId == taskId && (IsOwner || b.FreelancerId == viewer)).OrderByDescending(b => b.Id).FirstOrDefaultAsync(ct);
         CanBookAgain = IsOwner && TaskReuse.CanReuse(task, viewer) && (Offer is not null || Booking is not null);
         // Only the owner/assigned worker sees the accepted work's private progression.

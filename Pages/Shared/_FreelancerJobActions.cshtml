@@ -2,14 +2,14 @@
 @using tts.Data
 @{ var task = Model.Task; var closed = JobActivity.IsClosedTask(task.Status) || task.Status == "completed"; }
 @if (task.Status == "completed") {
- <div class="work-primary-actions completed-rating-actions"><a class="work-button" data-work-primary href="/Reviews?taskId=@task.Id&amp;asRole=freelancer" data-i18n>Service Ratings</a><a class="work-button work-button-secondary" href="/Tracking?taskId=@task.Id" data-i18n>Task history</a><details class="work-more-actions"><summary data-i18n>More</summary><div><a href="/JobRecord?taskId=@task.Id" data-i18n>View record</a><a href="/Messages?taskId=@task.Id" data-i18n>View conversation</a></div></details></div>
+ <div class="work-primary-actions completed-rating-actions"><a class="work-button" data-work-primary href="/Reviews?taskId=@task.Id&amp;asRole=freelancer" data-i18n>Service Ratings</a><a class="work-button work-button-secondary" href="/Tracking?taskId=@task.Id" data-i18n>Task history</a><a class="work-button work-button-secondary" href="/Messages?taskId=@task.Id" data-i18n>Conversation</a></div>
 } else {
 <div class="work-primary-actions" aria-label="Job actions">
     @if (Model.Offer.Status == "accepted" && !closed) { <a class="work-button" data-work-primary href="/Tracking?taskId=@task.Id">@(task.Status == "assigned" ? "Review schedule" : "View progress")</a> }
     @if (Model.Offer.Status == "accepted" && task.Status is "completed" or "cancelled") { <a class="work-button" href="/Tracking?taskId=@task.Id" data-work-primary data-i18n>Task history</a> }
 
     @if (Model.Offer.Status == "pending" && task.Status == "open" && (task.PostExpiresUtc == null || task.PostExpiresUtc > DateTime.UtcNow)) { <a class="work-button" data-work-primary data-open-offer-editor href="#offer-editor-@task.Id" data-i18n>Edit offer</a> }
-    <a class="work-button work-button-secondary" href="/JobRecord?taskId=@task.Id" data-i18n>View record</a>
+    @if (!(Model.Offer.Status == "accepted" && task.Status == "cancelled")) { <a class="work-button work-button-secondary" href="/JobRecord?taskId=@task.Id">@(closed ? "Task history" : "Task details")</a> }
     @if (Model.Offer.Status is "accepted" or "pending") {
         @if (closed) { <a class="work-button work-button-secondary" href="/Messages?taskId=@task.Id" data-i18n>View conversation</a> }
         else { <form method="post" asp-page="/Messages" asp-page-handler="Start"><input type="hidden" name="taskId" value="@task.Id" /><button type="submit" class="work-button work-button-secondary" data-i18n>Message client</button></form> }
