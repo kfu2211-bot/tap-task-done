@@ -1,0 +1,23 @@
+@model tts.Data.ServiceRatingsView
+<div class="service-ratings-list" data-service-ratings>
+    <div class="service-rating-filters">
+        <label><span data-i18n>Search feedback</span><input type="search" data-rating-search maxlength="120" placeholder="Search feedback or service" /></label>
+        <label><span data-i18n>Rating</span><select data-rating-stars><option value="" data-i18n>All stars</option>@for (var i = 5; i >= 1; i--) { <option value="@i">@i ★</option> }</select></label>
+        <label><span data-i18n>Service</span><select data-rating-category><option value="" data-i18n>All services</option>@foreach (var category in Model.Items.Select(r => r.Category).Distinct().Order()) { <option value="@category">@category</option> }</select></label>
+        <label><span data-i18n>Sort by</span><select data-rating-sort><option value="newest" data-i18n>Newest first</option><option value="highest" data-i18n>Highest rated</option><option value="lowest" data-i18n>Lowest rated</option></select></label>
+    </div>
+    <p class="service-rating-result" data-rating-count aria-live="polite">@Model.Items.Count <span data-i18n>ratings in this view</span></p>
+    <div data-rating-results>
+    @foreach (var item in Model.Items) {
+        <article class="service-rating-card" data-rating-card data-rating="@item.Rating" data-category="@item.Category" data-created="@item.CreatedAt.Ticks" data-review-id="@item.Id">
+            <header><div class="service-rating-author"><span class="service-rating-avatar" aria-hidden="true">@(item.OtherName.FirstOrDefault())</span><div><small data-i18n>@(Model.Given ? "Rating for" : "Rating from")</small><strong translate="no">@item.OtherName</strong><small data-i18n>@item.Direction</small></div></div><time>@tts.Data.DisplayTime.PhilippineDate(item.CreatedAt)</time></header>
+            <p class="service-rating-task"><span data-i18n>@item.Category</span>@if (Model.Participant) { <span> · <span translate="no">@item.TaskTitle</span> · #@item.TaskId</span> }</p>
+            <div class="service-rating-stars" aria-label="@item.Rating / 5"><span class="service-rating-gold" aria-hidden="true">@(new string('★',item.Rating))</span><span class="service-rating-unfilled" aria-hidden="true">@(new string('★',5-item.Rating))</span><strong>@(item.Rating.ToString("0.0")) / 5</strong></div>
+            @if (!string.IsNullOrWhiteSpace(item.Feedback)) { <p class="service-rating-feedback" translate="no">@item.Feedback</p> } else { <p class="service-rating-muted" data-i18n>No written feedback.</p> }
+            @if (Model.Participant) { <a class="service-rating-history" href="/Tracking?taskId=@item.TaskId" data-i18n>Task history</a> }
+        </article>
+    }
+    </div>
+    <div class="workflow-empty" data-rating-no-matches hidden role="status"><h3 data-i18n>No ratings match these filters</h3><button type="button" class="work-button work-button-secondary" data-rating-reset data-i18n>Clear filters</button></div>
+    @if (Model.Items.Count == 0) { <div class="workflow-empty"><h3 data-i18n>No ratings yet</h3><p data-i18n>Ratings appear after a participant reviews a completed task.</p></div> }
+</div>

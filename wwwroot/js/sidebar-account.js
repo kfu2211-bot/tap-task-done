@@ -114,7 +114,7 @@
         var sharedItems = [
             { href: "/Messages", icon: "□", label: "Messages" },
             { href: "/Tracking", icon: "➤", label: "Tracking" },
-            { href: "/Reviews", icon: "☆", label: "Reviews" },
+            { href: "/Reviews", icon: "☆", label: "Service Ratings" },
             ...(identityApproved ? [] : [{ href: "/IdentityVerification", icon: "✓", label: "Identity Verification" }]),
             { href: "/Reports", icon: "⚑", label: "Safety & Reports" }
         ];

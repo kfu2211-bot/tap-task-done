@@ -3,6 +3,7 @@
 
 @{
     Layout = null;
+    var ratingsGiven = Model.View == "given";
 }
 
 <!DOCTYPE html>
@@ -15,7 +16,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
-    <title>Reviews</title>
+    <title>Service Ratings</title>
 
     <link rel="stylesheet"
           href="/css/reviews.css" asp-append-version="true" />
@@ -87,7 +88,7 @@
 
                 <a href="/Reviews" class="nav-item active">
                     <span class="nav-icon">☆</span>
-                    <span data-i18n>Reviews</span>
+                    <span data-i18n>Service Ratings</span>
                 </a>
 
             </nav>
@@ -133,7 +134,7 @@
             <header class="top-header">
 
                 <h1>
-                    Reviews
+                    Service Ratings
                 </h1>
 
                 <button class="notification-button app-notification-trigger">
@@ -149,49 +150,21 @@
 
             @if (!Model.Legacy)
             {
-            <section class="reviews-live">
-                <div class="reviews-live-heading">
-                    <p class="compact-page-description" data-i18n>See feedback you’ve received and reviews you’ve shared.</p>
-                    <a class="reviews-action" href="/MarketTasks?view=mine" data-i18n>View my tasks</a>
-                </div>
-                @if (!string.IsNullOrEmpty(Model.Notice)) { <p class="reviews-notice" role="status">@Model.Notice</p> }
-                @if (!Model.Unavailable)
-                {
-                    <div class="reviews-overview" aria-label="Review summary">
-                        <div class="reviews-overview-icon" aria-hidden="true">★</div>
-                        <div><span class="reviews-overview-label">@(Model.View == "given" ? "FEEDBACK YOU'VE SHARED" : "YOUR REPUTATION")</span><strong>@Model.Items.Count @(Model.Items.Count == 1 ? "review" : "reviews")</strong><p>@(Model.Items.Count == 0 ? "Your review history will appear here." : "Based on the reviews shown below.")</p></div>
-                        @if (Model.Items.Count > 0)
-                        {
-                            <div class="reviews-overview-score"><span data-i18n>AVERAGE RATING</span><strong>@Model.Items.Average(x => x.Review.Rating).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) <small>/ 5</small></strong></div>
-                        }
-                    </div>
-                }
-                <nav class="reviews-tabs" aria-label="Review type">
-                    <a class="@(Model.View == "received" ? "selected" : "")" href="/Reviews?view=received" aria-current="@(Model.View == "received" ? "page" : null)" data-i18n>Received</a>
-                    <a class="@(Model.View == "given" ? "selected" : "")" href="/Reviews?view=given" aria-current="@(Model.View == "given" ? "page" : null)" data-i18n>Given</a>
-                </nav>
-                @if (Model.Unavailable)
-                {
-                    <div class="reviews-empty" role="alert" data-i18n>Reviews are temporarily unavailable. Please try again later.</div>
-                }
-                else
-                {
-                    <div class="reviews-section-heading"><h3>@(Model.View == "given" ? "Reviews you gave" : "Reviews you received")</h3><span>@Model.Items.Count @(Model.Items.Count == 1 ? "review" : "reviews")</span></div>
-                    @if (Model.Items.Count == 0)
-                    {
-                        <div class="reviews-empty"><strong>No reviews @(Model.View == "given" ? "given" : "received") yet</strong><p>@(Model.View == "given" ? "After confirming a task is complete, open My Tasks to rate your freelancer." : "Client feedback will appear here after they review a completed task.")</p><a href="/MarketTasks?view=mine" data-i18n>Go to My Tasks</a></div>
+            <section class="reviews-live service-ratings-page">
+                <p class="compact-page-description" data-i18n>Feedback from completed tasks, clearly organized.</p>
+                @if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
+                @if (Model.FocusTaskId is not null) {
+                    <section class="service-rating-focus"><strong translate="no">@Model.FocusTaskTitle · #@Model.FocusTaskId</strong><div class="work-primary-actions"><a class="work-button work-button-secondary" href="/Reviews" data-i18n>All service ratings</a><a class="work-button work-button-secondary" href="/Tracking?taskId=@Model.FocusTaskId" data-i18n>Task history</a>@if(Model.CanRate) { <a class="work-button" href="/Tracking?taskId=@Model.FocusTaskId#completed-reviews">@(Model.FocusIsClient ? "Rate freelancer" : "Rate client")</a> }</div></section>
+                } else {
+                    <nav class="service-rating-roles" aria-label="Rating role">
+                    @foreach (var role in new[] { ("all","All roles"),("client","As client"),("freelancer","As freelancer") }) {
+                        <a href="@Url.Page("/Reviews",new { view=Model.View,asRole=role.Item1 })" aria-current="@(Model.RoleFilter == role.Item1 ? "page" : null)" data-i18n>@role.Item2</a>
                     }
-                    @foreach (var item in Model.Items)
-                    {
-                        <article class="review-card live-review">
-                            <div class="review-top"><div class="review-person"><span class="review-avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(item.OtherName) ? "U" : item.OtherName.Trim()[0].ToString().ToUpperInvariant())</span><div><strong>@(string.IsNullOrWhiteSpace(item.OtherName) ? "User" : item.OtherName)</strong><p>@(Model.View == "given" ? "Review given" : "Review received")</p></div></div><time>@tts.Data.DisplayTime.PhilippineDate(item.Review.CreatedAt)</time></div>
-                            <div class="review-rating" aria-label="@item.Review.Rating out of 5 stars"><span class="review-stars" aria-hidden="true">@(new string('★', item.Review.Rating))@(new string('☆', 5 - item.Review.Rating))</span> <span>@item.Review.Rating / 5</span></div>
-                            @if (string.IsNullOrWhiteSpace(item.Review.Feedback)) { <p class="review-empty-feedback" data-i18n>No written feedback.</p> }
-                            else { <p class="review-feedback" translate="no">@item.Review.Feedback</p> }
-                            <div class="review-task"><span aria-hidden="true">▧</span> <span data-i18n>Completed task</span><strong>@item.TaskTitle</strong></div>
-                        </article>
-                    }
+                    </nav>
                 }
+                <nav class="service-rating-tabs" aria-label="Rating direction"><a href="@Url.Page("/Reviews",new { view="received",asRole=Model.RoleFilter,taskId=Model.FocusTaskId })" aria-current="@(Model.View == "received" ? "page" : null)"><span data-i18n>Ratings received</span> (@Model.ReceivedCount)</a><a href="@Url.Page("/Reviews",new { view="given",asRole=Model.RoleFilter,taskId=Model.FocusTaskId })" aria-current="@(Model.View == "given" ? "page" : null)"><span data-i18n>Ratings given</span> (@Model.GivenCount)</a></nav>
+                @if(Model.Unavailable) { <div class="workflow-empty" role="alert"><p data-i18n>Ratings are temporarily unavailable. Please try again.</p><a class="work-button work-button-secondary" href="/Reviews" data-i18n>Try again</a></div> }
+                else { <div class="service-rating-layout"><partial name="_ServiceRatingSummary" model="Model.Items" /><partial name="_ServiceRatingsList" model="new tts.Data.ServiceRatingsView(Model.Items,true,ratingsGiven)" /></div> }
             </section>
             }
             else

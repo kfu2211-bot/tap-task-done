@@ -1,0 +1,14 @@
+@model System.Collections.Generic.IReadOnlyList<tts.Data.ServiceRatingItem>
+<aside class="service-rating-summary">
+    <span class="service-rating-label" data-i18n>Average rating</span>
+    <strong class="service-rating-score">@(Model.Count > 0 ? Model.Average(r => r.Rating).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "—") <small>/ 5</small></strong>
+    <span class="service-rating-summary-stars" aria-hidden="true"><span>★★★★★</span><span class="service-rating-fill" style="width:@(Model.Count == 0 ? 0 : (int)Math.Round(Model.Average(r => r.Rating)*20))%">★★★★★</span></span>
+    <p><b>@Model.Count</b> <span data-i18n>ratings in this view</span></p>
+    <dl class="service-rating-distribution">
+    @for (var star = 5; star >= 1; star--) {
+        var count = Model.Count(r => r.Rating == star);
+        var percent = Model.Count == 0 ? 0 : (int)Math.Round(100.0 * count / Model.Count);
+        <div><dt>@star <span aria-hidden="true">★</span></dt><dd><span class="service-rating-track" aria-hidden="true"><span style="width:@percent%"></span></span><span>@count</span></dd></div>
+    }
+    </dl>
+</aside>

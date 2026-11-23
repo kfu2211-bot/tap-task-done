@@ -75,6 +75,15 @@ Check((verificationState with { IdentityStatus = "resubmit" }).IdentityLabel == 
 Check(!IdentityWorkGate.ApprovedStatus("resubmit") && !IdentityWorkGate.ApprovedStatus("pending") && IdentityWorkGate.ApprovedStatus("approved"), "Identity approval gate denies revoked or pending identity");
 Check(AdminAccountVerification.ActionLabel("email-unverify") != "Penalty lifted" && AdminAccountVerification.ActionLabel("id-verify") == "Identity verified by admin", "Verification decisions have accurate history labels");
 
+Check(ServiceRatingRules.ViewerRole(false,false) == "freelancer", "A client review is received in the freelancer role");
+Check(ServiceRatingRules.ViewerRole(true,false) == "client", "A freelancer review is received in the client role");
+Check(ServiceRatingRules.ViewerRole(false,true) == "client", "Client-written feedback appears in given/client ratings");
+Check(ServiceRatingRules.ViewerRole(true,true) == "freelancer", "Freelancer-written feedback appears in given/freelancer ratings");
+Check(ServiceRatingRules.RoleFilter("admin") == "all", "Unknown rating-role filters cannot select privileged views");
+var scopedRatings = new[] { new MarketplaceReview { Id=1,ClientId=10,FreelancerId=20 },new MarketplaceReview { Id=2,ClientId=30,FreelancerId=10 },new MarketplaceReview { Id=3,ClientId=30,FreelancerId=40 } }.AsQueryable();
+Check(ServiceRatingRules.VisibleTo(scopedRatings,10).Select(r=>r.Id).SequenceEqual(new long[]{1,2}), "Personal ratings include both participant roles and exclude other accounts");
+Check(!ServiceRatingRules.VisibleTo(scopedRatings,0).Any(), "Unauthenticated identity cannot select private ratings");
+
 var trackingTasks = new[] {
     new MarketplaceTask { Id = 1, Status = "assigned" },
     new MarketplaceTask { Id = 2, Status = "awaiting-confirmation" },

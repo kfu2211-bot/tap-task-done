@@ -13,21 +13,24 @@ public class ReviewProfileModel(ApplicationDbContext db) : PageModel
     public string ProfileRole { get; private set; } = "";
     public string Availability { get; private set; } = "";
     public bool CanOpenBooking { get; private set; }
+    public bool HasFreelancerProfile { get; private set; }
     public string Location { get; private set; } = "";
     public Dictionary<string, string[]> ServiceGroups { get; private set; } = [];
     public int? ServiceRate { get; private set; }
     public int ProfileId { get; private set; }
     public List<Item> Reviews { get; private set; } = [];
     public bool Unavailable { get; private set; }
+    public List<ServiceRatingItem> RatingItems { get; private set; } = [];
     public record Item(string Name, int Rating, string Feedback, DateTime CreatedAt);
 
     public async Task<IActionResult> OnGetAsync(int id, string? role, CancellationToken ct)
     {
         var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == id, ct);
-        if (user is null) return NotFound();
+        if (user is null || user.Role == "deleted") return NotFound();
         ProfileId = id;
         DisplayName = $"{user.FirstName} {user.LastName}".Trim();
         ProfileRole = role == "client" ? "Client" : "Freelancer";
+        HasFreelancerProfile = await db.FreelancerProfiles.AnyAsync(p=>p.UserId == id && (p.WorkRole == "freelancer" || p.WorkRole == "both"),ct);
         if (ProfileRole == "Freelancer")
         {
             var profile = await db.FreelancerProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == id, ct);
@@ -48,14 +51,14 @@ public class ReviewProfileModel(ApplicationDbContext db) : PageModel
         try
         {
             var byFreelancer = ProfileRole == "Client";
-            Reviews = await (from review in db.MarketplaceReviews.AsNoTracking()
-                join author in db.Users.AsNoTracking()
-                    on (review.ByFreelancer ? review.FreelancerId : review.ClientId) equals author.Id
-                where review.ByFreelancer == byFreelancer &&
-                    (byFreelancer ? review.ClientId : review.FreelancerId) == id
+            var rows = await (from review in db.MarketplaceReviews.AsNoTracking()
+                join author in db.Users.AsNoTracking() on (review.ByFreelancer ? review.FreelancerId : review.ClientId) equals author.Id
+                join task in db.MarketplaceTasks.AsNoTracking() on review.TaskId equals task.Id
+                where review.ByFreelancer == byFreelancer && (byFreelancer ? review.ClientId : review.FreelancerId) == id
                 orderby review.CreatedAt descending, review.Id descending
-                select new Item((author.FirstName + " " + author.LastName).Trim(),
-                    review.Rating, review.Feedback, review.CreatedAt)).ToListAsync(ct);
+                select new { review.Id, review.Rating, review.Feedback, review.CreatedAt, task.Category, Name=(author.FirstName+" "+author.LastName).Trim() }).ToListAsync(ct);
+            Reviews = rows.Select(r=>new Item(r.Name,r.Rating,r.Feedback,r.CreatedAt)).ToList();
+            RatingItems = rows.Select(r=>new ServiceRatingItem(r.Id,0,"",r.Category,r.Name,Math.Clamp(r.Rating,1,5),r.Feedback,r.CreatedAt,byFreelancer ? "Freelancer → Client" : "Client → Freelancer",byFreelancer ? "client" : "freelancer")).ToList();
         }
         catch (MySqlConnector.MySqlException) { Unavailable = true; }
         return Page();
