@@ -3,6 +3,9 @@ namespace tts.Data;
 public static class TaskTracking
 {
     public static bool ShowPicker(bool history, int count) => !history && count > 1;
+    public static bool HasWorkspace(string status) => status is "assigned" or "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation" or "disputed" or "completed" or "cancelled";
+    public static bool CanOpenWorkspace(MarketplaceTask task, MarketplaceOffer? offer, int viewer) =>
+        viewer > 0 && HasWorkspace(task.Status) && offer?.Status == "accepted" && (task.ClientId == viewer || offer.FreelancerId == viewer);
     public static bool FullHistory(MarketplaceTask task, MarketplaceOffer? offer, int viewer) =>
         viewer > 0 && task.Status is "completed" or "cancelled" && offer?.Status == "accepted" && (task.ClientId == viewer || offer.FreelancerId == viewer);
     // Participant authorization remains on the caller's accepted-offer query.

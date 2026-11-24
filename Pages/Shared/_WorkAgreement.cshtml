@@ -12,7 +12,7 @@
         <p class="work-help" data-i18n>@(agreement?.Confirmed == true ? "These are your agreed details. Request a change only if the schedule or work terms need updating." : "Review these details before confirming. Updated terms require approval before continuing.")</p>
         @if (agreement is not null) {
             <dl class="work-agreement-grid">
-                <div><dt data-i18n>Agreed price</dt><dd>₱@agreement.Price.ToString("N2")</dd></div><div><dt data-i18n>Job type</dt><dd>@JobTypes.Label(agreement.JobType)</dd></div>
+                <div><dt data-i18n>@(agreement.Confirmed ? "Agreed price" : "Proposed price")</dt><dd>₱@agreement.Price.ToString("N2")</dd></div><div><dt data-i18n>Job type</dt><dd>@JobTypes.Label(agreement.JobType)</dd></div>
                 <div><dt data-i18n>Arrival date and time</dt><dd>@TaskSchedule.Display(agreement.ScheduleText)</dd></div><div><dt data-i18n>Expected finish</dt><dd>@(agreement.WorkEndUtc is { } end ? DisplayTime.Philippine(end) + " PHT" : "To be agreed")</dd></div>
                 <div class="work-field-wide"><dt data-i18n>Work scope</dt><dd class="work-user-content" translate="no">@agreement.Scope</dd></div><div class="work-field-wide"><dt data-i18n>Work destination</dt><dd class="work-user-content" translate="no">@agreement.Location</dd></div>
             </dl>
@@ -32,6 +32,7 @@
     </div>
     @if (AgreementRules.Editable(task.Status)) {
         <details class="work-editor" data-agreement-editor open="@(agreement is null)"><summary>@(agreement is null ? "Set final terms and destination" : "Request reschedule or other changes")</summary>
+        <ol class="job-flow-instructions"><li><strong data-i18n>Discuss in Messages</strong><span data-i18n>Agree on a proposed time.</span></li><li><strong data-i18n>Propose in Tracking</strong><span data-i18n>Enter the new schedule below.</span></li><li><strong data-i18n>Both approve</strong><span data-i18n>The current schedule stays until both approve.</span></li></ol>
             <p class="work-help" data-i18n>The current agreement stays in effect until both participants confirm a new version.</p>
             <form method="post" asp-page="/Agreement" asp-page-handler="Propose" class="work-form">
                 <input type="hidden" name="taskId" value="@task.Id" /><input type="hidden" name="expectedVersion" value="@(agreement?.Version ?? 0)" />

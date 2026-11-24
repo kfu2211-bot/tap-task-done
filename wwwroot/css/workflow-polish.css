@@ -137,3 +137,5 @@ html body .tracking-history-overview{padding:18px 20px;margin:18px 0;border:1px 
 @media(max-width:600px){.tracking-picker.tracking-picker-compact{margin-left:0}.tracking-picker-compact .tracking-picker-options{right:auto;left:0}}
 
 html body .db-tracking .tracking-intro.tracking-intro-simple{background:transparent!important;border:0;padding:0;margin-bottom:16px;box-shadow:none}.tracking-intro-simple .compact-page-description{margin:0}
+
+.tracking-price-status{display:flex;align-items:center;justify-content:flex-end;gap:16px;flex-wrap:wrap}.tracking-agreed-price{display:grid;gap:5px;text-align:end}.tracking-agreed-price>span{font-size:.8rem;color:var(--work-muted)}html body .tracking-agreed-price>strong{font-size:1.4rem;color:var(--work-text)!important;overflow-wrap:anywhere}@media(max-width:600px){.tracking-price-status{justify-content:flex-start}.tracking-agreed-price{text-align:start}}

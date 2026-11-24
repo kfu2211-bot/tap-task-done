@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using tts.Data;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace tts.Pages;
 
@@ -17,6 +18,25 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     public List<ActionItem> Actions { get; private set; } = [];
     public List<EvidenceItem> Evidence { get; private set; } = [];
     public Dictionary<long, string> TaskTitles { get; private set; } = [];
+    public MarketplaceTask? WorkReviewTask { get; private set; }
+    public WorkAgreement? WorkReviewAgreement { get; private set; }
+    public decimal? WorkReviewAgreedPrice { get; private set; }
+    public List<TaskProgressEvent> WorkReviewEvents { get; private set; } = [];
+    public Dictionary<int, string> WorkReviewActors { get; private set; } = [];
+    public string WorkReviewRevision => WorkReviewTask is null ? "" : CompletionFollowUp.Revision(WorkReviewTask, WorkReviewEvents);
+    public async Task<IActionResult> OnGetCompletionProofAsync(long reportId, long eventId, CancellationToken ct)
+    {
+        Response.Headers.CacheControl = "no-store"; Response.Headers["X-Content-Type-Options"] = "nosniff";
+        if (AdminId <= 0) return Challenge();
+        var item = await db.Set<TaskProgressEvent>().AsNoTracking().SingleOrDefaultAsync(e => e.Id == eventId && e.Status == "awaiting-confirmation" &&
+            db.SafetyReports.Any(r => r.Id == reportId && r.TaskId == e.TaskId && (r.Reason == CompletionFollowUp.Reason || r.Reason == JobCancellation.FollowUpReason)), ct);
+        if (item?.Photo is null) return NotFound();
+        try {
+            var bytes = HttpContext.RequestServices.GetRequiredService<IDataProtectionProvider>().CreateProtector("TaskProgress.Photo.v1", item.TaskId.ToString(System.Globalization.CultureInfo.InvariantCulture)).Unprotect(item.Photo);
+            var type = CompletionMedia.VideoType(bytes) ?? ProfilePhotoModel.ImageType(bytes);
+            return type is null ? NotFound() : new FileContentResult(bytes, type) { EnableRangeProcessing = true };
+        } catch (System.Security.Cryptography.CryptographicException) { return StatusCode(503); }
+    }
     public record ReviewAccount(int Id, string Name, string Email, OffensePolicy.Summary? Moderation);
     public List<ReviewAccount> AccountMatches { get; private set; } = [];
     public ReviewAccount? SelectedAccount { get; private set; }
@@ -35,6 +55,14 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
     [BindProperty(SupportsGet = true)] public string PriorityFilter { get; set; } = "all";
     [TempData(Key = "AdminReports.Notice")] public string? Notice { get; set; }
     private int AdminId => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+    public async Task<IActionResult> OnPostCompletionReviewAsync(long id, string decision, string? note, bool reviewed, string? revision, CancellationToken ct)
+    {
+        if (AdminId <= 0) return Challenge();
+        if (!reviewed || !ModelState.IsValid) { Notice = "Review the evidence and both participants' explanations before deciding completion."; return RedirectToPage(new { recordId = id, embedded = Embedded }); }
+        try { Notice = (await CompletionFollowUp.ReviewAsync(db, AdminId, id, decision, note, revision, ct)).Message; }
+        catch (Exception ex) when (ex is DbUpdateException or MySqlConnector.MySqlException) { logger.LogWarning(ex, "Completion review failed"); Notice = "Completion review could not be saved. Please try again."; }
+        return RedirectToPage(new { recordId = id, embedded = Embedded, statusFilter = "all" });
+    }
 
     public async Task<IActionResult> OnPostCancellationReviewAsync(long id, string decision, string? note, bool reviewed, CancellationToken ct)
     {
@@ -103,6 +131,15 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
             try
             {
                 var incident = $"report:{report.Id}";
+                if (report.TaskId.HasValue && (report.Reason == CompletionFollowUp.Reason || report.Reason == JobCancellation.FollowUpReason)) {
+                    WorkReviewTask = await db.MarketplaceTasks.AsNoTracking().SingleOrDefaultAsync(t => t.Id == report.TaskId, ct);
+                    WorkReviewAgreement = await db.Set<WorkAgreement>().AsNoTracking().Where(a => a.TaskId == report.TaskId && a.ClientConfirmedAtUtc != null && a.FreelancerConfirmedAtUtc != null).OrderByDescending(a => a.Version).FirstOrDefaultAsync(ct);
+                    WorkReviewAgreedPrice = await db.MarketplaceOffers.AsNoTracking().Where(o => o.TaskId == report.TaskId && o.Status == "accepted").Select(o => (decimal?)o.Price).FirstOrDefaultAsync(ct);
+                    WorkReviewEvents = await db.Set<TaskProgressEvent>().AsNoTracking().Where(e => e.TaskId == report.TaskId && e.Status != TaskAcceptanceTerms.EventStatus && e.Status != OfferPriceHistory.Event)
+                        .OrderBy(e => e.Id).Select(e => new TaskProgressEvent { Id=e.Id, TaskId=e.TaskId, ActorId=e.ActorId, Status=e.Status, Note=e.Note, PhotoType=e.PhotoType, CreatedAtUtc=e.CreatedAtUtc }).ToListAsync(ct);
+                    var actorIds = WorkReviewEvents.Select(e => e.ActorId).ToArray();
+                    WorkReviewActors = await db.Users.AsNoTracking().Where(u => actorIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), ct);
+                }
                 RecordedOffense = await db.Set<AccountOffense>().AsNoTracking().FirstOrDefaultAsync(o => o.IncidentKey == incident, ct);
                 var accounts = db.Users.AsNoTracking().Where(u => u.Id != report.ReporterId && u.Id != AdminId);
                 if (RecordedOffense is not null) accountId = RecordedOffense.UserId;
@@ -199,6 +236,9 @@ public class AdminReportsModel(ApplicationDbContext db, ILogger<AdminReportsMode
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var report = await db.SafetyReports.AsNoTracking().SingleOrDefaultAsync(r => r.Id == id, ct);
         if (report is null) return NotFound();
+        if (report.Reason == CompletionFollowUp.Reason && status is "resolved" or "dismissed" &&
+            await db.MarketplaceTasks.AnyAsync(t => t.Id == report.TaskId && t.Status == "awaiting-confirmation", ct))
+        { Notice = "Use Resolve completion follow-up to record the job decision and notify both participants."; return RedirectToPage(new { recordId = id, embedded = Embedded }); }
         if (report.Reason == JobCancellation.FollowUpReason && status is "resolved" or "dismissed")
         {
             var request = await db.Set<TaskProgressEvent>().Where(e => e.TaskId == report.TaskId &&

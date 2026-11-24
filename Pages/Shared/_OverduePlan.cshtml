@@ -1,0 +1,24 @@
+@model tts.Data.JobFlowView
+@using tts.Data
+@if (OverduePlan.Required(Model.Task, Model.Now) || OverduePlan.Expired(Model.Task, Model.Now)) {
+    var expired = OverduePlan.Expired(Model.Task, Model.Now);
+    var cancellationPending = Model.Events.LastOrDefault(e => e.Status is TaskProgress.CancellationRequested or TaskProgress.CancellationDeclined)?.Status == TaskProgress.CancellationRequested;
+    var ready = OverduePlan.Ready(Model.Task, Model.Agreement, Model.Events, Model.FreelancerId, Model.Now);
+    var actor = Model.IsClient ? Model.Task.ClientId : Model.FreelancerId;
+    <section class="job-flow-card job-flow-attention" id="overdue-plan-@Model.Task.Id" data-plan-panel>
+        <div class="work-section-heading"><h3 data-i18n>Review overdue schedule</h3><span class="work-status" data-status="@(ready ? "Both confirmed" : "Needs confirmation")">@(ready ? "Both confirmed" : "Schedule needs attention")</span></div>
+        <p class="work-help" data-i18n>@(expired ? "The expected finish has passed. Request a future schedule before travelling." : "Confirm the current plan together before travelling, or request a new schedule.")</p>
+        @if (!expired && !cancellationPending && Model.Agreement?.Confirmed == true) {
+            <div class="work-confirmations">
+                <div data-confirmed="@OverduePlan.Confirmed(Model.Events, Model.Agreement, Model.Task.ClientId, Model.Now).ToString().ToLowerInvariant()"><strong data-i18n>Client</strong><span data-i18n>@(OverduePlan.Confirmed(Model.Events, Model.Agreement, Model.Task.ClientId, Model.Now) ? "Confirmed" : "Waiting for confirmation")</span></div>
+                <div data-confirmed="@OverduePlan.Confirmed(Model.Events, Model.Agreement, Model.FreelancerId, Model.Now).ToString().ToLowerInvariant()"><strong data-i18n>Freelancer</strong><span data-i18n>@(OverduePlan.Confirmed(Model.Events, Model.Agreement, Model.FreelancerId, Model.Now) ? "Confirmed" : "Waiting for confirmation")</span></div>
+            </div>
+            @if (!OverduePlan.Confirmed(Model.Events, Model.Agreement, actor, Model.Now)) {
+                <form method="post" asp-page="/Tracking" asp-page-handler="Plan"><input name="id" type="hidden" value="@Model.Task.Id" /><input name="version" type="hidden" value="@Model.Agreement.Version" /><button class="work-button" type="submit" data-i18n>Confirm current travel plan</button></form>
+            }
+            <p class="work-help" data-i18n>Plan confirmations last 2 hours and never extend the agreed finish time.</p>
+        }
+        <div class="work-primary-actions"><a class="work-button work-button-secondary" href="#work-details-@Model.Task.Id" data-i18n>Request new schedule</a><a class="work-button work-button-secondary" href="/Messages?taskId=@Model.Task.Id" data-i18n>Message</a><a class="work-text-action" href="/Reports?taskId=@Model.Task.Id" data-i18n>Report a problem</a></div>
+        <p class="work-help" data-i18n>No automatic cancellation or completion applies.</p>
+    </section>
+}

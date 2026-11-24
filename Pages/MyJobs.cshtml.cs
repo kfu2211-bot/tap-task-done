@@ -14,6 +14,7 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
     public record BookingItem(MarketplaceBooking Booking, MarketplaceTask Task, string ClientName);
     public List<JobItem> Jobs { get; private set; } = [];
     public List<BookingItem> Bookings { get; private set; } = [];
+    public Dictionary<long, OfferPriceChange> OfferChanges { get; private set; } = [];
     public bool Unavailable { get; private set; }
     public bool WorkLocked { get; private set; }
     [TempData] public string? Notice { get; set; }
@@ -22,7 +23,7 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
         if (UserId == 0) return Challenge();
-        if (Request.Query["legacy"] == "1") return Page();
+        if (Request.Query["legacy"] == "1") return LocalRedirect(WorkspaceNavigation.WithoutLegacy(Request));
         try
         {
             WorkLocked = await JobAcceptanceRules.IsLockedAsync(db, UserId, ct);
@@ -38,6 +39,7 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
                               where booking.FreelancerId == UserId
                               orderby booking.Id descending
                               select new BookingItem(booking, task, ((client.FirstName ?? "") + " " + (client.LastName ?? "")).Trim())).ToListAsync(ct);
+            OfferChanges = await OfferPriceHistory.LoadAsync(db, Jobs.Select(j => j.Offer), ct);
         }
         catch (Exception ex) when (ex is MySqlConnector.MySqlException or InvalidOperationException)
         {
@@ -75,7 +77,9 @@ public class MyJobsModel(ApplicationDbContext db, ILogger<MyJobsModel> logger) :
         if (action == "withdraw") { offer.Status = "withdrawn"; offer.WithdrawalReason = "Withdrawn before acceptance."; }
         else {
             if (taskRevision != TaskAcceptanceTerms.Revision(task, 0)) return Back("Task details changed. Reload and review the latest schedule before sending an offer.");
+            var previousPrice = offer.Price;
             offer.Price = price; offer.Message = message;
+            if (previousPrice != price) db.Add(OfferPriceHistory.Record(offer, previousPrice));
             db.Add(TaskAcceptanceTerms.Snapshot(task, price, UserId));
         }
         db.MarketplaceNotifications.Add(MarketplaceNotification.Create(task.ClientId, task.Id, "offer", action == "withdraw" ? "The freelancer withdrew a pending offer." : "The freelancer updated an offer. Review the latest price before accepting."));

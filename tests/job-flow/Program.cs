@@ -109,6 +109,80 @@ Check(!TaskTracking.FullHistory(historyTask,new MarketplaceOffer {FreelancerId=3
 historyTask.Status="cancelled"; Check(TaskTracking.FullHistory(historyTask,historyOffer,20), "Accepted cancelled work keeps its consolidated history");
 historyTask.Status="expired"; Check(!TaskTracking.FullHistory(historyTask,historyOffer,10), "Unassigned expired records retain their separate closed-post history");
 
+
+// A–F recovery boundaries. No live database writes.
+var reviewRequest = new TaskProgressEvent { Status=TaskProgress.CancellationRequested, ActorId=10 };
+Check(JobCancellation.CanRespond(20,10,20,reviewRequest) && !JobCancellation.CanRespond(10,10,20,reviewRequest), "Only the counterpart can approve a client cancellation request");
+reviewRequest.ActorId=20;
+Check(JobCancellation.CanRespond(10,10,20,reviewRequest) && !JobCancellation.CanRespond(20,10,20,reviewRequest), "Freelancer requests use the same bilateral decision rule");
+Check(!JobCancellation.CanRespond(30,10,20,reviewRequest) && !JobCancellation.CanRespond(0,10,20,reviewRequest), "Unrelated and anonymous actors cannot decide cancellation");
+Check(!JobCancellation.NeedsReview("assigned") && JobCancellation.NeedsReview("on-the-way") && JobCancellation.NeedsReview("in-progress"), "Cancellation becomes bilateral once travel starts");
+var flowNow = new DateTime(2026,11,24,4,0,0,DateTimeKind.Utc);
+var lateJob = new MarketplaceTask { Id=501, ClientId=10, Status="assigned", JobType="long", ScheduleText="2026-11-24T11:00", WorkEndUtc=flowNow.AddHours(4) };
+var lateAgreement = new WorkAgreement { TaskId=501, Version=3, ClientConfirmedAtUtc=flowNow.AddHours(-2), FreelancerConfirmedAtUtc=flowNow.AddHours(-2) };
+var confirmations = new List<TaskProgressEvent>();
+Check(OverduePlan.Required(lateJob,flowNow) && !OverduePlan.Ready(lateJob,lateAgreement,confirmations,20,flowNow), "An hour-late job cannot travel without a jointly renewed plan");
+confirmations.Add(new() { TaskId=501, Status=OverduePlan.Event, ActorId=10, Note="3", CreatedAtUtc=flowNow });
+Check(!OverduePlan.Ready(lateJob,lateAgreement,confirmations,20,flowNow), "One overdue confirmation never impersonates both participants");
+confirmations.Add(new() { TaskId=501, Status=OverduePlan.Event, ActorId=20, Note="3", CreatedAtUtc=flowNow });
+Check(OverduePlan.Ready(lateJob,lateAgreement,confirmations,20,flowNow), "Both participants can continue an overdue job within its remaining work period");
+Check(!OverduePlan.Ready(lateJob,lateAgreement,confirmations,20,flowNow.AddHours(2).AddSeconds(1)), "Overdue confirmations expire after two hours");
+lateAgreement.Version=4;
+Check(!OverduePlan.Ready(lateJob,lateAgreement,confirmations,20,flowNow), "A revised agreement invalidates old travel-plan confirmations");
+lateAgreement.Version=3; lateJob.WorkEndUtc=flowNow;
+Check(OverduePlan.Expired(lateJob,flowNow) && !OverduePlan.Ready(lateJob,lateAgreement,confirmations,20,flowNow), "An expired expected finish requires rescheduling even when both had confirmed");
+lateJob.WorkEndUtc=flowNow.AddHours(4);
+Check(!OverduePlan.Required(lateJob,flowNow.AddMinutes(-31)), "The overdue recovery gate does not add confirmation to an on-time job");
+Check(!OverduePlan.Confirmed(confirmations,lateAgreement,30,flowNow) && !OverduePlan.Confirmed(confirmations,lateAgreement,0,flowNow), "Travel confirmation is actor scoped");
+var waitingJob = new MarketplaceTask { Id=501, Status="awaiting-confirmation", JobType="long" };
+var reviewEvents = new List<TaskProgressEvent> { new() { Id=1,Status="awaiting-confirmation",CreatedAtUtc=flowNow.AddHours(-24) } };
+Check(CompletionFollowUp.Due(waitingJob,reviewEvents,flowNow) && !CompletionFollowUp.Due(waitingJob,reviewEvents,flowNow.AddSeconds(-1)), "Completion review opens at the 24-hour boundary");
+reviewEvents.Add(new() { Id=2,Status=CompletionFollowUp.Requested,CreatedAtUtc=flowNow });
+Check(CompletionFollowUp.Pending(reviewEvents), "A requested completion review stays pending without changing job status");
+reviewEvents.Add(new() { Id=3,Status=CompletionFollowUp.KeptPending,CreatedAtUtc=flowNow });
+Check(!CompletionFollowUp.Pending(reviewEvents) && !CompletionFollowUp.Due(waitingJob,reviewEvents,flowNow), "An admin keep-pending decision closes the request and starts a fresh follow-up wait");
+Check(CompletionFollowUp.Due(waitingJob,reviewEvents,flowNow.AddHours(24)), "Another review can be requested after the reviewed follow-up period");
+waitingJob.Status="completed";
+Check(!CompletionFollowUp.Due(waitingJob,reviewEvents,flowNow.AddDays(3)), "Completed jobs never accept follow-up escalation");
+var multiProject = new MarketplaceTask { JobType="multi-day", Status="in-progress" };
+Check(JobDailyUpdate.Allowed(multiProject,20,20,"Day one complete"), "The assigned freelancer can add an optional daily note during multi-day work");
+Check(!JobDailyUpdate.Allowed(multiProject,10,20,"Client note") && !JobDailyUpdate.Allowed(multiProject,0,20,"Note"), "Other actors cannot add freelancer progress notes");
+Check(!JobDailyUpdate.Allowed(multiProject,20,20," ") && !JobDailyUpdate.Allowed(multiProject,20,20,new string('x',1001)), "Progress update length is bounded");
+multiProject.Status="awaiting-confirmation";
+Check(!JobDailyUpdate.Allowed(multiProject,20,20,"More work"), "Daily notes cannot mutate submitted or completed work");
+multiProject.Status="in-progress";multiProject.JobType="short";
+Check(!JobDailyUpdate.Allowed(multiProject,20,20,"Note"), "Short jobs do not get multi-day attendance controls");
+var changedOffer = new MarketplaceOffer { Id=99,TaskId=501,FreelancerId=20,Price=650 };
+var priceEvent = OfferPriceHistory.Record(changedOffer,700);
+Check(OfferPriceHistory.Parse(priceEvent.Note) is { OfferId:99,Previous:700,Current:650 }, "Offer revisions preserve exact previous and current prices");
+Check(OfferPriceHistory.Parse("not-json") is null && OfferPriceHistory.Parse("{}") is null, "Malformed historical offer records fail closed");
+Check(TaskProgress.ValidCompletion(null,false), "Optional daily notes never become a requirement to finish the whole project");
+
+var evidenceRevision = CompletionFollowUp.Revision(waitingJob,reviewEvents);
+reviewEvents[0].Note="Changed completion note";
+Check(CompletionFollowUp.Revision(waitingJob,reviewEvents)!=evidenceRevision, "Editing completion evidence invalidates the admin review token");
+evidenceRevision = CompletionFollowUp.Revision(waitingJob,reviewEvents);
+reviewEvents.Add(new() { Id=100,Status=CompletionFollowUp.Response,Note="Client explanation",CreatedAtUtc=flowNow });
+Check(CompletionFollowUp.Revision(waitingJob,reviewEvents)!=evidenceRevision, "A new participant response invalidates a stale admin decision");
+
+Check(WorkspaceNavigation.SafeReturn("/MyJobs?view=completed#job-42")=="/MyJobs?view=completed#job-42", "Profile return paths preserve workspace filters and anchors");
+foreach(var unsafeReturn in new[] { "https://evil.test", "//evil.test", "/Logout", "/ReviewProfile?id=1", "/FindPost\\evil", "/FindPost%2f..%2fLogout", "/FindPost\r\nLocation: evil" })
+    Check(WorkspaceNavigation.SafeReturn(unsafeReturn) is null, "Unsafe or unrelated profile return destination is rejected");
+var navContext=new Microsoft.AspNetCore.Http.DefaultHttpContext(); navContext.Request.Scheme="https";navContext.Request.Host=new Microsoft.AspNetCore.Http.HostString("example.test");
+navContext.Request.Headers.Referer="https://example.test/Reviews?view=given";
+Check(WorkspaceNavigation.ProfileBack(navContext.Request,null)=="/Reviews?view=given", "Profile can recover a same-origin referrer when no explicit return link was supplied");
+navContext.Request.Headers.Referer="https://evil.test/Reviews";
+Check(WorkspaceNavigation.ProfileBack(navContext.Request,null)=="/Dashboard", "External referrers use a safe workspace fallback");
+navContext.Request.Path="/Tracking";navContext.Request.QueryString=new Microsoft.AspNetCore.Http.QueryString("?legacy=1&taskId=42");
+Check(WorkspaceNavigation.WithoutLegacy(navContext.Request)=="/Tracking?taskId=42", "Retired prototype links retain the selected task on the current screen");
+var canonicalTask=new MarketplaceTask {ClientId=10,Status="in-progress"};var canonicalOffer=new MarketplaceOffer {FreelancerId=20,Status="accepted"};
+Check(TaskTracking.CanOpenWorkspace(canonicalTask,canonicalOffer,10)&&TaskTracking.CanOpenWorkspace(canonicalTask,canonicalOffer,20), "Owner and assigned worker use one canonical active workspace");
+Check(!TaskTracking.CanOpenWorkspace(canonicalTask,canonicalOffer,30), "A different bidder cannot enter the assigned workspace");
+canonicalOffer.Status="declined";
+Check(!TaskTracking.CanOpenWorkspace(canonicalTask,canonicalOffer,20), "A declined conversation stays a limited preview");
+Check(!TaskTracking.HasWorkspace("moderated")&&!TaskTracking.HasWorkspace("expired"), "Closed unassigned posts do not link into an unavailable tracking screen");
+Check(JobTypes.Help("short").Contains("only one job")&&JobTypes.Help("long").Contains("Once travel starts")&&JobTypes.Help("multi-day").Contains("full period"), "Job descriptions explain the actual availability rules without changing duration validation");
+
 var trackingTasks = new[] {
     new MarketplaceTask { Id = 1, Status = "assigned" },
     new MarketplaceTask { Id = 2, Status = "awaiting-confirmation" },

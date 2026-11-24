@@ -2,7 +2,7 @@ namespace tts.Data;
 
 public sealed class MarketplaceNotification
 {
-    public static readonly string[] TaskKinds = new[] { "schedule_updated", "schedule_24h", "schedule_1h", "schedule_overdue", "cancellation", "cancellation_followup", "offer", "accepted", "booking_request", "booking_declined", "booking_accepted", "cancelled", "withdrawn", "agreement", "completion_reminder", "task_expired", "assigned", "on-the-way", "arrived", "in-progress", "awaiting-confirmation", "started", "finished", "completed" };
+    public static readonly string[] TaskKinds = new[] { "completion_review", "schedule_updated", "schedule_24h", "schedule_1h", "schedule_overdue", "cancellation", "cancellation_followup", "offer", "accepted", "booking_request", "booking_declined", "booking_accepted", "cancelled", "withdrawn", "agreement", "completion_reminder", "task_expired", "assigned", "on-the-way", "arrived", "in-progress", "awaiting-confirmation", "started", "finished", "completed" };
 
     public long Id { get; set; }
     public int UserId { get; set; }

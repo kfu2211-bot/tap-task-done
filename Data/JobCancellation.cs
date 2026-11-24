@@ -9,6 +9,12 @@ public static class JobCancellation
     public static bool FollowUpDue(TaskProgressEvent? request, DateTime now) =>
         request?.Status == TaskProgress.CancellationRequested && now >= request.CreatedAtUtc.AddHours(24);
     public static bool CanRequest(string status) => status is "assigned" or "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation";
+    public static bool NeedsReview(string status) => status is "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation";
+    public static bool CanRespond(int actor, int client, int freelancer, TaskProgressEvent? request) =>
+        actor > 0 && (actor == client || actor == freelancer) && request?.Status == TaskProgress.CancellationRequested && actor != request.ActorId;
+    public static async Task<bool> PendingAsync(ApplicationDbContext db, long id, CancellationToken ct) =>
+        await db.Set<TaskProgressEvent>().Where(e => e.TaskId == id && (e.Status == TaskProgress.CancellationRequested || e.Status == TaskProgress.CancellationDeclined))
+            .OrderByDescending(e => e.Id).Select(e => e.Status).FirstOrDefaultAsync(ct) == TaskProgress.CancellationRequested;
 
     public static async Task<TaskProgress.Result> DecideAsync(ApplicationDbContext db, int actor, long id,
         string decision, string? reason, CancellationToken ct)
@@ -45,15 +51,15 @@ public static class JobCancellation
         if (decision == "request")
         {
             reason = reason?.Trim();
-            if (actor != freelancer || pending || string.IsNullOrWhiteSpace(reason) || reason.Length > 500)
+            if ((actor != freelancer && actor != task.ClientId) || pending || string.IsNullOrWhiteSpace(reason) || reason.Length > 500)
                 return new(false, "Enter a cancellation reason up to 500 characters. Only one request can be pending.");
             db.Add(new TaskProgressEvent { TaskId = id, ActorId = actor, Status = TaskProgress.CancellationRequested,
                 Note = reason, CreatedAtUtc = DateTime.UtcNow });
-            db.Add(MarketplaceNotification.Create(task.ClientId, id, "cancellation", "The freelancer requested cancellation. Review the reason in Tracking."));
+            db.Add(MarketplaceNotification.Create(actor == task.ClientId ? freelancer.Value : task.ClientId, id, "cancellation", "Your counterpart requested cancellation. Review the reason in Tracking."));
         }
         else
         {
-            if (actor != task.ClientId || !pending) return new(false, "This cancellation request is no longer pending.");
+            if (!CanRespond(actor, task.ClientId, freelancer.Value, latest)) return new(false, "Only the other participant can respond to this cancellation request.");
             if (decision == "accept")
             {
                 task.Status = "cancelled";
@@ -64,12 +70,12 @@ public static class JobCancellation
             db.Add(new TaskProgressEvent { TaskId = id, ActorId = actor,
                 Status = decision == "accept" ? "cancelled" : TaskProgress.CancellationDeclined,
                 Note = latest!.Note, CreatedAtUtc = DateTime.UtcNow });
-            db.Add(MarketplaceNotification.Create(freelancer.Value, id, "cancellation",
-                decision == "accept" ? "The client approved cancellation of this job." : "The client declined cancellation. Discuss the next steps in Messages."));
+            db.Add(MarketplaceNotification.Create(latest!.ActorId, id, "cancellation",
+                decision == "accept" ? "Your counterpart approved cancellation of this job." : "Your counterpart declined cancellation. Discuss the next steps in Messages."));
         }
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
-        return new(true, decision == "request" ? "Cancellation request sent to the client."
+        return new(true, decision == "request" ? "Cancellation request sent to the other participant."
             : decision == "accept" ? "Job cancelled." : "Cancellation declined.");
     }
 

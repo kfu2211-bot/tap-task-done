@@ -33,7 +33,7 @@ public class MessagesModel(ApplicationDbContext db, ILogger<MessagesModel> logge
     {
         Response.Headers.CacheControl = "no-store";
         if (UserId <= 0) return Challenge();
-        if (Request.Query["legacy"] == "1") return Page();
+        if (Request.Query["legacy"] == "1") return LocalRedirect(WorkspaceNavigation.WithoutLegacy(Request));
         try
         {
             var rows = await (from c in ConversationAccess.VisibleTo(db, UserId).AsNoTracking()

@@ -1,0 +1,27 @@
+@model tts.Data.JobFlowView
+@using tts.Data
+@if (JobCancellation.CanRequest(Model.Task.Status)) {
+    var request = Model.Events.LastOrDefault(e => e.Status is TaskProgress.CancellationRequested or TaskProgress.CancellationDeclined);
+    var actor = Model.IsClient ? Model.Task.ClientId : Model.FreelancerId;
+    <section id="job-cancellation-@Model.Task.Id" class="job-flow-cancellation">
+    @if (request?.Status == TaskProgress.CancellationRequested) {
+        <div class="job-flow-card job-flow-attention"><div class="work-section-heading"><h3 data-i18n>Cancellation requested</h3><span class="work-status" data-status="pending" data-i18n>Review needed</span></div>
+            <p><strong data-i18n>Requested by</strong>: <span data-i18n>@(request.ActorId == Model.Task.ClientId ? "Client" : "Freelancer")</span></p><p class="job-flow-user-note" translate="no">@request.Note</p>
+            <p class="work-help" data-i18n>Discuss completed work and payment before deciding. Progress is paused while this request is pending.</p>
+            @if (JobCancellation.CanRespond(actor, Model.Task.ClientId, Model.FreelancerId, request)) {
+                <form method="post" asp-page="/Tracking" asp-page-handler="Cancellation" class="work-primary-actions"><input name="id" type="hidden" value="@Model.Task.Id" /><button class="work-button" name="decision" value="accept" type="submit" data-i18n>Approve cancellation</button><button class="work-button work-button-secondary" name="decision" value="decline" type="submit" data-i18n>Keep job active</button></form>
+            } else { <p class="work-help" data-i18n>Waiting for the other participant's decision.</p> }
+            @if (Model.Events.Any(e => e.Status == JobCancellation.Escalated && e.Id > request.Id)) { <p class="work-help" data-i18n>This cancellation is already with the admin for review.</p> }
+            else if (JobCancellation.FollowUpDue(request, Model.Now)) { <form method="post" asp-page="/Tracking" asp-page-handler="Cancellation"><input name="id" type="hidden" value="@Model.Task.Id" /><button class="work-button work-button-secondary" type="submit" name="decision" value="escalate" data-i18n>Request admin review</button></form> }
+            else { <p class="work-help" data-i18n>Admin follow-up becomes available after 24 hours without a decision.</p> }
+            <a class="work-text-action" href="/Messages?taskId=@Model.Task.Id" data-i18n>Message</a>
+        </div>
+    } else {
+        var direct = Model.IsClient && Model.Task.Status == "assigned";
+        <details class="work-editor work-cancellation-editor"><summary data-i18n>@(direct ? "Cancel before travel starts" : "Request cancellation")</summary>
+            <p class="work-help" data-i18n>@(direct ? "Before travel starts, you can cancel with a reason. Both participants keep the history." : "Once travel or work starts, the other participant reviews your cancellation request.")</p>
+            <form method="post" asp-page="@(direct ? "/MarketTasks" : "/Tracking")" asp-page-handler="@(direct ? "Cancel" : "Cancellation")"><input name="id" value="@Model.Task.Id" type="hidden" /><input name="decision" value="request" type="hidden" /><label><span data-i18n>Reason</span><textarea name="reason" rows="3" maxlength="500" required></textarea></label><button class="work-button work-button-secondary" type="submit" data-i18n>@(direct ? "Confirm cancellation" : "Send cancellation request")</button></form>
+        </details>
+    }
+    </section>
+}

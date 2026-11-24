@@ -21,14 +21,15 @@
     <a class="task-detail-action" asp-page="/Messages" asp-route-conversationId="@Model.ConversationId" asp-route-taskId="@task.Id" data-i18n>← Back to conversation</a>
     <article class="task-detail-card">
         <div class="card-body">
-            <p class="small mb-2">Task #@task.Id <span class="task-detail-status" data-status="@task.Status">@tts.Data.TaskProgress.Label(task.Status)</span></p>
+            <p class="small mb-2"><span data-i18n>Task preview</span> · #@task.Id <span class="task-detail-status" data-status="@task.Status">@tts.Data.TaskSchedule.DisplayStatus(task, DateTime.UtcNow)</span></p>
+            <p class="work-help" data-i18n>Read-only preview from this conversation. Work actions and progression are kept in Tracking.</p>
             <h1 class="h3">@task.Title</h1>
             <p style="white-space: pre-wrap; overflow-wrap: anywhere">@task.Description</p>
             <dl class="row">
                 <dt class="col-sm-3" data-i18n>Category</dt><dd class="col-sm-9">@task.Category</dd>
                 <dt class="col-sm-3" data-i18n>Job type</dt><dd class="col-sm-9">@task.JobTypeDisplay</dd>
                 @if (task.WorkEndUtc.HasValue) { <dt class="col-sm-3" data-i18n>Expected finish</dt><dd class="col-sm-9">@task.WorkEndUtc.Value.AddHours(8).ToString("MMM d, yyyy h:mm tt") PHT</dd> }
-                <dt class="col-sm-3" data-i18n>Budget</dt><dd class="col-sm-9">@task.BudgetDisplay</dd>
+                <dt class="col-sm-3" data-i18n>@(Model.AgreedPrice.HasValue ? "Agreed price" : "Budget")</dt><dd class="col-sm-9">@(Model.AgreedPrice.HasValue ? $"₱{Model.AgreedPrice.Value:N2}" : task.BudgetDisplay)</dd>
                 @if (!string.IsNullOrWhiteSpace(task.ScheduleText))
                 {
                     <dt class="col-sm-3" data-i18n>Preferred schedule</dt><dd class="col-sm-9">@tts.Data.TaskSchedule.Display(task.ScheduleText)</dd>
@@ -38,11 +39,13 @@
                     <dt class="col-sm-3" data-i18n>Location</dt><dd class="col-sm-9">@task.Location</dd>
                 }
             </dl>
-            @if (Model.IsAssigned)
+            <p class="job-type-explanation" data-i18n>@tts.Data.JobTypes.Help(task.JobType)</p>
+            @if (Model.CanOpenTracking)
             {
-                <a class="task-detail-action task-detail-progress" asp-page="@(tts.Data.JobActivity.IsClosedTask(task.Status) || task.Status == "completed" ? "/JobRecord" : "/Tracking")" asp-route-taskId="@task.Id">@(tts.Data.JobActivity.IsClosedTask(task.Status) || task.Status == "completed" ? "View record" : "View progress")</a>
+                <a class="task-detail-action task-detail-progress" asp-page="/Tracking" asp-route-taskId="@task.Id" data-i18n>@(tts.Data.JobActivity.IsClosedTask(task.Status) || task.Status == "completed" ? "Task history" : "View progress")</a>
             }
-            else { <a class="task-detail-action" asp-page="/JobRecord" asp-route-taskId="@task.Id" data-i18n>View record</a> }
+            else if (tts.Data.JobActivity.IsClosedTask(task.Status) || task.Status == "completed") { <a class="task-detail-action" asp-page="/JobRecord" asp-route-taskId="@task.Id" data-i18n>Task history</a> }
+            else if (Model.IsOwner) { <a class="task-detail-action" href="/MarketTasks?view=mine#task-@task.Id" data-i18n>Manage task</a> }
         </div>
     </article>
 </main>

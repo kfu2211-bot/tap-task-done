@@ -1,0 +1,28 @@
+@model tts.Data.JobFlowView
+@using tts.Data
+@if (Model.Task.Status == "awaiting-confirmation") {
+    var finished = Model.Events.LastOrDefault(e => e.Status == "awaiting-confirmation");
+    var reminder = Model.Events.LastOrDefault(e => e.Status == "completion-client-reminded");
+    var available = CompletionFollowUp.AvailableAt(Model.Events);
+    var pending = CompletionFollowUp.Pending(Model.Events);
+    var kept = Model.Events.LastOrDefault(e => e.Status == CompletionFollowUp.KeptPending);
+    <section class="job-flow-card" id="completion-review-@Model.Task.Id">
+        <div class="work-section-heading"><h3 data-i18n>Completion follow-up</h3><span class="work-status" data-status="pending" data-i18n>@(pending ? "Admin review pending" : "Client response pending")</span></div>
+        <ol class="job-flow-log">
+            @if (finished is not null) { <li><strong data-i18n>Work submitted</strong><time>@DisplayTime.Philippine(finished.CreatedAtUtc) PHT</time></li> }
+            @if (reminder is not null) { <li><strong data-i18n>Client reminded</strong><time>@DisplayTime.Philippine(reminder.CreatedAtUtc) PHT</time></li> }
+            @if (available.HasValue) { <li><strong data-i18n>Admin review available from</strong><time>@DisplayTime.Philippine(available.Value) PHT</time></li> }
+        </ol>
+        @if (kept is not null) { <div class="job-flow-decision"><strong data-i18n>Admin next steps</strong><p translate="no">@kept.Note</p></div> }
+        @if (pending) {
+            <p class="work-help" data-i18n>Completion review is already with the admin.</p>
+            @if (!Model.IsClient) { <a class="work-button work-button-secondary" href="/Reports?taskId=@Model.Task.Id" data-i18n>View report updates</a> }
+            <ol class="job-flow-log">@foreach (var response in Model.Events.Where(e => e.Status == CompletionFollowUp.Response)) { <li><strong data-i18n>@(response.ActorId == Model.Task.ClientId ? "Client response" : "Freelancer response")</strong><time>@DisplayTime.Philippine(response.CreatedAtUtc) PHT</time><p translate="no">@response.Note</p></li> }</ol>
+            <details class="work-editor"><summary data-i18n>Add a review response</summary><form method="post" asp-page="/Tracking" asp-page-handler="ReviewResponse" class="work-form"><input name="id" value="@Model.Task.Id" type="hidden" /><label><span data-i18n>Response visible to both participants and admin</span><textarea name="note" rows="3" required maxlength="1000"></textarea></label><button type="submit" class="work-button work-button-secondary" data-i18n>Send review response</button></form></details>
+        }
+        else if (!Model.IsClient && finished is not null && CompletionFollowUp.Due(Model.Task, Model.Events, Model.Now)) {
+            <form method="post" asp-page="/Tracking" asp-page-handler="CompletionReview"><input name="id" value="@Model.Task.Id" type="hidden" /><input name="submissionId" value="@finished.Id" type="hidden" /><button type="submit" class="work-button" data-i18n>Request admin review</button></form>
+        } else if (!Model.IsClient) { <p class="work-help" data-i18n>You can request admin review after 24 hours without completion confirmation.</p> }
+        <p class="work-help" data-i18n>No automatic completion applies. Long and Multi-Day work stays locked until client confirmation or a reviewed resolution.</p>
+    </section>
+}

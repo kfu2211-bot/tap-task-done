@@ -1,0 +1,15 @@
+@model tts.Pages.AdminReportsModel
+@using tts.Data
+@if (Model.WorkReviewTask is { } task) {
+    <section class="job-flow-card"><h3 data-i18n>Work record for review</h3><h4 translate="no">@task.Title</h4>
+    <dl class="job-flow-facts"><div><dt data-i18n>Current status</dt><dd>@TaskProgress.Label(task.Status)</dd></div><div><dt data-i18n>Agreed price</dt><dd>₱@(Model.WorkReviewAgreedPrice?.ToString("N2") ?? task.Budget.ToString("N2"))</dd></div><div><dt data-i18n>Schedule</dt><dd>@TaskSchedule.Display(task.ScheduleText)</dd></div></dl>
+    <p class="job-flow-user-note" translate="no">@(Model.WorkReviewAgreement?.Scope ?? task.Description)</p>
+    <details class="work-editor"><summary data-i18n>Progression and participant responses</summary><ol class="job-flow-log">@foreach (var entry in Model.WorkReviewEvents) {
+        <li><strong data-i18n>@TaskProgress.Label(entry.Status)</strong><time>@DisplayTime.Philippine(entry.CreatedAtUtc) PHT</time><small translate="no">@Model.WorkReviewActors.GetValueOrDefault(entry.ActorId, "Account unavailable") · #@entry.ActorId</small>
+        @if (entry.Status == OverduePlan.Event) { <p><span data-i18n>Agreement version</span> @entry.Note</p> }
+        else if (entry.Status == CompletionFollowUp.Requested) { <p><span data-i18n>Report</span> #@entry.Note</p> }
+        else if (!string.IsNullOrWhiteSpace(entry.Note)) { <p translate="no">@entry.Note</p> }
+        @if (entry.PhotoType is not null) { <a class="work-text-action" href="/AdminReports?handler=CompletionProof&amp;reportId=@Model.RecordId&amp;eventId=@entry.Id" target="_blank" rel="noopener" data-i18n>View completion proof</a> }
+        </li>
+    }</ol></details></section>
+}

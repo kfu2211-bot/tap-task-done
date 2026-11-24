@@ -18,6 +18,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
     public Dictionary<long, long> SourceTasks { get; private set; } = [];
     public List<TaskItem> OpenTasks { get; private set; } = [];
     public List<OfferItem> Offers { get; private set; } = [];
+    public Dictionary<long, OfferPriceChange> OfferChanges { get; private set; } = [];
     public Dictionary<long, string> OfferTaskTitles { get; private set; } = [];
     public List<BookingItem> Bookings { get; private set; } = [];
     public Dictionary<long, MarketplaceReview> Reviews { get; private set; } = [];
@@ -129,6 +130,7 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             where t.ClientId == UserId || o.FreelancerId == UserId
             select new OfferItem(o, ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(), p.Service)).ToListAsync(ct);
         var offerTaskIds = Offers.Select(o => o.Offer.TaskId).Distinct().ToList();
+        OfferChanges = await OfferPriceHistory.LoadAsync(db, Offers.Select(o => o.Offer), ct);
         OfferTaskTitles = await db.MarketplaceTasks.AsNoTracking().Where(t => offerTaskIds.Contains(t.Id)).ToDictionaryAsync(t => t.Id, t => t.Title, ct);
         Bookings = await (from b in db.MarketplaceBookings.AsNoTracking()
             join t in db.MarketplaceTasks.AsNoTracking() on b.TaskId equals t.Id
@@ -295,12 +297,15 @@ public sealed class MarketTasksModel(ApplicationDbContext db, IWebHostEnvironmen
             (t.Status == "pending-confirmation" || t.Status == "booking-pending" || t.Status == "open" && !t.IsPrivate || t.Status == "assigned" || t.Status == "on-the-way" || t.Status == "arrived" || t.Status == "in-progress" || t.Status == "awaiting-confirmation"), ct);
         if (task is null)
         { Notice = "This task cannot be cancelled. It may already be completed or cancelled."; return RedirectToPage(new { view = "mine" }); }
+        if (JobCancellation.NeedsReview(task.Status))
+        { Notice = "Travel or work has started. Request cancellation in Tracking so the other participant can review it."; return RedirectToPage("/Tracking", new { taskId = id }); }
         var recipients = await db.MarketplaceOffers.Where(o => o.TaskId == id && (o.Status == "pending" || o.Status == "accepted"))
             .Select(o => o.FreelancerId).Union(db.MarketplaceBookings.Where(b => b.TaskId == id && b.Status == "pending").Select(b => b.FreelancerId)).Distinct().ToListAsync(ct);
         task.Status = "cancelled";
         task.CancellationReason = reason;
         await db.MarketplaceOffers.Where(o => o.TaskId == id && o.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, "cancelled"), ct);
-        await db.MarketplaceBookings.Where(b => b.TaskId == id && b.Status == "pending").ExecuteUpdateAsync(s => s.SetProperty(b => b.Status, "cancelled"), ct);
+        await db.MarketplaceBookings.Where(b => b.TaskId == id && (b.Status == "pending" || b.Status == "accepted")).ExecuteUpdateAsync(s => s.SetProperty(b => b.Status, "cancelled"), ct);
+        db.Add(new TaskProgressEvent { TaskId = id, ActorId = UserId, Status = "cancelled", Note = reason, CreatedAtUtc = DateTime.UtcNow });
         foreach (var recipient in recipients)
             db.MarketplaceNotifications.Add(MarketplaceNotification.Create(recipient, id, "cancelled", "The client cancelled a task. Open My Jobs to see the reason."));
         await db.SaveChangesAsync(ct);

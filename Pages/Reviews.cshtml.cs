@@ -20,15 +20,14 @@ public class ReviewsModel(ApplicationDbContext db) : PageModel
  public string? FocusTaskTitle { get; private set; }
  public bool FocusIsClient { get; private set; }
  public bool CanRate { get; private set; }
- public bool Legacy { get; private set; }
  public bool Unavailable { get; private set; }
  [TempData] public string? Notice { get; set; }
  public async Task<IActionResult> OnGetAsync(string? view, int? legacy, CancellationToken ct, string? asRole = null, long? taskId = null)
  {
   if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) || userId <= 0) return Challenge();
-  View = view == "given" ? "given" : "received"; Legacy = legacy == 1;
+  View = view == "given" ? "given" : "received";
   Response.Headers.CacheControl = "no-store";
-  if (Legacy) return Page();
+  if (legacy == 1) return LocalRedirect(WorkspaceNavigation.WithoutLegacy(Request));
   try {
    if (!await db.Users.AnyAsync(u => u.Id == userId, ct)) return Challenge();
    var workRole = await db.FreelancerProfiles.AsNoTracking().Where(p=>p.UserId == userId).Select(p=>p.WorkRole).SingleOrDefaultAsync(ct) ?? "client";

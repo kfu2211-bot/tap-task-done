@@ -14,6 +14,8 @@ public class TaskDetailsModel(ApplicationDbContext db) : PageModel
     public long ConversationId { get; private set; }
     public bool IsOwner { get; private set; }
     public bool IsAssigned { get; private set; }
+    public bool CanOpenTracking { get; private set; }
+    public decimal? AgreedPrice { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(long taskId, long conversationId, CancellationToken ct)
     {
@@ -27,6 +29,7 @@ public class TaskDetailsModel(ApplicationDbContext db) : PageModel
             select new
             {
                 Task = task,
+                AcceptedPrice = db.MarketplaceOffers.Where(o => o.TaskId == task.Id && o.Status == "accepted").Select(o => (decimal?)o.Price).FirstOrDefault(),
                 Assigned = db.MarketplaceOffers.Any(offer => offer.TaskId == task.Id &&
                     offer.FreelancerId == conversation.FreelancerId && offer.Status == "accepted")
             }).SingleOrDefaultAsync(ct);
@@ -36,6 +39,8 @@ public class TaskDetailsModel(ApplicationDbContext db) : PageModel
         ConversationId = conversationId;
         IsOwner = Work.ClientId == userId;
         IsAssigned = result.Assigned;
+        CanOpenTracking = result.AcceptedPrice.HasValue && (IsOwner || IsAssigned) && TaskTracking.HasWorkspace(Work.Status);
+        AgreedPrice = IsOwner || IsAssigned ? result.AcceptedPrice : null;
         return Page();
     }
 }

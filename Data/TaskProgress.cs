@@ -18,7 +18,12 @@ public static class TaskProgress
 {
     public static readonly string[] States = ["assigned", "on-the-way", "arrived", "in-progress", "awaiting-confirmation", "completed"];
     public static readonly string[] Labels = ["Booking accepted", "On the way", "Arrived", "Work in progress", "Awaiting client confirmation", "Completed"];
-    public static string Label(string status) => Array.IndexOf(States, status) is var i && i >= 0 ? Labels[i] : status == "pending-confirmation" ? "Needs confirmation" : status == "disputed" ? "Paused" : status == "cancelled" ? "Cancelled" : status == "expired" ? "Expired" : status == "moderated" ? "Removed by admin" : status == JobCancellation.Escalated ? "Cancellation escalated for admin review" : status == "schedule-updated" ? "Schedule updated before acceptance" : status;
+    public static string Label(string status) => Array.IndexOf(States, status) is var i && i >= 0 ? Labels[i] : status == "pending-confirmation" ? "Needs confirmation" : status == "disputed" ? "Paused" : status == "cancelled" ? "Cancelled" : status == "expired" ? "Expired" : status == "moderated" ? "Removed by admin" : status == JobCancellation.Escalated ? "Cancellation escalated for admin review" : status == "schedule-updated" ? "Schedule updated before acceptance" : status switch {
+        OverduePlan.Event => "Overdue travel plan confirmed", JobDailyUpdate.Event => "Daily progress update",
+        CompletionFollowUp.Requested => "Completion review requested", CompletionFollowUp.KeptPending => "Completion kept pending after admin review",
+        CompletionFollowUp.Response => "Participant review response", "completion-client-reminded" => "Client reminded to review completion",
+        "agreement-proposed" => "Updated work details proposed", "agreement-confirmed" => "Work details confirmed",
+        "schedule-changed" => "Schedule change approved by both participants", TaskProgress.CancellationRequested => "Cancellation requested", TaskProgress.CancellationDeclined => "Cancellation declined", _ => status };
     public static (string From, string To) Transition(string? action) => action switch
     {
         "travel" => ("assigned", "on-the-way"), "arrive" or "confirm-arrival" => ("on-the-way", "arrived"),
@@ -97,6 +102,11 @@ public static class TaskProgress
             return new(false, "A recent, accurate location near the task pin is needed. Retry location or ask the client to confirm.");
         if (action == "travel" && !JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc))
             return new(false, "Set a start and expected finish in the work agreement before starting travel.");
+        if (action == "travel" && OverduePlan.Expired(task, DateTime.UtcNow))
+            return new(false, "The expected finish has passed. Both participants must approve a future schedule before travelling.");
+        if (action == "travel" && OverduePlan.Required(task, DateTime.UtcNow) && !OverduePlan.Ready(task, await AgreementRules.LatestAsync(db, id, ct),
+            await db.Set<TaskProgressEvent>().Where(e => e.TaskId == id && e.Status == OverduePlan.Event).ToListAsync(ct), freelancer.Value, DateTime.UtcNow))
+            return new(false, "Confirm the overdue plan with the other participant in Tracking before travelling.");
         if (action == "travel" && !TaskSchedule.TravelOpen(task, DateTime.UtcNow))
             return new(false, "Travel opens 1 hour before the scheduled arrival time.");
         if (action == "travel" && !await db.Set<TaskDestination>().AnyAsync(x => x.TaskId == id, ct))
@@ -112,6 +122,8 @@ public static class TaskProgress
         if (action == "finish" && !ValidCompletion(note, photo is not null))
             return new(false, "Keep the optional completion note under 1,000 characters.");
         task.Status = to;
+        if (action == "confirm") await db.SafetyReports.Where(r => r.TaskId == id && r.Reason == CompletionFollowUp.Reason && (r.Status == "open" || r.Status == "reviewing"))
+            .ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, "resolved"), ct);
         db.Set<TaskProgressEvent>().Add(new TaskProgressEvent { TaskId = id, ActorId = actor, Status = to,
             Note = action == "finish" ? note : null, Photo = action == "finish" ? photo : null,
             PhotoType = action == "finish" ? photoType : null, CreatedAtUtc = DateTime.UtcNow });

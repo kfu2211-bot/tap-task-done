@@ -44,6 +44,7 @@ public sealed class CompletionReminderWorker(IServiceScopeFactory scopes, ILogge
             {
                 db.MarketplaceNotifications.Add(MarketplaceNotification.Create(item.ClientId, item.Id, "completion_reminder",
                     Message(tasks[0].JobType)));
+                db.Add(new TaskProgressEvent { TaskId = item.Id, ActorId = item.ClientId, Status = "completion-client-reminded", CreatedAtUtc = now });
                 await db.SaveChangesAsync(ct);
             }
             await tx.CommitAsync(ct);

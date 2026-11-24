@@ -7,6 +7,11 @@
         TaskProgress.ArrivalRequest => "Client arrival confirmation requested",
         TaskProgress.CancellationRequested => "Cancellation requested",
         TaskProgress.CancellationDeclined => "Cancellation declined",
+        OverduePlan.Event => "Overdue travel plan confirmed",
+        JobDailyUpdate.Event => "Daily progress update",
+        CompletionFollowUp.Requested => "Completion review requested",
+        CompletionFollowUp.KeptPending => "Completion kept pending after admin review",
+        "completion-client-reminded" => "Client reminded to review completion",
         "agreement-proposed" => "Updated work details proposed",
         "agreement-confirmed" => "Work details confirmed",
         "schedule-changed" => "Schedule change approved by both participants",
@@ -23,7 +28,9 @@ else {
             <small>@entry.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm:ss tt") PHT</small>
             <small>Recorded by: @(Model.ActorNames.GetValueOrDefault(entry.ActorId) is { Length: > 0 } actor ? actor : "Account unavailable") · Account #@entry.ActorId</small>
             @if (entry.Status == TaskReuse.EventStatus && long.TryParse(entry.Note, out var originalId)) { <p>Original task #@originalId @if (item.IsClient) { <a href="/JobRecord?taskId=@originalId" data-i18n>View original record</a> }</p> }
-            else if (!string.IsNullOrWhiteSpace(entry.Note)) { <p style="white-space:pre-wrap;overflow-wrap:anywhere">@entry.Note</p> }
+            else if (entry.Status == OverduePlan.Event) { <p><span data-i18n>Agreement version</span> @entry.Note</p> }
+            else if (entry.Status == CompletionFollowUp.Requested) { <p><span data-i18n>Report</span> #@entry.Note</p> }
+            else if (!string.IsNullOrWhiteSpace(entry.Note)) { <p translate="no" style="white-space:pre-wrap;overflow-wrap:anywhere">@entry.Note</p> }
             @if (entry.PhotoType is not null) { <a href="/Tracking?handler=CompletionPhoto&amp;eventId=@entry.Id" target="_blank" rel="noopener" data-i18n>View attached completion proof</a> }
         </div></li>
     }

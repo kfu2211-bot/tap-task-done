@@ -89,7 +89,7 @@ public class NotificationsModel(ApplicationDbContext db) : PageModel
             "message" => RedirectToPage("/Messages", new { taskId = item.TaskId, conversationId = item.ConversationId }),
             "dispute" => RedirectToPage("/Reports"),
             "booking_request" => RedirectToPage("/MyJobs", new { view = "requests" }),
-            "accepted" or "schedule_24h" or "schedule_1h" or "schedule_overdue" or "cancellation" or "cancellation_followup" => RedirectToPage("/Tracking", new { taskId = item.TaskId }),
+            "completion_review" or "accepted" or "schedule_24h" or "schedule_1h" or "schedule_overdue" or "cancellation" or "cancellation_followup" => RedirectToPage("/Tracking", new { taskId = item.TaskId }),
             "schedule_updated" => RedirectToPage("/JobRecord", new { taskId = item.TaskId }),
             "completed" or "on-the-way" or "arrived" or "started" or "finished" or "booking_accepted" or "completion_reminder" or "agreement" => RedirectToPage("/Tracking", new { taskId = item.TaskId }),
             "moderation" => RedirectToPage("/MarketTasks", null, new { view = "mine" }, "task-" + item.TaskId),

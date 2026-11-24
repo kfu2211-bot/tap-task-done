@@ -10,6 +10,7 @@ namespace tts.Pages;
 public class ReviewProfileModel(ApplicationDbContext db) : PageModel
 {
     public string DisplayName { get; private set; } = "";
+    public string BackUrl { get; private set; } = "/Dashboard";
     public string ProfileRole { get; private set; } = "";
     public string Availability { get; private set; } = "";
     public bool CanOpenBooking { get; private set; }
@@ -24,8 +25,9 @@ public class ReviewProfileModel(ApplicationDbContext db) : PageModel
     public List<ServiceRatingItem> RatingItems { get; private set; } = [];
     public record Item(string Name, int Rating, string Feedback, DateTime CreatedAt);
 
-    public async Task<IActionResult> OnGetAsync(int id, string? role, CancellationToken ct)
+    public async Task<IActionResult> OnGetAsync(int id, string? role, CancellationToken ct, string? returnUrl = null)
     {
+        BackUrl = WorkspaceNavigation.ProfileBack(Request, returnUrl);
         var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == id, ct);
         if (user is null || user.Role == "deleted") return NotFound();
         ProfileId = id;

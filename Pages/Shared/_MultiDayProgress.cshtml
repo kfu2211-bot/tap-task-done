@@ -1,0 +1,18 @@
+@model tts.Data.JobFlowView
+@using tts.Data
+@if (Model.Task.JobType == "multi-day" && Model.Task.Status is "assigned" or "on-the-way" or "arrived" or "in-progress" or "awaiting-confirmation") {
+    var updates = Model.Events.Where(e => e.Status == JobDailyUpdate.Event).OrderByDescending(e => e.Id).ToList();
+    <section class="job-flow-card" id="multi-day-@Model.Task.Id">
+        <div class="work-section-heading"><h3 data-i18n>Project progress</h3><span class="work-status" data-status="@Model.Task.Status">@TaskProgress.Label(Model.Task.Status)</span></div>
+        <dl class="job-flow-facts"><div><dt data-i18n>Work period starts</dt><dd>@TaskSchedule.Display(Model.Task.ScheduleText)</dd></div><div><dt data-i18n>Whole project expected finish</dt><dd>@(Model.Task.WorkEndUtc is { } end ? DisplayTime.Philippine(end) + " PHT" : "To be agreed")</dd></div></dl>
+        <p class="work-help" data-i18n>Record any planned visits in the work scope. Both participants approve changes to visit times in Tracking.</p>
+        <details class="work-editor" open="@(updates.Count > 0)"><summary><span data-i18n>Daily updates</span><span class="work-optional-tag" data-i18n>Optional</span></summary>
+            @if (updates.Count == 0) { <p class="work-help" data-i18n>No progress updates yet. Daily notes are optional.</p> }
+            <ol class="job-flow-log">@foreach (var entry in updates) { <li><time>@DisplayTime.Philippine(entry.CreatedAtUtc) PHT</time><p translate="no">@entry.Note</p></li> }</ol>
+            @if (!Model.IsClient && Model.Task.Status == "in-progress" && Model.Agreement?.Confirmed == true && Model.Events.LastOrDefault(e => e.Status is TaskProgress.CancellationRequested or TaskProgress.CancellationDeclined)?.Status != TaskProgress.CancellationRequested) {
+                <form method="post" asp-page="/Tracking" asp-page-handler="DailyUpdate" class="work-form"><input name="id" type="hidden" value="@Model.Task.Id" /><label><span data-i18n>Progress update</span><textarea name="note" rows="3" maxlength="1000" required></textarea></label><button class="work-button" type="submit" data-i18n>Add progress update</button></form>
+            }
+        </details>
+        <p class="work-help" data-i18n>Daily notes do not complete a visit or release work restrictions. Mark work finished only when the whole project is ready for client review.</p>
+    </section>
+}

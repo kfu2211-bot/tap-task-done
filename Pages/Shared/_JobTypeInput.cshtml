@@ -2,12 +2,13 @@
 @{ var id = "job-type-" + Guid.NewGuid().ToString("N"); }
 <div class="post-field job-type-field" data-job-type-field data-require-end="@(Model.RequireEnd ? "true" : "false")">
     <label for="@id">Job type</label>
-    <select id="@id" name="jobType" required>
+    <select id="@id" name="jobType" required aria-describedby="@(id)-help">
         <option value="" disabled selected="@(!tts.Data.JobTypes.Valid(Model.Value))" hidden>Choose job type</option>
-        <option value="short" selected="@(Model.Value == "short")">Short Job</option>
-        <option value="long" selected="@(Model.Value == "long")">Long Job</option>
-        <option value="multi-day" selected="@(Model.Value == "multi-day")">Multi-Day Job</option>
+        <option value="short" data-help="@tts.Data.JobTypes.Help("short")" selected="@(Model.Value == "short")">Short Job</option>
+        <option value="long" data-help="@tts.Data.JobTypes.Help("long")" selected="@(Model.Value == "long")">Long Job</option>
+        <option value="multi-day" data-help="@tts.Data.JobTypes.Help("multi-day")" selected="@(Model.Value == "multi-day")">Multi-Day Job</option>
     </select>
+    <p id="@(id)-help" class="job-type-explanation" data-job-type-help data-default-help="@tts.Data.JobTypes.Help(null)" data-i18n aria-live="polite">@tts.Data.JobTypes.Help(Model.Value)</p>
     <small data-i18n>Choose the work category. Set the actual work date and time separately.</small>
     <label for="@(id)-end">Expected finish (Philippine time)</label>
     <input id="@(id)-end" type="datetime-local" name="workEnd" step="60" value="@Model.WorkEndUtc?.AddHours(8).ToString("yyyy-MM-ddTHH:mm")" data-job-end required />

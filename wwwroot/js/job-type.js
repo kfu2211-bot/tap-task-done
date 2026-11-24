@@ -5,6 +5,8 @@
         const form = type.form;
         function update() {
             const multi = type.value === 'multi-day';
+            const help = root.querySelector('[data-job-type-help]');
+            if(help) { const source = type.selectedOptions[0]?.dataset.help || help.dataset.defaultHelp; help.textContent = window.ttsTranslate?.(source) || source; }
             end.required = true;
             for (const control of form.querySelectorAll('#preferredDateInput, #preferredTimeInput')) control.required = true;
             const date = form.querySelector('#preferredDateInput');

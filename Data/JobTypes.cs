@@ -6,6 +6,12 @@ public static class JobTypes
     public const string ScheduleMessage = "Choose a start and expected finish for every job. Finish must be after start; Short/Long jobs finish on the same date, and Multi-Day jobs finish on a later date.";
     public const string IncompleteScheduleMessage = "The schedule is incomplete. Ask the client to set a start and expected finish before accepting.";
     public static bool Valid(string? value) => value is "short" or "long" or "multi-day";
+    public static string Help(string? value) => value switch {
+        "short" => "Short Job: same-day work. Schedules cannot overlap, and you can travel or work on only one job at a time. New work is not locked while waiting for completion review.",
+        "long" => "Long Job: same-day work with an exclusive work restriction. Once travel starts, new applications and acceptances stay locked until confirmed completion or approved resolution.",
+        "multi-day" => "Multi-Day Job: work across different dates. The full period is reserved. Once travel starts, new applications and acceptances stay locked until confirmed completion or approved resolution.",
+        _ => "Choose a job type to see its schedule and availability rules."
+    };
     public static string Label(string? value) => value switch {
         "short" => "Short Job", "long" => "Long Job", "multi-day" => "Multi-Day Job", _ => "Not classified"
     };

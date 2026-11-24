@@ -142,400 +142,7 @@
 
             <!-- ================= TRACKING CONTENT ================= -->
 
-            @if (Request.Query["legacy"] == "1") {
-            <section class="tracking-content">
-                <p class="tracking-legacy-note">Older browser-saved tracking; this is not connected to MySQL. <a href="/Tracking" data-i18n>Back to current tracking</a></p>
-
-
-                <!-- TASK SELECTOR -->
-
-                <div class="task-selector">
-
-                    <button class="task-tab selected" type="button">
-                        Fix leaking kitchen faucet
-                    </button>
-
-                </div>
-
-                <section class="tracking-overview" aria-label="Task overview">
-                    <div class="tracking-overview-heading">
-                        <div class="tracking-task-icon">⌁</div>
-                        <div>
-                            <span class="overview-eyebrow" data-i18n>Active task</span>
-                            <h2 id="taskOverviewTitle">Fix leaking kitchen faucet</h2>
-                            <p id="taskOverviewMeta">Repairs · Bacolor, Pampanga</p>
-                        </div>
-                        <div class="status-badge" id="statusBadge">
-                            <span>●</span>
-                            <span id="statusText" data-i18n>On the way</span>
-                        </div>
-                    </div>
-
-                    <div class="tracking-summary-grid">
-                        <div class="tracking-summary-card">
-                            <span class="summary-icon">▣</span>
-                            <div><span data-i18n>Budget</span><strong id="trackingBudget">₱600</strong></div>
-                        </div>
-                        <div class="tracking-summary-card">
-                            <span class="summary-icon">◷</span>
-                            <div><span data-i18n>Schedule</span><strong id="trackingSchedule">To be scheduled</strong></div>
-                        </div>
-                        <div class="tracking-summary-card">
-                            <span class="summary-icon">◉</span>
-                            <div><span data-i18n>Status</span><strong id="trackingStatusSummary">On the way</strong></div>
-                        </div>
-                    </div>
-                </section>
-
-
-                <div class="tracking-grid">
-
-
-                    <!-- ================= LEFT TRACKING CARD ================= -->
-
-                    <div class="tracking-card">
-
-                        <div class="tracking-card-header">
-
-                            <div>
-
-                                <h2 id="taskTitle">
-                                    Fix leaking kitchen faucet
-                                </h2>
-
-                                <span class="live-status" data-i18n>
-                                    Live status
-                                </span>
-
-                            </div>
-
-
-                        </div>
-
-
-                        <!-- TIMELINE -->
-
-                        <div class="timeline">
-
-
-                            <!-- TASK CONFIRMED -->
-
-                            <div class="timeline-row completed">
-
-                                <div class="timeline-marker">
-                                    ✓
-                                </div>
-
-                                <div class="timeline-info">
-
-                                    <div class="timeline-title">
-                                        <strong>Task confirmed</strong>
-                                        <span>9:40 AM</span>
-                                    </div>
-
-                                    <p>
-                                        Booking accepted by Ofrac
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- PREPARING -->
-
-                            <div class="timeline-row completed">
-
-                                <div class="timeline-marker">
-                                    ✓
-                                </div>
-
-                                <div class="timeline-info">
-
-                                    <div class="timeline-title">
-                                        <strong>Preparing</strong>
-                                        <span>10:15 AM</span>
-                                    </div>
-
-                                    <p data-i18n>
-                                        Gathering tools &amp; parts
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- ON THE WAY -->
-
-                            <div class="timeline-row active" id="onTheWayStep">
-
-                                <div class="timeline-marker">
-                                    ➤
-                                </div>
-
-                                <div class="timeline-info">
-
-                                    <div class="timeline-title">
-                                        <strong>On the way</strong>
-                                        <span>1:45 PM</span>
-                                    </div>
-
-                                    <p>
-                                        Arriving in ~15 min
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- IN PROGRESS -->
-
-                            <div class="timeline-row" id="inProgressStep">
-
-                                <div class="timeline-marker">
-                                    ◷
-                                </div>
-
-                                <div class="timeline-info">
-
-                                    <div class="timeline-title">
-                                        <strong>In progress</strong>
-                                    </div>
-
-                                    <p data-i18n>
-                                        Working on your task
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- COMPLETED -->
-
-                            <div class="timeline-row" id="completedStep">
-
-                                <div class="timeline-marker">
-                                    ◷
-                                </div>
-
-                                <div class="timeline-info">
-
-                                    <div class="timeline-title">
-                                        <strong>Completed</strong>
-                                    </div>
-
-                                    <p id="completedDescription" data-i18n>
-                                        Task finished &amp; confirmed
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                        </div>
-
-
-                        <!-- COMPLETE BUTTON -->
-
-                        <div class="completion-area">
-
-                            <button id="completeButton"
-                                    class="complete-button"
-                                    type="button"
-                                    disabled>
-
-                                Mark as complete
-
-                            </button>
-
-                            <p id="completionMessage" data-i18n>
-                                Waiting for the freelancer to finish the task.
-                            </p>
-
-                            <button id="demoFinishTaskButton"
-                                    class="demo-finish-button"
-                                    type="button">
-                                Start work
-                            </button>
-
-                        </div>
-
-
-                    </div>
-
-
-                    <!-- ================= RIGHT SIDE ================= -->
-
-                    <div class="right-column">
-
-
-                        <!-- PROVIDER CARD -->
-
-                        <div class="provider-card">
-
-                            <div class="provider-top">
-
-                                <div class="provider-avatar">
-                                    Of
-                                </div>
-
-                                <div class="provider-info">
-
-                                    <strong>Ofrac</strong>
-
-                                    <span data-i18n>Plumber</span>
-
-                                    <small id="providerRating" data-i18n>★ New freelancer</small>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="provider-actions">
-                                <a id="messageProviderButton" class="message-button" href="/Messages" data-i18n>
-                                    □&nbsp;&nbsp; Message
-                                </a>
-
-                                <button type="button" id="reportProviderButton" class="report-provider-button">
-                                    ⚑&nbsp;&nbsp; Report
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- ================= MAP ================= -->
-
-                        <div class="map-card">
-
-                            <div class="map-grid">
-
-                                <div class="map-road road-one"></div>
-                                <div class="map-road road-two"></div>
-                                <div class="map-road road-three"></div>
-
-                                <div class="map-location">
-                                    <span>⌖</span>
-                                </div>
-
-                            </div>
-
-
-                            <div class="arrival-info">
-
-                                <span class="arrival-icon">
-                                    ◷
-                                </span>
-
-                                <span data-i18n>
-                                    Estimated arrival:
-                                </span>
-
-                                <strong>
-                                    2:00 PM
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-
-                    </div>
-
-                </div>
-
-
-                <!-- REVIEW NOTICE -->
-
-                <div id="completeTaskModal"
-                     class="complete-task-modal hidden"
-                     role="dialog"
-                     aria-modal="true"
-                     aria-labelledby="completeTaskModalTitle">
-
-                    <div class="complete-task-dialog">
-                        <div class="complete-task-dialog-header">
-                            <div class="complete-task-icon">✓</div>
-                            <button type="button" id="closeCompletionModal" class="close-completion-modal" aria-label="Close">×</button>
-                        </div>
-                        <span class="complete-task-eyebrow" data-i18n>WORK COMPLETE</span>
-                        <h2 id="completeTaskModalTitle">Review the finished work</h2>
-                        <p class="complete-task-copy" data-i18n>
-                            Check that everything is complete before you confirm and leave a rating.
-                        </p>
-
-                        <div class="complete-task-summary">
-                            <div class="complete-summary-item">
-                                <span data-i18n>Task</span>
-                                <strong id="completeModalTaskTitle">Your task</strong>
-                            </div>
-                            <div class="complete-summary-item">
-                                <span data-i18n>Provider</span>
-                                <strong id="completeModalProvider">Provider</strong>
-                            </div>
-                            <span class="work-finished-chip" data-i18n>✓ Work marked finished</span>
-                        </div>
-
-                        <p class="completion-help" data-i18n>ⓘ Need something fixed? Message the provider before confirming.</p>
-
-                        <div class="complete-task-actions">
-                            <button type="button" id="notYetButton" class="not-yet-button">
-                                Not yet
-                            </button>
-                            <button type="button" id="confirmCompletionButton" class="confirm-completion-button">
-                                Confirm &amp; rate provider
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div id="reviewNotice"
-                     class="review-notice">
-
-                    <form class="review-form" id="reviewForm">
-                        <div class="review-provider">
-                            <div class="review-avatar">Of</div>
-                            <div>
-                                <h2>Rate your task</h2>
-                                <p>★ Ofrac · 4.8 (600 reviews)</p>
-                            </div>
-                        </div>
-
-                        <p class="rating-prompt" data-i18n>How was your experience?</p>
-                        <div class="star-picker" role="radiogroup" aria-label="Task rating">
-                            <button type="button" data-rating="1" aria-label="1 star">☆</button>
-                            <button type="button" data-rating="2" aria-label="2 stars">☆</button>
-                            <button type="button" data-rating="3" aria-label="3 stars">☆</button>
-                            <button type="button" data-rating="4" aria-label="4 stars">☆</button>
-                            <button type="button" data-rating="5" aria-label="5 stars">☆</button>
-                        </div>
-
-                        <p class="review-label" data-i18n>What stood out?</p>
-                        <div class="review-tags">
-                            <button type="button">Punctual</button>
-                            <button type="button">Professional</button>
-                            <button type="button">Great value</button>
-                            <button type="button">Clean work</button>
-                            <button type="button">Friendly</button>
-                        </div>
-
-                        <label class="review-label" for="reviewFeedback">Leave feedback</label>
-                        <textarea id="reviewFeedback" placeholder="Share details about your experience..."></textarea>
-                        <button id="submitReviewButton" class="submit-review-button" type="submit" disabled>Submit review</button>
-                    </form>
-
-                </div>
-
-
-            </section>
-            } else {
+            @{
             <section class="tracking-content db-tracking">
                 <style>
                     .db-tracking .db-tracking-header h2,.db-tracking .db-tracking-card h3 { color:#143d31; }
@@ -625,24 +232,25 @@
                     var status = Array.IndexOf(TaskProgress.States, task.Status);
                     var label = TaskSchedule.DisplayStatus(task, DateTime.UtcNow);
                     var steps = TaskProgress.Labels;
-                    <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><span class="db-tracking-status" data-status="@label">@label</span></div>
-                    <div class="db-tracking-details"><div><span data-i18n>Job type</span><strong>@task.JobTypeDisplay</strong></div><div><span data-i18n>Expected finish</span><strong>@(task.WorkEndUtc?.AddHours(8).ToString("MMM d, yyyy h:mm tt") ?? "To be agreed")</strong></div><div><span data-i18n>Client</span><strong>@item.Client</strong></div><div><span data-i18n>Freelancer</span><strong>@item.Freelancer</strong></div><div><span data-i18n>Task budget</span><strong>@task.BudgetDisplay</strong></div><div><span data-i18n>Schedule</span><strong>@TaskSchedule.Display(task.ScheduleText)</strong></div></div>
+                    var jobEvents = Model.Progress.Where(e => e.TaskId == task.Id).ToList();
+                    var flow = new JobFlowView(task, jobEvents, Model.Agreements.GetValueOrDefault(task.Id), item.IsClient, item.FreelancerId, DateTime.UtcNow);
+                    var cancellationPending = jobEvents.LastOrDefault(e => e.Status is TaskProgress.CancellationRequested or TaskProgress.CancellationDeclined)?.Status == TaskProgress.CancellationRequested;
+                    <article class="db-tracking-card"><div class="db-tracking-card-head"><div><span class="db-tracking-eyebrow">@(item.IsClient ? "YOUR POSTED TASK" : "YOUR ACCEPTED JOB")</span><h3>@task.Title</h3><p>@task.Category · @task.Location</p></div><div class="tracking-price-status"><div class="tracking-agreed-price"><span data-i18n>Agreed price</span><strong>₱@item.AgreedPrice.ToString("N2")</strong></div><span class="db-tracking-status" data-status="@label">@label</span></div></div>
+                    <div class="db-tracking-details"><div><span data-i18n>Job type</span><strong>@task.JobTypeDisplay</strong></div><div><span data-i18n>Expected finish</span><strong>@(task.WorkEndUtc?.AddHours(8).ToString("MMM d, yyyy h:mm tt") ?? "To be agreed")</strong></div><div><span data-i18n>Client</span><strong>@item.Client</strong></div><div><span data-i18n>Freelancer</span><strong>@item.Freelancer</strong></div><div><span data-i18n>Schedule</span><strong>@TaskSchedule.Display(task.ScheduleText)</strong></div></div>
                     @if (Model.IsHistory) {
-                    var acceptedTerms = Model.AgreementHistory.FirstOrDefault(a => a.TaskId == task.Id && a.Confirmed);
-                    <section class="tracking-history-overview"><h4 data-i18n>Task details</h4><p translate="no">@task.Description</p><dl><div><dt data-i18n>Service</dt><dd>@task.CategoryDisplay</dd></div>@if (acceptedTerms is not null) { <div><dt data-i18n>Agreed price</dt><dd>₱@acceptedTerms.Price.ToString("N2")</dd></div> }</dl><p class="work-help" data-i18n>Task details, progression, schedule changes and completion proof are kept together in this history.</p></section>
+                    <section class="tracking-history-overview"><h4 data-i18n>Task details</h4><p translate="no">@task.Description</p><dl><div><dt data-i18n>Service</dt><dd>@task.CategoryDisplay</dd></div></dl><p class="work-help" data-i18n>Task details, progression, schedule changes and completion proof are kept together in this history.</p></section>
                     }
                     <div class="tracking-detail-layout tracking-workspace"><section class="tracking-panel tracking-progress-column"><h4>@(Model.IsHistory ? "Recorded progression" : "Task progress")</h4>
                     @if (Model.IsHistory) { <partial name="_TaskHistory" model="Model" /> }
-                    @if (!Model.IsHistory && status >= 0) { var descriptions = new[] { "The booking or offer has been accepted.", "The freelancer is travelling to the work location.", "The freelancer has confirmed arrival. Travel tracking stops.", "The freelancer is performing the agreed work.", "The client reviews the finished work and any optional details.", "The client has confirmed completion. Reviews are available." }; <ol class="tracking-timeline">@for (var i = 0; i < steps.Length; i++) { <li class="@(i == 0 ? "done" : status == i ? "current" : status > i ? "done" : "")"><span>@(i == 0 || status > i ? "✓" : (i + 1).ToString())</span><div>@steps[i]<small>@descriptions[i]</small>
+                    @if (!Model.IsHistory && status >= 0) { var descriptions = new[] { "The booking or offer has been accepted.", "The freelancer is travelling to the work location.", "The freelancer has confirmed arrival. Travel tracking stops.", "The freelancer is performing the agreed work.", "The client reviews the finished work and any optional details.", "Completion has been confirmed. Reviews are available." }; <ol class="tracking-timeline">@for (var i = 0; i < steps.Length; i++) { <li class="@(i == 0 ? "done" : status == i ? "current" : status > i ? "done" : "")"><span>@(i == 0 || status > i ? "✓" : (i + 1).ToString())</span><div>@steps[i]<small>@descriptions[i]</small>
 @{ var recorded = Model.Progress.LastOrDefault(x => x.TaskId == task.Id && x.Status == TaskProgress.States[i]); }
 @if (recorded is not null) { <small>@recorded.CreatedAtUtc.AddHours(8).ToString("MMM d, yyyy h:mm tt") PHT</small> }</div></li> }</ol> }
 
 @if (!string.IsNullOrEmpty(Model.Notice)) { <p role="status">@Model.Notice</p> }
 @if (Model.ProgressUnavailable) { <p role="alert" data-i18n>Progress updates need the task_progress_events database table.</p> }
 @{ var finished = Model.Progress.LastOrDefault(x => x.TaskId == task.Id && x.Status == "awaiting-confirmation"); }
-@if (task.Status == "awaiting-confirmation" && JobAcceptanceRules.RequiresCompletion(task.JobType, task.Status)) {
-    <p class="flow-notice" data-i18n>New work remains locked until client confirmation or approved resolution.</p>
-}
+<div data-flow-slot="multi" data-flow-key="@(flow.Agreement?.Version)-@(jobEvents.LastOrDefault()?.Id)-@CompletionFollowUp.Due(task, jobEvents, flow.Now)-@OverduePlan.Required(task, flow.Now)-@OverduePlan.Expired(task, flow.Now)-@OverduePlan.Ready(task, flow.Agreement, jobEvents, item.FreelancerId, flow.Now)-@JobCancellation.FollowUpDue(jobEvents.LastOrDefault(e => e.Status is TaskProgress.CancellationRequested or TaskProgress.CancellationDeclined), flow.Now)"><partial name="_MultiDayProgress" model="flow" /></div>
+<div data-flow-slot="completion" data-flow-key="@(flow.Agreement?.Version)-@(jobEvents.LastOrDefault()?.Id)-@CompletionFollowUp.Due(task, jobEvents, flow.Now)-@OverduePlan.Required(task, flow.Now)-@OverduePlan.Expired(task, flow.Now)-@OverduePlan.Ready(task, flow.Agreement, jobEvents, item.FreelancerId, flow.Now)-@JobCancellation.FollowUpDue(jobEvents.LastOrDefault(e => e.Status is TaskProgress.CancellationRequested or TaskProgress.CancellationDeclined), flow.Now)"><partial name="_CompletionFollowUp" model="flow" /></div>
 @if (finished is not null) { <partial name="_CompletionDetails" model="finished" /> }
 @if (finished is not null && !item.IsClient && task.Status == "awaiting-confirmation") {
     <details class="work-editor work-completion-editor"><summary>Edit completion note</summary>
@@ -653,9 +261,11 @@
     </details>
 }
 @if (!Model.IsHistory) {
-    <section class="tracking-next-step" data-tracking-next-step data-task-state="@task.Status" data-ready="@AgreementRules.CanProceed(Model.Agreements.GetValueOrDefault(task.Id)).ToString().ToLowerInvariant()">
+    <section class="tracking-next-step" data-tracking-next-step data-blocked="@cancellationPending.ToString().ToLowerInvariant()" data-task-state="@task.Status" data-ready="@AgreementRules.CanProceed(Model.Agreements.GetValueOrDefault(task.Id)).ToString().ToLowerInvariant()">
         <h4 data-i18n>Next step</h4>
-        @if (task.Status == "assigned" && !AgreementRules.CanProceed(Model.Agreements.GetValueOrDefault(task.Id))) {
+        @if (cancellationPending) { <strong data-i18n>Review the cancellation request</strong><a class="work-button work-button-secondary" href="#job-cancellation-@task.Id" data-i18n>Review request</a> }
+        else if (task.Status == "assigned" && (OverduePlan.Required(task, flow.Now) || OverduePlan.Expired(task, flow.Now)) && !OverduePlan.Ready(task, flow.Agreement, jobEvents, item.FreelancerId, flow.Now)) { <strong data-i18n>Review overdue schedule</strong><a class="work-button work-button-secondary" href="#overdue-plan-@task.Id" data-i18n>Review schedule</a> }
+        else if (task.Status == "assigned" && !AgreementRules.CanProceed(Model.Agreements.GetValueOrDefault(task.Id))) {
             <strong data-i18n>Confirm work details first</strong>
             <p data-i18n>Travel unlocks after both participants confirm the same work details.</p>
             <a class="work-button" href="#work-details-@task.Id" data-review-details data-i18n>Review details</a>
@@ -669,7 +279,7 @@
     </section>
 }
 <div class="tracking-actions tracking-current-actions">
-@if (!Model.ProgressUnavailable && task.Status == "on-the-way")
+@if (!cancellationPending && !Model.ProgressUnavailable && task.Status == "on-the-way")
 {
     var requested = Model.Progress.Any(x => x.TaskId == task.Id && x.Status == TaskProgress.ArrivalRequest);
     <section class="tracking-arrival" data-arrival-panel data-task-id="@task.Id" data-arrival-requested="@(requested ? "true" : "false")" aria-labelledby="arrivalTitle-@task.Id">
@@ -709,8 +319,10 @@
         }
     </section>
 }
-@if (task.Status == "assigned" && !AgreementRules.CanProceed(Model.Agreements.GetValueOrDefault(task.Id))) { <p class="flow-notice" data-i18n>Both participants must confirm work details before travel.</p> }
+@if (cancellationPending) { <p class="flow-notice" data-i18n>Resolve the cancellation request before changing task progress.</p> }
+else if (task.Status == "assigned" && !AgreementRules.CanProceed(Model.Agreements.GetValueOrDefault(task.Id))) { <p class="flow-notice" data-i18n>Both participants must confirm work details before travel.</p> }
 else if (task.Status == "assigned" && !JobTypes.ValidSchedule(task.JobType, task.ScheduleText, task.WorkEndUtc)) { <p class="flow-notice" data-i18n>Set a start and expected finish in the work agreement before starting travel.</p> }
+else if (task.Status == "assigned" && !OverduePlan.Ready(task, flow.Agreement, jobEvents, item.FreelancerId, flow.Now)) { <p class="flow-notice"><span data-i18n>Review the overdue schedule before travelling.</span> <a href="#overdue-plan-@task.Id" data-i18n>Review schedule</a></p> }
 else if (task.Status == "assigned" && !TaskSchedule.TravelOpen(task, DateTime.UtcNow)) { <p class="flow-notice" data-i18n>Travel opens 1 hour before the scheduled arrival time.</p> }
 else if (!Model.ProgressUnavailable && !item.IsClient && task.Status is "assigned" or "arrived" or "in-progress") {
 var action = task.Status switch { "assigned" => "travel", "on-the-way" => "arrive", "arrived" => "start", _ => "finish" };
@@ -720,44 +332,13 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
 @if (action == "travel") { <p data-i18n>Allow location access and keep Tracking open while travelling. Sharing stops when you mark your arrival.</p> }
 <button type="submit" class="tracking-primary">@button</button></form>
 }
-@if (!Model.ProgressUnavailable && item.IsClient && task.Status == "awaiting-confirmation") { <form method="post" asp-page-handler="Advance"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="confirm" /><button type="submit" class="tracking-primary">Confirm completion</button></form> }
+@if (!cancellationPending && !Model.ProgressUnavailable && item.IsClient && task.Status == "awaiting-confirmation") { <form method="post" asp-page-handler="Advance"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="action" value="confirm" /><button type="submit" class="tracking-primary">Confirm completion</button></form> }
 @if (task.Status == "disputed") { <p data-i18n>This older task is paused. Contact support through Safety &amp; Reports.</p> }
 @if (task.Status == "cancelled") { <p data-i18n>This task was cancelled.</p> }
 
 <a href="@(item.IsClient ? "/MarketTasks?view=mine" : (task.Status == "completed" ? "/MyJobs?view=completed" : task.Status == "cancelled" ? "/MyJobs?view=closed" : TaskSchedule.IsUpcoming(task, DateTime.UtcNow) ? "/MyJobs?view=scheduled" : "/MyJobs?view=active"))">@(item.IsClient ? "Open My Tasks" : "Open My Jobs")</a>
 </div>
-@{
-    var cancellation = Model.Progress.LastOrDefault(e => e.TaskId == task.Id &&
-        (e.Status == TaskProgress.CancellationRequested || e.Status == TaskProgress.CancellationDeclined));
-}
-@if (JobCancellation.CanRequest(task.Status)) {
-    if (cancellation?.Status == TaskProgress.CancellationRequested) {
-        <section class="tracking-completion"><h3>Cancellation requested</h3><p>@cancellation.Note</p>
-        <p data-i18n>Discuss any work and payment already agreed upon in Messages.</p>
-        @if (item.IsClient) {
-            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" />
-                <button name="decision" value="accept" type="submit">Approve cancellation</button>
-                <button name="decision" value="decline" type="submit">Keep job active</button>
-            </form>
-        } else { <p data-i18n>Waiting for the client's decision.</p> }
-        @if (Model.Progress.LastOrDefault(e => e.TaskId == task.Id && e.Status == JobCancellation.Escalated && e.Id > cancellation.Id) is { } followUpEvent) {
-            <p class="flow-notice" data-i18n>This cancellation is already with the admin for review.</p>
-            @if (User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == followUpEvent.ActorId.ToString()) { <a href="/Reports?taskId=@task.Id" data-i18n>View report updates</a> }
-        } else if (JobCancellation.FollowUpDue(cancellation, DateTime.UtcNow)) {
-            <div class="flow-notice"><strong data-i18n>No cancellation decision after 24 hours.</strong><p data-i18n>You can request admin review. No automatic cancellation or penalty applies.</p>
-            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" /><button name="decision" value="escalate" type="submit" class="flow-button">Ask admin for review</button></form></div>
-        } else { <p class="flow-muted" data-i18n>Admin follow-up becomes available after 24 hours without a decision.</p> }
-        </section>
-    } else if (!item.IsClient) {
-        <details class="work-editor work-cancellation-editor"><summary>Request cancellation</summary>
-            <form method="post" asp-page-handler="Cancellation"><input type="hidden" name="id" value="@task.Id" /><input type="hidden" name="decision" value="request" />
-                <label>Reason<textarea name="reason" required maxlength="500" rows="3"></textarea></label>
-                <p data-i18n>The client will review your request. Discuss completed work and payment in Messages.</p>
-                <button type="submit">Send cancellation request</button>
-            </form>
-        </details>
-    }
-}
+<div data-flow-slot="cancellation" data-flow-key="@(flow.Agreement?.Version)-@(jobEvents.LastOrDefault()?.Id)-@CompletionFollowUp.Due(task, jobEvents, flow.Now)-@OverduePlan.Required(task, flow.Now)-@OverduePlan.Expired(task, flow.Now)-@OverduePlan.Ready(task, flow.Agreement, jobEvents, item.FreelancerId, flow.Now)-@JobCancellation.FollowUpDue(jobEvents.LastOrDefault(e => e.Status is TaskProgress.CancellationRequested or TaskProgress.CancellationDeclined), flow.Now)"><partial name="_JobCancellation" model="flow" /></div>
 @if (task.Status == "completed")
 {
     var canReviewFreelancer = item.FreelancerId > 0 && !await Model.HasReviewAsync(task.Id, !item.IsClient);
@@ -816,6 +397,7 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
         <p data-i18n>The scheduled time is your arrival time. Travel opens 1 hour earlier.</p>
         @if (scheduleStatus is "Due now" or "Schedule overdue") { <p data-i18n>No travel update is recorded. Contact each other to confirm whether work will proceed. Passing the scheduled time does not complete or cancel this job.</p> }
         <div class="tracking-actions"><a href="/Messages?taskId=@task.Id">Message @(item.IsClient ? "freelancer" : "client")</a><a href="#work-details-@task.Id" data-i18n>Request reschedule</a><a href="/Reports?taskId=@task.Id" data-i18n>Report a problem</a></div>
+        <div data-flow-slot="plan" data-flow-key="@(flow.Agreement?.Version)-@(jobEvents.LastOrDefault()?.Id)-@CompletionFollowUp.Due(task, jobEvents, flow.Now)-@OverduePlan.Required(task, flow.Now)-@OverduePlan.Expired(task, flow.Now)-@OverduePlan.Ready(task, flow.Agreement, jobEvents, item.FreelancerId, flow.Now)-@JobCancellation.FollowUpDue(jobEvents.LastOrDefault(e => e.Status is TaskProgress.CancellationRequested or TaskProgress.CancellationDeclined), flow.Now)"><partial name="_OverduePlan" model="flow" /></div>
         <p data-i18n>To reschedule, request changes to the work details below. The current schedule stays in effect until both of you confirm the updated version.</p>
     </section>
 }
@@ -830,11 +412,6 @@ var button = action switch { "travel" => "Start travel & share location", "arriv
         </main>
 
     </div>
-
-
-    @if (Request.Query["legacy"] == "1") { <script src="~/js/tracking.js" asp-append-version="true"></script> }
-
-
 <script src="~/js/completion-photo.js" asp-append-version="true" defer></script>
 <script src="~/js/job-location.js" asp-append-version="true" defer></script>
 
